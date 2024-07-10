@@ -1,0 +1,213 @@
+<p-toast></p-toast>
+
+<div
+    class="surface-ground flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden"
+>
+    <!--
+        <img
+            src="assets/icon/fondo.png"
+            alt="Sakai logo"
+            class="mb-5 w-6rem flex-shrink-0"
+        />-->
+    <div class="flex flex-column align-items-center justify-content-center">
+        <p-image
+            src="assets/icon/ESMERALDAS_LA_BELLA.png"
+            alt="Image"
+            width="350"
+            class="mb-5"
+        ></p-image>
+        <div
+            style="
+                border-radius: 56px;
+                padding: 0.3rem;
+                background: linear-gradient(
+                    180deg,
+                    var(--primary-color) 10%,
+                    rgba(33, 150, 243, 0) 30%
+                );
+            "
+        >
+            <div
+                class="w-full surface-card py-4 px-5 sm:px-8"
+                style="border-radius: 53px"
+            >
+                <div class="text-center mb-5">
+                    <p-avatar
+                        size="xlarge"
+                        shape="circle"
+                        [style]="{ width: '9rem', height: '9rem' }"
+                    >
+                        <img
+                            [src]="
+                                fotoUsuario
+                                    ? url +
+                                      'helper/obtener_portada_avatar/' +
+                                      fotoUsuario
+                                    : 'assets/icon/silueta.png'
+                            "
+                            alt="Image"
+                            height="150"
+                            class="mb-3"
+                        />
+                    </p-avatar>
+                    <div class="text-900 text-3xl font-medium mb-3">
+                        <span *ngIf="nombreUsuario"
+                            >¡Bienvenido, <br />
+                            {{ nombreUsuario }}!</span
+                        >
+                        <span *ngIf="!nombreUsuario">¡Bienvenido!</span>
+                    </div>
+                    <span class="text-600 font-medium"
+                        >Ingresa para continuar</span
+                    >
+                </div>
+
+                <form [formGroup]="loginForm" (ngSubmit)="postLogin()">
+                    <label
+                        for="correo"
+                        class="block text-900 text-xl font-medium mb-2"
+                        >Correo electrónico</label
+                    >
+                    <input
+                        id="correo"
+                        type="text"
+                        formControlName="correo"
+                        placeholder="Correo Eléctronico"
+                        pInputText
+                        class="w-full p-3 md:w-30rem mb-5"
+                    />
+
+                    <label
+                        for="password1"
+                        class="block text-900 font-medium text-xl mb-2"
+                        >Contraseña</label
+                    >
+                    <p-password
+                        id="password1"
+                        formControlName="pass"
+                        placeholder="Contraseña"
+                        styleClass="w-full md:w-30rem mb-5 custom-password-eye"
+                        [toggleMask]="true"
+                        inputStyleClass="w-full p-3 md:w-30rem"
+                        [feedback]="false"
+                    ></p-password>
+
+                    <div
+                        class="flex align-items-center justify-content-between mb-5 gap-5"
+                    >
+                        <div class="flex align-items-center">
+                            <p-checkbox
+                                id="rememberme1"
+                                [binary]="true"
+                                styleClass="mr-2"
+                                formControlName="save"
+                            ></p-checkbox>
+                            <label for="rememberme1"
+                                >Recordar dispositivo</label
+                            >
+                        </div>
+                        <a
+                            class="font-medium no-underline ml-2 text-right cursor-pointer"
+                            style="color: var(--primary-color)"
+                            [routerLink]="'/auth/signup'"
+                            >No tienes una cuenta?</a
+                        >
+                    </div>
+                    <div
+                        class="flex align-items-center justify-content-end mb-5 gap-5"
+                    >
+                        <a
+                            class="font-medium no-underline ml-2 text-right cursor-pointer"
+                            style="color: var(--primary-color)"
+                            [routerLink]="'/auth/recovery'"
+                            >Olvidates tu contraseña?</a
+                        >
+                    </div>
+                    <div class="flex flex-column align-items-center">
+                        <button
+                            pButton
+                            pRipple
+                            label="Iniciar Sesión"
+                            class="w-full p-3 text-xl"
+                            type="submit"
+                            [rounded]="true"
+                        ></button>
+                    </div>
+                    <!-- Botones de inicio de sesión con Facebook y Google -->
+                    <div class="flex flex-column align-items-center my-3">
+                        <div class="row">
+                            <p-button
+                                [text]="true"
+                                [raised]="true"
+                                size="large"
+                                styleClass="py-3 pw-2 m-3"
+                                (click)="loginWithGoogle()"
+                                [rounded]="true"
+                            >
+                                <i
+                                    class="bi bi-browser-chrome"
+                                    style="width: auto; font-size: 2.5rem"
+                                ></i>
+                            </p-button>
+                            <ng-container *ngIf="IsMobil()">
+                                <p-button
+                                    [text]="true"
+                                    [raised]="true"
+                                    size="large"
+                                    styleClass="py-3 pw-2 m-3"
+                                    (click)="callBiometrico()"
+                                    [rounded]="true"
+                                >
+                                    <i
+                                        class="bi bi-fingerprint"
+                                        style="width: auto; font-size: 2.5rem"
+                                    >
+                                    </i>
+                                </p-button>
+                            </ng-container>
+                        </div>
+                        <!--
+                        <button
+                            pButton
+                            pRipple
+                            class="w-full p-3 text-xl"
+                            type="button"
+                            (click)="loginWithFacebook()"
+                            label="Iniciar sesión con Facebook"
+                            style="background-color: #3b5998; color: white"
+                            [rounded]="true"
+                        >
+                            <i class="pi pi-facebook mr-2"></i>
+                        </button>
+                        -->
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p-dialog [(visible)]="visible">
+    <ng-template pTemplate="headless">
+        <div class="flex flex-column px-8 py-5 gap-4" style="border-radius: 12px; background-image: radial-gradient(circle at left top, var(--primary-400), var(--primary-700))">
+            <div class="card flex justify-content-center">
+                <p-inputOtp [(ngModel)]="codevalid">
+                    <ng-template pTemplate="input" let-token let-events="events">
+                        <input 
+                            pInputText
+                            class="custom-otp-input" 
+                            (input)="events.input($event)" 
+                            (keydown)="events.keydown($event)" 
+                            type="text" 
+                            [attr.value]="token" 
+                            [maxLength]="1" />
+                    </ng-template>
+                </p-inputOtp>
+            </div>
+            <div class="flex align-items-center gap-2">
+                <p-button label="Enviar" (click)="verifiCode()" [text]="true" styleClass="p-3 w-full text-primary-50 border-1 border-white-alpha-30 hover:bg-white-alpha-10" class="w-full"  />
+                <p-button label="Cancelar" (click)="visible=false" [text]="true"  styleClass="p-3 w-full text-primary-50 border-1 border-white-alpha-30 hover:bg-white-alpha-10" class="w-full" />
+            </div>
+        </div>
+    </ng-template>
+</p-dialog>

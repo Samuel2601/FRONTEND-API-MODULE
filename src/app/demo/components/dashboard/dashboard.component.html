@@ -1,0 +1,114 @@
+<div class="grid">
+    <div class="col-12 lg:col-6 xl:col-3" *ngIf="notifica.maxbarrio">
+        <div class="card mb-0">
+            <div class="flex justify-content-between mb-3">
+                <div>
+                    <span class="block text-500 font-medium mb-3"
+                        >Sector con más reportes</span
+                    >
+                    <div class="text-900 font-medium text-xl">
+                        {{ notifica.maxbarrio.label }}
+                    </div>
+                </div>
+                <div
+                    class="flex align-items-center justify-content-center bg-red-100 border-round"
+                    [ngStyle]="{ width: '2.5rem', height: '2.5rem' }"
+                >
+                    <i class="pi pi-flag-fill text-red-500 text-xl"></i>
+                </div>
+            </div>
+            <span class="text-green-500 font-medium"
+                >{{ notifica.maxbarrio.valor }} Registros
+            </span>
+            <span class="text-500">en el último conteo</span>
+        </div>
+    </div>
+    <div class="col-12 lg:col-6 xl:col-3" *ngIf="notifica.maxincidente">
+        <div class="card mb-0">
+            <div class="flex justify-content-between mb-3">
+                <div>
+                    <span class="block text-500 font-medium mb-3"
+                        >Motivos de inconveniencia</span
+                    >
+                    <div class="text-900 font-medium text-xl">
+                        {{ notifica.maxincidente.label }}
+                    </div>
+                </div>
+                <div
+                    class="flex align-items-center justify-content-center bg-indigo-100 border-round"
+                    [ngStyle]="{ width: '2.5rem', height: '2.5rem' }"
+                >
+                    <i class="pi pi-comments text-indigo-500 text-xl"></i>
+                </div>
+            </div>
+            <span class="text-green-500 font-medium"
+                >{{ notifica.maxincidente.valor }} Registros
+            </span>
+            <span class="text-500"> en el último conteo</span>
+        </div>
+    </div>
+    <div class="col-12 lg:col-6 xl:col-3" *ngIf="notifica.maxfichabarrio">
+        <div class="card mb-0">
+            <div class="flex justify-content-between mb-3">
+                <div>
+                    <span class="block text-500 font-medium mb-3"
+                        >Sector de mayor actividad</span
+                    >
+                    <div class="text-900 font-medium text-xl">
+                        {{ notifica.maxfichabarrio.label }}
+                    </div>
+                </div>
+                <div
+                    class="flex align-items-center justify-content-center bg-purple-100 border-round"
+                    [ngStyle]="{ width: '2.5rem', height: '2.5rem' }"
+                >
+                    <i class="pi pi-thumbs-up-fill text-purple-500 text-xl"></i>
+                </div>
+            </div>
+            <span class="text-green-500 font-medium"
+                >{{ notifica.maxfichabarrio.valor }} Registros</span
+            >
+            <span class="text-500"> en el último conteo</span>
+        </div>
+    </div>
+    <div class="col-12 lg:col-6 xl:col-3" *ngIf="notifica.maxficha">
+        <div class="card mb-0">
+            <div class="flex justify-content-between mb-3">
+                <div>
+                    <span class="block text-500 font-medium mb-3"
+                        >Actividad más realizadas</span
+                    >
+                    <div class="text-900 font-medium text-xl">
+                        {{ notifica.maxficha.label }}
+                    </div>
+                </div>
+                <div
+                    class="flex align-items-center justify-content-center bg-orange-100 border-round"
+                    [ngStyle]="{ width: '2.5rem', height: '2.5rem' }"
+                >
+                    <i class="pi pi-tags text-orange-500 text-xl"></i>
+                </div>
+            </div>
+            <span class="text-green-500 font-medium"
+                >{{ notifica.maxficha.valor }} Registros</span
+            >
+            <span class="text-500"> en el último conteo</span>
+        </div>
+    </div>
+
+    <div class="col-12 xl:col-6">
+        <app-stack-barrios [modal]="false"></app-stack-barrios>
+        <app-stackbarrioficha [modal]="false"></app-stackbarrioficha>
+    </div>
+    <div class="col-12 xl:col-6">
+        
+        <app-stack-incidentes [modal]="true"></app-stack-incidentes>
+        <!--
+            <app-stack-fichas [modal]="true"></app-stack-fichas>
+        -->
+    </div>
+<!--
+    <div class="col-12">
+        <app-list-ficha></app-list-ficha>
+    </div>-->
+</div>

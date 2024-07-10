@@ -1,0 +1,141 @@
+<div class="card">
+    <div class="card-header">
+        <h2>
+            Listado de Subcategorías<span
+                *ngIf="!load_lista && subcategorias.length > 0 && id"
+                >: {{ subcategorias[0].categoria.nombre }}</span
+            >
+        </h2>
+    </div>
+    <div class="card-body">
+        <p-toast></p-toast>
+        <div class="table-responsive-sm">
+            <p-table [paginatorDropdownAppendTo]="'body'"
+                [value]="subcategorias"
+                dataKey="_id"
+                editMode="row"
+                *ngIf="subcategorias.length > 0 && !load_lista"
+                currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+            >
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Descripción</th>
+                        <th scope="col"></th>
+                    </tr>
+                </ng-template>
+                <ng-template
+                    pTemplate="body"
+                    let-categoria
+                    let-editing="editing"
+                    let-ri="rowIndex"
+                >
+                    <tr [pEditableRow]="categoria">
+                        <td>
+                            <p-cellEditor>
+                                <ng-template pTemplate="input">
+                                    <input
+                                        pInputText
+                                        type="text"
+                                        [(ngModel)]="categoria.nombre"
+                                        required
+                                        class="form-control"
+                                    />
+                                </ng-template>
+                                <ng-template pTemplate="output">
+                                    {{ categoria.nombre }}
+                                </ng-template>
+                            </p-cellEditor>
+                        </td>
+                        <td>
+                            <p-cellEditor>
+                                <ng-template pTemplate="input">
+                                    <input
+                                        pInputText
+                                        type="text"
+                                        [(ngModel)]="categoria.descripcion"
+                                        required
+                                        class="form-control"
+                                    />
+                                </ng-template>
+                                <ng-template pTemplate="output">
+                                    {{ categoria.descripcion }}
+                                </ng-template>
+                            </p-cellEditor>
+                        </td>
+                        <td>
+                            <div
+                                class="btn-group"
+                                role="group"
+                                aria-label="Acciones"
+                            >
+                                <div
+                                    class="flex align-items-center justify-content-center gap-2"
+                                >
+                                    <button
+                                        *ngIf="!editing"
+                                        pButton
+                                        pRipple
+                                        type="button"
+                                        pInitEditableRow
+                                        icon="bi bi-pencil"
+                                        (click)="onRowEditInit(categoria)"
+                                        class="p-button-rounded p-button-text mr-2 btn btn-primary"
+                                    ></button>
+                                    <button
+                                        *ngIf="editing"
+                                        pButton
+                                        pRipple
+                                        type="button"
+                                        pSaveEditableRow
+                                        icon="bi bi-floppy"
+                                        (click)="onRowEditSave(categoria)"
+                                        class="p-button-rounded p-button-text p-button-success mr-2 btn btn-success"
+                                    ></button>
+                                    <button
+                                        *ngIf="editing"
+                                        pButton
+                                        pRipple
+                                        type="button"
+                                        pCancelEditableRow
+                                        icon="bi bi-trash"
+                                        (click)="onRowEditCancel(categoria, ri)"
+                                        class="p-button-rounded p-button-text p-button-danger btn btn-danger"
+                                    ></button>
+                                </div>
+                                <button
+                                    *ngIf="!editing"
+                                    pButton
+                                    pRipple
+                                    type="button"
+                                    icon="bi bi-trash"
+                                    class="p-button-rounded p-button-text btn btn-danger"
+                                    (click)="confirmarEliminacion(categoria)"
+                                ></button>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+    <div
+        class="alert alert-info"
+        role="alert"
+        *ngIf="subcategorias.length == 0 && !load_lista"
+    >
+        No se han realizado registros de esta ubicación
+    </div>
+    <div class="card-body" aria-hidden="true" *ngIf="load_lista">
+        <h5 class="card-title placeholder-glow">
+            <span class="placeholder col-6"></span>
+        </h5>
+        <p class="card-text placeholder-glow">
+            <span class="placeholder col-7"></span>
+            <span class="placeholder col-4"></span>
+            <span class="placeholder col-4"></span>
+            <span class="placeholder col-6"></span>
+            <span class="placeholder col-8"></span>
+        </p>
+    </div>
+</div>

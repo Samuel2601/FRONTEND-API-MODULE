@@ -1,0 +1,52 @@
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-auto">
+                <h2>Nueva Categoría</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <p-toast></p-toast>
+        <div class="table-responsive-sm">
+            <form [formGroup]="categoriaForm" (ngSubmit)="registrarCategoria()">
+                <div class="p-fluid p-formgrid grid">
+                    <div class="field col-12 md:col-6">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input
+                            type="text"
+                            pInputText
+                            class="form-control"
+                            id="nombre"
+                            name="nombre"
+                            formControlName="nombre"
+                            required
+                        />
+                    </div>
+                    <div class="field col-12 md:col-6">
+                        <label for="descripcion" class="form-label"
+                            >Descripción</label
+                        >
+                        <textarea
+                            pInputTextarea
+                            class="form-control"
+                            id="descripcion"
+                            name="descripcion"
+                            formControlName="descripcion"
+                            required
+                        ></textarea>
+                    </div>
+                </div>
+
+                <button
+                    type="submit"
+                    pButton
+                    label="Guardar"
+                    class="btn btn-primary"
+                >
+                    <i class="bi bi-save"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

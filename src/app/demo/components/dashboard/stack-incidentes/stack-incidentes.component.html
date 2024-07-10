@@ -1,0 +1,212 @@
+
+<h4 *ngIf="!valor">Número de Incidentes por Categoría</h4>
+
+<div class="card">
+    <p-chart type="line" [data]="basicData" [options]="options"></p-chart>
+</div>
+<div class="card mt-5">
+  
+    <p-table [paginatorDropdownAppendTo]="'body'"
+        *ngIf="labelsmobil.length > 0"
+        [value]="labelsmobil"
+        [rows]="10"
+        [showCurrentPageReport]="true"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        [loading]="labelsmobil.length < 0"
+        [paginator]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+    >
+        <ng-template pTemplate="header">
+            <tr>
+                <th>N°</th>
+                <th>Incidentes por Categoría</th>
+                <th *ngFor="let item of basicData.datasets">
+                    {{ item.label }}
+                </th>
+                <th>Total</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item let-i="rowIndex">
+            <tr>
+                <td>{{ i + 1 }}:</td>
+                <td>{{ item }}</td>
+                <td *ngFor="let cont of basicData.datasets; let j = index">
+                    {{ cont.data[i].toString() }}
+                </td>
+                <td>{{ sumaValores[i].toString() }}</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<div class="card" *ngIf="!modal">
+    <p-table [paginatorDropdownAppendTo]="'body'"
+        styleClass="p-datatable-striped"
+        #dt1
+        [value]="constIncidente"
+        dataKey="_id"
+        [rows]="10"
+        [showCurrentPageReport]="true"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        [loading]="loading"
+        [paginator]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+        [globalFilterFields]="[
+            'direccion_geo.nombre',
+            'categoria.nombre',
+            'subcategoria.nombre',
+            'ciudadano.nombres',
+            'estado.nombre'
+        ]"
+        [sortMode]="'multiple'"
+    >
+        <ng-template pTemplate="caption">
+            <div class="flex">
+                <button
+                    pButton
+                    label=""
+                    class="p-button-outlined"
+                    icon="pi pi-filter-slash"
+                    (click)="clear(dt1)"
+                ></button>
+                <span class="p-input-icon-left ml-auto">
+                    <i class="pi pi-search"></i>
+                    <input
+                        pInputText
+                        type="text"
+                        (input)="
+                            dt1.filterGlobal(
+                                $any($event.target).value,
+                                'contains'
+                            )
+                        "
+                        placeholder="Search keyword"
+                    />
+                </span>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+            <tr>
+                <th style="width: 3rem">#</th>
+                <th style="min-width: 15rem">
+                    <div class="flex align-items-center">
+                        Dirección
+                        <p-columnFilter
+                            type="text"
+                            field="direccion_geo.nombre"
+                            display="menu"
+                        ></p-columnFilter>
+                        <th
+                            pSortableColumn="direccion_geo.nombre"
+                            style="width: 20%"
+                        >
+                            <p-sortIcon
+                                field="direccion_geo.nombre"
+                            ></p-sortIcon>
+                        </th>
+                    </div>
+                </th>
+                <th style="min-width: 15rem">
+                    <div class="flex align-items-center">
+                        Categoría
+                        <p-columnFilter
+                            type="text"
+                            field="categoria.nombre"
+                            display="menu"
+                        ></p-columnFilter>
+                        <th
+                            pSortableColumn="categoria.nombre"
+                            style="width: 20%"
+                        >
+                            <p-sortIcon
+                                field="categoria.nombre"
+                            ></p-sortIcon>
+                        </th>
+                    </div>
+                </th>
+                <th style="min-width: 15rem">
+                    <div class="flex align-items-center">
+                        Subcategoría
+                        <p-columnFilter
+                            type="text"
+                            field="subcategoria.nombre"
+                            display="menu"
+                        ></p-columnFilter>
+                        <th
+                            pSortableColumn="subcategoria.nombre"
+                            style="width: 20%"
+                        >
+                            <p-sortIcon
+                                field="subcategoria.nombre"
+                            ></p-sortIcon>
+                        </th>
+                    </div>
+                </th>
+                <th style="min-width: 15rem">
+                    <div class="flex align-items-center">
+                        Ciudadano
+                        <p-columnFilter
+                            type="text"
+                            field="ciudadano.nombres"
+                            display="menu"
+                        ></p-columnFilter>
+                        <th
+                            pSortableColumn="ciudadano.nombre"
+                            style="width: 20%"
+                        >
+                            <p-sortIcon
+                                field="ciudadano.nombre"
+                            ></p-sortIcon>
+                        </th>
+                    </div>
+                </th>
+                <th style="min-width: 10rem">
+                    <div class="flex align-items-center">
+                        Estado
+                        <p-columnFilter
+                            type="text"
+                            field="estado.nombre"
+                            display="menu"
+                        ></p-columnFilter>
+                        <th
+                            pSortableColumn="estado.nombre"
+                            style="width: 20%"
+                        >
+                            <p-sortIcon field="estado.nombre"></p-sortIcon>
+                        </th>
+                    </div>
+                </th>
+                <!-- Agrega las columnas restantes según tu necesidad -->
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-incidente let-rowIndex="rowIndex">
+            <tr>
+                <td>{{ rowIndex + 1 }}</td>
+                <td>
+                    {{ incidente.direccion_geo.nombre }}
+                </td>
+                <td>
+                    {{ incidente.categoria.nombre }}
+                </td>
+                <td>
+                    {{ incidente.subcategoria.nombre }}
+                </td>
+                <td>
+                    {{ incidente.ciudadano.nombres }}
+                </td>
+                <td>
+                    <p-tag
+                        [value]="incidente.estado.nombre"
+                        [severity]="getSeverity(incidente.estado.nombre)"
+                    ></p-tag>
+                </td>
+                <!-- Agrega las columnas restantes según tu necesidad -->
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="5">No se encontraron incidentes.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>

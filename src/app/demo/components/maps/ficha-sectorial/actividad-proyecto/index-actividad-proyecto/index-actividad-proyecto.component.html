@@ -1,0 +1,44 @@
+<div class="modal">
+    <div class="modal-header">
+        <h2 class="modal-title">Actividades de Ficha sectorial</h2>
+        <button
+            *ngIf="check.CreateActividadProyectoComponent"
+            pButton
+            type="button"
+            icon="pi pi-plus"
+            label="Nuevo"
+            (click)="abrirModal()"
+        ></button>
+    </div>
+    <div class="modal-body">
+        <p-toast></p-toast>
+        <div class="table-responsive-sm" *ngIf="actividadPro">
+            <p-table [paginatorDropdownAppendTo]="'body'"
+                [value]="actividadPro"
+                [tableStyle]="{ 'min-width': '50rem' }"
+                [paginator]="true"
+                [rows]="10"
+                [rowsPerPageOptions]="[5, 10, 20]"
+                currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+            >
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Opción</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-product>
+                    <tr>
+                        <td>{{ product.nombre }}</td>
+                        <td *ngIf="check.EditActividadProyectoComponent"><p-button
+                            icon="pi pi-pencil"
+                            [rounded]="true"
+                            severity="success"
+                            (click)="editRow(product)"
+                        ></p-button></td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+</div>

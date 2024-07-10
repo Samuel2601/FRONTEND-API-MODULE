@@ -1,0 +1,84 @@
+<div class="modal-content">
+    <p-toast></p-toast>
+    <div class="modal-header">
+        <h5 class="modal-title">
+            Editar Categoría:
+            <span *ngIf="loadcategoria"> {{ subcategoria.nombre }} </span>
+        </h5>
+    </div>
+    <div class="modal-body">
+        <ng-container *ngIf="!loadcategoria">
+            <p-skeleton styleClass="mb-2" borderRadius="16px"></p-skeleton>
+            <p-skeleton
+                width="10rem"
+                styleClass="mb-2"
+                borderRadius="16px"
+            ></p-skeleton>
+            <p-skeleton
+                width="5rem"
+                styleClass="mb-2"
+                borderRadius="16px"
+            ></p-skeleton>
+            <p-skeleton
+                height="2rem"
+                styleClass="mb-2"
+                borderRadius="16px"
+            ></p-skeleton>
+            <p-skeleton
+                width="10rem"
+                height="4rem"
+                borderRadius="16px"
+            ></p-skeleton>
+        </ng-container>
+        <ng-container *ngIf="loadcategoria">
+            <div class="p-fluid p-formgrid grid">
+                <div class="field col-12 md:col-6 mb-3">
+                    <label for="categoria" class="form-label"
+                        >Categoría: {{ subcategoria.categoria.nombre }}</label
+                    >
+                    <p-dropdown
+                        [options]="arrayCategoria"
+                        [(ngModel)]="subcategoria.categoria"
+                        optionLabel="nombre"
+                    ></p-dropdown>
+                </div>
+
+                <div class="field col-12 md:col-6 mb-3">
+                    <label for="nombre" class="form-label"
+                        >Nombre de Sub Categoría</label
+                    >
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="nombre"
+                        placeholder="Nombre de Sub Categoría"
+                        pInputText
+                        [(ngModel)]="subcategoria.nombre"
+                    />
+                </div>
+                <div class="field col-12 md:col-6 mb-3">
+                    <label for="descripcion" class="form-label"
+                        >Descripción</label
+                    >
+                    <textarea
+                        class="form-control"
+                        id="descripcion"
+                        rows="5"
+                        cols="30"
+                        pInputTextarea
+                        [(ngModel)]="subcategoria.descripcion"
+                    ></textarea>
+                </div>
+            </div>
+        </ng-container>
+    </div>
+    <div class="d-flex justify-content-end mt-3">
+        <button
+            type="button"
+            pButton
+            label="Guardar"
+            class="btn btn-primary"
+            (click)="updateCate()"
+        ></button>
+    </div>
+</div>

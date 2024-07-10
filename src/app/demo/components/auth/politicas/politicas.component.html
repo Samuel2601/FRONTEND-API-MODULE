@@ -1,0 +1,222 @@
+<div class="flex flex-column align-items-center justify-content-center">
+    <img
+        src="assets/icon/logo.png"
+        alt="Sakai logo"
+        class="mb-5 w-6rem flex-shrink-0"
+    />
+    <div
+        style="
+            border-radius: 56px;
+            padding: 0.3rem;
+            background: linear-gradient(
+                180deg,
+                #51ae56 10%,
+                rgba(247, 149, 48, 0) 30%
+            );
+        "
+        [style]="{ width: isMobile() ? '100%' : '70vw' }"
+    >
+        
+
+        <div
+            class="w-full surface-card py-8 px-5 sm:px-8 flex flex-column align-items-center"
+            style="border-radius: 53px"
+        >
+            <div class="grid flex flex-column align-items-center">
+                <div
+                    class="flex justify-content-center align-items-center bg-green-500 border-circle"
+                    style="width: 3.2rem; height: 3.2rem"
+                >
+                    <i class="text-50 pi pi-fw pi-lock text-2xl"></i>
+                </div>
+                <h1 class="text-900 font-bold text-4xl lg:text-5xl mb-2">
+                    Politicas y Privacidad
+                </h1>
+                <span class="text-600 mb-5">Esmeraldas la Bella</span>
+                <p-fieldset
+                    legend="Tratamiento legítimo de datos personales"
+                    [toggleable]="true"
+                >
+                    <p class="m-0">
+                        <strong>Consentimiento del titular:</strong>
+                        Recabamos información personal de los usuarios con su
+                        consentimiento explícito para una finalidad específica,
+                        que es la de registrar y gestionar las denuncias o
+                        incidencias relacionadas con problemas dentro de la
+                        ciudad.
+                    </p>
+                    <p-divider></p-divider>
+                    <p class="m-0">
+                        <strong>Protección de datos:</strong> Garantizamos la
+                        protección de los datos personales de los usuarios
+                        mediante el uso de cifrado de información a través de
+                        HTTPS, lo que asegura que la información transmitida
+                        entre el navegador del usuario y nuestro servidor esté
+                        protegida.
+                    </p>
+                    <p-divider></p-divider>
+                    <p class="m-0">
+                        <strong>Confidencialidad de la información:</strong>
+                        Nos comprometemos a no divulgar las denuncias o
+                        incidencias reportadas por los usuarios a personas fuera
+                        de la institución. La información recopilada se utiliza
+                        únicamente para la gestión interna de las denuncias y
+                        para mejorar los servicios públicos de la ciudad.
+                    </p>
+                    <p-divider></p-divider>
+                    <p class="m-0">
+                        <strong>Seguridad de la cuenta:</strong> Para garantizar
+                        la seguridad de las cuentas de usuario, cada inicio de
+                        sesión genera un token de certificación único, lo que
+                        asegura la integridad de la conexión al sistema y
+                        protege los datos personales de los usuarios.
+                    </p>
+                    <p-divider></p-divider>
+                    <p class="m-0">
+                        <strong>Transparencia:</strong> Informamos a los
+                        usuarios de manera clara y transparente sobre cómo se
+                        utiliza su información personal, los derechos que tienen
+                        sobre sus datos y cómo ejercer esos derechos.
+                    </p>
+                    <p-divider></p-divider>
+                    <p class="m-0">
+                        <strong>Limitación de finalidad:</strong> Los datos
+                        personales recopilados se utilizan exclusivamente para
+                        la gestión de denuncias e incidencias relacionadas con
+                        problemas dentro de la ciudad y no se utilizan para
+                        otros fines sin el consentimiento explícito del usuario.
+                    </p>
+                    <p-divider></p-divider>
+                    <p class="m-0">
+                        <strong>Derechos de los usuarios:</strong>
+                        Respetamos y garantizamos los derechos de acceso,
+                        rectificación, cancelación y oposición de los usuarios
+                        sobre sus datos personales, permitiéndoles ejercer estos
+                        derechos de manera sencilla y eficaz.
+                    </p>
+                </p-fieldset>
+                <p-fieldset legend="Consentimiento" [toggleable]="true">
+                    <p class="m-0">
+                        En nuestra aplicación, el tratamiento y comunicación de
+                        datos personales se realizará únicamente cuando contemos
+                        con la manifestación de la voluntad del titular para
+                        hacerlo. El consentimiento del usuario será válido
+                        cuando cumpla con los siguientes criterios:
+                    </p>
+                    <p-divider></p-divider>
+                    <ul>
+                        <li>
+                            <strong>Libre:</strong> El consentimiento del
+                            usuario se considerará libre cuando sea otorgado de
+                            manera voluntaria y sin coacción. No se ejercerá
+                            ninguna forma de presión sobre el usuario para
+                            obtener su consentimiento.
+                        </li>
+
+                        <li>
+                            <strong>Específico:</strong> El consentimiento del
+                            usuario será específico en cuanto a la determinación
+                            concreta de los medios y fines del tratamiento de
+                            sus datos personales. El usuario será informado de
+                            manera clara y precisa sobre cómo se utilizarán sus
+                            datos.
+                        </li>
+                        <li>
+                            <strong>Informado:</strong> El consentimiento del
+                            usuario será informado, lo que significa que el
+                            usuario estará debidamente informado sobre cómo se
+                            utilizarán sus datos personales, cumpliendo con el
+                            principio de transparencia y efectivizando su
+                            derecho a la transparencia.
+                        </li>
+                        <li>
+                            <strong>Inequívoco:</strong> El consentimiento del
+                            usuario será inequívoco, lo que implica que no
+                            presentará dudas sobre el alcance de la autorización
+                            otorgada por el titular. El usuario deberá
+                            manifestar su consentimiento de manera clara y sin
+                            ambigüedades.
+                        </li>
+                    </ul>
+                    <p-divider></p-divider>
+                    <p class="m-0">
+                        El usuario podrá revocar su consentimiento en cualquier
+                        momento, sin necesidad de justificación. Para ello,
+                        estableceremos mecanismos que garanticen celeridad,
+                        eficiencia, eficacia y gratuidad en el procedimiento de
+                        revocación, similar al procedimiento con el cual se
+                        recabó el consentimiento inicialmente. Es importante
+                        destacar que el tratamiento realizado antes de la
+                        revocación del consentimiento es lícito, ya que el
+                        consentimiento revocado no tiene efectos retroactivos.
+                    </p>
+                </p-fieldset>
+                <p-fieldset
+                    legend="Eliminación de datos de usuario"
+                    [toggleable]="true"
+                >
+                    <p class="m-0">
+                        <strong>Derecho a la eliminación de datos:</strong> Los
+                        usuarios tienen el derecho a solicitar la eliminación de
+                        sus datos personales en cualquier momento. Este derecho
+                        garantiza que los datos personales del usuario sean
+                        eliminados de nuestros sistemas y bases de datos,
+                        excepto en aquellos casos donde exista una obligación
+                        legal de conservarlos.
+                    </p>
+                    <p-divider></p-divider>
+                    <p class="m-0">
+                        <strong>Solicitud de eliminación:</strong> Para
+                        solicitar la eliminación de sus datos personales, los
+                        usuarios deben enviar un correo electrónico a
+                        <a href="mailto:aplicaciones&#64;esmeraldas.gob.ec"
+                            >aplicaciones&#64;esmeraldas.gob.ec</a
+                        >
+                        con el asunto "Solicitud de eliminación de datos
+                        personales". En el cuerpo del correo, deberán
+                        proporcionar la siguiente información:
+                    </p>
+                    <ul>
+                        <li>Nombre completo del usuario</li>
+                        <li>Correo electrónico asociado a la cuenta</li>
+                        <li>Motivo de la solicitud (opcional)</li>
+                    </ul>
+                    <p-divider></p-divider>
+                    <p class="m-0">
+                        <strong>Proceso de eliminación:</strong> Una vez
+                        recibida la solicitud, nuestro equipo de soporte
+                        procesará la solicitud dentro de un plazo de 15 días
+                        hábiles. Se enviará un correo de confirmación al usuario
+                        una vez que sus datos hayan sido eliminados.
+                    </p>
+                    <p-divider></p-divider>
+                    <p class="m-0">
+                        <strong>Excepciones:</strong> En algunos casos, es
+                        posible que no podamos eliminar ciertos datos debido a
+                        obligaciones legales. En tales casos, informaremos al
+                        usuario sobre la razón específica por la cual no se
+                        puede proceder con la eliminación de sus datos.
+                    </p>
+                </p-fieldset>
+
+                Información de contacto:
+                <a href="mailto:aplicaciones@esmeraldas.gob.ec">
+                    <button
+                        pButton
+                        pRipple
+                        icon="pi pi-arrow-left"
+                        label="aplicaciones@esmeraldas.gob.ec"
+                        class="p-button-text"
+                    ></button>
+                </a>
+                <div class="flex justify-content-center mt-2 mb-2">
+                    <p-button
+                        routerLink="/home"
+                        label="Inicio"
+                        [rounded]="true"
+                    ></p-button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

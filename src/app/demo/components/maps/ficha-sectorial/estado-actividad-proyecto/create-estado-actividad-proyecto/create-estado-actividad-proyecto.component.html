@@ -1,0 +1,32 @@
+<div class="card">
+    <div class="card-body">
+        <p-toast></p-toast>
+        <div class="field col-12 md:col-6 mb-3">
+            <form
+                [formGroup]="estadoIncidenteForm"
+                (ngSubmit)="registrarEstadoActividadP()"
+            >
+                <div class="field col-12 md:col-6">
+                    <label for="nombre" class="form-label">Nombre</label>
+                    <input
+                        type="text"
+                        pInputText
+                        [style.width]="isMobil() ? 'auto' : '20rem'"
+                        class="form-control"
+                        id="nombre"
+                        name="nombre"
+                        formControlName="nombre"
+                        required
+                    />
+                </div>
+                <button
+                    pButton
+                    type="submit"
+                    label="Guardar"
+                    icon="pi pi-save"
+                    class="p-button-primary"
+                ></button>
+            </form>
+        </div>
+    </div>
+</div>

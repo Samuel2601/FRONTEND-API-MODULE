@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Esmeraldas la Bella</title>
+        <base href="/" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" type="image/x-icon" href="favicon2.ico" />
+        <link
+            id="theme-css"
+            rel="stylesheet"
+            type="text/css"
+            href="assets/layout/styles/theme/saga-green/theme.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        />
+        <!-- Configuración para Leaflet -->
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet/dist/leaflet.css"
+        />
+        <!--
+            
+        
+
+        -->
+        <script src="https://www.google.com/recaptcha/api.js"></script>
+        <script>
+            function initMap() {
+                // Aquí puedes inicializar el mapa y realizar cualquier otra configuración necesaria
+                console.log("Mapa inicializado");
+                // Este callback se ejecutará cuando la API de Google Maps se haya cargado
+                window.dispatchEvent(new Event("google-maps-loaded"));
+            }
+        </script>
+        <script
+            async
+            defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAnO4FEgIlMcRRB0NY5bn_h_EQzdyNUoPo&callback=initMap&libraries=places"
+        ></script>
+    </head>
+
+    <body>
+        <app-root></app-root>
+        <script src="https://unpkg.com/@googlemaps/js-api-loader@1.x/dist/index.min.js"></script>
+    </body>
+</html>

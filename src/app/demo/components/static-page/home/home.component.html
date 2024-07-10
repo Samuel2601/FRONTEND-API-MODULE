@@ -1,0 +1,720 @@
+<div class="surface-section px-4 py-8 md:px-6 lg:px-8 overflow-hidden">
+    <div class="flex flex-wrap">
+        <article
+            class="w-full mt-8 xl:mt-0 xl:mb-0 xl:w-8 flex flex-column flex-order-1 xl:flex-order-0 justify-content-center align-items-center xl:align-items-start"
+        >
+            <span
+                class="text-blue-500 font-semibold text-lg mb-2"
+                style="display: none"
+                >Revisa nuestra actualización en Play Store</span
+            >
+            <h2 class="font-bold text-4xl sm:text-7xl mt-0 mb-4">
+                Desarrollemos una <br />
+                buena comunicación.
+            </h2>
+            <div class="flex gap-3">
+                <button
+                    *ngIf="!token"
+                    pButton
+                    pRipple
+                    type="button"
+                    label="Get Started"
+                    icon="pi pi-arrow-right"
+                    iconPos="right"
+                    class="z-2 p-button p-component"
+                    [routerLink]="'/auth/signup'"
+                >
+                    <span
+                        class="p-button-icon p-button-icon-right pi pi-arrow-right"
+                        aria-hidden="true"
+                    ></span>
+                    <span class="p-button-label">Empezar</span>
+                </button>
+                <button
+                    *ngIf="token"
+                    pButton
+                    pRipple
+                    type="button"
+                    label="Get Started"
+                    icon="pi pi-arrow-right"
+                    iconPos="right"
+                    class="z-2 p-button p-component"
+                    (click)="incidente()"
+                >
+                    <span
+                        class="p-button-icon p-button-icon-right pi pi-arrow-right"
+                        aria-hidden="true"
+                    ></span>
+                    <span class="p-button-label">Empezar</span>
+                </button>
+                <button
+                    pButton
+                    pRipple
+                    type="button"
+                    label="Documentation"
+                    class="p-button-outlined z-2 p-button p-component"
+                    [routerLink]="'/auth/politicas'"
+                >
+                    <span class="p-button-label">Nuestras Políticas</span>
+                </button>
+            </div>
+        </article>
+        <div
+            class="w-full xl:w-4 relative flex justify-content-center align-items-center"
+            [ngStyle]="{
+                'margin-top': isMobil() ? '-30px' : '0px',
+                height: isMobil() ? '200px' : 'auto'
+            }"
+        >
+            <p-carousel
+                [value]="filteredProductos"
+                [numVisible]="1"
+                [numScroll]="1"
+                [circular]="false"
+                [circular]="true"
+                [responsiveOptions]="responsiveOptions"
+                [autoplayInterval]="5000"
+            >
+                <ng-template let-product pTemplate="item">
+                    <div
+                        class="surface-border border-round m-2 p-3"
+                        *ngIf="(isMobil() && product.mobil) || !isMobil()"
+                    >
+                        <div
+                            class="w-full relative flex justify-content-center align-items-center"
+                        >
+                            <img
+                                [src]="product.image"
+                                alt="Image"
+                                class="rounded-top"
+                                [ngStyle]="{
+                                    height: isMobil() ? '200px' : 'auto'
+                                }"
+                                (click)="showimage(product)"
+                            />
+                            <!--
+                                (click)="openLink(product.url)"
+ <p-image
+                                src="product.image"
+                                alt="Image"
+                                class="rounded-top"
+                                [ngStyle]="{
+                                    height: isMobil() ? '200px' : 'auto'
+                                }"
+                                [preview]="true"
+                                (click)="openLink(product.url)"
+                            />
+                            -->
+
+                            <ng-container *ngIf="product.items">
+                                <article
+                                    *ngIf="product.items[2]"
+                                    class="absolute flex align-items-center w-24rem border-round-xl z-2 gap-3 px-4 py-3"
+                                    style="
+                                        bottom: 41%;
+                                        backdrop-filter: blur(40px);
+                                        background-color: rgba(
+                                            255,
+                                            255,
+                                            255,
+                                            0.5
+                                        );
+                                    "
+                                    [ngStyle]="{
+                                        right: isMobil() ? '42.8%' : '50%'
+                                    }"
+                                >
+                                    <img
+                                        *ngIf="product.items[2].logo"
+                                        [src]="product.items[2].logo"
+                                        alt="Image"
+                                        class="border-circle"
+                                        width="64"
+                                    />
+                                    <div
+                                        class="flex flex-column justify-content-center w-full"
+                                    >
+                                        <p
+                                            class="m-0 font-semibold text-sm line-height-1.5 text-black-alpha-60"
+                                        >
+                                            {{ product.items[2].titulo }}
+                                        </p>
+                                        <p
+                                            class="m-0 font-medium text-sm line-height-1.5 text-black-alpha-80"
+                                            [innerHTML]="
+                                                product.items[2].descripcion
+                                            "
+                                        ></p>
+                                    </div>
+                                    <img
+                                        *ngIf="product.items[2].extra"
+                                        [src]="product.items[2].extra"
+                                        alt="Image"
+                                        class="border-circle"
+                                        width="64"
+                                    />
+                                </article>
+                                <article
+                                    *ngIf="product.items[1]"
+                                    class="absolute flex align-items-center w-24rem border-round-xl z-2 gap-3 px-4 py-3"
+                                    style="
+                                        bottom: 24%;
+                                        backdrop-filter: blur(40px);
+                                        background-color: rgba(
+                                            255,
+                                            255,
+                                            255,
+                                            0.5
+                                        );
+                                    "
+                                    [ngStyle]="{
+                                        right: isMobil() ? '42.8%' : '50%'
+                                    }"
+                                >
+                                    <img
+                                        *ngIf="product.items[1].logo"
+                                        [src]="product.items[1].logo"
+                                        alt="Image"
+                                        class="border-circle"
+                                        width="64"
+                                    />
+                                    <div
+                                        class="flex flex-column justify-content-center w-full"
+                                    >
+                                        <p
+                                            class="m-0 font-semibold text-sm line-height-1.5 text-black-alpha-60"
+                                        >
+                                            {{ product.items[1].titulo }}
+                                        </p>
+                                        <p
+                                            class="m-0 font-medium text-sm line-height-1.5 text-black-alpha-80"
+                                            [innerHTML]="
+                                                product.items[1].descripcion
+                                            "
+                                        ></p>
+                                    </div>
+                                    <img
+                                        *ngIf="product.items[1].extra"
+                                        [src]="product.items[1].extra"
+                                        alt="Image"
+                                        class="border-circle"
+                                        width="64"
+                                    />
+                                </article>
+                                <article
+                                    *ngIf="product.items[0]"
+                                    class="absolute flex align-items-center w-24rem border-round-xl z-2 gap-3 px-4 py-3"
+                                    style="
+                                        bottom: 7%;
+                                        backdrop-filter: blur(40px);
+                                        background-color: rgba(
+                                            255,
+                                            255,
+                                            255,
+                                            0.5
+                                        );
+                                    "
+                                    [ngStyle]="{
+                                        right: isMobil() ? '42.8%' : '50%'
+                                    }"
+                                >
+                                    <img
+                                        *ngIf="product.items[0].logo"
+                                        [src]="product.items[0].logo"
+                                        alt="Image"
+                                        class="border-circle"
+                                        width="64"
+                                    />
+                                    <div
+                                        class="flex flex-column justify-content-center w-full"
+                                    >
+                                        <p
+                                            class="m-0 font-semibold text-sm line-height-1.5 text-black-alpha-60"
+                                        >
+                                            {{ product.items[0].titulo }}
+                                        </p>
+                                        <p
+                                            class="m-0 font-medium text-sm line-height-1.5 text-black-alpha-80"
+                                            [innerHTML]="
+                                                product.items[0].descripcion
+                                            "
+                                        ></p>
+                                    </div>
+                                    <img
+                                        *ngIf="product.items[0].extra"
+                                        [src]="product.items[0].extra"
+                                        alt="Image"
+                                        class="border-circle"
+                                        width="64"
+                                    />
+                                </article>
+                            </ng-container>
+                        </div>
+                    </div>
+                </ng-template>
+            </p-carousel>
+        </div>
+
+        <!--
+<div
+            class="w-full xl:w-4 relative flex justify-content-center align-items-center"
+        >
+            <img
+                src="assets/layout/images/hero-15.png"
+                alt="Image"
+                class="rounded-top"
+            />
+
+            <article
+                class="absolute flex align-items-center w-24rem border-round-xl z-2 right-0 md:right-50 gap-3 px-4 py-3"
+                style="
+                    bottom: 41%;
+                    backdrop-filter: blur(40px);
+                    background-color: rgba(255, 255, 255, 0.5);
+                "
+            >
+                <img
+                    src="assets/icon/icono-ico.png"
+                    alt="Image"
+                    class="border-circle"
+                    width="64"
+                />
+                <div class="flex flex-column justify-content-center w-full">
+                    <p
+                        class="m-0 font-semibold text-sm line-height-1.5 text-black-alpha-60"
+                    >
+                        ESMERALDAS LA BELLA
+                    </p>
+                    <p
+                        class="m-0 font-medium text-sm line-height-1.5 text-black-alpha-80"
+                    >
+                        Novedades
+                        <span class="text-indigo-500">cerca de ti</span>
+                    </p>
+                </div>
+                <img
+                    src="assets/icon/grafc1.png"
+                    alt="Image"
+                    class="border-circle"
+                    width="64"
+                />
+            </article>
+
+            <article
+                class="absolute flex align-items-center w-24rem p-1 border-round-xl z-2 right-0 md:right-50 gap-3 px-4 py-3"
+                style="
+                    bottom: 24%;
+                    backdrop-filter: blur(40px);
+                    background-color: rgba(255, 255, 255, 0.5);
+                "
+            >
+                <img
+                    src="assets/icon/icono-ico.png"
+                    alt="Image"
+                    class="border-circle"
+                />
+                <div class="flex flex-column justify-content-center w-full">
+                    <p
+                        class="m-0 font-semibold text-sm line-height-1.5 text-black-alpha-60"
+                    >
+                        ESMERALDAS LA BELLA
+                    </p>
+                    <p
+                        class="m-0 font-medium text-sm line-height-1.5 text-black-alpha-80"
+                    >
+                        Se ha registrado tu incidente
+                    </p>
+                </div>
+            </article>
+            <article
+                class="absolute flex align-items-center w-24rem p-1 border-round-xl z-2 right-0 md:right-50 gap-3 px-4 py-3"
+                style="
+                    bottom: 7%;
+                    backdrop-filter: blur(40px);
+                    background-color: rgba(255, 255, 255, 0.5);
+                "
+            >
+                <img
+                    src="assets/icon/icono-ico.png"
+                    alt="Image"
+                    class="border-circle"
+                />
+                <div class="flex flex-column justify-content-center w-full">
+                    <p
+                        class="m-0 font-semibold text-sm line-height-1.5 text-black-alpha-60"
+                    >
+                        ESMERALDAS LA BELLA
+                    </p>
+                    <p
+                        class="m-0 font-medium text-sm line-height-1.5 text-black-alpha-80"
+                    >
+                        Your revenue <span class="text-red-500"></span>getting
+                        low
+                    </p>
+                </div>
+                <img
+                    src="assets/icon/grafsc1.png"
+                    alt="Image"
+                    class="border-circle"
+                    width="64"
+                />
+            </article>
+        </div>
+        -->
+    </div>
+</div>
+
+<ng-container *ngFor="let buttons of setbuttons">
+    <div
+        class="surface-section px-4 pb-8 md:px-6 lg:px-8 overflow-hidden"
+        [ngStyle]="{
+            'padding-top': isMobil() ? '0px !important' : '5rem !important'
+        }"
+    >
+        <!-- Título con el label y una línea horizontal -->
+        <h2 class="section-title">{{ buttons.label }}</h2>
+        <hr class="section-divider" />
+
+        <div class="button-container">
+            <div
+                class="cube"
+                *ngFor="let button of buttons.items; let i = index"
+            >
+                <div class="cube-face cube-front">
+                    <div
+                        class="white-grad"
+                        style="--b: 0px 3px 8px 3px; --r: 50% 50% 50% 50%"
+                        *ngIf="button.style == true"
+                        [ngClass]="{ 'z-index-99': !button.dev }"
+                    >
+                        <img
+                            style="border-radius: 50%"
+                            [src]="button.icon"
+                            alt="{{ button.label }}"
+                            class="custom-icon"
+                        />
+                    </div>
+
+                    <img
+                        *ngIf="button.style == false"
+                        [src]="button.icon"
+                        alt="{{ button.label }}"
+                        class="custom-icon"
+                    />
+                    <p>{{ button.label }}</p>
+                </div>
+                <div class="cube-face cube-back">
+                    <p>{{ button.info }}</p>
+                    <p-button
+                        class="mt-3"
+                        *ngIf="button"
+                        (click)="
+                            button.items
+                                ? (button.showInfo = true)
+                                : button.command()
+                        "
+                        [label]="button.label"
+                    >
+                    </p-button>
+                </div>
+                <p-dialog
+                    [header]="button.label"
+                    *ngIf="button.items && button.items.length > 0"
+                    [(visible)]="button.showInfo"
+                    [modal]="true"
+                    [style]="{ width: isMobil() ? '90vw' : '50vw' }"
+                    appendTo="body"
+                >
+                    <div class="button-container">
+                        <div
+                            class="cube"
+                            *ngFor="let items of button.items; let i = index"
+                        >
+                            <div class="cube-face cube-front">
+                                <div
+                                    class="white-grad"
+                                    style="
+                                        --b: 0px 3px 8px 3px;
+                                        --r: 50% 50% 50% 50%;
+                                    "
+                                >
+                                    <img
+                                        [ngStyle]=" {
+                                                      'border-radius': '50%',
+                                                  }
+                                        "
+                                        [src]="items.icon"
+                                        alt="{{ button.label }}"
+                                        class="custom-icon"
+                                    />
+                                </div>
+
+                                <p>{{ items.label }}</p>
+                            </div>
+                            <div class="cube-face cube-back">
+                                <p>{{ items.info }}</p>
+                                <p-button
+                                    class="mt-3"
+                                    *ngIf="items"
+                                    (click)="items.command()"
+                                    [label]="items.label"
+                                >
+                                </p-button>
+                            </div>
+                        </div>
+                    </div>
+                </p-dialog>
+            </div>
+        </div>
+    </div>
+</ng-container>
+
+<div
+    class="surface-section px-4 py-8 md:px-6 lg:px-8 overflow-hidden"
+    style="display: none"
+>
+    <div class="font-bold text-900 text-3xl mb-3 text-center">
+        Explore The Features
+    </div>
+    <div class="text-700 text-center mb-5 line-height-3">
+        Libero justo laoreet sit amet cursus sit amet dictum. Auctor neque vitae
+        tempus quam pellentesque nec nam.
+    </div>
+    <div class="flex lg:justify-content-center mb-5">
+        <div class="py-3 pr-8 pl-3 w-30rem hidden lg:block">
+            <img
+                src="assets/noticias/n3.jpg"
+                alt="Image"
+                class="w-full mr-8"
+                style="border-radius: 5%"
+            />
+        </div>
+        <div class="flex flex-column align-items-center w-2rem">
+            <span
+                class="bg-blue-500 text-0 flex align-items-center justify-content-center border-circle"
+                style="min-width: 2.5rem; min-height: 2.5rem"
+                >1</span
+            >
+            <div
+                class="h-full bg-blue-500"
+                style="width: 2px; min-height: 4rem"
+            ></div>
+        </div>
+        <div class="py-3 pl-5 lg:pl-8 pl-3 lg:w-30rem">
+            <div class="text-900 text-xl mb-2 font-medium">
+                Ornare Arcu Odio
+            </div>
+            <span class="block text-700 line-height-3 mb-3"
+                >Quisque sagittis purus sit amet volutpat consequat mauris nunc.
+                Scelerisque eleifend.</span
+            >
+            <div class="pt-3 border-top-1 border-300">
+                <div class="mb-2 line-height-3">
+                    <span class="text-900 font-medium"
+                        >Sed lectus vestibulum</span
+                    >
+                    mattis ullamcorper velit. Laoreet sit amet cursus sit.
+                </div>
+                <div class="line-height-3">
+                    <span class="text-900 font-medium">Fames ac turpis</span>
+                    egestas sed tempus urna et. Cursus turpis massa.
+                </div>
+            </div>
+            <img
+                src="assets/noticias/n3.jpg"
+                alt="Image"
+                class="w-full mt-3 block lg:hidden"
+                style="border-radius: 5%"
+            />
+        </div>
+    </div>
+    <div class="flex justify-content-center mb-5">
+        <div
+            class="py-3 pl-5 pr-3 lg:pr-8 lg:pl-3 lg:w-30rem flex-order-1 lg:flex-order-0"
+            style="border-radius: 5%"
+        >
+            <div class="text-900 text-xl mb-2 font-medium">A diam maecenas</div>
+            <span class="block text-700 line-height-3 mb-3"
+                >Amet minim mollit non deserunt ullamco est sit aliqua dolor do
+                amet sint. Velit officia consequat duis enim velit mollit.</span
+            >
+            <div class="pt-3 border-top-1 border-300">
+                <div class="mb-2 line-height-3">
+                    <span class="text-900 font-medium"
+                        >Quis hendrerit dolor</span
+                    >
+                    magna eget est. Pellentesque pulvinar pellentesque.
+                </div>
+                <div class="line-height-3">
+                    <span class="text-900 font-medium">Lectus urna duis</span>
+                    convallis convallis tellus id interdum velit laoreet.
+                </div>
+            </div>
+            <img
+                src="assets/noticias/n2.jpg"
+                alt="Image"
+                class="w-full mt-3 block lg:hidden"
+                style="border-radius: 5%"
+            />
+        </div>
+        <div
+            class="flex flex-column align-items-center w-2rem flex-order-0 lg:flex-order-1"
+        >
+            <span
+                class="bg-yellow-500 text-0 flex align-items-center justify-content-center border-circle"
+                style="min-width: 2.5rem; min-height: 2.5rem"
+                >2</span
+            >
+            <div
+                class="h-full bg-yellow-500"
+                style="width: 2px; min-height: 4rem"
+            ></div>
+        </div>
+        <div class="py-3 pl-8 pr-3 w-30rem hidden lg:block flex-order-2">
+            <img
+                src="assets/noticias/n2.jpg"
+                alt="Image"
+                class="w-full mr-8"
+                style="border-radius: 5%"
+            />
+        </div>
+    </div>
+    <div class="flex justify-content-center">
+        <div class="py-3 pr-8 pl-3 w-30rem hidden lg:block">
+            <img
+                src="assets/noticias/n1.jpg"
+                alt="Image"
+                class="w-full mr-8"
+                style="border-radius: 5%"
+            />
+        </div>
+        <div class="flex flex-column align-items-center w-2rem">
+            <span
+                class="bg-cyan-500 text-0 flex align-items-center justify-content-center border-circle"
+                style="min-width: 2.5rem; min-height: 2.5rem"
+                >3</span
+            >
+            <div
+                class="h-full bg-cyan-500"
+                style="width: 2px; min-height: 4rem"
+            ></div>
+        </div>
+        <div class="py-3 pl-5 lg:pl-8 pl-3 lg:w-30rem">
+            <div class="text-900 text-xl mb-2 font-medium">
+                Pharetra et ultrices neque
+            </div>
+            <span class="block text-700 line-height-3 mb-3"
+                >Id interdum velit laoreet id. A iaculis at erat pellentesque
+                adipiscing commodo elit at imperdiet.</span
+            >
+            <div class="pt-3 border-top-1 border-300">
+                <div class="mb-2 line-height-3">
+                    <span class="text-900 font-medium">Egestas dui id</span>
+                    ornare arcu odio ut. Mi bibendum neque egestas congue.
+                </div>
+                <div class="line-height-3">
+                    <span class="text-900 font-medium"
+                        >Sed velit dignissim</span
+                    >
+                    sodales ut eu. Massa placerat duis ultricies lacus.
+                </div>
+            </div>
+            <img
+                src="assets/noticias/n1.jpg"
+                alt="Image"
+                class="w-full mt-3 block lg:hidden"
+                style="border-radius: 5%"
+            />
+        </div>
+    </div>
+</div>
+
+<p-dialog
+    header="Incidentes/Denuncias"
+    [modal]="true"
+    [(visible)]="visible_incidente"
+    [style]="{ width: '80rem' }"
+    [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+    #dialog1
+    (onShow)="isMobil() ? dialog1.maximize() : ''"
+    class="safe-margin-top"
+>
+    <app-mapa
+        *ngIf="visible_incidente"
+        [cate]="button_active.cate"
+        [sub]="button_active.sub"
+    ></app-mapa>
+</p-dialog>
+<p-dialog
+    header="Incidentes/Denuncias"
+    [modal]="true"
+    [(visible)]="visible_incidente_mirror"
+    [style]="{ width: '80rem' }"
+    [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+    #dialog11
+    (onShow)="isMobil() ? dialog11.maximize() : ''"
+    class="safe-margin-top"
+>
+    <app-list-incidentes
+        *ngIf="visible_incidente_mirror"
+        [cate]="button_active.cate"
+        [sub]="button_active.sub"
+    ></app-list-incidentes>
+</p-dialog>
+
+<p-dialog
+    header="Fichas Sectoriales"
+    [modal]="true"
+    [(visible)]="visible_ficha_mirror"
+    [style]="{ width: '80rem' }"
+    [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+    #dialog2
+    (onShow)="isMobil() ? dialog2.maximize() : ''"
+    class="safe-margin-top"
+    [contentStyle]="{ 'padding-bottom': 0 }"
+>
+    <app-mapa-ficha *ngIf="visible_ficha_mirror"></app-mapa-ficha>
+</p-dialog>
+
+<p-dialog
+    header="Fichas Sectoriales"
+    [modal]="true"
+    [(visible)]="visible_ficha"
+    [style]="{ width: '80rem' }"
+    [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+    #dialog22
+    (onShow)="isMobil() ? dialog22.maximize() : ''"
+    class="safe-margin-top"
+>
+    <app-list-ficha *ngIf="visible_ficha"></app-list-ficha>
+</p-dialog>
+<p-dialog
+    header="Recolectores"
+    [modal]="true"
+    [(visible)]="visible_trash_mirror"
+    [style]="{ width: '80rem' }"
+    [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+    #dialog22
+    (onShow)="isMobil() ? dialog22.maximize() : ''"
+    class="safe-margin-top"
+>
+    <app-mapa-trash *ngIf="visible_trash_mirror"></app-mapa-trash>
+</p-dialog>
+
+<p-dialog
+    header="Imagen"
+    [modal]="true"
+    [(visible)]="load_image"
+    [style]="{ width: '50rem' }"
+    [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+    [maximizable]="true"
+>
+    <ng-container *ngIf="imageselecte">
+        <img [src]="imageselecte.image" style="width: 100%; display: block" />
+        <p-button
+            label="Ir"
+            (click)="openLink(imageselecte.url)"
+            [style]="{ 'margin-top': '20px' }"
+        ></p-button>
+    </ng-container>
+</p-dialog>

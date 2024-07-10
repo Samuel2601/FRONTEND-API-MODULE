@@ -1,0 +1,98 @@
+<p-toast></p-toast>
+<p-stepper>
+    <p-stepperPanel header="Usuarios">
+        <ng-template
+            pTemplate="content"
+            let-nextCallback="nextCallback"
+            let-index="index"
+        >
+            <div class="flex pt-4 justify-content-end">
+                <p-button
+                    label="Next"
+                    icon="pi pi-arrow-right"
+                    iconPos="right"
+                    (onClick)="nextCallback.emit()"
+                />
+            </div>
+            <div class="flex flex-column">
+                <app-index-usuario
+                    *ngIf="check.IndexUsuarioComponent"
+                ></app-index-usuario>
+            </div>
+        </ng-template>
+    </p-stepperPanel>
+    <p-stepperPanel header="Roles">
+        <ng-template
+            pTemplate="content"
+            let-prevCallback="prevCallback"
+            let-nextCallback="nextCallback"
+            let-index="index"
+        >
+            <div class="flex pt-4 justify-content-between">
+                <p-button
+                    label="Back"
+                    icon="pi pi-arrow-left"
+                    (onClick)="prevCallback.emit()"
+                />
+                <p-button
+                    label="Next"
+                    icon="pi pi-arrow-right"
+                    iconPos="right"
+                    (onClick)="nextCallback.emit()"
+                />
+            </div>
+            <div class="flex flex-column">
+                <app-index-rol-user
+                    *ngIf="check.IndexRolUserComponent"
+                ></app-index-rol-user>
+            </div>
+        </ng-template>
+    </p-stepperPanel>
+    <p-stepperPanel header="Encargos">
+        <ng-template
+            pTemplate="content"
+            let-prevCallback="prevCallback"
+            let-nextCallback="nextCallback"
+            let-index="index"
+        >
+            <div class="flex pt-4 justify-content-between">
+                <p-button
+                    label="Back"
+                    icon="pi pi-arrow-left"
+                    (onClick)="prevCallback.emit()"
+                />
+                <p-button
+                    label="Next"
+                    icon="pi pi-arrow-right"
+                    iconPos="right"
+                    (onClick)="nextCallback.emit()"
+                />
+            </div>
+            <div class="flex flex-column">
+                <app-index-encargado-categoria
+                    *ngIf="check.IndexEncargadoCategoriaComponent"
+                ></app-index-encargado-categoria>
+            </div>
+        </ng-template>
+    </p-stepperPanel>
+    <p-stepperPanel header="Permisos">
+        <ng-template
+            pTemplate="content"
+            let-prevCallback="prevCallback"
+            let-index="index"
+        >
+            <div class="flex pt-4 justify-content-start">
+                <p-button
+                    label="Back"
+                    icon="pi pi-arrow-left"
+                    (onClick)="prevCallback.emit()"
+                />
+            </div>
+            <div class="flex flex-column">
+                <app-index-permisos
+                    *ngIf="check.IndexPermisosComponent"
+                ></app-index-permisos>
+            </div>
+        </ng-template>
+    </p-stepperPanel>
+</p-stepper>

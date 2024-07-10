@@ -1,0 +1,329 @@
+.combo-box {
+  position: relative ;
+}
+
+.options-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-top: none;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+.options-list li {
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.options-list li:hover {
+  background-color: #f9f9f9;
+}
+
+
+.card-body {
+  .row-cols-lg-2 {
+      @media (min-width: 992px) {
+          /* Pantallas grandes: 2 columnas */
+          display: flex;
+          flex-wrap: wrap;
+
+          > * {
+              flex: 0 0 50%;
+              max-width: 50%;
+          }
+      }
+
+      @media (max-width: 991.98px) {
+          /* Dispositivos móviles: 1 columna */
+          display: block;
+
+          > * {
+              width: 100%;
+          }
+      }
+  }
+}
+$input-width: 430px; // Ancho para escritorio
+
+.inputmap {
+@media (max-width: 700px) { // Estilos para dispositivos móviles
+  width: calc(100vw - 30px); // Restar 30px al ancho total de la ventana
+}
+
+@media (min-width: 700px) { // Estilos para escritorio
+  width: $input-width;
+}
+height: 50px;
+}
+
+#lista {
+@media (max-width: 700px) { // Estilos para dispositivos móviles
+  width: calc(100vw - 50px); // Restar 30px al ancho total de la ventana
+}
+
+@media (min-width: 700px) { // Estilos para escritorio
+  width: $input-width;
+}
+height: 50px;
+}
+
+.formulario-flotante {
+position: absolute;
+
+z-index: 1000; /* Asegura que el formulario esté por encima del mapa */
+border-radius: 5px;
+// box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+@media (max-width: 700px) { // Estilos para dispositivos móviles
+  top: 24px; /* Ajusta la posición vertical según tus necesidades */
+  left:auto; /* Ajusta la posición horizontal según tus necesidades */
+}
+
+@media (min-width: 700px) { // Estilos para escritorio
+  top: 24px; /* Ajusta la posición vertical según tus necesidades */
+  left: 55px; /* Ajusta la posición horizontal según tus necesidades */
+}
+}
+
+#formulario {
+position: absolute;
+padding: 0px;
+border: 0px solid black;
+z-index: 1000;
+}
+
+
+
+.container {
+height: -webkit-fill-available; /* Altura total de la ventana */
+z-index: 1000;
+}
+
+#listarficha {
+@media (max-width: 767px) { // Estilos para dispositivos móviles
+  //width: 100%;
+  bottom: 0;
+  --bs-gutter-x: 0rem;
+}
+
+@media (min-width: 768px) { // Estilos para escritorio
+ // width: 97%;
+  --bs-gutter-x: 1.5rem; // Establecer el espacio entre columnas de Bootstrap
+}
+}
+.container{
+
+
+@media (min-width:1400px) {
+    max-width: -webkit-fill-availabl !important;
+}
+@media (min-width:1400px) {  
+  max-width: -webkit-fill-available;
+}
+}
+
+.imagen-popup {
+margin: 0;
+padding: 0;
+display: block;
+width: 100%;
+display: block;
+height: 100px;
+
+object-fit: cover; /* Para ajustar la imagen dentro del contenedor sin distorsionarla */
+}
+.fullscreen-button{
+  background: none rgb(255, 255, 255);
+    border: 0px;
+    margin: 10px;
+    padding: 0px;
+    text-transform: none;
+    appearance: none;
+    position: absolute;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 2px;
+    height: 40px;
+    width: 40px;
+    box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 4px -1px;
+    overflow: hidden;
+    top: 0px;
+    right: 0px;
+}
+.fullscreen-button .hover-image {
+  display: none;
+}
+
+.fullscreen-button:hover .normal-image {
+  display: none;
+}
+
+.fullscreen-button:hover .hover-image {
+  display: inline-block;
+}
+.p-inputtext{
+    width: 400px;
+}
+.p-fluid .p-button-icon-only {
+      width: 3rem !important;
+}
+
+.button-container {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin: 20px;
+  perspective: 1000px; /* Añadir perspectiva para el efecto 3D */
+}
+
+.cube {
+  width: 200px;
+  height: 200px;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateY(0);
+  transition: transform 0.5s ease-in-out;
+  border-radius: 5%;
+}
+
+.cube:hover {
+  transform: rotateY(180deg); /* Rotación al pasar el mouse */
+  border-radius: 5%;
+}
+
+.cube-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden; /* Ocultar la cara trasera */
+  border-radius: 5%;
+  padding: 10px; /* Agregar padding para que el contenido no quede pegado al borde */
+  box-sizing: border-box; /* Incluir padding y borde en el tamaño total */
+}
+
+.cube-front {
+  //background-color: #e0e0e0; /* Color de fondo para el botón */
+  border-radius: 5%;
+}
+
+.cube-back {
+  //background-color: #9e9e9e; /* Color de fondo para la información */
+  transform: rotateY(180deg); /* Posición de la cara trasera */
+  border-radius: 5%;
+}
+
+p {
+  text-align: center;
+  font-size: 1.2em;
+  margin: 10px 0 0 0; /* Margen superior para separar el texto del ícono */
+}
+
+.custom-icon {
+  width: 150px; /* Ajusta el tamaño según sea necesario */
+  height: 150px; /* Ajusta el tamaño según sea necesario */
+  margin-bottom: 10px; /* Espacio entre el icono y el texto */
+}
+
+.rounded-top {
+  border-top-left-radius: 5%; /* Ajusta el valor según sea necesario */
+  border-top-right-radius: 5%; /* Ajusta el valor según sea necesario */
+}
+
+
+.button-container-categoria {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 20px;
+  //margin: 20px;
+  perspective: 1000px; /* Añadir perspectiva para el efecto 3D */
+}
+
+.cube-categoria {
+  width: 200px;
+  height: 200px;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateY(0);
+  transition: transform 0.5s ease-in-out;
+  border-radius: 5%;
+}
+
+.cube-categoria:hover {
+  transform: rotateY(180deg); /* Rotación al pasar el mouse */
+  border-radius: 5%;
+}
+
+.cube-face-categoria {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden; /* Ocultar la cara trasera */
+  border-radius: 5%;
+  padding: 10px; /* Agregar padding para que el contenido no quede pegado al borde */
+  box-sizing: border-box; /* Incluir padding y borde en el tamaño total */
+}
+
+.cube-front-categoria {
+  //background-color: var(--primary-500); /* Color de fondo para el botón */
+  border-radius: 5%;
+}
+
+.cube-back-categoria {
+  //background-color: var(--primary-500); /* Color de fondo para la información */
+  transform: rotateY(180deg); /* Posición de la cara trasera */
+  border-radius: 5%;
+}
+
+p {
+  text-align: center;
+  font-size: 1.2em;
+  margin: 10px 0 0 0; /* Margen superior para separar el texto del ícono */
+}
+
+.custom-icon-categoria {
+  width: 150px; /* Ajusta el tamaño según sea necesario */
+  height: 150px; /* Ajusta el tamaño según sea necesario */
+  margin-bottom: 10px; /* Espacio entre el icono y el texto */
+}
+
+.rounded-top-categoria {
+  border-top-left-radius: 5%; /* Ajusta el valor según sea necesario */
+  border-top-right-radius: 5%; /* Ajusta el valor según sea necesario */
+}
+
+/* Media query para dispositivos móviles */
+@media (max-width: 768px) {
+.custom-icon-categoria {
+  width: 80px; /* Tamaño para móviles */
+  height: 80px; /* Tamaño para móviles */
+  margin-bottom: 10px; /* Espacio entre el icono y el texto */
+}
+
+.cube-categoria {
+  width: 100px; /* Tamaño para móviles */
+  height: 100px; /* Tamaño para móviles */
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateY(0);
+  transition: transform 0.5s ease-in-out;
+  border-radius: 5%;
+}
+p{
+  font-size: 0.7em !important;
+}
+}

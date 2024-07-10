@@ -1,0 +1,132 @@
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-auto">
+                <h2>Listado de Permisos</h2>
+            </div>
+            <div class="col-6">
+                <a (click)="newpermiso()" class="btn btn-primary float-end"
+                    >Nuevo Permiso</a
+                >
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <p-toast></p-toast>
+        <div class="table-responsive-sm">
+            <p-table [paginatorDropdownAppendTo]="'body'"
+                styleClass="p-datatable-striped"
+                class="table table-sm align-middle table-striped table-hover"
+                [value]="permisos"
+                dataKey="_id"
+                editMode="row"
+                [tableStyle]="{ 'min-width': '50rem' }"
+                [scrollable]="true"
+                [responsive]="true"
+                [rows]="10"
+                [showCurrentPageReport]="true"
+                [rowsPerPageOptions]="[10, 25, 50]"
+                [paginator]="true"
+                currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+            >
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th scope="col">Nombre Componente</th>
+                        <th scope="col">Roles Permitidos</th>
+                        <th scope="col"></th>
+                    </tr>
+                </ng-template>
+                <ng-template
+                    pTemplate="body"
+                    let-permiso
+                    let-editing="editing"
+                    let-ri="rowIndex"
+                >
+                    <tr [pEditableRow]="permiso">
+                        <td>
+                            <p-cellEditor>
+                                <ng-template pTemplate="input">
+                                    {{ permiso.nombreComponente }}
+                                </ng-template>
+                                <ng-template pTemplate="output">
+                                    {{ permiso.nombreComponente }}
+                                </ng-template>
+                            </p-cellEditor>
+                        </td>
+                        <td>
+                            <p-cellEditor>
+                                <ng-template pTemplate="input">
+                                    <div *ngFor="let rol of roles">
+                                        <input
+                                            type="checkbox"
+                                            [value]="rol._id"
+                                            class="form-check-input"
+                                            [checked]="
+                                                checklist(permiso, rol._id)
+                                            "
+                                            (change)="toggleRol(permiso, rol)"
+                                        />
+                                        {{ rol.nombre }}
+                                    </div>
+                                </ng-template>
+                                <ng-template pTemplate="output">
+                                    <div
+                                        *ngFor="
+                                            let rol of permiso.rolesPermitidos
+                                        "
+                                    >
+                                        {{ rol.nombre }}
+                                    </div>
+                                </ng-template>
+                            </p-cellEditor>
+                        </td>
+
+                        <td>
+                            <div
+                                class="btn-group"
+                                role="group"
+                                aria-label="Acciones"
+                            >
+                                <div
+                                    class="flex align-items-center justify-content-center gap-2"
+                                >
+                                    <button
+                                        *ngIf="!editing"
+                                        pButton
+                                        pRipple
+                                        type="button"
+                                        pInitEditableRow
+                                        icon="bi bi-pencil"
+                                        (click)="onRowEditInit(permiso)"
+                                        class="p-button-rounded p-button-text mr-2 btn btn-primary"
+                                    ></button>
+                                    <button
+                                        *ngIf="editing"
+                                        pButton
+                                        pRipple
+                                        type="button"
+                                        pSaveEditableRow
+                                        icon="bi bi-floppy"
+                                        (click)="onRowEditSave(permiso)"
+                                        class="p-button-rounded p-button-text p-button-success mr-2 btn btn-success"
+                                    ></button>
+                                    <button
+                                        *ngIf="editing"
+                                        pButton
+                                        pRipple
+                                        type="button"
+                                        pCancelEditableRow
+                                        icon="bi bi-trash"
+                                        (click)="onRowEditCancel(permiso, ri)"
+                                        class="p-button-rounded p-button-text p-button-danger btn btn-danger"
+                                    ></button>
+                                </div>
+                                <!--<button *ngIf="!editing" pButton pRipple type="button" icon="bi bi-trash" class="p-button-rounded p-button-text btn btn-danger" (click)="confirmarEliminacion(permiso)"></button>-->
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+</div>

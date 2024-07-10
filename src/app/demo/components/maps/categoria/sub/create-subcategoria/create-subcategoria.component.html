@@ -1,0 +1,78 @@
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-auto">
+                <h2>Nueva Sub-Categoría</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <p-toast></p-toast>
+        <form
+            [formGroup]="subcategoriaForm"
+            (ngSubmit)="registrarSubcategoria()"
+            *ngIf="categorias"
+        >
+            <div class="p-fluid p-formgrid grid">
+                <div class="field col-12 md:col-6">
+                    <label for="categoria" class="form-label">Categoría</label>
+                    <p-dropdown
+                        appendTo="body"
+                        [options]="categorias"
+                        formControlName="categoria"
+                        optionLabel="name"
+                        [showClear]="true"
+                        placeholder="Selecciona una categoria"
+                    >
+                        <ng-template pTemplate="selectedItem">
+                            <div class="flex align-items-center gap-2">
+                                <div>
+                                    {{
+                                        subcategoriaForm.get("categoria")?.value
+                                            ?.nombre
+                                    }}
+                                </div>
+                            </div>
+                        </ng-template>
+                        <ng-template let-item pTemplate="item">
+                            <div class="flex align-items-center gap-2">
+                                <div>{{ item.nombre }}</div>
+                            </div>
+                        </ng-template>
+                    </p-dropdown>
+                </div>
+                <div class="field col-12 md:col-6">
+                    <label for="nombre" class="form-label">Nombre</label>
+                    <input
+                        type="text"
+                        pInputText
+                        class="form-control"
+                        id="nombre"
+                        formControlName="nombre"
+                        required
+                    />
+                </div>
+                <div class="field col-12 md:col-6">
+                    <label for="descripcion" class="form-label"
+                        >Descripción</label
+                    >
+                    <textarea
+                        pInputTextarea
+                        class="form-control"
+                        id="descripcion"
+                        formControlName="descripcion"
+                        required
+                    ></textarea>
+                </div>
+                <button
+                    type="submit"
+                    pButton
+                    label="Guardar"
+                    class="btn btn-primary"
+                >
+                    <i class="bi bi-save"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

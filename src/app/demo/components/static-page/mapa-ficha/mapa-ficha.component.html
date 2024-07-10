@@ -1,0 +1,519 @@
+<!--
+    opcionb?url+'helper/obtener_portada_barrio/'+opcionb.id :
+-->
+
+<ng-template #infoWindowTemplate let-feature="feature">
+    <p-card
+        [header]="feature.properties.nombre"
+        [subheader]="
+            feature.properties.parr ||
+            feature.properties.obser ||
+            feature.properties.tipo
+                ? 'Información de barrio:'
+                : ''
+        "
+    >
+        <ng-template pTemplate="header">
+            <img
+                [src]="url_imag"
+                alt="Descripción de la imagen"
+                class="imagen-popup"
+                style="width: 100%; height: 150px; object-fit: cover"
+            />
+        </ng-template>
+        <ng-container *ngIf="feature.properties">
+            <div *ngIf="feature.properties.parr">
+                Parroquia: {{ feature.properties.parr }}
+            </div>
+        </ng-container>
+    </p-card>
+</ng-template>
+
+<!--
+ <p>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore sed
+        consequuntur error repudiandae numquam deserunt quisquam repellat libero
+        asperiores earum nam nobis, culpa ratione quam perferendis esse,
+        cupiditate neque quas!
+    </p>
+    -->
+
+<p-stepper>
+    <p-stepperPanel header="Actividad">
+        <ng-template
+            pTemplate="content"
+            let-nextCallback="nextCallback"
+            let-index="index"
+        >
+            <div
+                class="surface-section px-4 py-8 md:px-6 lg:px-8 overflow-hidden"
+            >
+                <div class="button-container-categoria">
+                    <ng-container *ngFor="let categoria of categorias">
+                        <div
+                            class="cube-categoria mt-3 mb-3"
+                            *ngIf="categoria.nombre != 'CIOCE'"
+                            (click)="
+                                onCategoriaClick(categoria); nextCallback.emit()
+                            "
+                        >
+                            <div
+                                class="cube-face-categoria cube-front-categoria"
+                                style="cursor: pointer"
+                            >
+                                <img
+                                    [src]="categoria.icono"
+                                    alt="{{ categoria.nombre }}"
+                                    class="custom-icon-categoria"
+                                />
+                                <p>{{ categoria.nombre }}</p>
+                            </div>
+                        </div>
+                    </ng-container>
+                </div>
+            </div>
+            <div class="flex pt-4 justify-content-end">
+                <p-button
+                    label="Siguiente"
+                    icon="pi pi-arrow-right"
+                    iconPos="right"
+                    [disabled]="!visible_subcategoria"
+                    (onClick)="nextCallback.emit()"
+                />
+            </div>
+        </ng-template>
+    </p-stepperPanel>
+    <p-stepperPanel header="Estado">
+        <ng-template
+            pTemplate="content"
+            let-prevCallback="prevCallback"
+            let-nextCallback="nextCallback"
+            let-index="index"
+        >
+            <div style="overflow: hidden">
+                <!-- Asegurándonos de que no haya desplazamiento -->
+                <p-table [value]="subcategorias">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>
+                                {{
+                                    fichaSectorialForm.get("actividad").value
+                                        .nombre
+                                }}
+                            </th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-product>
+                        <tr
+                            (click)="
+                                onSubCategoriaClick(product);
+                                nextCallback.emit();
+                                recargarmapa()
+                            "
+                        >
+                            <td
+                                style="
+                                    word-wrap: break-word;
+                                    white-space: normal;
+                                    overflow-wrap: break-word;
+                                    cursor: pointer;
+                                "
+                            >
+                                {{ product.nombre }}
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+            <div class="flex pt-4 justify-content-between">
+                <p-button
+                    label="Atrás"
+                    icon="pi pi-arrow-left"
+                    (onClick)="prevCallback.emit()"
+                />
+                <p-button
+                    label="Siguiente"
+                    icon="pi pi-arrow-right"
+                    iconPos="right"
+                    [disabled]="!visible_map"
+                    (onClick)="nextCallback.emit(); recargarmapa()"
+                />
+            </div>
+        </ng-template>
+    </p-stepperPanel>
+    <p-stepperPanel header="Ubicación">
+        <ng-template
+            pTemplate="content"
+            let-nextCallback="nextCallback"
+            let-prevCallback="prevCallback"
+            let-index="index"
+        >
+            <div class="grid p-fluid">
+                <div class="col-12">
+                    <div [style.display]="'none'">
+                        <div
+                            #formulariomap
+                            class="card flex justify-content-center"
+                        >
+                            <p-autoComplete
+                                appendTo="body"
+                                [(ngModel)]="query"
+                                [suggestions]="predictions"
+                                (completeMethod)="search($event)"
+                                field="description"
+                                placeholder="Ingresa una dirección o referencia"
+                                [forceSelection]="true"
+                                (onSelect)="imprimir(query)"
+                            >
+                            </p-autoComplete>
+                        </div>
+                    </div>
+
+                    <span class="p-float-label mb-3 mt-3" *ngIf="!load_fullscreen">
+                        <p-autoComplete
+                            appendTo="body"
+                            [(ngModel)]="query"
+                            [suggestions]="predictions"
+                            (completeMethod)="search($event)"
+                            field="description"
+                            placeholder=""
+                            [forceSelection]="true"
+                            (onSelect)="imprimir(query)"
+                            [inputStyle]="{
+                                width: isMobil()
+                                    ? responsiveimage()
+                                    : '80vh'
+                            }"
+                        >
+                        </p-autoComplete>
+                        <label for="float-label"
+                            >Ingresa una dirección o referencia
+                        </label>
+                    </span>
+
+                    <div class="card" id="map2" style="min-height: 70vh;margin-left: -18px; margin-right: -18px; margin-bottom: 0 !important;"></div>
+                    <div [style.display]="'none'">
+                        <div class="controls fullscreen-control">
+                            <button
+                                title="Toggle Fullscreen"
+                                class="fullscreen-button"
+                            >
+                                <img
+                                    src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2018%2018%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M0%200v6h2V2h4V0H0zm16%200h-4v2h4v4h2V0h-2zm0%2016h-4v2h6v-6h-2v4zM2%2012H0v6h6v-2H2v-4z%22/%3E%3C/svg%3E"
+                                    alt=""
+                                    style="height: 18px; width: 18px"
+                                    class="normal-image"
+                                />
+                                <img
+                                    src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2018%2018%22%3E%3Cpath%20fill%3D%22%23111%22%20d%3D%22M0%200v6h2V2h4V0H0zm16%200h-4v2h4v4h2V0h-2zm0%2016h-4v2h6v-6h-2v4zM2%2012H0v6h6v-2H2v-4z%22/%3E%3C/svg%3E"
+                                    alt=""
+                                    style="height: 18px; width: 18px"
+                                    class="hover-image"
+                                />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex pt-4 justify-content-between">
+                <p-button
+                    label="Atrás"
+                    icon="pi pi-arrow-left"
+                    (onClick)="prevCallback.emit()"
+                />
+                <p-button
+                    label="Siguiente"
+                    icon="pi pi-arrow-right"
+                    iconPos="right"
+                    [disabled]="!visible_map"
+                    (onClick)="nextDescript(nextCallback)"
+                />
+            </div>
+        </ng-template>
+    </p-stepperPanel>
+
+    <p-stepperPanel header="Ficha">
+        <ng-template
+            pTemplate="content"
+            let-prevCallback="prevCallback"
+            let-index="index"
+        >
+            <form [formGroup]="fichaSectorialForm">
+                <h4>Descripción de la Actividad</h4>
+                <textarea
+                    [style]="{
+                        height: '320px',
+                        width: '-webkit-fill-available'
+                    }"
+                    rows="5"
+                    cols="30"
+                    pInputTextarea
+                    formControlName="descripcion"
+                >
+                </textarea>
+                <div class="mb-5">
+                    <h4 for="fecha_evento" class="form-label">
+                        Fecha del Evento
+                    </h4>
+                    <p-calendar
+                        [touchUI]="isMobil()"
+                        [readonlyInput]="isMobil()"
+                        id="fecha_evento"
+                        name="fecha_evento"
+                        formControlName="fecha_evento"
+                        [showTime]="true"
+                        [showIcon]="true"
+                        appendTo="body"
+                        inputId="buttondisplay"
+                    ></p-calendar>
+                </div>
+            </form>
+            <h4>Puedes agregar fotos, es opcional. (maximo 5 fotos)</h4>
+            <div class="mb-3" *ngIf="!isMobil() && upload">
+                <p-toast />
+                <p-fileUpload
+                    name="myfile[]"
+                    url="https://www.primefaces.org/cdn/api/upload.php"
+                    [multiple]="true"
+                    accept="image/*"
+                    [maxFileSize]="5000000"
+                    [fileLimit]="5 - files.length"
+                    (onUpload)="onTemplatedUpload()"
+                    (onSelect)="onSelectedFiles($event)"
+                >
+                    <ng-template
+                        pTemplate="header"
+                        let-chooseCallback="chooseCallback"
+                        let-clearCallback="clearCallback"
+                        let-uploadCallback="uploadCallback"
+                    >
+                        <div
+                            class="flex flex-wrap justify-content-between align-items-center flex-1 gap-2"
+                        >
+                            <div class="flex gap-2">
+                                <p-button
+                                    (onClick)="choose($event, chooseCallback)"
+                                    icon="pi pi-images"
+                                    [rounded]="true"
+                                    [outlined]="true"
+                                />
+                                <p-button
+                                    (onClick)="uploadEvent(uploadCallback)"
+                                    icon="pi pi-cloud-upload"
+                                    [rounded]="true"
+                                    [outlined]="true"
+                                    severity="success"
+                                    [disabled]="!files || files.length === 0"
+                                />
+                                <p-button
+                                    (onClick)="clearFiles(clearCallback)"
+                                    icon="pi pi-times"
+                                    [rounded]="true"
+                                    [outlined]="true"
+                                    severity="danger"
+                                    [disabled]="!files || files.length === 0"
+                                />
+                            </div>
+                            <span>Imagenes por subir: {{ files.length }}</span>
+                            <p-progressBar
+                                [value]="totalSizePercent"
+                                styleClass="md:w-20rem h-1rem w-full md:ml-auto"
+                            >
+                                <ng-template pTemplate="content">
+                                    <span class="white-space-nowrap">
+                                        {{
+                                            totalSize / 1024 | number : "1.2-2"
+                                        }}
+                                        MB / 5 MB
+                                    </span>
+                                </ng-template>
+                            </p-progressBar>
+                        </div>
+                    </ng-template>
+                    <ng-template
+                        pTemplate="content"
+                        let-uploadedFiles="uploadedFiles"
+                        let-removeFileCallback="removeFileCallback"
+                        let-removeUploadedFileCallback="removeUploadedFileCallback"
+                    >
+                        <div *ngIf="files?.length > 0">
+                            <h5>Pendiente</h5>
+                            <div class="flex flex-wrap p-0 sm:p-5 gap-5">
+                                <div
+                                    *ngFor="let file of files; let i = index"
+                                    class="card m-0 px-6 flex flex-column border-1 surface-border align-items-center gap-3"
+                                >
+                                    <div>
+                                        <img
+                                            role="presentation"
+                                            [alt]="file.name"
+                                            [src]="file.objectURL"
+                                            height="75"
+                                        />
+                                    </div>
+                                    <span class="font-semibold">{{
+                                        file.name
+                                    }}</span>
+                                    <div>{{ formatSize(file.size) }}</div>
+                                    <p-badge
+                                        value="Pending"
+                                        severity="warning"
+                                    />
+                                    <p-button
+                                        icon="pi pi-times"
+                                        (click)="
+                                            onRemoveTemplatingFile(
+                                                $event,
+                                                file,
+                                                removeFileCallback,
+                                                index,
+                                                false
+                                            )
+                                        "
+                                        [outlined]="true"
+                                        [rounded]="true"
+                                        severity="danger"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div *ngIf="selectedFilesnew?.length > 0">
+                            <h5>Completado</h5>
+                            <div class="flex flex-wrap p-0 sm:p-5 gap-5">
+                                <div
+                                    *ngFor="
+                                        let file of selectedFilesnew;
+                                        let i = index
+                                    "
+                                    class="card m-0 px-6 flex flex-column border-1 surface-border align-items-center gap-3"
+                                >
+                                    <div>
+                                        <img
+                                            role="presentation"
+                                            [alt]="file.name"
+                                            [src]="file.objectURL"
+                                            width="100"
+                                            height="50"
+                                        />
+                                    </div>
+                                    <span class="font-semibold">{{
+                                        file.name
+                                    }}</span>
+                                    <div>{{ formatSize(file.size) }}</div>
+                                    <p-badge
+                                        value="Completed"
+                                        class="mt-3"
+                                        severity="success"
+                                    />
+                                    <p-button
+                                        icon="pi pi-times"
+                                        (onClick)="
+                                            onRemoveTemplatingFile(
+                                                $event,
+                                                file,
+                                                removeUploadedFileCallback,
+                                                index,
+                                                true
+                                            )
+                                        "
+                                        [outlined]="true"
+                                        [rounded]="true"
+                                        severity="danger"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="file"> </ng-template>
+                    <ng-template pTemplate="empty">
+                        <div
+                            class="flex align-items-center justify-content-center flex-column"
+                        >
+                            <i
+                                class="pi pi-cloud-upload border-2 border-circle p-5 text-8xl text-400 border-400"
+                            ></i>
+                            <p class="mt-4 mb-0">
+                                Arrastre y suelte archivos aquí para cargarlos.
+                            </p>
+                        </div>
+                    </ng-template>
+                </p-fileUpload>
+            </div>
+            <div class="mb-3" *ngIf="isMobil() && upload">
+                <h4 for="formFileMultiple" class="form-label">
+                    <p-button
+                        id="fotoButton"
+                        icon="pi bi-camera2-custom"
+                        [raised]="true"
+                        [outlined]="true"
+                        label="Añadir nueva Foto"
+                        (click)="tomarFotoYEnviar($event)"
+                    ></p-button>
+                </h4>
+            </div>
+            <div class="mb-3" *ngIf="mostrargale">
+                <p-button
+                    class="m-3"
+                    *ngIf="imagenesSeleccionadas.length > 0"
+                    icon="pi bi-box-arrow-up-right"
+                    [raised]="true"
+                    [outlined]="true"
+                    label="Ver Fotos"
+                    (click)="imageClick(0)"
+                ></p-button>
+
+                <p-button
+                    class="m-3"
+                    *ngIf="imagenesSeleccionadas.length > 0"
+                    label="Borrar Fotos"
+                    severity="warning"
+                    (onClick)="
+                        upload = true;
+                        imagenesSeleccionadas = [];
+                        selectedFiles = []
+                    "
+                    icon="pi pi-trash"
+                ></p-button>
+
+                <p-galleria
+                    [value]="imagenesSeleccionadas"
+                    [(visible)]="displayCustom"
+                    [(activeIndex)]="activeIndex"
+                    [responsiveOptions]="responsiveOptions"
+                    [containerStyle]="{ 'max-width': '850px' }"
+                    [numVisible]="7"
+                    [circular]="true"
+                    [fullScreen]="true"
+                    [showItemNavigators]="true"
+                    [showThumbnails]="false"
+                >
+                    <ng-template pTemplate="item" let-item>
+                        <img
+                            [src]="item.itemImageSrc"
+                            style="width: 60%; display: block"
+                        />
+                    </ng-template>
+                </p-galleria>
+            </div>
+            <div class="flex pt-4 justify-content-between">
+                <p-button
+                    class="mt-3"
+                    label="Atrás"
+                    icon="pi pi-arrow-left"
+                    (onClick)="prevCallback.emit(); recargarmapa()"
+                />
+                <p-confirmDialog
+                    header="Confirmación"
+                    icon="pi pi-exclamation-triangle"
+                ></p-confirmDialog>
+                <p-button
+                    class="mt-3"
+                    label="Enviar"
+                    icon="pi pi-send"
+                    iconPos="right"
+                    (onClick)="enviar()"
+                />
+            </div>
+        </ng-template>
+    </p-stepperPanel>
+</p-stepper>

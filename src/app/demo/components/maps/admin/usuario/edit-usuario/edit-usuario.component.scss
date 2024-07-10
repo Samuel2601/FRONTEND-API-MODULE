@@ -1,0 +1,62 @@
+.form-switch{
+    @media (max-width: 767px) { // Estilos para dispositivos móviles
+        padding-left: 0em;
+      }
+}
+.text-sm-center-costum{
+    @media (max-width: 767px) { // Estilos para dispositivos móviles
+        text-align: center !important;
+      }
+}
+.is-mobile {
+  padding-bottom: 60px; /* O el valor deseado */
+}
+@media (max-width: 767px) {
+  .card .card-body {
+      padding: 0rem 2px !important;
+      position: relative;     
+  }
+}
+@media (max-width: 767.98px) { 
+  
+  .main-panel .main-content {
+    bottom: 70px !important;
+    margin-top: 0px;
+    padding: 10px 0px;
+  }
+}
+
+.file-upload {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+  }
+  
+  .file-upload-input {
+    height: max-content !important;
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    opacity: 0;
+    filter: alpha(opacity=0);
+  }
+  
+  .file-upload-label {
+    display: inline-block;
+    padding: 14px 20px;
+    background-color: #4caf5069;
+    color: #0e663e;
+    border-radius: 17px;
+    cursor: pointer;
+    border: 2px dashed #4caf4ffd; /* Borde rayado de color gris claro */
+  }
+  
+  .file-upload-label.hover {
+    background-color: #4caf50;
+  }
+p-image img {
+  border-radius: 50%;
+}

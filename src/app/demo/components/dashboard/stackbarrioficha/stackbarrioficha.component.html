@@ -1,0 +1,223 @@
+<h4>Actividades por Barrio</h4>
+<p-splitter [style]="{ height: '100px' }" styleClass="mb-5" *ngIf="!modal">
+    <ng-template pTemplate>
+        <div class="col flex align-items-center justify-content-center">
+            <p-button
+                label="Anterior"
+                [text]="true"
+                (click)="previoDataFeature()"
+            ></p-button>
+        </div>
+    </ng-template>
+    <ng-template pTemplate>
+        <div class="col flex align-items-center justify-content-center">
+            <p-button label="Todos" [text]="true" (click)="rankin()"></p-button>
+        </div>
+    </ng-template>
+    <ng-template pTemplate>
+        <div class="col flex align-items-center justify-content-center">
+            <p-button
+                label="Siguiente"
+                [text]="true"
+                (click)="postDataFeature()"
+            ></p-button>
+        </div>
+    </ng-template>
+</p-splitter>
+<p-scrollPanel styleClass="custombar1">
+    <div class="card">
+        <p-chart
+            [type]="!modal ? 'bar' : 'pie'"
+            [data]="basicData"
+            [options]="!modal ? optionsbar : optionspie"
+        ></p-chart>
+    </div>
+</p-scrollPanel>
+
+<p-scrollPanel styleClass="custombar2" *ngIf="!modal">
+    <div class="card">
+        <p-table [paginatorDropdownAppendTo]="'body'" *ngIf="basicData" [value]="basicData.labels" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5, 10, 20]">
+            <ng-template pTemplate="header">
+                <tr>
+                    <th *ngIf="longLabels[0]">Incide</th>
+                    <th>Barrio</th>
+                    <th>Incidentes</th>
+                    <th>Porcentaje</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-item let-i="rowIndex">
+                <tr>
+                    <td *ngIf="longLabels[i]">{{ item }} </td>
+                    <td><ng-container *ngIf="longLabels[i]">{{longLabels[i]}}</ng-container> <ng-container *ngIf="!longLabels[i]">{{ item }}</ng-container> </td>
+                    <td>{{ basicData.datasets[0].data[i] }}</td>
+                    <td>{{ basicData.datasets[0].data[i] / constFicha.length | percent: '1.2' }}</td>
+                </tr>
+            </ng-template>
+        </p-table>
+        <!--
+ <p-table [paginatorDropdownAppendTo]="'body'"
+            styleClass="p-datatable-striped"
+            #dt1
+            [value]="constFicha"
+            dataKey="_id"
+            [rows]="10"
+            [showCurrentPageReport]="true"
+            [rowsPerPageOptions]="[10, 25, 50]"
+            [loading]="loading"
+            [paginator]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+            [globalFilterFields]="[
+                'direccion_geo',
+                'actividad.nombre',
+                'encargado.nombres',
+                'estado.nombre'
+            ]"
+            [sortMode]="'multiple'"
+        >
+            <ng-template pTemplate="caption">
+                <div class="flex">
+                    <button
+                        pButton
+                        label=""
+                        class="p-button-outlined"
+                        icon="pi pi-filter-slash"
+                        (click)="clear(dt1)"
+                    ></button>
+                    <span class="p-input-icon-left ml-auto">
+                        <i class="pi pi-search"></i>
+                        <input
+                            pInputText
+                            type="text"
+                            (input)="
+                                dt1.filterGlobal(
+                                    $any($event.target).value,
+                                    'contains'
+                                )
+                            "
+                            placeholder="Buscar"
+                        />
+                    </span>
+                </div>
+            </ng-template>
+            <ng-template pTemplate="header">
+                <tr>
+                    <th style="width: 3rem">#</th>
+                    <th style="min-width: 15rem">
+                        <div class="flex align-items-center">
+                            Dirección
+                            <p-columnFilter
+                                type="text"
+                                field="direccion_geo"
+                                display="menu"
+                            ></p-columnFilter>
+                            <th
+                                pSortableColumn="direccion_geo"
+                                style="width: 20%"
+                            >
+                                <p-sortIcon field="direccion_geo"></p-sortIcon>
+                            </th>
+                        </div>
+                    </th>
+                    <th style="min-width: 15rem">
+                        <div class="flex align-items-center">
+                            Actividad
+                            <p-columnFilter
+                                type="text"
+                                field="actividad.nombre"
+                                display="menu"
+                            ></p-columnFilter>
+                            <th
+                                pSortableColumn="actividad.nombre"
+                                style="width: 20%"
+                            >
+                                <p-sortIcon
+                                    field="actividad.nombre"
+                                ></p-sortIcon>
+                            </th>
+                        </div>
+                    </th>
+                    <th style="min-width: 15rem">
+                        <div class="flex align-items-center">
+                            Fecha del evento
+                            <p-columnFilter
+                                type="text"
+                                field="fecha_evento"
+                                display="menu"
+                            ></p-columnFilter>
+                            <th
+                                pSortableColumn="fecha_evento"
+                                style="width: 20%"
+                            >
+                                <p-sortIcon field="fecha_evento"></p-sortIcon>
+                            </th>
+                        </div>
+                    </th>
+                    <th style="min-width: 15rem">
+                        <div class="flex align-items-center">
+                            Encargado
+                            <p-columnFilter
+                                type="text"
+                                field="encargado.nombres"
+                                display="menu"
+                            ></p-columnFilter>
+                            <th
+                                pSortableColumn="encargado.nombre"
+                                style="width: 20%"
+                            >
+                                <p-sortIcon
+                                    field="encargado.nombre"
+                                ></p-sortIcon>
+                            </th>
+                        </div>
+                    </th>
+                    <th style="min-width: 10rem">
+                        <div class="flex align-items-center">
+                            Estado
+                            <p-columnFilter
+                                type="text"
+                                field="estado.nombre"
+                                display="menu"
+                            ></p-columnFilter>
+                            <th
+                                pSortableColumn="estado.nombre"
+                                style="width: 20%"
+                            >
+                                <p-sortIcon field="estado.nombre"></p-sortIcon>
+                            </th>
+                        </div>
+                    </th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-incidente let-rowIndex="rowIndex">
+                <tr>
+                    <td>{{ rowIndex + 1 }}</td>
+                    <td>
+                        {{ incidente.direccion_geo }}
+                    </td>
+                    <td>
+                        {{ incidente.actividad.nombre }}
+                    </td>
+                    <td>
+                        {{ incidente.fecha_evento | date : "medium" : "es" }}
+                    </td>
+                    <td>
+                        {{ incidente.encargado.nombres }}
+                    </td>
+                    <td>
+                        <p-tag
+                            [value]="incidente.estado.nombre"
+                            [severity]="getSeverity(incidente.estado.nombre)"
+                        ></p-tag>
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="5">No se encontraron incidentes.</td>
+                </tr>
+            </ng-template>
+        </p-table>
+        -->
+       
+    </div>
+</p-scrollPanel>

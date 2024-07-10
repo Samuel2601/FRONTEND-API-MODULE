@@ -1,0 +1,70 @@
+<div class="card-body">
+    <p-toast></p-toast>
+    <div class="w-full surface-card">
+        <form
+        [formGroup]="fichaSectorialForm"
+        (ngSubmit)="registrarFichaSectorial()"
+    >
+    <div
+                                class="flex flex-column gap-2 mx-auto"
+                                style="min-height: 16rem; max-width: 20rem"
+                            > 
+                            <div class="text-center mt-3 mb-3 text-xl font-semibold">
+                                <label for="direccion_geo" class="form-label"
+                                    >Dirección Geográfica</label
+                                >
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="direccion_geo"
+                                    name="direccion_geo"
+                                    formControlName="direccion_geo"
+                                    required
+                                    pInputText
+                                    readonly
+                                />
+                            </div>
+                    
+                            <div class="text-center mt-3 mb-3 text-xl font-semibold">
+                                <div class="d-flex align-items-center">
+                                    <div class=" h-50 overflow-hidden">
+                                        <img
+                                            src="{{
+                                                nombreArchivo
+                                                    ? nombreArchivo
+                                                    : url +
+                                                      'helper/obtener_portada_barrio/' +
+                                                      valor.id
+                                            }}"
+                                            width="250"
+                                            height="250"
+                                            alt="Your profile picture"
+                                            class="img-fluid"
+                                            style="
+                                                aspect-ratio: 48 / 48;
+                                                object-fit: cover;
+                                                border-radius: 17% !important;
+                                            "
+                                        />
+                                    </div>
+                                    <div class="ms-3">
+                                        <p-fileUpload mode="basic" name="demo[]" url="https://www.primefaces.org/cdn/api/upload.php" accept="image/*" [maxFileSize]="1000000"
+                                                 (onUpload)="onFilesSelected($event)" [auto]="true" chooseLabel="Browse"></p-fileUpload>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex pt-4 justify-content-end">
+                                <p-button
+                                label="Enviar"
+                                icon="pi pi-save"
+                                iconPos="right"
+                                type="submit"
+                            ></p-button>
+                            </div>
+                            
+                        </div>
+        
+    </form>
+    </div>
+   
+</div>

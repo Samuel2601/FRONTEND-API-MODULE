@@ -1,0 +1,646 @@
+<!--fORMULARIO-->
+<div class="card">
+    <p-toast></p-toast>
+    <h5>Filtro de Busqueda de Fichas Sectoriales</h5>
+    <form (ngSubmit)="filtro()" [formGroup]="filterForm">
+        <div class="grid p-fluid mt-3">
+            <div class="field col-12 md:col-3">
+                <span class="p-float-label">
+                    <p-calendar
+                        inputId="fecha_inicio"
+                        formControlName="fecha_inicio"
+                    ></p-calendar>
+                    <label for="fecha_inicio">Fecha de inicio</label>
+                </span>
+            </div>
+            <div class="field col-12 md:col-3">
+                <span class="p-float-label">
+                    <p-calendar
+                        inputId="fecha_fin"
+                        formControlName="fecha_fin"
+                    ></p-calendar>
+                    <label for="fecha_fin">Fecha de fin</label>
+                </span>
+            </div>
+
+            <div class="field col-12 md:col-3" *ngIf="actividades.length > 0">
+                <span class="p-float-label">
+                    <p-multiSelect
+                        [options]="actividades"
+                        placeholder="Seleccione las Categorias"
+                        optionLabel="nombre"
+                        formControlName="actividad"
+                    >
+                        <ng-template let-value pTemplate="selectedItems">
+                            <div
+                                class="inline-flex align-items-center gap-2 px-1"
+                                *ngFor="let option of value"
+                            >
+                                <div>{{ option.nombre }}</div>
+                            </div>
+                            <div *ngIf="!value || value.length === 0">
+                                Seleccione las Categorias
+                            </div>
+                        </ng-template>
+                        <ng-template let-actividad pTemplate="item">
+                            <div class="flex align-items-center gap-2">
+                                <div>{{ actividad.nombre }}</div>
+                            </div>
+                        </ng-template>
+                        <ng-template let-actividad pTemplate="footer">
+                            <div class="py-2 px-3">
+                                <b>{{
+                                    filterForm.get("actividad").value
+                                        ? filterForm.get("actividad").value
+                                              .length
+                                        : 0
+                                }}</b>
+                                item{{
+                                    filterForm.get("actividad").value &&
+                                    filterForm.get("actividad").value.length !==
+                                        1
+                                        ? "s"
+                                        : ""
+                                }}
+                                seleccionado{{
+                                    filterForm.get("actividad").value &&
+                                    filterForm.get("actividad").value.length !==
+                                        1
+                                        ? "s"
+                                        : ""
+                                }}.
+                            </div>
+                        </ng-template>
+                    </p-multiSelect>
+                    <label for="multiselectcat"
+                        >Actividad
+                        <ng-container
+                            *ngIf="filterForm.get('actividad').value.length > 0"
+                            >:
+                            {{ filterForm.get("actividad").value.length }}
+                        </ng-container>
+                    </label>
+                </span>
+            </div>
+
+            <div class="field col-12 md:col-3" *ngIf="encargados.length > 0">
+                <span class="p-float-label">
+                    <p-multiSelect
+                        [options]="encargados"
+                        placeholder="Seleccione las Categorias"
+                        optionLabel="nombres"
+                        formControlName="encargado"
+                    >
+                        <ng-template let-value pTemplate="selectedItems">
+                            <div
+                                class="inline-flex align-items-center gap-2 px-1"
+                                *ngFor="let option of value"
+                            >
+                                <div>{{ option.nombres }}</div>
+                            </div>
+                            <div *ngIf="!value || value.length === 0">
+                                Seleccione las Categorias
+                            </div>
+                        </ng-template>
+                        <ng-template let-encargado pTemplate="item">
+                            <div class="flex align-items-center gap-2">
+                                <div>{{ encargado.nombres }}</div>
+                            </div>
+                        </ng-template>
+                        <ng-template let-encargado pTemplate="footer">
+                            <div class="py-2 px-3">
+                                <b>{{
+                                    filterForm.get("encargado").value
+                                        ? filterForm.get("encargado").value
+                                              .length
+                                        : 0
+                                }}</b>
+                                item{{
+                                    filterForm.get("encargado").value &&
+                                    filterForm.get("encargado").value.length !==
+                                        1
+                                        ? "s"
+                                        : ""
+                                }}
+                                seleccionado{{
+                                    filterForm.get("encargado").value &&
+                                    filterForm.get("encargado").value.length !==
+                                        1
+                                        ? "s"
+                                        : ""
+                                }}.
+                            </div>
+                        </ng-template>
+                    </p-multiSelect>
+                    <label for="multiselectsub"
+                        >Encargados
+                        <ng-container
+                            *ngIf="filterForm.get('encargado').value.length > 0"
+                            >: {{ filterForm.get("encargado").value.length }}
+                        </ng-container></label
+                    >
+                </span>
+            </div>
+            <div class="field col-12 md:col-3" *ngIf="estados.length > 0">
+                <span class="p-float-label">
+                    <p-multiSelect
+                        [options]="estados"
+                        placeholder="Seleccione los Estados"
+                        optionLabel="nombre"
+                        formControlName="estado"
+                    >
+                        <ng-template let-value pTemplate="selectedItems">
+                            <div
+                                class="inline-flex align-items-center gap-2 px-1"
+                                *ngFor="let option of value"
+                            >
+                                <div>{{ option.nombre }}</div>
+                            </div>
+                            <div *ngIf="!value || value.length === 0">
+                                Seleccione los Estados
+                            </div>
+                        </ng-template>
+                        <ng-template let-estado pTemplate="item">
+                            <div class="flex align-items-center gap-2">
+                                <div>{{ estado.nombre }}</div>
+                            </div>
+                        </ng-template>
+                        <ng-template let-estado pTemplate="footer">
+                            <div class="py-2 px-3">
+                                <b>{{
+                                    filterForm.get("estado").value
+                                        ? filterForm.get("estado").value.length
+                                        : 0
+                                }}</b>
+                                item{{
+                                    filterForm.get("estado").value &&
+                                    filterForm.get("estado").value.length !== 1
+                                        ? "s"
+                                        : ""
+                                }}
+                                seleccionado{{
+                                    filterForm.get("estado").value &&
+                                    filterForm.get("estado").value.length !== 1
+                                        ? "s"
+                                        : ""
+                                }}.
+                            </div>
+                        </ng-template>
+                    </p-multiSelect>
+                    <label for="multiselectstatus"
+                        >Estado
+                        <ng-container
+                            *ngIf="filterForm.get('estado').value.length > 0"
+                            >:
+                            {{ filterForm.get("estado").value.length }}
+                        </ng-container>
+                    </label>
+                </span>
+            </div>
+            <div class="field col-12 md:col-3" *ngIf="direcciones.length > 0">
+                <span class="p-float-label">
+                    <p-multiSelect
+                        [options]="direcciones"
+                        placeholder="Seleccione las Direcciones"
+                        optionLabel="nombre"
+                        formControlName="direccion"
+                    >
+                        <ng-template let-value pTemplate="selectedItems">
+                            <div
+                                class="inline-flex align-items-center gap-2 px-1"
+                                *ngFor="let option of value"
+                            >
+                                <div>{{ option.nombre }}</div>
+                            </div>
+                            <div *ngIf="!value || value.length === 0">
+                                Seleccione las Direcciones
+                            </div>
+                        </ng-template>
+                        <ng-template let-direccion pTemplate="item">
+                            <div class="flex align-items-center gap-2">
+                                <div>{{ direccion.nombre }}</div>
+                            </div>
+                        </ng-template>
+                        <ng-template let-direccion pTemplate="footer">
+                            <div class="py-2 px-3">
+                                <b>{{
+                                    filterForm.get("direccion").value
+                                        ? filterForm.get("direccion").value
+                                              .length
+                                        : 0
+                                }}</b>
+                                item{{
+                                    filterForm.get("direccion").value &&
+                                    filterForm.get("direccion").value.length !==
+                                        1
+                                        ? "s"
+                                        : ""
+                                }}
+                                seleccionado{{
+                                    filterForm.get("direccion").value &&
+                                    filterForm.get("direccion").value.length !==
+                                        1
+                                        ? "s"
+                                        : ""
+                                }}.
+                            </div>
+                        </ng-template>
+                    </p-multiSelect>
+                    <label for="multiselectdireccion"
+                        >Dirección
+                        <ng-container
+                            *ngIf="filterForm.get('direccion').value.length > 0"
+                            >:
+                            {{ filterForm.get("direccion").value.length }}
+                        </ng-container>
+                    </label>
+                </span>
+            </div>
+            <div class="field col-12 md:col-3" *ngIf="check.ReporteFichaView">
+                <p-selectButton
+                    [options]="viewmentOptions"
+                    optionLabel="name"
+                    optionValue="value"
+                    formControlName="view"
+                />
+            </div>
+        </div>
+        <div>
+            <p-button
+                class="p-input-icon-left ml-auto"
+                label="Buscar"
+                type="ngSubmit"
+                [disabled]="!filterForm.valid"
+            ></p-button>
+        </div>
+    </form>
+</div>
+<!--fICHA-->
+<div class="card" *ngIf="ficha.length > 0">
+    <p-table
+        [paginatorDropdownAppendTo]="'body'"
+        styleClass="p-datatable-striped"
+        #dt1
+        [value]="ficha"
+        dataKey="_id"
+        [rows]="10"
+        [showCurrentPageReport]="true"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        [loading]="ficha.length < 0"
+        [paginator]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+        [globalFilterFields]="[
+            'direccion_geo',
+            'actividad.nombre',
+            'encargado.nombres',
+            'fecha_evento',
+            'estado.nombre'
+        ]"
+        [sortMode]="'multiple'"
+    >
+        <ng-template pTemplate="caption">
+            <div class="flex">
+                <button
+                    pButton
+                    label=""
+                    class="p-button-outlined"
+                    icon="pi pi-filter-slash"
+                    (click)="clear(dt1)"
+                ></button>
+                <span class="p-input-icon-left ml-auto">
+                    <i class="pi pi-search"></i>
+                    <input
+                        pInputText
+                        type="text"
+                        (input)="
+                            dt1.filterGlobal(
+                                $any($event.target).value,
+                                'contains'
+                            )
+                        "
+                        placeholder="Palabras Claves"
+                    />
+                </span>
+                <button
+                    class="ml-2"
+                    type="button"
+                    pButton
+                    label="CSV"
+                    (click)="exportToCSV(dt1)"
+                ></button>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+            <tr>
+                <th style="width: 3rem">#</th>
+                <th style="min-width: 15rem">
+                    <div class="flex align-items-center">
+                        Dirección
+                        <p-columnFilter
+                            type="text"
+                            field="direccion_geo"
+                            display="Dirección"
+                        ></p-columnFilter>
+                        <th pSortableColumn="direccion_geo" style="width: 20%">
+                            <p-sortIcon field="direccion_geo"></p-sortIcon>
+                        </th>
+                    </div>
+                </th>
+                <th style="min-width: 15rem">
+                    <div class="flex align-items-center">
+                        Actividad
+                        <p-columnFilter
+                            type="text"
+                            field="actividad.nombre"
+                            display="Actividad"
+                        ></p-columnFilter>
+                        <th
+                            pSortableColumn="actividad.nombre"
+                            style="width: 20%"
+                        >
+                            <p-sortIcon field="actividad.nombre"></p-sortIcon>
+                        </th>
+                    </div>
+                </th>
+                <th style="min-width: 15rem">
+                    <div class="flex align-items-center">
+                        Encargado
+                        <p-columnFilter
+                            type="text"
+                            field="encargado.nombres"
+                            display="Encargado"
+                        ></p-columnFilter>
+                        <th
+                            pSortableColumn="encargado.nombres"
+                            style="width: 20%"
+                        >
+                            <p-sortIcon field="encargado.nombres"></p-sortIcon>
+                        </th>
+                    </div>
+                </th>
+                <th style="min-width: 15rem">
+                    <div class="flex align-items-center">
+                        Fecha Evento
+                        <p-columnFilter
+                            type="date"
+                            field="fecha_evento"
+                            display="Fecha Evento"
+                        ></p-columnFilter>
+                        <th pSortableColumn="fecha_evento" style="width: 20%">
+                            <p-sortIcon field="fecha_evento"></p-sortIcon>
+                        </th>
+                    </div>
+                </th>
+                <th style="min-width: 10rem">
+                    <div class="flex align-items-center">
+                        Estado
+                        <p-columnFilter
+                            type="text"
+                            field="estado.nombre"
+                            display="Estado"
+                        ></p-columnFilter>
+                        <th pSortableColumn="estado.nombre" style="width: 20%">
+                            <p-sortIcon field="estado.nombre"></p-sortIcon>
+                        </th>
+                    </div>
+                </th>
+                <!-- Agrega las columnas restantes según tu necesidad -->
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-ficha let-rowIndex="rowIndex">
+            <tr (click)="verficha(ficha)">
+                <td>{{ rowIndex + 1 }}</td>
+                <td>
+                    <ng-container *ngIf="isJSONString(ficha.direccion_geo)">{{
+                        parseJSON(ficha.direccion_geo).nombre
+                    }}</ng-container>
+                    <ng-container *ngIf="!isJSONString(ficha.direccion_geo)">{{
+                        ficha.direccion_geo
+                    }}</ng-container>
+                </td>
+                <td>
+                    {{ ficha.actividad.nombre }}
+                </td>
+                <td>
+                    {{ ficha.encargado.nombres }}
+                </td>
+                <td>
+                    {{ ficha.fecha_evento | date : "medium" : "es" }}
+                </td>
+                <td>
+                    <p-tag
+                        [value]="ficha.estado.nombre"
+                        [severity]="getSeverity(ficha.estado.nombre)"
+                    ></p-tag>
+                </td>
+                <!-- Agrega las columnas restantes según tu necesidad -->
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="5">No se encontraron fichas.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+<!--GRÁFICOS-->
+<ng-container *ngIf="load_table && ficha.length > 0">
+    <ng-container
+        *ngFor="
+            let item of convertirObjetoEnArreglo(dataForm);
+            trackBy: trackByFn
+        "
+    >
+        <!--
+            <p-button label="PDF" (click)="exportToPDF(item.clave)"></p-button>
+        -->
+
+        <div class="card grid" [id]="item.clave">
+            <div class="col-12 xl:col-6">
+                <p-chart
+                    type="doughnut"
+                    [data]="item.valor"
+                    [options]="options"
+                    #chart
+                ></p-chart>
+                <canvas #exportCanvas style="display: none"></canvas>
+            </div>
+            <div class="col-12 xl:col-6">
+                <p-table
+                    [paginatorDropdownAppendTo]="'body'"
+                    #dt1
+                    [value]="getEntries(totales[item.clave])"
+                >
+                    <ng-template pTemplate="caption">
+                        <div class="flex">
+                            <h4>Lista de {{ item.clave | uppercase }}</h4>
+                            <p-button
+                                class="p-input-icon-left ml-auto"
+                                label="CSV"
+                                (click)="exportToCSV(dt1, item.clave)"
+                                [raised]="true"
+                                [outlined]="true"
+                            ></p-button>
+                            <p-button
+                                class="p-input-icon-left ml-2"
+                                label="Img."
+                                (click)="
+                                    exportChart(chart, exportCanvas, item.clave)
+                                "
+                                [raised]="true"
+                                [outlined]="true"
+                            ></p-button>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>{{ item.clave | uppercase }}</th>
+                            <th>CANTIDAD</th>
+                            <th>PORCENTAJE</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-actividad>
+                        <tr>
+                            <td>{{ actividad[0] }}</td>
+                            <td>{{ actividad[1].registros }}</td>
+                            <td>
+                                {{
+                                    actividad[1].porcentaje / 100
+                                        | percent : "1.2"
+                                }}
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="footer">
+                        <tr>
+                            <td>Total</td>
+                            <td>
+                                {{
+                                    getTotales(totales[item.clave])
+                                        .totalRegistros
+                                }}
+                            </td>
+                            <td>
+                                {{
+                                    getTotales(totales[item.clave])
+                                        .totalPorcentaje / 100 | percent : "1.2"
+                                }}
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+        </div>
+    </ng-container>
+</ng-container>
+<!--EN CASO DE NO TENER REGISTROS-->
+<div class="card" *ngIf="load_table && ficha.length == 0">
+    <p-messages
+        [value]="[
+            { severity: 'warn', detail: 'No tienes registros con este filtro' }
+        ]"
+        [enableService]="false"
+        [closable]="false"
+    />
+</div>
+<!--MODAL CON INFORMACION DE CADA UNO-->
+<p-dialog
+    appendTo="body"
+    header="Detalles de la Ficha Sectorial"
+    [(visible)]="viewdialog"
+    [modal]="false"
+    [style]="{ width: isMobil() ? '100%' : '50vw' }"
+>
+    <div class="modal-body" *ngIf="optionview">
+        <p>
+            <strong>Actividad:</strong>
+            {{ optionview.actividad.nombre }}
+        </p>
+        <p>
+            <strong>Dirección:</strong>
+            <ng-container *ngIf="isJSONString(optionview.direccion_geo)">{{
+                parseJSON(optionview.direccion_geo).nombre
+            }}</ng-container>
+            <ng-container *ngIf="!isJSONString(optionview.direccion_geo)">{{
+                optionview.direccion_geo
+            }}</ng-container>
+        </p>
+
+        <p>
+            <strong>Descripción:</strong>
+            {{ optionview.descripcion }}
+        </p>
+        <p>
+            <strong>Encargado:</strong>
+            {{ optionview.encargado.nombres }}
+        </p>
+        <p>
+            <strong>Estado:</strong>
+            <p-tag
+                [value]="optionview.estado.nombre"
+                [severity]="getSeverity(optionview.estado.nombre)"
+            >
+            </p-tag>
+        </p>
+        <p>
+            <strong>Fecha Evento:</strong>
+            {{ optionview.fecha_evento | date : "dd/MM/yyyy" }}
+        </p>
+        <p>
+            <strong>Observación:</strong>
+            {{ optionview.observacion }}
+        </p>
+        <div class="flex justify-content-between">
+            <div class="justify-content-between">
+                <p-button
+                    class="m-3"
+                    *ngIf="optionview.foto && optionview.foto.length > 0"
+                    label="Fotos"
+                    icon="pi pi-images"
+                    (click)="
+                        displayBasic = true; openModalimagen(optionview.foto)
+                    "
+                ></p-button>
+            </div>
+        </div>
+    </div>
+</p-dialog>
+<!--GALERIA DE IMAGENES DE CADA INCIDENTE-->
+<p-galleria
+    appendTo="body"
+    *ngIf="displayBasic"
+    [value]="imagenModal"
+    [(visible)]="displayBasic"
+    [responsiveOptions]="responsiveOptions"
+    [containerStyle]="{ 'max-width': '50vw' }"
+    [numVisible]="9"
+    [circular]="true"
+    [fullScreen]="true"
+    [showItemNavigators]="true"
+>
+    <ng-template pTemplate="item" let-item>
+        <div
+            style="
+                width: 50vw;
+                height: 50vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            "
+        >
+            <img
+                [src]="url + 'helper/obtener_portada_ficha/' + item"
+                style="max-width: 100%; max-height: 100%"
+            />
+        </div>
+    </ng-template>
+    <ng-template pTemplate="thumbnail" let-item>
+        <div class="grid grid-nogutter justify-content-center">
+            <img
+                [src]="url + 'helper/obtener_portada_ficha/' + item"
+                style="display: block"
+                style="width: 70px"
+            />
+        </div>
+    </ng-template>
+</p-galleria>

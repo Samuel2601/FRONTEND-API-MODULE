@@ -1,0 +1,186 @@
+<ng-container *ngIf="model">
+    <p-toast></p-toast>
+    <div class="modal-header">
+        <div
+            class="inline-flex align-items-center justify-content-center gap-2"
+        >
+            <h2 class="modal-title">
+                Nuevo Incidente o Denuncia :
+                <span>{{
+                    nuevoIncidenteDenuncia.get("direccion_geo")?.value.nombre
+                }}</span
+                ><span
+                    *ngIf="
+                        geolocation &&
+                        geolocation.address &&
+                        geolocation.address.road
+                    "
+                    >/{{ geolocation.address.road }}</span
+                >
+            </h2>
+        </div>
+    </div>
+    <div class="card">
+        <form
+            [formGroup]="nuevoIncidenteDenuncia"
+            (ngSubmit)="crearIncidenteDenuncia()"
+            *ngIf="load_form"
+        >
+            <div class="mb-3">
+                <h4 for="categoria" class="form-label">Categoría</h4>
+                <p-dropdown
+                    placeholder="Selecciona una Categoría"
+                    appendTo="body"
+                    id="categoria"
+                    [options]="categorias"
+                    formControlName="categoria"
+                    optionLabel="nombre"
+                    [required]="true"
+                    (onChange)="selectcategoria()"
+                >
+                    <ng-template pTemplate="selectedItem">
+                        <div class="flex align-items-center gap-2">
+                            <div>
+                                {{
+                                    nuevoIncidenteDenuncia.get("categoria")
+                                        ?.value?.nombre
+                                }}
+                            </div>
+                        </div>
+                    </ng-template>
+                    <ng-template let-item pTemplate="item">
+                        <div class="flex align-items-center gap-2">
+                            <div>{{ item.nombre }}</div>
+                        </div>
+                    </ng-template>
+                </p-dropdown>
+            </div>
+            <div class="mb-3" *ngIf="subcategorias.length > 0">
+                <h4 for="subcategoria" class="form-label">Subcategoría</h4>
+                <p-dropdown
+                    placeholder="Selecciona una SubCategoría"
+                    appendTo="body"
+                    id="subcategoria"
+                    name="subcategoria"
+                    [options]="subcategorias"
+                    formControlName="subcategoria"
+                    optionLabel="nombre"
+                    [required]="true"
+                ></p-dropdown>
+            </div>
+
+            <div class="mb-3">
+                <h4 for="descripcion" class="form-label">Descripción</h4>
+                <textarea
+                    pInputTextarea
+                    id="descripcion"
+                    name="descripcion"
+                    class="form-control"
+                    cols="50"
+                    rows="10"
+                    formControlName="descripcion"
+                    required
+                ></textarea>
+            </div>
+            <div class="mb-3" *ngIf="!isMobil() && upload">
+                <p-fileUpload
+                    chooseLabel="Seleccionar"
+                    uploadLabel="Cargar"
+                    cancelLabel="Cancelar"
+                    name="demo[]"
+                    url="https://www.primefaces.org/cdn/api/upload.php"
+                    (onUpload)="onFilesSelected($event)"
+                    [multiple]="true"
+                    accept="image/*"
+                    [maxFileSize]="5000000"
+                    [fileLimit]="5 - selectedFiles.length"
+                    invalidFileLimitMessageSummary="Se superó el número máximo de archivos"
+                >
+                    <ng-template pTemplate="content">
+                        <ul *ngIf="selectedFiles.length">
+                            <li
+                                *ngFor="
+                                    let itemfile of selectedFiles;
+                                    let i = index
+                                "
+                            >
+                                {{ itemfile.name }} - {{ itemfile.size }} bytes
+                            </li>
+                        </ul>
+                    </ng-template>
+                </p-fileUpload>
+            </div>
+            <div class="mb-3" *ngIf="isMobil() && upload">
+                <h4 for="formFileMultiple" class="form-label">
+                    Añade fotos:
+                    <p-button
+                        id="fotoButton"
+                        icon="pi bi-camera2-custom"
+                        [raised]="true"
+                        [outlined]="true"
+                        label="Añadir nueva Foto"
+                        (click)="tomarFotoYEnviar($event)"
+                    ></p-button>
+                </h4>
+            </div>
+            <div class="mb-3" *ngIf="mostrargale">
+                <p-button
+                    class="m-3"
+                    *ngIf="imagenesSeleccionadas.length > 0"
+                    icon="pi bi-box-arrow-up-right"
+                    [raised]="true"
+                    [outlined]="true"
+                    label="Ver Fotos"
+                    (click)="imageClick(0)"
+                ></p-button>
+
+                <p-button
+                    class="m-3"
+                    *ngIf="imagenesSeleccionadas.length > 0"
+                    label="Borrar Fotos"
+                    severity="warning"
+                    (onClick)="
+                        upload = true;
+                        imagenesSeleccionadas = [];
+                        selectedFiles = []
+                    "
+                    icon="pi pi-trash"
+                ></p-button>
+
+                <p-galleria
+                    [value]="imagenesSeleccionadas"
+                    [(visible)]="displayCustom"
+                    [(activeIndex)]="activeIndex"
+                    [responsiveOptions]="responsiveOptions"
+                    [containerStyle]="{ 'max-width': '850px' }"
+                    [numVisible]="7"
+                    [circular]="true"
+                    [fullScreen]="true"
+                    [showItemNavigators]="true"
+                    [showThumbnails]="false"
+                >
+                    <ng-template pTemplate="item" let-item>
+                        <img
+                            [src]="item.itemImageSrc"
+                            style="width: 60%; display: block"
+                        />
+                    </ng-template>
+                </p-galleria>
+            </div>
+            <div class="mb-3">
+                <p-button
+                    label="Crear Incidente o Denuncia"
+                    (click)="crearIncidenteDenuncia()"
+                >
+                </p-button>
+            </div>
+        </form>
+        <ng-container *ngIf="!load_form">
+            <div class="text-center">
+                <div class="spinner-border text-success" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+            </div>
+        </ng-container>
+    </div>
+</ng-container>

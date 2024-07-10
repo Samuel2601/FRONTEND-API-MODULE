@@ -1,0 +1,352 @@
+<p-toast></p-toast>
+<ng-container *ngIf="modal">
+    <div class="col-12" *ngIf="datauser">
+        <h5 *ngIf="editing">Puedes cambiar tu información personal.</h5>
+        <h5 *ngIf="!editing">
+            Formulario de actialización de datos de usuario
+        </h5>
+        <div class="p-fluid p-formgrid grid">
+            <div class="field col-4">
+                <img
+                    *ngIf="!load_form"
+                    src="{{
+                        nombreArchivo
+                            ? nombreArchivo
+                            : url +
+                              'helper/obtener_portada_avatar/' +
+                              datauser.foto
+                    }}"
+                    alt="Image"
+                    width="100"
+                    height="100"
+                    style="border-radius: 50%; object-fit: cover"
+                />
+                <p-skeleton
+                    *ngIf="load_form"
+                    shape="circle"
+                    size="5rem"
+                ></p-skeleton>
+
+                <p-fileUpload
+                    mode="basic"
+                    name="demo[]"
+                    url="https://www.primefaces.org/cdn/api/upload.php"
+                    accept="image/*"
+                    [maxFileSize]="400000"
+                    [fileLimit]="1"
+                    (onUpload)="onFilesSelected($event)"
+                    [auto]="true"
+                    chooseLabel="Subir"
+                ></p-fileUpload>
+                <label>JPG, PNG, GIF. Peso máximo 4MB. </label>
+            </div>
+            <div class="field col-8">
+                <div class="p-fluid p-formgrid grid">
+                    <div class="field col-12 md:col-6">
+                        <label htmlFor="firstname2">Nombres</label>
+                        <input
+                            pInputText
+                            id="firstname2"
+                            type="text"
+                            [(ngModel)]="datauser.nombres"
+                            placeholder="Ingresa tus nombres"
+                            [disabled]="editing"
+                        />
+                    </div>
+                    <div class="field col-12 md:col-6">
+                        <label htmlFor="email2">Correo</label>
+                        <input
+                            pInputText
+                            id="email2"
+                            type="email"
+                            [(ngModel)]="datauser.correo"
+                            placeholder="Ingresa tu correo"
+                            type="email"
+                        />
+                    </div>
+                    <div class="field col-12 md:col-6">
+                        <label htmlFor="pass">Contraseña</label>
+                        <input
+                            pInputText
+                            type="password"
+                            id="pass"
+                            [(ngModel)]="datauser.password"
+                            placeholder="Ingresa una nueva contraseña"
+                        />
+                    </div>
+                    <div class="field col-12 md:col-6">
+                        <label htmlFor="cedula">Cédula</label>
+                        <input
+                            pInputText
+                            id="cedula"
+                            type="text"
+                            [(ngModel)]="datauser.cedula"
+                            placeholder="Ingresa tu Cédula"
+                            [disabled]="editing"
+                        />
+                    </div>
+                    <div class="field col-12 md:col-6">
+                        <label htmlFor="phone">Teléfono</label>
+                        <input
+                            pInputText
+                            id="phone"
+                            type="tel"
+                            [(ngModel)]="datauser.telefono"
+                            placeholder="Ingresa tu teléfono"
+                            type="tel"
+                        />
+                    </div>
+                    <div class="field col-12 md:col-3">
+                        <label htmlFor="state">Rol </label>
+                        <p-dropdown
+                            appendTo="body"
+                            [disabled]="editing"
+                            [options]="listrol"
+                            [(ngModel)]="datauser.rol_user"
+                            [placeholder]="
+                                datauser.rol_user
+                                    ? datauser.rol_user.nombre
+                                    : 'Selecciona uno'
+                            "
+                        >
+                            <ng-template pTemplate="selectedItem">
+                                <div
+                                    class="flex align-items-center"
+                                    *ngIf="datauser.rol_user"
+                                >
+                                    <div>
+                                        {{ datauser.rol_user.nombre }}
+                                    </div>
+                                </div>
+                            </ng-template>
+                            <ng-template
+                                let-rol_user
+                                pTemplate="item"
+                                style="padding-left: 0rem !important"
+                            >
+                                <div class="flex">
+                                    <div>{{ rol_user.nombre }}</div>
+                                </div>
+                            </ng-template>
+                        </p-dropdown>
+                    </div>
+                    <div class="field col-12 md:col-3" *ngIf="!editing">
+                        <label htmlFor="zip">Estado</label>
+                        <p-inputSwitch
+                            [ngModel]="datauser.estado === 'On'"
+                            (ngModelChange)="
+                                datauser.estado = $event ? 'On' : 'Off'
+                            "
+                        ></p-inputSwitch>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex pt-4 justify-content-end">
+            <p-button
+                class="btn btn-primary"
+                (click)="updateUser()"
+                label="Guardar"
+                [disabled]="load_form"
+            >
+            </p-button>
+        </div>
+    </div>
+
+    <div class="card" *ngIf="!datauser">
+        <div class="card-header">
+            <div class="row">
+                <div class="col-lg-auto">
+                    <h2>Editar Perfil</h2>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="card-body" aria-hidden="true">
+                <p-skeleton styleClass="mb-2"></p-skeleton>
+                <p-skeleton width="10rem" styleClass="mb-2"></p-skeleton>
+                <p-skeleton width="5rem" styleClass="mb-2"></p-skeleton>
+                <p-skeleton height="2rem" styleClass="mb-2"></p-skeleton>
+                <p-skeleton width="10rem" height="4rem"></p-skeleton>
+            </div>
+        </div>
+    </div>
+</ng-container>
+
+<ng-container *ngIf="!modal">
+    <div class="card">
+        <div class="col-12" *ngIf="datauser">
+            <h5 *ngIf="editing">Puedes cambiar tu información personal.</h5>
+            <h5 *ngIf="!editing">
+                Formulario de actialización de datos de usuario
+            </h5>
+            <p-messages [(value)]="messages" [enableService]="false" />
+            <div class="p-fluid p-formgrid grid">
+                <div class="field col-4">
+                    <img
+                        *ngIf="!load_form"
+                        src="{{
+                            nombreArchivo
+                                ? nombreArchivo
+                                : url +
+                                  'helper/obtener_portada_avatar/' +
+                                  datauser.foto
+                        }}"
+                        alt="Image"
+                        width="100"
+                        height="100"
+                        style="border-radius: 50%; object-fit: cover"
+                    />
+                    <p-skeleton
+                        *ngIf="load_form"
+                        shape="circle"
+                        size="5rem"
+                    ></p-skeleton>
+
+                    <p-fileUpload
+                        mode="basic"
+                        name="demo[]"
+                        url="https://www.primefaces.org/cdn/api/upload.php"
+                        accept="image/*"
+                        [maxFileSize]="400000"
+                        [fileLimit]="1"
+                        (onUpload)="onFilesSelected($event)"
+                        [auto]="true"
+                        chooseLabel="Subir"
+                    ></p-fileUpload>
+                    <label>JPG, PNG, GIF. Peso máximo 4MB. </label>
+                </div>
+                <div class="field col-8">
+                    <div class="p-fluid p-formgrid grid">
+                        <div class="field col-12 md:col-6">
+                            <label htmlFor="firstname2">Nombres</label>
+                            <input
+                                pInputText
+                                id="firstname2"
+                                type="text"
+                                [(ngModel)]="datauser.nombres"
+                                placeholder="Ingresa tus nombres"
+                                [disabled]="editing"
+                            />
+                        </div>
+                        <div class="field col-12 md:col-6">
+                            <label htmlFor="email2">Correo</label>
+                            <input
+                                pInputText
+                                id="email2"
+                                type="email"
+                                [(ngModel)]="datauser.correo"
+                                placeholder="Ingresa tu correo"
+                                type="email"
+                                [disabled]="editing"
+                            />
+                        </div>
+                        <div class="field col-12 md:col-6">
+                            <label htmlFor="pass">Contraseña</label>
+                            <input
+                                pInputText
+                                type="password"
+                                id="pass"
+                                [(ngModel)]="datauser.password"
+                                placeholder="Ingresa una nueva contraseña"
+                            />
+                        </div>
+                        <div class="field col-12 md:col-6">
+                            <label htmlFor="cedula">Cédula</label>
+                            <input
+                                pInputText
+                                id="cedula"
+                                type="text"
+                                [(ngModel)]="datauser.cedula"
+                                placeholder="Ingresa tu Cédula"
+                                [disabled]="editing"
+                            />
+                        </div>
+                        <div class="field col-12 md:col-6">
+                            <label htmlFor="phone">Teléfono</label>
+                            <input
+                                pInputText
+                                id="phone"
+                                type="tel"
+                                [(ngModel)]="datauser.telefono"
+                                placeholder="Ingresa tu teléfono"
+                                type="tel"
+                            />
+                        </div>
+                        <div class="field col-12 md:col-3">
+                            <label htmlFor="state">Rol </label>
+                            <p-dropdown
+                                [disabled]="editing"
+                                [options]="listrol"
+                                [(ngModel)]="datauser.rol_user"
+                                [placeholder]="
+                                    datauser.rol_user
+                                        ? datauser.rol_user.nombre
+                                        : 'Selecciona uno'
+                                "
+                            >
+                                <ng-template pTemplate="selectedItem">
+                                    <div
+                                        class="flex align-items-center"
+                                        *ngIf="datauser.rol_user"
+                                    >
+                                        <div>
+                                            {{ datauser.rol_user.nombre }}
+                                        </div>
+                                    </div>
+                                </ng-template>
+                                <ng-template
+                                    let-rol_user
+                                    pTemplate="item"
+                                    style="padding-left: 0rem !important"
+                                >
+                                    <div class="flex">
+                                        <div>{{ rol_user.nombre }}</div>
+                                    </div>
+                                </ng-template>
+                            </p-dropdown>
+                        </div>
+                        <div class="field col-12 md:col-3" *ngIf="!editing">
+                            <label htmlFor="zip">Estado</label>
+                            <p-inputSwitch
+                                [ngModel]="datauser.estado === 'On'"
+                                (ngModelChange)="
+                                    datauser.estado = $event ? 'On' : 'Off'
+                                "
+                            ></p-inputSwitch>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex pt-4 justify-content-end">
+                <p-button
+                    class="btn btn-primary"
+                    (click)="updateUser()"
+                    label="Guardar"
+                >
+                </p-button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" *ngIf="!datauser">
+        <div class="card-header">
+            <div class="row">
+                <div class="col-lg-auto">
+                    <h2>Editar Perfil</h2>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="card-body" aria-hidden="true">
+                <p-skeleton styleClass="mb-2"></p-skeleton>
+                <p-skeleton width="10rem" styleClass="mb-2"></p-skeleton>
+                <p-skeleton width="5rem" styleClass="mb-2"></p-skeleton>
+                <p-skeleton height="2rem" styleClass="mb-2"></p-skeleton>
+                <p-skeleton width="10rem" height="4rem"></p-skeleton>
+            </div>
+        </div>
+    </div>
+</ng-container>

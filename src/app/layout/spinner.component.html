@@ -1,0 +1,15 @@
+<div class="modal-body text-center">
+    <div class="spinner-container">
+        <p-progressSpinner ariaLabel="loading"></p-progressSpinner>
+        <img
+            src="assets/icon/logo.png"
+            width="50%"
+            class="overlay-image"
+            alt="Imagen de superposición"
+        />
+    </div>
+
+    <div [@fadeInOut]="message">{{ message }}</div>
+</div>
+<!--
+  <span class="visually-hidden">Loading...</span>-->

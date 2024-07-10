@@ -1,0 +1,304 @@
+<div class="container-fluid">
+    <p-treeTable
+    paginatorLocale="fa-IR"
+    [value]="categorias"
+    sortMode="multiple"
+    [columns]="cols"
+    [paginator]="true"
+    [rows]="10"
+    [scrollable]="true"
+    [tableStyle]="{ 'min-width': '30rem' }"
+    [resizableColumns]="true"
+    columnResizeMode="expand"
+>
+    <ng-template pTemplate="caption">
+        <div class="text-xl font-bold">
+            <h2>Listado de Categorías</h2>
+        </div>
+        <p-button
+            routerLink="/maps/categoria/create-categoria"
+            *ngIf="check.CreateCategoriaComponent"
+        >
+            Nueva Categoría
+        </p-button>
+        <p-button
+            routerLink="/maps/subcategoria/create-subcategoria"
+            *ngIf="check.CreateSubcategoriaComponent"
+        >
+            Nueva Sub Categoría
+        </p-button>
+        <p-button
+            (click)="opcion ? (opcion = false) : (opcion = true)"
+            *ngIf="check.EditCategoriaComponent || check.EditSubcategoriaComponent"
+        >
+            Opciones
+        </p-button>
+        <p-button
+            label="Exportar a CSV"
+            icon="pi pi-file"
+            (click)="exportToCSV()"
+        ></p-button>
+    </ng-template>
+    <ng-template pTemplate="header" let-columns>
+        <tr>
+            <ng-container *ngFor="let col of columns; let last = last">
+                <th *ngIf="!last || (opcion && last)" [ttSortableColumn]="col.field">
+                    {{ col.header }}
+                    <p-treeTableSortIcon *ngIf="!last" [field]="col.field"></p-treeTableSortIcon>
+                </th>
+            </ng-container>
+        </tr>
+    </ng-template>
+    <ng-template
+        pTemplate="body"
+        let-rowNode
+        let-rowData="rowData"
+        let-columns="columns"
+    >
+        <tr [ttRow]="rowNode">
+            <ng-container
+                *ngFor="let col of columns; let i = index; let last = last"
+            >
+                <td *ngIf="!last || (opcion && last)">
+                    <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
+                    {{ rowData[col.field] }}
+                    <ng-container *ngIf="opcion && last">
+                        <p-button
+                            icon="pi pi-pencil"
+                            [rounded]="true"
+                            severity="success"
+                            (click)="editRow(rowData._id, rowData.cat)"
+                        ></p-button>
+                        <p-button
+                            icon="pi pi-trash"
+                            [rounded]="true"
+                            severity="danger"
+                            [style]="{ 'margin-left': '.5em' }"
+                            (click)="remoRow(rowData, rowData.cat)"
+                        ></p-button>
+                    </ng-container>
+                </td>
+            </ng-container>
+        </tr>
+    </ng-template>
+</p-treeTable>
+
+</div>
+
+<p-dialog
+    *ngIf="iddelete"
+    header="Header"
+    [(visible)]="visibledelete"
+    [style]="{ width: '50vw' }"
+>
+    <ng-template pTemplate="header">
+        <div
+            class="inline-flex align-items-center justify-content-center gap-2"
+        >
+            <span class="font-bold white-space-nowrap">
+                Confirmar Eliminación: {{ iddelete.nombre }}</span
+            >
+        </div>
+    </ng-template>
+    <p-stepper [linear]="true">
+        <p-stepperPanel header="Pregunta">
+            <ng-template
+                pTemplate="content"
+                let-nextCallback="nextCallback"
+                let-index="index"
+            >
+                <div class="flex flex-column h-12rem">
+                    <div
+                        class="border-2 border-dashed surface-border border-round surface-ground flex-auto flex justify-content-center align-items-center font-medium"
+                    >
+                        <p>
+                            ¿Estás seguro que deseas eliminar esta
+                            {{
+                                responsemodal.cantidadSubcategorias
+                                    ? "categoría"
+                                    : "subcategoría"
+                            }}?
+                        </p>
+                    </div>
+                </div>
+                <div class="flex pt-4 justify-content-end">
+                    <p-button
+                        label="Next"
+                        icon="pi pi-arrow-right"
+                        iconPos="right"
+                        (onClick)="nextCallback.emit()"
+                    /></div
+            ></ng-template>
+        </p-stepperPanel>
+        <p-stepperPanel
+            header="Subcategoria"
+            *ngIf="responsemodal.cantidadSubcategorias"
+        >
+            <ng-template
+                pTemplate="content"
+                let-prevCallback="prevCallback"
+                let-nextCallback="nextCallback"
+                let-index="index"
+            >
+                <div class="flex flex-column h-12rem">
+                    <div
+                        class="border-2 border-dashed surface-border border-round surface-ground flex-auto flex justify-content-center align-items-center font-medium"
+                    >
+                        <p>
+                            {{
+                                responsemodal.cantidadSubcategorias
+                                    ? "Esta categoría contiene subcategorías. Al eliminarla, también se eliminarán todas sus subcategorías."
+                                    : ""
+                            }}
+                            <span *ngIf="responsemodal.cantidadSubcategorias">
+                                ({{
+                                    responsemodal.cantidadSubcategorias
+                                }})</span
+                            >
+                        </p>
+                    </div>
+                </div>
+                <div class="flex pt-4 justify-content-between">
+                    <p-button
+                        label="Back"
+                        icon="pi pi-arrow-left"
+                        (onClick)="prevCallback.emit()"
+                    />
+                    <p-button
+                        label="Next"
+                        icon="pi pi-arrow-right"
+                        iconPos="right"
+                        (onClick)="
+                            nextCallback.emit();
+                            responsemodal.cantidadIncidentes
+                                ? (load_btn_delte = true)
+                                : (load_btn_delte = false)
+                        "
+                    />
+                </div>
+            </ng-template>
+        </p-stepperPanel>
+        <p-stepperPanel
+            header="Incidentes"
+            *ngIf="responsemodal.cantidadIncidentes"
+        >
+            <ng-template
+                pTemplate="content"
+                let-prevCallback="prevCallback"
+                let-nextCallback="nextCallback"
+                let-index="index"
+            >
+                <div class="flex flex-column h-12rem">
+                    <div
+                        class="border-2 border-dashed surface-border border-round surface-ground flex-auto flex justify-content-center align-items-center font-medium"
+                    >
+                        <p>
+                            Esto incluirá la eliminación de ({{
+                                responsemodal.cantidadIncidentes
+                            }}) Incidentes
+                        </p>
+                    </div>
+                </div>
+                <div class="flex pt-4 justify-content-between">
+                    <p-button
+                        label="Back"
+                        icon="pi pi-arrow-left"
+                        (onClick)="prevCallback.emit()"
+                    />
+                    <p-button
+                        label="Next"
+                        icon="pi pi-arrow-right"
+                        iconPos="right"
+                        (onClick)="nextCallback.emit(); load_btn_delte = false"
+                    /></div
+            ></ng-template>
+        </p-stepperPanel>
+        <p-stepperPanel
+            header="Preservar"
+            *ngIf="
+                responsemodal.cantidadIncidentes ||
+                responsemodal.cantidadSubcategorias
+            "
+        >
+            <ng-template
+                pTemplate="content"
+                let-prevCallback="prevCallback"
+                let-nextCallback="nextCallback"
+                let-index="index"
+            >
+                <div class="flex flex-column h-12rem">
+                    <div
+                        class="border-2 border-dashed surface-border border-round surface-ground flex-auto flex justify-content-center align-items-center font-medium"
+                    >
+                        <div class="mb-3">
+                            <p>
+                                ¿Deseas asignar a otra
+                                {{
+                                    responsemodal.cantidadSubcategorias
+                                        ? "categoría"
+                                        : "subcategoría"
+                                }}?
+                            </p>
+                        </div>
+
+                        <div class="mb-3">
+                            <label
+                                for="exampleFormControlInput1"
+                                class="form-label"
+                                >{{
+                                    responsemodal.cantidadSubcategorias
+                                        ? "Categoría"
+                                        : "Subcategoría"
+                                }}</label
+                            >
+                            <p-dropdown
+                                appendTo="body"
+                                [options]="
+                                    responsemodal.cantidadSubcategorias
+                                        ? listadocategoria
+                                        : listadosubcategoria
+                                "
+                                [(ngModel)]="respaldo"
+                                optionLabel="name"
+                                [showClear]="true"
+                                placeholder="Selecciona una"
+                            >
+                                <ng-template pTemplate="selectedItem">
+                                    <div
+                                        class="flex align-items-center gap-2"
+                                        *ngIf="respaldo"
+                                    >
+                                        <div>{{ respaldo.nombre }}</div>
+                                    </div>
+                                </ng-template>
+                                <ng-template let-item pTemplate="item">
+                                    <div class="flex align-items-center gap-2">
+                                        <div>{{ item.nombre }}</div>
+                                    </div>
+                                </ng-template>
+                            </p-dropdown>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex pt-4 justify-content-between">
+                    <p-button
+                        label="Back"
+                        icon="pi pi-arrow-left"
+                        (onClick)="prevCallback.emit(); load_btn_delte = true"
+                    />
+                </div>
+            </ng-template>
+        </p-stepperPanel>
+    </p-stepper>
+    <ng-template pTemplate="footer">
+        <p-button severity="danger" (click)="visibledelete = false">
+            Cancelar
+        </p-button>
+        <p-button
+            (click)="eliminarCategoria(); visibledelete = false"
+            [disabled]="load_btn_delte"
+        >
+            Eliminar
+        </p-button>
+    </ng-template>
+</p-dialog>

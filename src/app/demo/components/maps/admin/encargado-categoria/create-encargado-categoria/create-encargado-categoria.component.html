@@ -1,0 +1,62 @@
+<p-toast></p-toast>
+<div class="card-body">
+    <div class="p-fluid p-formgrid grid">
+        <div class="field col-12">
+            <label for="categoria" class="form-label">Categoría</label>
+            <p-dropdown
+                appendTo="body"
+                [options]="categorias"
+                [(ngModel)]="categoriaselect"
+                optionLabel="componente"
+                placeholder="Selecicona la Componente"
+            >
+                <ng-template pTemplate="selectedItem">
+                    <div
+                        class="flex align-items-center gap-2"
+                        *ngIf="categoriaselect"
+                    >
+                        <div>{{ categoriaselect.nombre }}</div>
+                    </div>
+                </ng-template>
+                <ng-template let-categoria pTemplate="item">
+                    <div class="flex align-items-center gap-2">
+                        <div>{{ categoria.nombre }}</div>
+                    </div>
+                </ng-template>
+            </p-dropdown>
+        </div>
+        <div class="field col-12">
+            <label for="encargados" class="form-label">Encargados</label>
+            <p-multiSelect
+                appendTo="body"
+                [options]="usuarios"
+                [(ngModel)]="encargadosSeleccionados"
+                placeholder="Seleccion los encargados"
+                optionLabel="nombres"
+                [filter]="true"
+            >
+                <ng-template let-value pTemplate="selectedItems">
+                    <div
+                        class="inline-flex align-items-center gap-2 px-1"
+                        *ngFor="let option of value"
+                    >
+                        <div>{{ option.nombres }},</div>
+                    </div>
+                    <div *ngIf="!value || value.length === 0">
+                        Selecciona Encargados
+                    </div>
+                </ng-template>
+                <ng-template let-usuario pTemplate="item">
+                    <div class="flex align-items-center gap-2">
+                        <div>{{ usuario.nombres }}</div>
+                    </div>
+                </ng-template>
+            </p-multiSelect>
+        </div>
+        <div class="field col-12">
+            <button pButton (click)="registrarEncargo()">
+                <i class="pi pi-save"></i> Guardar
+            </button>
+        </div>
+    </div>
+</div>

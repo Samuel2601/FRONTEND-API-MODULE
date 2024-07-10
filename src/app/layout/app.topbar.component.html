@@ -1,0 +1,93 @@
+<div class="layout-topbar">
+    
+    <!--
+        
+        -->
+        
+           <a class="layout-topbar-logo" routerLink="">
+        <img
+            class="layout-topbar-logo"
+            src="/assets/icon/ESMERALDAS_LA_BELLA.png"
+            class="png-image"
+            alt="logo"
+        />
+       
+    </a>
+
+
+    <button
+        #menubutton
+        class="p-link layout-menu-button layout-topbar-button"
+        (click)="layoutService.onMenuToggle()"
+    >
+        <i class="pi pi-bars"></i>
+    </button>
+
+    <button
+        #topbarmenubutton
+        class="p-link layout-topbar-menu-button layout-topbar-button"
+        (click)="layoutService.showProfileSidebar()"
+    >
+        <i class="pi pi-ellipsis-v"></i>
+    </button>
+
+    <div
+        #topbarmenu
+        class="layout-topbar-menu"
+        [ngClass]="{
+            'layout-topbar-menu-mobile-active':
+                layoutService.state.profileSidebarVisible
+        }"
+    >
+        <button class="p-link layout-topbar-button" style="display: none">
+            <i class="pi pi-bell"></i>
+            <span>Notificaciones</span>
+        </button>
+        <button
+            *ngIf="!token"
+            class="p-link layout-topbar-button"
+            [routerLink]="'/auth/login'"
+        >
+            <i class="pi pi-user" *ngIf="!foto"></i>
+            <p-avatar *ngIf="foto" size="large" shape="circle">
+                <img
+                    [src]="url + 'helper/obtener_portada_avatar/' + foto"
+                    width="40"
+                    height="50"
+                    alt="Your profile picture"
+                    class="img-fluid"
+                    style="object-fit: cover; border-radius: 50%"
+                />
+            </p-avatar>
+
+            <span>Perfil</span>
+        </button>
+        <button
+            *ngIf="token"
+            class="p-link layout-topbar-button"
+            [routerLink]="'/maps/edit-user'"
+        >
+            <i class="pi pi-user" *ngIf="!foto"></i>
+            <p-avatar *ngIf="foto" size="large" shape="circle">
+                <img
+                    [src]="url + 'helper/obtener_portada_avatar/' + foto"
+                    width="40"
+                    height="50"
+                    alt="Your profile picture"
+                    class="img-fluid"
+                    style="object-fit: cover; border-radius: 50%"
+                />
+            </p-avatar>
+
+            <span>Perfil</span>
+        </button>
+        <button
+            *ngIf="token"
+            class="p-link layout-topbar-button"
+            (click)="logout()"
+        >
+            <i class="pi pi-sign-out"></i>
+            <span>Cerrar Sesión</span>
+        </button>
+    </div>
+</div>

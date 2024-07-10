@@ -1,0 +1,333 @@
+<p-sidebar
+    [(visible)]="sidebarVisible"
+    id="sidebar"
+    (onHide)="sidebarVisible = false"
+    [position]=" 'center'"
+    [fullScreen]="true"
+>
+<app-list-incidentes *ngIf="check.DashboardComponent"></app-list-incidentes>
+</p-sidebar>
+
+<div class="grid p-fluid">
+    <div class="col-12">
+        <p-toast></p-toast>
+        <div [style.display]="'none'">
+            <div #formulariomap class="card flex justify-content-center">
+                <!--
+  <span class="p-float-label">
+                    <p-autoComplete
+                        [suggestions]="filter"
+                        (completeMethod)="filterOptions($event)"
+                        [field]="
+                            capaActivaWIFI || opcionb?.properties?.nombre
+                                ? 'properties.nombre'
+                                : 'properties.punto'
+                        "
+                        inputId="float-label"
+                        [(ngModel)]="opcionb"
+                        (ngModelChange)="
+                            opcionb?.properties?.nombre
+                                ? poligonoview(true, opcionb)
+                                : viewwifi(opcionb)
+                        "
+                        [inputStyle]="{
+                            width: isMobil() ? responsiveimage() : '400px'
+                        }"
+                    >
+                        <ng-template let-option pTemplate="item">
+                            <div class="flex align-items-center gap-2">
+                                <div *ngIf="option?.properties?.nombre">
+                                    {{ option?.properties?.nombre }}
+                                    <ng-container *ngIf="capaActivaWIFI"
+                                        >(Barrio)</ng-container
+                                    >
+                                </div>
+                                <div *ngIf="option?.properties?.punto">
+                                    {{ option?.properties?.punto }} (WIFI)
+                                </div>
+                            </div>
+                        </ng-template>
+                    </p-autoComplete>
+                    <label for="float-label">Buscar Barrio </label>
+                </span>
+                -->
+                <p-autoComplete
+                    appendTo="body"
+                    [(ngModel)]="query"
+                    [suggestions]="predictions"
+                    (completeMethod)="search($event)"
+                    field="description"
+                    placeholder="Ingresa una dirección o referencia"
+                    [forceSelection]="true"
+                    (onSelect)="imprimir(query)"
+                >
+                </p-autoComplete>
+            </div>
+        </div>
+
+        <div *ngIf="!load_fullscreen" class="card flex">
+            <!--
+ <span class="p-float-label">
+                <p-autoComplete
+                    [suggestions]="filter"
+                    (completeMethod)="filterOptions($event)"
+                    [field]="
+                        capaActivaWIFI || opcionb?.properties?.nombre
+                            ? 'properties.nombre'
+                            : 'properties.punto'
+                    "
+                    inputId="float-label"
+                    [(ngModel)]="opcionb"
+                    (ngModelChange)="
+                        opcionb?.properties?.nombre
+                            ? poligonoview(true, opcionb, true)
+                            : viewwifi(opcionb)
+                    "
+                    [inputStyle]="{
+                        width: isMobil() ? responsiveimage() : '400px'
+                    }"
+                >
+                    <ng-template let-option pTemplate="item">
+                        <div class="flex align-items-center gap-2">
+                            <div *ngIf="option?.properties?.nombre">
+                                {{ option?.properties?.nombre }}
+                                <ng-container *ngIf="capaActivaWIFI"
+                                    >(Barrio)</ng-container
+                                >
+                            </div>
+                            <div *ngIf="option?.properties?.punto">
+                                {{ option?.properties?.punto }} (WIFI)
+                            </div>
+                        </div>
+                    </ng-template>
+                </p-autoComplete>
+                <label for="float-label"
+                    >Buscar
+                    {{ capaActivaWIFI ? " Barrio" : " Barrio y WIFI" }}
+                </label>
+            </span>
+            <p-button
+                *ngIf="!this.isMobil() && opcionb"
+                icon="pi pi-chart-bar"
+                (click)="sidebarVisible = true"
+                [attr.aria-controls]="sidebarVisible ? 'sidebar' : null"
+                [attr.aria-expanded]="sidebarVisible ? true : false"
+            >
+            </p-button>
+            -->
+            <span class="p-float-label">
+                <p-autoComplete
+                    appendTo="body"
+                    [(ngModel)]="query"
+                    [suggestions]="predictions"
+                    (completeMethod)="search($event)"
+                    field="description"
+                    placeholder=""
+                    [forceSelection]="true"
+                    (onSelect)="imprimir(query)"
+                    [inputStyle]="{
+                        width: isMobil() ? responsiveimage() : '400px'
+                    }"
+                >
+                </p-autoComplete>
+                <label for="float-label"
+                    >Ingresa una dirección o referencia
+                </label>
+            </span>
+        </div>
+
+        <div class="card" id="map" style="min-height: 50rem"></div>
+        <div [style.display]="'none'">
+            <div class="controls fullscreen-control">
+                <button title="Toggle Fullscreen" class="fullscreen-button">
+                    <img
+                        src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2018%2018%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M0%200v6h2V2h4V0H0zm16%200h-4v2h4v4h2V0h-2zm0%2016h-4v2h6v-6h-2v4zM2%2012H0v6h6v-2H2v-4z%22/%3E%3C/svg%3E"
+                        alt=""
+                        style="height: 18px; width: 18px"
+                        class="normal-image"
+                    />
+                    <img
+                        src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2018%2018%22%3E%3Cpath%20fill%3D%22%23111%22%20d%3D%22M0%200v6h2V2h4V0H0zm16%200h-4v2h4v4h2V0h-2zm0%2016h-4v2h6v-6h-2v4zM2%2012H0v6h6v-2H2v-4z%22/%3E%3C/svg%3E"
+                        alt=""
+                        style="height: 18px; width: 18px"
+                        class="hover-image"
+                    />
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<app-index-ficha-sectorial
+    class="container"
+    *ngIf="mostrarficha"
+    id="indexficha"
+    [filtro]="'direccion_geo'"
+    [valor]="opcionb.properties.nombre"
+    [modal]="true"
+    style="z-index: inherit"
+>
+</app-index-ficha-sectorial>
+<!--
+[filtro]="mostrarfiltro ? 'direccion_geo.nombre' : undefined"
+    [valor]="mostrarfiltro ? opcionb.properties.nombre : undefined"
+-->
+<app-index-incidentes-denuncia
+    class="container"
+    *ngIf="mostrarincidente"
+    id="indexficha"
+    
+    [categoria]="categoria"
+    [subcategoria]="subcategoria"
+    [modal]="true"
+    style="z-index: inherit"
+>
+</app-index-incidentes-denuncia>
+<!--
+    opcionb?url+'helper/obtener_portada_barrio/'+opcionb.id :
+-->
+<div style="display: none">
+    <p-card
+        id="content"
+        *ngIf="features[id_feature]"
+        [header]="features[id_feature].properties.nombre"
+        [subheader]="
+            features[id_feature].properties.parr ||
+            features[id_feature].properties.obser ||
+            features[id_feature].properties.tipo
+                ? 'Información de barrio:'
+                : ''
+        "
+    >
+        <ng-template pTemplate="header">
+            <img
+                [src]="url_imag"
+                alt="Descripción de la imagen"
+                class="imagen-popup"
+                style="width: 100%; height: 150px; object-fit: cover"
+            />
+        </ng-template>
+        <ng-container *ngIf="features[id_feature].properties">
+            <div *ngIf="features[id_feature].properties.parr">
+                Parroquia: {{ features[id_feature].properties.parr }}
+            </div>
+        </ng-container>
+        <ng-container *ngIf="check.IndexFichaSectorialComponent">
+            <p-button
+                [style]="{ 'margin-top': '10px' }"
+                id="fichaButton"
+                label="Actividades"
+                (click)="fichaTecnica()"
+            ></p-button>
+        </ng-container>
+        <ng-template pTemplate="footer">
+            <p-button
+                *ngIf="check.CreateDireccionGeoComponent"
+                id="fotoButton"
+                icon="pi bi-camera2-custom"
+                [raised]="true"
+                [outlined]="true"
+                label="Añadir nueva Foto"
+                (click)="this.modalcreatedireccion(features[id_feature])"
+            ></p-button>
+        </ng-template>
+    </p-card>
+</div>
+<ng-template #infoWindowTemplate let-feature="feature">
+    <p-card
+        [header]="feature.properties.nombre"
+        [subheader]="
+            feature.properties.parr ||
+            feature.properties.obser ||
+            feature.properties.tipo
+                ? 'Información de barrio:'
+                : ''
+        "
+    >
+        <ng-template pTemplate="header">
+            <img
+                [src]="url_imag"
+                alt="Descripción de la imagen"
+                class="imagen-popup"
+                style="width: 100%; height: 150px; object-fit: cover"
+            />
+        </ng-template>
+        <ng-container *ngIf="feature.properties">
+            <div *ngIf="feature.properties.parr">
+                Parroquia: {{ feature.properties.parr }}
+            </div>
+        </ng-container>
+        <ng-container *ngIf="check.IndexFichaSectorialComponent">
+            <p-button
+                [style]="{ 'margin-top': '10px' }"
+                label="Actividades"
+                (click)="fichaTecnica()"
+            ></p-button>
+        </ng-container>
+        <ng-template pTemplate="footer">
+            <p-button
+                *ngIf="check.CreateDireccionGeoComponent"
+                icon="pi bi-camera2-custom"
+                [raised]="true"
+                [outlined]="true"
+                label="Añadir nueva Foto"
+                (click)="modalcreatedireccion(feature)"
+            ></p-button>
+        </ng-template>
+    </p-card>
+</ng-template>
+
+<!--
+ <p>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore sed
+        consequuntur error repudiandae numquam deserunt quisquam repellat libero
+        asperiores earum nam nobis, culpa ratione quam perferendis esse,
+        cupiditate neque quas!
+    </p>
+    -->
+
+<div [style.display]="'none'">
+    <p-speedDial
+        [model]="items"
+        direction="down"
+        className="fullscreen-button"
+        [buttonStyle]="{ 'border-radius': '50%' }"
+    >
+    </p-speedDial>
+    <p-panelMenu
+        id="panelmenu"
+        [model]="items"
+        [style]="{ width: '200px', margin: '10px' }"
+        [multiple]="true"
+    ></p-panelMenu>
+</div>
+
+<p-dialog
+    header="Selecciona una ruta para mostrar"
+    [(visible)]="visiblepath"
+    [style]="{ width: isMobil() ? '100%' : '50vw' }"
+    [modal]="true"
+>
+    <div class="card flex flex-wrap gap-3 justify-content-center">
+        <ng-container *ngFor="let item of rutas">
+            <div>
+                <p-button
+                    [raised]="true"
+                    [text]="true"
+                    severity="success"
+                    (click)="pathpush(item)"
+                >
+                    <img
+                        [src]="
+                            pathselect.includes(item)
+                                ? 'assets/icon/eye-slashOFF.svg'
+                                : 'assets/icon/eye-slash.svg'
+                        "
+                        style="width: 18px"
+                    />
+                    {{ item.properties.nombre }}
+                </p-button>
+            </div>
+        </ng-container>
+    </div>
+</p-dialog>

@@ -1,0 +1,708 @@
+<div class="card">
+    <p-toast></p-toast>
+    <h5>Filtro de Busqueda de Incidentes</h5>
+    <form (ngSubmit)="filtro()" [formGroup]="filterForm">
+        <div class="grid p-fluid mt-3">
+            <div class="field col-12 md:col-3">
+                <span class="p-float-label">
+                    <p-calendar
+                        appendTo="body"
+                        inputId="fecha_inicio"
+                        formControlName="fecha_inicio"
+                        [autofocus]="false"
+                    ></p-calendar>
+                    <label for="fecha_inicio">Fecha de inicio</label>
+                </span>
+            </div>
+            <div class="field col-12 md:col-3">
+                <span class="p-float-label">
+                    <p-calendar
+                        appendTo="body"
+                        inputId="fecha_fin"
+                        formControlName="fecha_fin"
+                    ></p-calendar>
+                    <label for="fecha_fin">Fecha de fin</label>
+                </span>
+            </div>
+
+            <div class="field col-12 md:col-3" *ngIf="categorias.length > 0">
+                <span class="p-float-label">
+                    <p-multiSelect
+                        appendTo="body"
+                        [options]="categorias"
+                        placeholder="Seleccione las Categorias"
+                        optionLabel="nombre"
+                        formControlName="categoria"
+                    >
+                        <ng-template let-value pTemplate="selectedItems">
+                            <div
+                                class="inline-flex align-items-center gap-2 px-1"
+                                *ngFor="let option of value"
+                            >
+                                <div>{{ option.nombre }}</div>
+                            </div>
+                            <div *ngIf="!value || value.length === 0">
+                                Seleccione las Categorias
+                            </div>
+                        </ng-template>
+                        <ng-template let-categoria pTemplate="item">
+                            <div class="flex align-items-center gap-2">
+                                <div>{{ categoria.nombre }}</div>
+                            </div>
+                        </ng-template>
+                        <ng-template let-categoria pTemplate="footer">
+                            <div class="py-2 px-3">
+                                <b>{{
+                                    filterForm.get("categoria").value
+                                        ? filterForm.get("categoria").value
+                                              .length
+                                        : 0
+                                }}</b>
+                                item{{
+                                    filterForm.get("categoria").value &&
+                                    filterForm.get("categoria").value.length !==
+                                        1
+                                        ? "s"
+                                        : ""
+                                }}
+                                seleccionado{{
+                                    filterForm.get("categoria").value &&
+                                    filterForm.get("categoria").value.length !==
+                                        1
+                                        ? "s"
+                                        : ""
+                                }}.
+                            </div>
+                        </ng-template>
+                    </p-multiSelect>
+                    <label for="multiselectcat"
+                        >Categoria
+                        <ng-container
+                            *ngIf="filterForm.get('categoria').value.length > 0"
+                            >:
+                            {{ filterForm.get("categoria").value.length }}
+                        </ng-container>
+                    </label>
+                </span>
+            </div>
+
+            <div class="field col-12 md:col-3" *ngIf="subcategorias.length > 0">
+                <span class="p-float-label">
+                    <p-multiSelect
+                        appendTo="body"
+                        [options]="subcategorias"
+                        placeholder="Seleccione las Categorias"
+                        optionLabel="nombre"
+                        formControlName="subcategoria"
+                    >
+                        <ng-template let-value pTemplate="selectedItems">
+                            <div
+                                class="inline-flex align-items-center gap-2 px-1"
+                                *ngFor="let option of value"
+                            >
+                                <div>{{ option.nombre }}</div>
+                            </div>
+                            <div *ngIf="!value || value.length === 0">
+                                Seleccione las Categorias
+                            </div>
+                        </ng-template>
+                        <ng-template let-subcategoria pTemplate="item">
+                            <div class="flex align-items-center gap-2">
+                                <div>{{ subcategoria.nombre }}</div>
+                            </div>
+                        </ng-template>
+                        <ng-template let-subcategoria pTemplate="footer">
+                            <div class="py-2 px-3">
+                                <b>{{
+                                    filterForm.get("subcategoria").value
+                                        ? filterForm.get("subcategoria").value
+                                              .length
+                                        : 0
+                                }}</b>
+                                item{{
+                                    filterForm.get("subcategoria").value &&
+                                    filterForm.get("subcategoria").value
+                                        .length !== 1
+                                        ? "s"
+                                        : ""
+                                }}
+                                seleccionado{{
+                                    filterForm.get("subcategoria").value &&
+                                    filterForm.get("subcategoria").value
+                                        .length !== 1
+                                        ? "s"
+                                        : ""
+                                }}.
+                            </div>
+                        </ng-template>
+                    </p-multiSelect>
+                    <label for="multiselectsub"
+                        >Sub-Categoria
+                        <ng-container
+                            *ngIf="
+                                filterForm.get('subcategoria').value.length > 0
+                            "
+                            >: {{ filterForm.get("subcategoria").value.length }}
+                        </ng-container></label
+                    >
+                </span>
+            </div>
+            <div class="field col-12 md:col-3" *ngIf="estados.length > 0">
+                <span class="p-float-label">
+                    <p-multiSelect
+                        appendTo="body"
+                        [options]="estados"
+                        placeholder="Seleccione los Estados"
+                        optionLabel="nombre"
+                        formControlName="estado"
+                    >
+                        <ng-template let-value pTemplate="selectedItems">
+                            <div
+                                class="inline-flex align-items-center gap-2 px-1"
+                                *ngFor="let option of value"
+                            >
+                                <div>{{ option.nombre }}</div>
+                            </div>
+                            <div *ngIf="!value || value.length === 0">
+                                Seleccione los Estados
+                            </div>
+                        </ng-template>
+                        <ng-template let-estado pTemplate="item">
+                            <div class="flex align-items-center gap-2">
+                                <div>{{ estado.nombre }}</div>
+                            </div>
+                        </ng-template>
+                        <ng-template let-estado pTemplate="footer">
+                            <div class="py-2 px-3">
+                                <b>{{
+                                    filterForm.get("estado").value
+                                        ? filterForm.get("estado").value.length
+                                        : 0
+                                }}</b>
+                                item{{
+                                    filterForm.get("estado").value &&
+                                    filterForm.get("estado").value.length !== 1
+                                        ? "s"
+                                        : ""
+                                }}
+                                seleccionado{{
+                                    filterForm.get("estado").value &&
+                                    filterForm.get("estado").value.length !== 1
+                                        ? "s"
+                                        : ""
+                                }}.
+                            </div>
+                        </ng-template>
+                    </p-multiSelect>
+                    <label for="multiselectstatus"
+                        >Estado
+                        <ng-container
+                            *ngIf="filterForm.get('estado').value.length > 0"
+                            >:
+                            {{ filterForm.get("estado").value.length }}
+                        </ng-container>
+                    </label>
+                </span>
+            </div>
+            <div class="field col-12 md:col-3" *ngIf="direcciones.length > 0">
+                <span class="p-float-label">
+                    <p-multiSelect
+                        appendTo="body"
+                        [options]="direcciones"
+                        placeholder="Seleccione las Direcciones"
+                        optionLabel="nombre"
+                        formControlName="direccion"
+                    >
+                        <ng-template let-value pTemplate="selectedItems">
+                            <div
+                                class="inline-flex align-items-center gap-2 px-1"
+                                *ngFor="let option of value"
+                            >
+                                <div>{{ option.nombre }}</div>
+                            </div>
+                            <div *ngIf="!value || value.length === 0">
+                                Seleccione las Direcciones
+                            </div>
+                        </ng-template>
+                        <ng-template let-direccion pTemplate="item">
+                            <div class="flex align-items-center gap-2">
+                                <div>{{ direccion.nombre }}</div>
+                            </div>
+                        </ng-template>
+                        <ng-template let-direccion pTemplate="footer">
+                            <div class="py-2 px-3">
+                                <b>{{
+                                    filterForm.get("direccion").value
+                                        ? filterForm.get("direccion").value
+                                              .length
+                                        : 0
+                                }}</b>
+                                item{{
+                                    filterForm.get("direccion").value &&
+                                    filterForm.get("direccion").value.length !==
+                                        1
+                                        ? "s"
+                                        : ""
+                                }}
+                                seleccionado{{
+                                    filterForm.get("direccion").value &&
+                                    filterForm.get("direccion").value.length !==
+                                        1
+                                        ? "s"
+                                        : ""
+                                }}.
+                            </div>
+                        </ng-template>
+                    </p-multiSelect>
+                    <label for="multiselectdireccion"
+                        >Dirección
+                        <ng-container
+                            *ngIf="filterForm.get('direccion').value.length > 0"
+                            >:
+                            {{ filterForm.get("direccion").value.length }}
+                        </ng-container>
+                    </label>
+                </span>
+            </div>
+            <div
+                class="field col-12 md:col-3"
+                *ngIf="check.ReporteIncidenteView"
+            >
+                <p-selectButton
+                    appendTo="body"
+                    [options]="viewmentOptions"
+                    optionLabel="name"
+                    optionValue="value"
+                    formControlName="view"
+                />
+            </div>
+        </div>
+        <div>
+            <p-button
+                class="p-input-icon-left ml-auto"
+                label="Buscar"
+                type="ngSubmit"
+                [disabled]="!filterForm.valid"
+            ></p-button>
+        </div>
+    </form>
+</div>
+
+<div class="card" *ngIf="incidente.length > 0">
+    <p-table
+        [paginatorDropdownAppendTo]="'body'"
+        styleClass="p-datatable-striped"
+        #dt1
+        [value]="incidente"
+        dataKey="_id"
+        [rows]="10"
+        [showCurrentPageReport]="true"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        [loading]="incidente.length < 0"
+        [paginator]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+        [globalFilterFields]="[
+            'direccion_geo.nombre',
+            'categoria.nombre',
+            'subcategoria.nombre',
+            'ciudadano.nombres',
+            'estado.nombre'
+        ]"
+        [sortMode]="'multiple'"
+    >
+        <ng-template pTemplate="caption">
+            <div class="flex">
+                <button
+                    pButton
+                    label=""
+                    class="p-button-outlined"
+                    icon="pi pi-filter-slash"
+                    (click)="clear(dt1)"
+                ></button>
+                <span class="p-input-icon-left ml-auto">
+                    <i class="pi pi-search"></i>
+                    <input
+                        pInputText
+                        type="text"
+                        (input)="
+                            dt1.filterGlobal(
+                                $any($event.target).value,
+                                'contains'
+                            )
+                        "
+                        placeholder="Palabras Claves"
+                    />
+                </span>
+                <button
+                    class="ml-2"
+                    type="button"
+                    pButton
+                    label="CSV"
+                    (click)="exportToCSV(dt1)"
+                ></button>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+            <tr>
+                <th style="width: 3rem">#</th>
+                <th style="min-width: 15rem">
+                    <div class="flex align-items-center">
+                        Dirección
+                        <p-columnFilter
+                            type="text"
+                            field="direccion_geo.nombre"
+                            display="Dirección"
+                        ></p-columnFilter>
+                        <th
+                            pSortableColumn="direccion_geo.nombre"
+                            style="width: 20%"
+                        >
+                            <p-sortIcon
+                                field="direccion_geo.nombre"
+                            ></p-sortIcon>
+                        </th>
+                    </div>
+                </th>
+                <th style="min-width: 15rem">
+                    <div class="flex align-items-center">
+                        Categoría
+                        <p-columnFilter
+                            type="text"
+                            field="categoria.nombre"
+                            display="Categoría"
+                        ></p-columnFilter>
+                        <th
+                            pSortableColumn="categoria.nombre"
+                            style="width: 20%"
+                        >
+                            <p-sortIcon field="categoria.nombre"></p-sortIcon>
+                        </th>
+                    </div>
+                </th>
+                <th style="min-width: 15rem">
+                    <div class="flex align-items-center">
+                        Subcategoría
+                        <p-columnFilter
+                            type="text"
+                            field="subcategoria.nombre"
+                            display="Subcategoría"
+                        ></p-columnFilter>
+                        <th
+                            pSortableColumn="subcategoria.nombre"
+                            style="width: 20%"
+                        >
+                            <p-sortIcon
+                                field="subcategoria.nombre"
+                            ></p-sortIcon>
+                        </th>
+                    </div>
+                </th>
+                <th style="min-width: 15rem">
+                    <div class="flex align-items-center">
+                        Ciudadano
+                        <p-columnFilter
+                            type="text"
+                            field="ciudadano.nombres"
+                            display="Ciudadano"
+                        ></p-columnFilter>
+                        <th
+                            pSortableColumn="ciudadano.nombre"
+                            style="width: 20%"
+                        >
+                            <p-sortIcon field="ciudadano.nombre"></p-sortIcon>
+                        </th>
+                    </div>
+                </th>
+                <th style="min-width: 10rem">
+                    <div class="flex align-items-center">
+                        Estado
+                        <p-columnFilter
+                            type="text"
+                            field="estado.nombre"
+                            display="Estado"
+                        ></p-columnFilter>
+                        <th pSortableColumn="estado.nombre" style="width: 20%">
+                            <p-sortIcon field="estado.nombre"></p-sortIcon>
+                        </th>
+                    </div>
+                </th>
+                <!-- Agrega las columnas restantes según tu necesidad -->
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-incidente let-rowIndex="rowIndex">
+            <tr (click)="verficha(incidente)">
+                <td>{{ rowIndex + 1 }}</td>
+                <td>
+                    {{ incidente.direccion_geo.nombre }}
+                </td>
+                <td>
+                    {{ incidente.categoria.nombre }}
+                </td>
+                <td>
+                    {{ incidente.subcategoria.nombre }}
+                </td>
+                <td>
+                    {{ incidente.ciudadano.nombres }}
+                </td>
+                <td>
+                    <p-tag
+                        [value]="incidente.estado.nombre"
+                        [severity]="getSeverity(incidente.estado.nombre)"
+                    ></p-tag>
+                </td>
+                <!-- Agrega las columnas restantes según tu necesidad -->
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="5">No se encontraron incidentes.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<ng-container *ngIf="load_table && incidente.length > 0">
+    <ng-container
+        *ngFor="
+            let item of convertirObjetoEnArreglo(dataForm);
+            trackBy: trackByFn
+        "
+    >
+        <div class="card grid" [id]="item.clave">
+            <div class="col-12 xl:col-6">
+                <p-chart
+                    type="doughnut"
+                    [data]="item.valor"
+                    [options]="options"
+                    #chart
+                ></p-chart>
+                <canvas #exportCanvas style="display: none"></canvas>
+            </div>
+            <div class="col-12 xl:col-6">
+                <p-table
+                    [paginatorDropdownAppendTo]="'body'"
+                    #dt1
+                    [value]="getEntries(totales[item.clave])"
+                >
+                    <ng-template pTemplate="caption">
+                        <div class="flex">
+                            <h4>Lista de {{ item.clave | uppercase }}</h4>
+                            <p-button
+                                class="p-input-icon-left ml-auto"
+                                label="CSV"
+                                (click)="exportToCSV(dt1, item.clave)"
+                                [raised]="true"
+                                [outlined]="true"
+                            ></p-button>
+                            <p-button
+                                class="p-input-icon-left ml-2"
+                                label="Img."
+                                (click)="
+                                    exportChart(chart, exportCanvas, item.clave)
+                                "
+                                [raised]="true"
+                                [outlined]="true"
+                            ></p-button>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>{{ item.clave | uppercase }}</th>
+                            <th>CANTIDAD</th>
+                            <th>PORCENTAJE</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-categoria>
+                        <tr>
+                            <td>{{ categoria[0] }}</td>
+                            <td>{{ categoria[1].registros }}</td>
+                            <td>
+                                {{
+                                    categoria[1].porcentaje / 100
+                                        | percent : "1.2"
+                                }}
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="footer">
+                        <tr>
+                            <td>Total</td>
+                            <td>
+                                {{
+                                    getTotales(totales[item.clave])
+                                        .totalRegistros
+                                }}
+                            </td>
+                            <td>
+                                {{
+                                    getTotales(totales[item.clave])
+                                        .totalPorcentaje / 100 | percent : "1.2"
+                                }}
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+        </div>
+    </ng-container>
+</ng-container>
+<div class="card" *ngIf="load_table && incidente.length == 0">
+    <p-messages
+        [value]="[
+            { severity: 'warn', detail: 'No tienes registros con este filtro' }
+        ]"
+        [enableService]="false"
+        [closable]="false"
+    />
+</div>
+
+<p-galleria
+    [value]="imagenModal"
+    [(visible)]="displayBasic"
+    [responsiveOptions]="responsiveOptions"
+    [containerStyle]="{ 'max-width': '50%' }"
+    [numVisible]="9"
+    [circular]="true"
+    [fullScreen]="true"
+    [showItemNavigators]="true"
+>
+    <ng-template pTemplate="item" let-item>
+        <img
+            [src]="url + 'helper/obtener_portada/' + item"
+            style="width: 100%; display: block"
+        />
+    </ng-template>
+    <ng-template pTemplate="thumbnail" let-item>
+        <div class="grid grid-nogutter justify-content-center">
+            <img
+                [src]="url + 'helper/obtener_portada/' + item"
+                style="display: block"
+                style="width: 30%"
+            />
+        </div>
+    </ng-template>
+</p-galleria>
+<!--GALERIA DE IMAGENES DE CADA INCIDENTE-->
+<p-galleria
+    appendTo="body"
+    *ngIf="displayBasic"
+    [value]="imagenModal"
+    [(visible)]="displayBasic"
+    [responsiveOptions]="responsiveOptions"
+    [containerStyle]="{ 'max-width': '50vw' }"
+    [numVisible]="9"
+    [circular]="true"
+    [fullScreen]="true"
+    [showItemNavigators]="true"
+>
+    <ng-template pTemplate="item" let-item>
+        <div
+            style="
+                width: 50vw;
+                height: 50vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            "
+        >
+            <img
+                [src]="url + 'helper/obtener_portada/' + item"
+                style="max-width: 100%; max-height: 100%"
+            />
+        </div>
+    </ng-template>
+    <ng-template pTemplate="thumbnail" let-item>
+        <div class="grid grid-nogutter justify-content-center">
+            <img
+                [src]="url + 'helper/obtener_portada/' + item"
+                style="display: block"
+                style="width: 70px"
+            />
+        </div>
+    </ng-template>
+</p-galleria>
+
+<p-dialog
+    appendTo="body"
+    header="Detalles de la Incidencia"
+    [(visible)]="viewdialog"
+    [modal]="false"
+    [style]="{ width: isMobil() ? '100%' : '40vw' }"
+>
+    <div class="modal-body" *ngIf="optionview">
+        <p>
+            <strong>Categoría:</strong>
+            {{ optionview.categoria.nombre }}
+        </p>
+        <p>
+            <strong>Subcategoría:</strong>
+            {{ optionview.subcategoria.nombre }}
+        </p>
+        <p>
+            <strong>Dirección Geográfica:</strong>
+            {{ optionview.direccion_geo.nombre }}
+        </p>
+        <p>
+            <strong>Estado:</strong>
+            <p-tag
+                [value]="optionview.estado.nombre"
+                [severity]="
+                    getSeverity(optionview.estado.nombre, optionview.createdAt)
+                "
+            ></p-tag>
+        </p>
+        <p *ngIf="optionview.createdAt">
+            <strong>Fecha:</strong>
+            {{ optionview.createdAt | date : "medium" : "es" }}
+        </p>
+        <p>
+            <strong>Ciudadano:</strong>
+            {{ optionview.ciudadano.nombres }}
+        </p>
+        <p>
+            <strong>Descripción:</strong>
+            {{ optionview.descripcion }}
+        </p>
+        <p *ngIf="!check.FichaLimitada">
+            <strong>Encargado:</strong
+            ><ng-container *ngIf="optionview.encargado">{{
+                optionview.encargado.nombres
+            }}</ng-container>
+            <ng-container *ngIf="!optionview.encargado">--</ng-container>
+        </p>
+        <p>
+            <strong>Respuesta:</strong
+            ><ng-container *ngIf="optionview.respuesta">{{
+                optionview.respuesta
+            }}</ng-container>
+            <ng-container *ngIf="!optionview.respuesta">--</ng-container>
+        </p>
+        <div class="flex justify-content-between">
+            <div class="justify-content-between">
+                <p-button
+                    class="m-3"
+                    *ngIf="optionview.foto && optionview.foto.length > 0"
+                    label="Fotos"
+                    icon="pi pi-images"
+                    (click)="
+                        displayBasic = true; openModalimagen(optionview.foto)
+                    "
+                ></p-button>
+            </div>
+            <div class="justify-content-center">
+                <p-button
+                    class="m-3"
+                    *ngIf="
+                        optionview.evidencia && optionview.evidencia.length > 0
+                    "
+                    label="Evidencias"
+                    icon="pi pi-images"
+                    (click)="
+                        displayBasic = true;
+                        openModalimagen(optionview.evidencia)
+                    "
+                ></p-button>
+            </div>
+        </div>
+    </div>
+</p-dialog>

@@ -1,0 +1,203 @@
+/* You can add global styles to this file, and also import other style files */
+.gm-style .gm-style-iw-c {
+    background-color: var(--surface-0);
+}
+/* Para WebKit (Chrome, Safari) */
+.gm-style .gm-style-iw-d::-webkit-scrollbar {
+    width: 10px; /* Ancho del scrollbar */
+}
+
+.gm-style .gm-style-iw-d::-webkit-scrollbar-thumb {
+    background-color: var(
+        --surface-0
+    ); /* Color de la barra de desplazamiento */
+    border-radius: 5px; /* Radio de borde para redondear la barra */
+}
+.gm-style .gm-style-iw-c[aria-label="info"] .gm-style-iw-d {
+    overflow: auto !important;
+}
+.gm-style .gm-style-iw-c[aria-label="info"] {
+    padding: 0px !important;
+}
+
+.gm-style .gm-style-iw-d::-webkit-scrollbar-track {
+    overflow: hidden;
+    background-color: var(--surface-0); /* Color de fondo del scrollbar */
+    border-radius: 5px; /* Radio de borde para redondear el fondo */
+}
+
+/* Para Firefox */
+.gm-style .gm-style-iw-d {
+    scrollbar-color: var(--surface-0) var(--surface-0); /* Color de la barra y fondo del scrollbar */
+}
+.p-speeddial-action {
+    background: var(--surface-0);
+}
+.p-speeddial-action-icon {
+    font-size: 24px; /* Ajusta el tamaño del icono según tus necesidades */
+}
+.fullscreen-button {
+    margin: 10px !important;
+}
+.p-speeddial-action {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 1.5);
+}
+
+.bi-barrio-off-custom {
+    content: url("assets/new_icon/barrios_off.svg"); //icon/eye-slash.svg
+    width: 25px;
+}
+.bi-barrio-on-custom {
+    content: url("assets/new_icon/barrios.svg"); //icon/eye-slash.svg
+    width: 25px;
+}
+
+.bi-wifi-off-custom {
+    content: url("assets/icon/wifi-off.svg");
+    color: var(--primary-color);
+}
+.bi-wifi-off {
+    content: url("assets/new_icon/puntos\ wifi_off.svg");
+    width: 25px;
+}
+.bi-wifi-on {
+    content: url("assets/new_icon/puntos\ wifi.svg");
+    width: 25px;
+}
+.bi-camera2-custom {
+    content: url("https://static.xx.fbcdn.net/rsrc.php/v3/y7/r/Ivw7nhRtXyo.png?_nc_eui2=AeEpQ6ZGWYfOY-AnRGOyYb1IPL4YoeGsw5I8vhih4azDkhdYMB49riSiP6JgK5gyW7rBdxuh6kJpGlTn8KHVuE3Y");
+}
+.itemcustom {
+    // margin-bottom: 13px;
+    // box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.5);
+}
+.bi-camionoff {
+    content: url("assets/menu/camionOFF.png");
+    width: 25px;
+}
+.bi-camionon {
+    content: url("assets/new_icon/recolectores-ver\ recolectores.svg");
+    width: 25px;
+}
+.bi-camionprime {
+    content: url("assets/new_icon/recolectores-ver\ recolectores.svg");
+    width: 25px;
+}
+.bi-ticcioce {
+    content: url("assets/new_icon/ciudad\ inteligente.svg");
+    width: 25px;
+}
+.bi-ecu {
+    content: url("assets/new_icon/ecu-municipal.svg");
+    width: 25px;
+}
+.bi-path {
+    content: url("assets/new_icon/ver\ rutas.svg");
+    width: 25px;
+}
+.bi-trashcustom {
+    content: url("assets/menu/contaminacion.png");
+    width: 25px;
+}
+
+.bi-ficha_sectorial {
+    content: url("assets/new_icon/fichas\ sectoriales.svg");
+    width: 25px;
+}
+.bi-ver-ficha_sectorial {
+    content: url("assets/new_icon/ver\ fichas.svg");
+    width: 25px;
+}
+.bi-new-ficha_sectorial {
+    content: url("assets/new_icon/nueva\ ficha.svg");
+    width: 25px;
+}
+
+.bi-incidentes {
+    content: url("assets/new_icon/incidenetes-denuncias.svg");
+    width: 25px;
+}
+.bi-ver-incidentes {
+    content: url("assets/new_icon/ver\ incidentes.svg");
+    width: 25px;
+}
+.bi-new-incidentes {
+    content: url("assets/new_icon/nuevo\ incidente.svg");
+    width: 25px;
+}
+.bi-estadistica {
+    content: url("assets/new_icon/estadísticas.svg");
+    width: 25px;
+}
+
+.bi-camionprimne {
+    content: url("assets/menu/camionON.png");
+    height: 30px;
+}
+.bi-homecustom {
+    content: url("assets/menu/casa.png");
+    height: 30px;
+}
+.pi-directionscustom {
+    content: url("assets/new_icon/esvial.svg");
+    height: 30px;
+}
+.bi-dropletcustom {
+    content: url("assets/new_icon/epmapse.svg");
+    height: 30px;
+}
+.bi-bankcustom {
+    content: url("assets/new_icon/acaldía\ informa.svg");
+    height: 30px;
+}
+.bi-bomberos {
+    content: url("assets/new_icon/bomberos.svg");
+    height: 30px;
+}
+$gutter: 1rem; //for primeflex grid system
+
+@media only screen and (max-width: 600px) {
+    #descripcion {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+}
+.img-custom {
+    content: url("assets/icon/imagen.jpg");
+}
+.spinner-container {
+    position: relative;
+    display: inline-block;
+    /* Asegura que el contenedor se ajuste al tamaño del spinner */
+}
+
+.overlay-image {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    /* Asegura que la imagen esté por encima del spinner */
+    /* Ajusta el tamaño y otros estilos según sea necesario */
+}
+.p-icon {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+}
+
+@import "assets/layout/styles/layout/layout.scss";
+
+/* PrimeNG */
+@import "../node_modules/primeng/resources/primeng.min.css";
+@import "../node_modules/primeflex/primeflex.scss";
+@import "../node_modules/primeicons/primeicons.css";
+
+/* Demos */
+@import "assets/demo/styles/flags/flags.css";
+@import "assets/demo/styles/badges.scss";
+@import "assets/demo/styles/code.scss";
+
+// import Quill styles in styles.scss
+@import "../node_modules/quill/dist/quill.core.css";
+@import "../node_modules/quill/dist/quill.snow.css";

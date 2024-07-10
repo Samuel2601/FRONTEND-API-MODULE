@@ -1,0 +1,26 @@
+<div class="card-body">
+    <p-toast></p-toast>
+    <div class="table-responsive-sm">
+        <form [formGroup]="Form" (ngSubmit)="registrar()">
+            <div class="field col-12 md:col-3">
+                <span class="p-float-label">
+                    <input
+                        type="text"
+                        pInputText
+                        id="nombre"
+                        name="nombre"
+                        formControlName="nombre"
+                        required
+                    />
+                    <label for="calendar">Nombre</label>
+                </span>
+            </div>
+            <button
+                pButton
+                type="submit"
+                icon="pi pi-save"
+                label="Guardar"
+            ></button>
+        </form>
+    </div>
+</div>
