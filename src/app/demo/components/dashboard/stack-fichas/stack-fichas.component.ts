@@ -6,6 +6,7 @@ import { HelperService } from 'src/app/demo/services/helper.service';
 import { ListService } from 'src/app/demo/services/list.service';
 import { ListFichaComponent } from '../list-ficha/list-ficha.component';
 import { App } from '@capacitor/app';
+import { AuthService } from 'src/app/demo/services/auth.service';
 
 @Component({
     selector: 'app-stack-fichas',
@@ -21,7 +22,8 @@ export class StackFichasComponent implements OnInit {
         private helper: HelperService,
         private listar: ListService,
         private dialogService: DialogService,
-        private ref: DynamicDialogRef
+        private ref: DynamicDialogRef,
+        private auth:AuthService
     ) {}
 
     basicData: any = {};
@@ -38,7 +40,7 @@ export class StackFichasComponent implements OnInit {
         this.sumaValores = this.calcularSumaValores();
     }
 
-    token = this.helper.token();
+    token = this.auth.token();
     constFicha: any = [];
     loading = true;
     isMobil() {

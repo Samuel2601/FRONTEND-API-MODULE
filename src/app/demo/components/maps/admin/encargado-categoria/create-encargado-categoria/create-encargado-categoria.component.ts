@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { MessageService } from 'primeng/api';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
+import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
     selector: 'app-create-encargado-categoria',
     templateUrl: './create-encargado-categoria.component.html',
@@ -25,7 +26,8 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
         private router: Router,
         private helper: HelperService,
         private messageService: MessageService,
-        private ref: DynamicDialogRef
+        private ref: DynamicDialogRef,
+        private auth:AuthService
     ) {
         this.subcategoriaForm = this.fb.group({
             categoria: ['', Validators.required],
@@ -35,7 +37,7 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
         this.listarCategorias();
         this.listarUsuarios();
     }
-    token = this.helper.token();
+    token = this.auth.token();
     listarCategorias() {
         if (!this.token) {
             throw this.router.navigate(['/auth/login']);

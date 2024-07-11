@@ -37,7 +37,8 @@ export class LoginComponent implements OnInit {
         private helper: HelperService,
         private messageService: MessageService,
         private layoutService: LayoutService,
-        private cookieService: CookieService
+        private cookieService: CookieService,
+        private auth:AuthService
     ) {
         this.loginForm = this.formBuilder.group({
             correo: ['', [
@@ -65,7 +66,7 @@ export class LoginComponent implements OnInit {
         this.setHeight();
         window.addEventListener('resize', this.setHeight.bind(this));
 
-        if (this.helper.token()) {
+        if (this.auth.token()) {
             this.router.navigate(['/home']);
         } else {
             this.loadUserData();
@@ -88,12 +89,12 @@ export class LoginComponent implements OnInit {
         });
     }
 
-    private handleQueryParams(): void {
-        this.route.queryParams.subscribe(params => {
+    private handleQueryParams() {
+        this.route.queryParams.subscribe(async params => {
             const token = params['token'];
             if (token) {
-                this.guardarToken(token);
-                this.storeUserData(this.helper.authtoken(token));
+                await this.guardarToken(token);
+                this.storeUserData(this.auth.authToken(token));
                 this.rederict();
             }
             if (params['correo'] && params['password']) {
@@ -170,8 +171,8 @@ export class LoginComponent implements OnInit {
             try {
                 const response = await this.authService.login(user).toPromise();
                 if (response.data) {
-                    this.guardarToken(response.data.token);
-                    this.storeUserData(this.helper.authtoken(response.data.token));
+                    await this.guardarToken(response.data.token);
+                    this.storeUserData(this.auth.authToken(response.data.token));
                     this.navigateAfterLogin(response.data.passwordChange);
                     this.rederict();
                 } else if (response.message) {
@@ -263,7 +264,7 @@ export class LoginComponent implements OnInit {
             email: this.loginForm.get('correo').value,
             codigo: this.codevalid,
         }).subscribe(
-            response => {
+            async response => {
                 console.log(response);
                 if (response.message === 'Bienvenido.') {
                     this.messageService.add({
@@ -271,8 +272,8 @@ export class LoginComponent implements OnInit {
                         summary: 'Verificación',
                         detail: response.message,
                     });
-                    this.guardarToken(response.data.token);
-                    this.storeUserData(this.helper.authtoken(response.data.token));
+                    await this.guardarToken(response.data.token);
+                    this.storeUserData(this.auth.authToken(response.data.token));
                     setTimeout(() => this.visible = false, 500);
                     this.rederict();
                 }
@@ -287,9 +288,12 @@ export class LoginComponent implements OnInit {
         );
     }
 
-    guardarToken(token: string): void {
+    async guardarToken(token: string) {
         const storage = this.loginForm.get('save').value ? localStorage : sessionStorage;
+        
         storage.setItem('token', token);
+        const idUser=this.auth.idUserToken(token);
+        storage.setItem('idUser', idUser);
     }
 
     guardarFoto(foto: string): void {

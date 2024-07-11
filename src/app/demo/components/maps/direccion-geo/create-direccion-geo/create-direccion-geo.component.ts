@@ -8,6 +8,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
   selector: 'app-create-direccion-geo',
   templateUrl: './create-direccion-geo.component.html',
@@ -20,7 +21,7 @@ export class CreateDireccionGeoComponent implements OnInit, AfterViewInit {
   estadosActividadProyecto:any=[];
   actividadesProyecto:any=[];
   url=GLOBAL.url;
-  constructor(private modalService: NgbModal,private fb: FormBuilder,private createService:CreateService,private router: Router,private listarService:ListService,private adminservice:AdminService,private helper:HelperService,
+  constructor(private modalService: NgbModal,private fb: FormBuilder,private createService:CreateService,private router: Router,private listarService:ListService,private adminservice:AdminService,private helper:HelperService,private auth:AuthService,
     private config: DynamicDialogConfig){
     this.fichaSectorialForm = this.fb.group({
       direccion_geo: ['', Validators.required],
@@ -36,7 +37,7 @@ export class CreateDireccionGeoComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  token=this.helper.token();
+  token=this.auth.token();
   ngOnInit(): void {
     if(!this.token){
       throw this.router.navigate(["/auth/login"]);

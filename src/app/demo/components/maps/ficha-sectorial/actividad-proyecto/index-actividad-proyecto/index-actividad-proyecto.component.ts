@@ -8,6 +8,7 @@ import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { App } from '@capacitor/app';
 import { EditActividadProyectoComponent } from '../edit-actividad-proyecto/edit-actividad-proyecto.component';
 import { MessageService } from 'primeng/api';
+import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
   selector: 'app-index-actividad-proyecto',
   templateUrl: './index-actividad-proyecto.component.html',
@@ -18,7 +19,7 @@ export class IndexActividadProyectoComponent implements OnInit {
   model:boolean=true;
   actividadPro:any=[];
 
-  constructor(private ref: DynamicDialogRef,private modalService: NgbModal,private router: Router,private listService:ListService,private helper:HelperService,private dialogService: DialogService,private messageService: MessageService){
+  constructor(private auth:AuthService,private ref: DynamicDialogRef,private modalService: NgbModal,private router: Router,private listService:ListService,private helper:HelperService,private dialogService: DialogService,private messageService: MessageService){
 
   }
   cerrarModal() {
@@ -38,7 +39,7 @@ export class IndexActividadProyectoComponent implements OnInit {
     });
     this.listarActividadProyecto();
   }
-  token=this.helper.token();
+  token=this.auth.token();
   listarActividadProyecto(){
     if(!this.token){
       throw this.router.navigate(["/auth/login"]);

@@ -7,6 +7,7 @@ import { HelperService } from 'src/app/demo/services/helper.service';
 import { MessageService } from 'primeng/api';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { App } from '@capacitor/app';
+import { AuthService } from 'src/app/demo/services/auth.service';
 
 @Component({
   selector: 'app-index-estado-incidente',
@@ -18,7 +19,7 @@ export class IndexEstadoIncidenteComponent implements OnInit {
   incidentesDenuncias: any[] = [];
   model: boolean=true;
   load_lista:boolean=true;
-  constructor(private ref: DynamicDialogRef,private fb: FormBuilder,private listarService:ListService,private router: Router,private helper:HelperService,private messageService: MessageService,private dialogService: DialogService){
+  constructor(private auth:AuthService,private ref: DynamicDialogRef,private fb: FormBuilder,private listarService:ListService,private router: Router,private helper:HelperService,private messageService: MessageService,private dialogService: DialogService){
 
   }
   check: any = {};
@@ -34,7 +35,7 @@ export class IndexEstadoIncidenteComponent implements OnInit {
     });
     this.listartEstados();
   }
-  token=this.helper.token();
+  token=this.auth.token();
   listartEstados(){
     this.load_lista=true;
     if(!this.token){

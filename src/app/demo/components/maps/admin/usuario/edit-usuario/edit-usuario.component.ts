@@ -10,6 +10,7 @@ import { ListService } from 'src/app/demo/services/list.service';
 import { Message, MessageService } from 'primeng/api';
 import { DynamicDialogConfig, DialogService } from 'primeng/dynamicdialog';
 import { NativeBiometric } from 'capacitor-native-biometric';
+import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
     selector: 'app-edit-usuario',
     templateUrl: './edit-usuario.component.html',
@@ -31,12 +32,13 @@ export class EditUsuarioComponent implements OnInit, AfterViewInit {
         private list: ListService,
         private messageService: MessageService,
         private config: DynamicDialogConfig,
-        private dialogService: DialogService
+        private dialogService: DialogService,
+        private auth:AuthService
     ) {}
 
     ngAfterViewInit(): void {}
 
-    token: any = this.helper.token();
+    token: any = this.auth.token();
     id: any;
     ngOnInit(): void {
         if (this.config && this.config.data && this.config.data.id) {

@@ -48,6 +48,7 @@ import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { CreateDireccionGeoComponent } from '../direccion-geo/create-direccion-geo/create-direccion-geo.component';
 import { AdminService } from 'src/app/demo/services/admin.service';
 import { ListService } from 'src/app/demo/services/list.service';
+import { AuthService } from 'src/app/demo/services/auth.service';
 
 interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
     id?: string;
@@ -124,7 +125,7 @@ export class LayersComponent implements OnInit {
         'https://geoapi.esmeraldas.gob.ec/geoserver/catastro/wms?service=WFS&version=1.1.0&request=GetFeature&srsname=EPSG%3A4326&typeName=catastro%3Ageo_barrios&outputFormat=application%2Fjson';
     urlgeolocal =
         'http://192.168.120.35/geoserver/catastro/wms?service=WFS&version=1.1.0&request=GetFeature&srsname=EPSG%3A4326&typeName=catastro%3Ageo_barrios&outputFormat=application%2Fjson';
-    token = this.helperService.token() || undefined;
+    token = this.auth.token() || undefined;
     check: any = {};
     sidebarVisible: boolean = false;
     private openInfoWindow: google.maps.InfoWindow | null = null;
@@ -167,7 +168,8 @@ export class LayersComponent implements OnInit {
         private ref: DynamicDialogRef,
         private admin: AdminService,
         private list: ListService,
-        private appRef: ApplicationRef
+        private appRef: ApplicationRef,
+        private auth:AuthService
     ) {
         this.subscription = this.layoutService.configUpdate$
             .pipe(debounceTime(25))

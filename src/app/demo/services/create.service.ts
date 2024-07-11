@@ -12,7 +12,7 @@ export class CreateService {
 	public url;
 	
 	constructor(private http: HttpClient) {
-		this.url = GLOBAL.url+'create/';
+		this.url = GLOBAL.url;
 	}
   registrarUsuario(data: any): Observable<any> {
    let headers = new HttpHeaders().set('Content-Type', 'application/json');

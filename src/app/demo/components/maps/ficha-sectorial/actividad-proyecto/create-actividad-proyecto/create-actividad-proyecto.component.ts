@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
+import { AuthService } from 'src/app/demo/services/auth.service';
 import { CreateService } from 'src/app/demo/services/create.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 
@@ -14,7 +15,7 @@ import { HelperService } from 'src/app/demo/services/helper.service';
 export class CreateActividadProyectoComponent implements OnInit{
   estadoIncidenteForm: FormGroup<any>;
   model: boolean=true;
-  constructor(private fb: FormBuilder,private createService:CreateService,private router: Router,private helper:HelperService,private messageService: MessageService,){
+  constructor(private auth:AuthService,private fb: FormBuilder,private createService:CreateService,private router: Router,private helper:HelperService,private messageService: MessageService,){
     this.estadoIncidenteForm = this.fb.group({
       nombre: ['', Validators.required]
     });
@@ -32,7 +33,7 @@ export class CreateActividadProyectoComponent implements OnInit{
     isMobil() {
     return this.helper.isMobil();
   }
-  token=this.helper.token();
+  token=this.auth.token();
   registrarActividadP() {
     if (this.estadoIncidenteForm.valid) {
         if(!this.token){

@@ -26,6 +26,7 @@ import { AdminService } from 'src/app/demo/services/admin.service';
 import { EditFichaSectorialComponent } from '../edit-ficha-sectorial/edit-ficha-sectorial.component';
 import { DeleteService } from 'src/app/demo/services/delete.service';
 import { UpdateService } from 'src/app/demo/services/update.service';
+import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
     selector: 'app-index-ficha-sectorial',
     templateUrl: './index-ficha-sectorial.component.html',
@@ -79,7 +80,8 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
         private dialogService: DialogService,
         private admin: AdminService,
         private deleteService: DeleteService,
-        private updateService: UpdateService
+        private updateService: UpdateService,
+        private auth:AuthService
     ) {}
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['filtro'] || changes['valor']) {
@@ -100,7 +102,7 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
     check: any = {};
     visible: boolean = false;
     option: any;
-    token = this.helperservice.token();
+    token = this.auth.token();
     id = this.admin.identity(this.token);
     rol = this.admin.roluser(this.token);
     async ngOnInit(): Promise<void> {

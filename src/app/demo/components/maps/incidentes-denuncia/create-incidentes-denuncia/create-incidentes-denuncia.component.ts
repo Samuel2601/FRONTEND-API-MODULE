@@ -17,6 +17,7 @@ import { MessageService } from 'primeng/api';
 const { Geolocation } = Plugins;
 import { GalleriaModule } from 'primeng/galleria';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
     selector: 'app-create-incidentes-denuncia',
     templateUrl: './create-incidentes-denuncia.component.html',
@@ -37,7 +38,8 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
         private helper: HelperService,
         private messageService: MessageService,
         private config: DynamicDialogConfig,
-        private ref: DynamicDialogRef
+        private ref: DynamicDialogRef,
+        private auth:AuthService
     ) {
         this.nuevoIncidenteDenuncia = this.fb.group({
             categoria: ['', Validators.required],
@@ -176,7 +178,7 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
             //console.error('Geolocation is not supported by this browser.');
         }
     }
-    token = this.helper.token();
+    token = this.auth.token();
     selectcategoria() {
         if (!this.token) {
             //this.modalService.dismissAll();

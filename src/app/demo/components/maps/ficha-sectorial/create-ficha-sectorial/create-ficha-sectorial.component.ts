@@ -17,6 +17,7 @@ import {
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { GalleriaModule } from 'primeng/galleria';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
     selector: 'app-create-ficha-sectorial',
     templateUrl: './create-ficha-sectorial.component.html',
@@ -39,7 +40,8 @@ export class CreateFichaSectorialComponent implements OnInit {
         private adminservice: AdminService,
         private helper: HelperService,
         private messageService: MessageService,
-        private ref: DynamicDialogRef
+        private ref: DynamicDialogRef,
+        private auth:AuthService
     ) {
         this.fichaSectorialForm = this.fb.group({
             descripcion: ['', Validators.required],
@@ -51,7 +53,7 @@ export class CreateFichaSectorialComponent implements OnInit {
             observacion: [''],
         });
     }
-    token = this.helper.token();
+    token = this.auth.token();
     mostrar: boolean = false;
     ngOnInit(): void {
         if (!this.token) {

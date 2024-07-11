@@ -12,6 +12,7 @@ import { EditSubcategoriaComponent } from '../sub/edit-subcategoria/edit-subcate
 import { DeleteService } from 'src/app/demo/services/delete.service';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { App } from '@capacitor/app';
+import { AuthService } from 'src/app/demo/services/auth.service';
 interface Column {
     field: string;
     header: string;
@@ -26,7 +27,7 @@ export class IndexCategoriaComponent implements OnInit {
     categorias!: TreeNode[];
     constcategorias = [];
     clonedProducts: { [s: string]: any } = {};
-    token = this.helperservice.token();
+    token = this.auth.token();
     constructor(
         private ref: DynamicDialogRef,
         private listService: ListService,
@@ -35,7 +36,8 @@ export class IndexCategoriaComponent implements OnInit {
         private helperservice: HelperService,
         private deleteService: DeleteService,
         private messageService: MessageService,
-        private dialogService: DialogService
+        private dialogService: DialogService,
+        private auth:AuthService
     ) {}
     cols!: Column[];
     check: any = {};

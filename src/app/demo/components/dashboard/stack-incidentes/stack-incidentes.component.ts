@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
+import { AuthService } from 'src/app/demo/services/auth.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ListService } from 'src/app/demo/services/list.service';
 
@@ -16,9 +17,10 @@ export class StackIncidentesComponent implements OnInit {
     constructor(
         private messageService: MessageService,
         private helper: HelperService,
-        private listar: ListService
+        private listar: ListService,
+        private auth:AuthService
     ) {}
-    token = this.helper.token();
+    token = this.auth.token();
     constIncidente: any = [];
     loading = true;
 

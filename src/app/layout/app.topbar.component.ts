@@ -4,6 +4,7 @@ import { LayoutService } from "./service/app.layout.service";
 import { GLOBAL } from '../demo/services/GLOBAL';
 import { HelperService } from '../demo/services/helper.service';
 import { Router } from '@angular/router';
+import { AuthService } from '../demo/services/auth.service';
 
 @Component({
     selector: 'app-topbar',
@@ -20,11 +21,11 @@ export class AppTopBarComponent implements OnInit {
 
     @ViewChild('topbarmenu') menu!: ElementRef;
     
-    constructor(public layoutService: LayoutService, private helper: HelperService,private router: Router,) { }
+    constructor(public layoutService: LayoutService, private helper: HelperService,private router: Router,private auth:AuthService) { }
     ngOnInit(): void {
         //console.log(this.foto);
     }
-    token = this.helper.token()||undefined;
+    token = this.auth.token()||undefined;
     logout(): void {
         if(this.helper.isMobil()){
             const nombreUsuario = localStorage.getItem('nombreUsuario') || sessionStorage.getItem('nombreUsuario');

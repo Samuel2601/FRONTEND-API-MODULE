@@ -24,6 +24,7 @@ import { helpers } from '@turf/turf';
 import { EditIncidentesDenunciaComponent } from '../edit-incidentes-denuncia/edit-incidentes-denuncia.component';
 import { DeleteService } from 'src/app/demo/services/delete.service';
 import { UpdateService } from 'src/app/demo/services/update.service';
+import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
     selector: 'app-index-incidentes-denuncia',
     templateUrl: './index-incidentes-denuncia.component.html',
@@ -43,7 +44,8 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
         private dialogService: DialogService,
         private admin: AdminService,
         private deleteser: DeleteService,
-        private updateService: UpdateService
+        private updateService: UpdateService,
+        private auth:AuthService
     ) {}
 
     load_lista = true;
@@ -145,7 +147,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
     incidentesDenuncias: any = [];
 
     check: any = {};
-    token = this.helperservice.token();
+    token = this.auth.token();
     id = this.admin.identity(this.token);
     rol = this.admin.roluser(this.token);
 

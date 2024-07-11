@@ -83,37 +83,7 @@ export class AdminService {
         var decodedToken = helper.decodeToken(token);
         return decodedToken.rol_user;
     }
-    calcularTiempoRestante(token: string): number {
-        const helper = new JwtHelperService();
-        const decodedToken = helper.decodeToken(token);
-
-        // Obtener la fecha de expiración del token en milisegundos
-        const expiracion = decodedToken.exp * 1000;
-
-        // Obtener la fecha actual en milisegundos
-        const ahora = Date.now();
-
-        // Calcular la diferencia de tiempo en milisegundos
-        let diferencia = expiracion - ahora;
-
-        // Calcular días, horas, minutos y segundos
-        const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
-        diferencia -= dias * (1000 * 60 * 60 * 24);
-        const horas = Math.floor(diferencia / (1000 * 60 * 60));
-        diferencia -= horas * (1000 * 60 * 60);
-        const minutos = Math.floor(diferencia / (1000 * 60));
-        diferencia -= minutos * (1000 * 60);
-        const segundos = Math.floor(diferencia / 1000);
-        if (expiracion <= ahora) {
-            localStorage.clear();
-            sessionStorage.clear();
-            return 0;
-        }
-        //console.log(diferencia,expiracion,ahora,expiracion>ahora);
-        // Devolver el objeto con el tiempo restante formateado
-        //console.log({ dias, horas, minutos, segundos });
-        return diferencia;
-    }
+    
     getCiudadano(id: string): Observable<any> {
         let headers = new HttpHeaders().set('Content-Type', 'application/json');
         return this._http.get(this.url + 'getciudadano/' + id, {
@@ -126,37 +96,5 @@ export class AdminService {
             headers: headers,
         });
     }
-    isAuthenticate() {
-        const token: any = sessionStorage.getItem('token');
-
-        try {
-            const helper = new JwtHelperService();
-            var decodedToken = helper.decodeToken(token);
-            //console.log(decodedToken);
-            if (!token) {
-                localStorage.clear();
-                sessionStorage.clear();
-                return false;
-            }
-
-            if (!decodedToken) {
-                localStorage.clear();
-                sessionStorage.clear();
-                return false;
-            }
-
-            if (helper.isTokenExpired(token)) {
-                localStorage.clear();
-                sessionStorage.clear();
-                return false;
-            }
-        } catch (error) {
-            ////console.log(error);
-            localStorage.clear();
-            sessionStorage.clear();
-            return false;
-        }
-
-        return true;
-    }
+    
 }

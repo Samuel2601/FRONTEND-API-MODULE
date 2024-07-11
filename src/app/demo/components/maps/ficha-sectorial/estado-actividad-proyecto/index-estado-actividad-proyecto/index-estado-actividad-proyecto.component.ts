@@ -6,6 +6,7 @@ import { ListService } from 'src/app/demo/services/list.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { App } from '@capacitor/app';
+import { AuthService } from 'src/app/demo/services/auth.service';
 
 @Component({
   selector: 'app-index-estado-actividad-proyecto',
@@ -15,7 +16,7 @@ import { App } from '@capacitor/app';
 export class IndexEstadoActividadProyectoComponent implements OnInit{
   actividadEstado:any=[];
   model:boolean=true;
-  constructor(private ref: DynamicDialogRef,private dialogService: DialogService,private router: Router,private listService:ListService,private helper:HelperService){
+  constructor(private ref: DynamicDialogRef,private dialogService: DialogService,private router: Router,private listService:ListService,private helper:HelperService,private auth:AuthService){
    
   }
   check:any={};
@@ -31,7 +32,7 @@ export class IndexEstadoActividadProyectoComponent implements OnInit{
     });
     this.listarestadoser();
   }
-  token=this.helper.token();
+  token=this.auth.token();
   listarestadoser(){
     if(!this.token){
       throw this.router.navigate(["/auth/login"]);

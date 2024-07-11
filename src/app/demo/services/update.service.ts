@@ -11,7 +11,7 @@ export class UpdateService {
     public url;
 
     constructor(private http: HttpClient) {
-        this.url = GLOBAL.url + 'update/';
+        this.url = GLOBAL.url;
     }
     actualizarUsuario(
         token: any,

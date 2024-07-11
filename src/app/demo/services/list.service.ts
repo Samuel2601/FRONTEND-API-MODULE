@@ -10,7 +10,7 @@ export class ListService {
   public url;
 	
 	constructor(private http: HttpClient) {
-		this.url = GLOBAL.url+'list/';
+		this.url = GLOBAL.url;
 	}
   
   listarUsuarios(token: any, campo?: string, valor?: any): Observable<any> {
@@ -21,7 +21,7 @@ export class ListService {
     let params = new HttpParams()
         .set('campo', campo||'')
         .set('valor', valor||'');
-    return this.http.get(this.url + 'listar_usuarios',  { headers: headers, params: params });
+    return this.http.get(this.url + 'obtenerUserPorCriterio',  { headers: headers, params: params });
   }
 
   listarFichaSectorial(token: any, campo?: string, valor?: any): Observable<any> {

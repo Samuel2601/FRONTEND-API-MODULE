@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
+import { AuthService } from 'src/app/demo/services/auth.service';
 import { CreateService } from 'src/app/demo/services/create.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 @Component({
@@ -12,7 +13,7 @@ import { HelperService } from 'src/app/demo/services/helper.service';
 })
 export class CreateCategoriaComponent implements OnInit{
   categoriaForm: FormGroup;
-  constructor(private fb: FormBuilder,private createService:CreateService,private router: Router,private helper:HelperService,private messageService: MessageService,){
+  constructor(private fb: FormBuilder,private createService:CreateService,private router: Router,private helper:HelperService,private messageService: MessageService,private auth:AuthService){
     this.categoriaForm = this.fb.group({
       nombre: ['', Validators.required],
       descripcion: ['', Validators.required]
@@ -28,7 +29,7 @@ export class CreateCategoriaComponent implements OnInit{
   }
   registrarCategoria(){
     if (this.categoriaForm.valid) {
-      const token = this.helper.token();
+      const token = this.auth.token();
       if(!token){
         throw this.router.navigate(["/auth/login"]);
       }

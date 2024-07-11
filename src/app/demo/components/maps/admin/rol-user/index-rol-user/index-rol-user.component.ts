@@ -5,6 +5,7 @@ import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { Router } from '@angular/router';
 import { CreateRolUserComponent } from '../create-rol-user/create-rol-user.component';
 import { App } from '@capacitor/app';
+import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
     selector: 'app-index-rol-user',
     templateUrl: './index-rol-user.component.html',
@@ -19,13 +20,14 @@ export class IndexRolUserComponent {
         private helper: HelperService,
         private router: Router,
         private ref: DynamicDialogRef,
-        private dialogService: DialogService
+        private dialogService: DialogService,
+        private auth:AuthService
     ) {}
 
     ngOnInit(): void {
         this.listarCategorias();
     }
-    token = this.helper.token();
+    token = this.auth.token();
     listarCategorias(): void {
         this.listService.listarRolesUsuarios(this.token).subscribe(
             (response) => {

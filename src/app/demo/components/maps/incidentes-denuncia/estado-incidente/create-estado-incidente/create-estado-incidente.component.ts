@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
+import { AuthService } from 'src/app/demo/services/auth.service';
 import { CreateService } from 'src/app/demo/services/create.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ListService } from 'src/app/demo/services/list.service';
@@ -21,7 +22,8 @@ export class CreateEstadoIncidenteComponent implements OnInit {
         private router: Router,
         private helper: HelperService,
         private messageService: MessageService,
-        private listar: ListService
+        private listar: ListService,
+        private auth:AuthService
     ) {
         this.estadoIncidenteForm = this.fb.group({
             nombre: ['', Validators.required],
@@ -55,7 +57,7 @@ export class CreateEstadoIncidenteComponent implements OnInit {
     cerrarModal() {
         this.model = false; // Cambia model a false cuando se cierra el modal
     }
-    token = this.helper.token();
+    token = this.auth.token();
     registrarEstadoIncidente() {
         if (this.estadoIncidenteForm?.valid) {
             if (!this.token) {

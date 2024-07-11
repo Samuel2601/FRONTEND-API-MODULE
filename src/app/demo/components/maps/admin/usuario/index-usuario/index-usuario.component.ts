@@ -7,6 +7,7 @@ import { EditUsuarioComponent } from '../edit-usuario/edit-usuario.component';
 import { Capacitor } from '@capacitor/core';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { App } from '@capacitor/app';
+import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
   selector: 'app-index-usuario',
   templateUrl: './index-usuario.component.html',
@@ -17,7 +18,7 @@ export class IndexUsuarioComponent implements OnInit{
   load_lista:boolean=true;
   usuarios:any[]=[];
   usuariosconst:any[]=[];
-  token=this.helperservice.token();
+  token=this.auth.token();
   categoria:any;
   valor: any;
   opciones=[
@@ -27,7 +28,7 @@ export class IndexUsuarioComponent implements OnInit{
       { label: 'Cédula', value: 'cedula' },
       { label: 'Rol', value: 'rol_user' }
   ]
-  constructor(private ref: DynamicDialogRef,private router: Router,private listService:ListService,private helperservice:HelperService,private dialogService: DialogService){
+  constructor(private ref: DynamicDialogRef,private router: Router,private listService:ListService,private helperservice:HelperService,private dialogService: DialogService,private auth:AuthService){
   
   }
   ngOnInit() {  

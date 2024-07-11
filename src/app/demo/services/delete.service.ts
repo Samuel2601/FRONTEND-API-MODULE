@@ -10,7 +10,7 @@ export class DeleteService {
   public url;
 	
 	constructor(private http: HttpClient) {
-		this.url = GLOBAL.url+'delete/';
+		this.url = GLOBAL.url;
 	}
   eliminarUsuario(token: any, id: string): Observable<any> {
     let headers = new HttpHeaders({

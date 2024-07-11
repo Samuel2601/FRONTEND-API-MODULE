@@ -9,6 +9,7 @@ import {
     DynamicDialogRef,
     DynamicDialogConfig,
 } from 'primeng/dynamicdialog';
+import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
     selector: 'app-edit-actividad-proyecto',
     templateUrl: './edit-actividad-proyecto.component.html',
@@ -18,14 +19,15 @@ import {
 export class EditActividadProyectoComponent {
     id: any;
     categoria: any;
-    token = this.helper.token();
+    token = this.auth.token();
     constructor(
         private obtener: FilterService,
         private update: UpdateService,
         private helper: HelperService,
         private modalService: NgbModal,
         private messageService: MessageService,
-        private config: DynamicDialogConfig
+        private config: DynamicDialogConfig,
+        private auth:AuthService
     ) {}
 
     ngOnInit(): void {

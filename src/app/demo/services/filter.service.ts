@@ -10,7 +10,7 @@ export class FilterService {
   public url;
 	
 	constructor(private http: HttpClient) {
-		this.url = GLOBAL.url+'filter/';
+		this.url = GLOBAL.url;
 	}
   obtenerUsuario(token: any, id: string): Observable<any> {
     let headers = new HttpHeaders({

@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
+import { AuthService } from 'src/app/demo/services/auth.service';
 import { CreateService } from 'src/app/demo/services/create.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ListService } from 'src/app/demo/services/list.service';
@@ -15,7 +16,7 @@ import { ListService } from 'src/app/demo/services/list.service';
 })
 export class CreateRolUserComponent implements OnInit {
     Form: FormGroup<any>;
-    token = this.helper.token();
+    token = this.auth.token();
 
     constructor(
         private fb: FormBuilder,
@@ -24,7 +25,8 @@ export class CreateRolUserComponent implements OnInit {
         private router: Router,
         private helper: HelperService,
         private messageService: MessageService,
-        private ref: DynamicDialogRef
+        private ref: DynamicDialogRef,
+        private auth:AuthService
     ) {
         this.Form = this.fb.group({
             nombre: ['', Validators.required],

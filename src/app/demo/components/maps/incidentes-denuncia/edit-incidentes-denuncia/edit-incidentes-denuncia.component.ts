@@ -15,6 +15,7 @@ import {
     Photo,
 } from '@capacitor/camera';
 import { UpdateService } from 'src/app/demo/services/update.service';
+import { AuthService } from 'src/app/demo/services/auth.service';
 
 @Component({
     selector: 'app-edit-incidentes-denuncia',
@@ -33,7 +34,8 @@ export class EditIncidentesDenunciaComponent implements OnInit {
         private admin: AdminService,
         private messageService: MessageService,
         private update: UpdateService,
-        private ref: DynamicDialogRef
+        private ref: DynamicDialogRef,
+        private auth:AuthService
     ) {
         this.incidencia = this.fb.group({
             direccion_geo: [{ value: '', disabled: true }],
@@ -51,7 +53,7 @@ export class EditIncidentesDenunciaComponent implements OnInit {
 
     id: any;
     check: any = {};
-    token = this.helper.token();
+    token = this.auth.token();
     load_form: boolean = false;
 
     categorias: any = [];

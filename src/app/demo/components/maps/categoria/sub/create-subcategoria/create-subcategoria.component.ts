@@ -5,6 +5,7 @@ import { CreateService } from 'src/app/demo/services/create.service';
 import { Router } from '@angular/router';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { MessageService } from 'primeng/api';
+import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
   selector: 'app-create-subcategoria',
   templateUrl: './create-subcategoria.component.html',
@@ -14,7 +15,7 @@ import { MessageService } from 'primeng/api';
 export class CreateSubcategoriaComponent implements OnInit{
   categorias: any[] = [];
   subcategoriaForm:any={};
-  constructor(private fb: FormBuilder,private listService: ListService, private createService:CreateService,private router: Router,private helper:HelperService,private messageService: MessageService){
+  constructor(private fb: FormBuilder,private listService: ListService, private createService:CreateService,private router: Router,private helper:HelperService,private messageService: MessageService,private auth:AuthService){
     this.subcategoriaForm = this.fb.group({
       categoria: ['', Validators.required],
       nombre: ['', Validators.required],
@@ -29,7 +30,7 @@ export class CreateSubcategoriaComponent implements OnInit{
         }
     this.listarCategorias();
   }
-  token=this.helper.token();
+  token=this.auth.token();
   listarCategorias() {
     if(!this.token){
       throw this.router.navigate(["/auth/login"]);

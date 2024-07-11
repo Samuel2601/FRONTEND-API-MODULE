@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { MessageService } from 'primeng/api';
 import { DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { AuthService } from 'src/app/demo/services/auth.service';
 import { FilterService } from 'src/app/demo/services/filter.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ListService } from 'src/app/demo/services/list.service';
@@ -21,8 +22,8 @@ interface AutoCompleteCompleteEvent {
 export class EditSubcategoriaComponent implements OnInit {
   id:any;
   subcategoria:any;
-  token=this.helper.token();
-  constructor(private obtener:FilterService,private update:UpdateService,private helper:HelperService,private modalService: NgbModal, private listar:ListService,private messageService: MessageService,private config: DynamicDialogConfig){
+  token=this.auth.token();
+  constructor(private obtener:FilterService,private update:UpdateService,private helper:HelperService,private modalService: NgbModal, private listar:ListService,private messageService: MessageService,private config: DynamicDialogConfig,private auth:AuthService){
 
   }
   async ngOnInit() {

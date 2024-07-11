@@ -7,13 +7,17 @@ import { NotfoundComponent } from './demo/components/notfound/notfound.component
 import { DialogService } from 'primeng/dynamicdialog';
 import { ButtonModule } from 'primeng/button';
 import { TranslateModule } from '@ngx-translate/core';
+import { PermissionGuard } from './guards/permission.guard';
+import { AuthService } from './demo/services/auth.service';
+import { SocketService } from './demo/services/socket.io.service';
 
 @NgModule({
     declarations: [AppComponent, NotfoundComponent],
     imports: [AppRoutingModule, AppLayoutModule,ButtonModule,TranslateModule.forRoot()],
     providers: [
         { provide: LocationStrategy, useClass: PathLocationStrategy },
-        DialogService
+        DialogService,
+        SocketService, AuthService, PermissionGuard
     ],
     bootstrap: [AppComponent],
 })

@@ -14,6 +14,7 @@ import {
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FilterService } from '../../../../services/filter.service';
 import { UpdateService } from 'src/app/demo/services/update.service';
+import { AuthService } from 'src/app/demo/services/auth.service';
 
 @Component({
     selector: 'app-edit-ficha-sectorial',
@@ -36,7 +37,8 @@ export class EditFichaSectorialComponent implements OnInit {
         private helper: HelperService,
         private messageService: MessageService,
         private ref: DynamicDialogRef,
-        private filter: FilterService
+        private filter: FilterService,
+        private auth:AuthService
     ) {
         this.fichaSectorialForm = this.fb.group({
             descripcion: ['', Validators.required],
@@ -48,7 +50,7 @@ export class EditFichaSectorialComponent implements OnInit {
             observacion: [''],
         });
     }
-    token = this.helper.token();
+    token = this.auth.token();
     mostrar: boolean = false;
     id: any;
     check: any = {};

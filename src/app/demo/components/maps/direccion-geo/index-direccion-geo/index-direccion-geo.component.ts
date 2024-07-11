@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { AuthService } from 'src/app/demo/services/auth.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ListService } from 'src/app/demo/services/list.service';
 
@@ -11,12 +12,12 @@ export class IndexDireccionGeoComponent {
   direccionesGeo=[];
   clonedProducts: { [s: string]: any } = {};
 
-  constructor(private listService: ListService,private helper:HelperService) { }
+  constructor(private listService: ListService,private helper:HelperService,private auth:AuthService) { }
 
   ngOnInit(): void {
     this.listarCategorias();
   }
-  token=this.helper.token();
+  token=this.auth.token();
   listarCategorias(): void {
     this.listService.listarDireccionesGeo(this.token).subscribe(
       response => {

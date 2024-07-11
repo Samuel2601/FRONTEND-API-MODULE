@@ -5,6 +5,7 @@ import { HelperService } from 'src/app/demo/services/helper.service';
 import { ListService } from 'src/app/demo/services/list.service';
 import { CreateEncargadoCategoriaComponent } from '../create-encargado-categoria/create-encargado-categoria.component';
 import { App } from '@capacitor/app';
+import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
     selector: 'app-index-encargado-categoria',
     templateUrl: './index-encargado-categoria.component.html',
@@ -19,13 +20,14 @@ export class IndexEncargadoCategoriaComponent {
         private listService: ListService,
         private router: Router,
         private helper: HelperService,
-        private dialogService: DialogService
+        private dialogService: DialogService,
+        private auth:AuthService
     ) {}
 
     ngOnInit(): void {
         this.listarCategorias();
     }
-    token = this.helper.token();
+    token = this.auth.token();
     listarCategorias(): void {
         if (!this.token) {
             throw this.router.navigate(['/auth/login']);

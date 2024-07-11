@@ -85,6 +85,7 @@ import { ToastModule } from 'primeng/toast';
 import { BadgeModule } from 'primeng/badge';
 import { CreateService } from 'src/app/demo/services/create.service';
 import { CalendarModule } from 'primeng/calendar';
+import { AuthService } from 'src/app/demo/services/auth.service';
 interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
     id?: string;
 }
@@ -191,7 +192,7 @@ export class MapaFichaComponent implements OnInit {
         'https://geoapi.esmeraldas.gob.ec/geoserver/catastro/wms?service=WFS&version=1.1.0&request=GetFeature&srsname=EPSG%3A4326&typeName=catastro%3Ageo_barrios&outputFormat=application%2Fjson';
     urlgeolocal =
         'http://192.168.120.35/geoserver/catastro/wms?service=WFS&version=1.1.0&request=GetFeature&srsname=EPSG%3A4326&typeName=catastro%3Ageo_barrios&outputFormat=application%2Fjson';
-    token = this.helperService.token() || undefined;
+    token = this.auth.token() || undefined;
     check: any = {};
     sidebarVisible: boolean = false;
     private openInfoWindow: google.maps.InfoWindow | null = null;
@@ -239,7 +240,8 @@ export class MapaFichaComponent implements OnInit {
         private confirmationService: ConfirmationService,
         private config: PrimeNGConfig,
         private adminservice: AdminService,
-        private createService: CreateService
+        private createService: CreateService,
+        private auth:AuthService
     ) {
         this.fichaSectorialForm = this.fb.group({
             descripcion: ['', Validators.required],

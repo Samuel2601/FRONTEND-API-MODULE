@@ -5,6 +5,7 @@ import { FilterService } from 'src/app/demo/services/filter.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { UpdateService } from 'src/app/demo/services/update.service';
 import { DialogService, DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
   selector: 'app-edit-categoria',
   templateUrl: './edit-categoria.component.html',
@@ -14,8 +15,8 @@ import { DialogService, DynamicDialogRef, DynamicDialogConfig } from 'primeng/dy
 export class EditCategoriaComponent implements OnInit {
   id:any;
   categoria:any;
-  token=this.helper.token();
-  constructor(private obtener:FilterService,private update:UpdateService,private helper:HelperService,private modalService: NgbModal,private messageService: MessageService, private config: DynamicDialogConfig){
+  token=this.auth.token();
+  constructor(private obtener:FilterService,private update:UpdateService,private helper:HelperService,private modalService: NgbModal,private messageService: MessageService, private config: DynamicDialogConfig,private auth:AuthService){
 
   }
    

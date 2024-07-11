@@ -3,6 +3,7 @@ import { ListService } from 'src/app/demo/services/list.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UpdateService } from 'src/app/demo/services/update.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
+import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
     selector: 'app-index-subcategoria',
     templateUrl: './index-subcategoria.component.html',
@@ -18,7 +19,8 @@ export class IndexSubcategoriaComponent {
         private route: ActivatedRoute,
         private router: Router,
         private updateservice: UpdateService,
-        private helperservice: HelperService
+        private helperservice: HelperService,
+        private auth:AuthService
     ) {
         this.id = this.route.snapshot.queryParamMap.get('id');
     }
@@ -38,7 +40,7 @@ export class IndexSubcategoriaComponent {
         }
         this.listarSubcategorias();
     }
-    token = this.helperservice.token();
+    token = this.auth.token();
     listarSubcategorias(): void {
         this.load_lista = true;
         if (!this.token) {

@@ -7,6 +7,7 @@ import { Table } from 'primeng/table';
 import { ChartModule, UIChart } from 'primeng/chart';
 import { Router } from '@angular/router';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
+import { AuthService } from 'src/app/demo/services/auth.service';
 
 @Component({
     selector: 'app-list-ficha',
@@ -15,7 +16,7 @@ import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 })
 export class ListFichaComponent implements OnInit {
     public filterForm: FormGroup | any;
-    private token = this.helper.token();
+    private token = this.auth.token();
     public actividades: any[] = [];
     public encargados: any[] = [];
     public estados: any[] = [];
@@ -26,7 +27,8 @@ export class ListFichaComponent implements OnInit {
         private listar: ListService,
         private helper: HelperService,
         private messageService: MessageService,
-        private router: Router
+        private router: Router,
+        private auth:AuthService
     ) {
         this.filterForm = this.formBuilder.group({
             fecha_inicio: [''],

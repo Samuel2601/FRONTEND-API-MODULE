@@ -9,6 +9,7 @@ import { MapaComponent } from '../mapa/mapa.component';
 import { MapaFichaComponent } from '../mapa-ficha/mapa-ficha.component';
 import { DashboardModule } from '../../dashboard/dashboard.module';
 import { MapaTrashComponent } from '../mapa-trash/mapa-trash.component';
+import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
     selector: 'app-home',
     standalone: true,
@@ -17,7 +18,7 @@ import { MapaTrashComponent } from '../mapa-trash/mapa-trash.component';
         MapaComponent,
         MapaFichaComponent,
         DashboardModule,
-        MapaTrashComponent
+        MapaTrashComponent,
     ],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss',
@@ -25,14 +26,15 @@ import { MapaTrashComponent } from '../mapa-trash/mapa-trash.component';
 export class HomeComponent implements OnInit {
     responsiveOptions: any[] = [];
     productos: any[] = [];
-    token = this.helperService.token() || undefined;
+    token = this.auth.token() || undefined;
     incidencia: FormGroup<any>;
     constructor(
         private list: ListService,
         private helperService: HelperService,
         private fb: FormBuilder,
         public dialogService: DialogService,
-        private router: Router
+        private router: Router,
+        private auth: AuthService
     ) {
         this.incidencia = this.fb.group({
             direccion_geo: [{ value: '', disabled: true }],
@@ -49,6 +51,15 @@ export class HomeComponent implements OnInit {
     }
     DashboardComponent: boolean = false;
     ngOnInit(): void {
+        /*const userId = this.auth.idUserToken();
+        const userRole = this.auth.roleUserToken();
+        this.auth.getUserPermissions(userId).subscribe((response) => {
+            console.log(response);
+        });
+        this.auth.getUserRole(userRole).subscribe((response) => {
+            console.log(response);
+        });*/
+
         this.helperService.setHomeComponent(this);
 
         this.responsiveOptions = [
@@ -139,7 +150,7 @@ export class HomeComponent implements OnInit {
                     info: 'Puedes reportar Incidentes o mirar las Infracciones de tránsito',
                     icon: 'https://i.postimg.cc/bYKqrncJ/Iconos-disen-o-09.png',
                     showInfo: false,
-                    style:false,
+                    style: false,
                     items: [
                         {
                             label: 'Incidentes ESVIAL',
@@ -187,7 +198,7 @@ export class HomeComponent implements OnInit {
                     info: 'Puedes reportar los incidentes y denuncias con respecto a EPMAPSE.',
                     icon: 'https://i.postimg.cc/j2625XdV/icoco-epmapse.png',
                     showInfo: false,
-                    style:false,
+                    style: false,
                     items: [
                         {
                             label: 'Incidentes EPMAPSE',
@@ -219,7 +230,7 @@ export class HomeComponent implements OnInit {
                     info: 'Puedes reportar los incidentes y denuncias con respecto a BOMBEROS.',
                     icon: 'https://i.postimg.cc/Gh55HjWs/icoco-bomberos.png',
                     showInfo: false,
-                    style:false,
+                    style: false,
                     items: [
                         {
                             label: 'Incidentes BOMBEROS',
@@ -254,7 +265,7 @@ export class HomeComponent implements OnInit {
                     info: 'Puedes reportar los incidentes y denuncias con respecto a RECOLECTORES.',
                     icon: 'https://i.postimg.cc/KvSyxyB3/Iconos-disen-o-01.png',
                     showInfo: false,
-                    style:false,
+                    style: false,
                     items: [
                         {
                             label: 'Incidentes Recolectores',
@@ -286,7 +297,7 @@ export class HomeComponent implements OnInit {
                     info: 'Puedes reportar los incidentes y denuncias que se presenten en la ciudad.',
                     icon: 'https://i.postimg.cc/fW3wMKPp/Iconos-disen-o-07.png',
                     showInfo: false,
-                    style:false,
+                    style: false,
                     command: async () => {
                         this.incidente();
                     },
@@ -296,7 +307,7 @@ export class HomeComponent implements OnInit {
                     info: 'Accede a información detallada sobre eventos y actividades en tu sector.',
                     icon: 'https://i.postimg.cc/zfpQgsy7/Iconos-disen-o-05.png',
                     showInfo: false,
-                    style:false,
+                    style: false,
                     command: async () => {
                         this.ficha();
                     },
@@ -311,7 +322,7 @@ export class HomeComponent implements OnInit {
                     info: 'Descubre otros servicios disponibles para ti.',
                     icon: 'https://i.postimg.cc/hGPB6bxC/Iconos-disen-o-12.png',
                     showInfo: false,
-                    style:false,
+                    style: false,
                     command: async () => {
                         window.open(
                             'https://tramites.esmeraldas.gob.ec/',
@@ -324,7 +335,7 @@ export class HomeComponent implements OnInit {
                     info: 'Realiza tus trámites en Registro de la Propiedad, certificación e inscripción.',
                     icon: 'https://i.postimg.cc/pXfMd1JG/Iconos-disen-o-14.png',
                     showInfo: false,
-                    style:false,
+                    style: false,
                     command: async () => {
                         window.open(
                             'https://tramites.esmeraldas.gob.ec/login.jsp?id_servicio=15',
@@ -337,7 +348,7 @@ export class HomeComponent implements OnInit {
                     info: 'Mantente informado sobre comunicados de la alcaldía.',
                     icon: 'https://i.postimg.cc/cLcWF5Kg/Iconos-disen-o-11.png',
                     showInfo: false,
-                    style:false,
+                    style: false,
                     command: async () => {
                         window.open(
                             'https://esmeraldas.gob.ec/noticias.html',
@@ -594,9 +605,9 @@ export class HomeComponent implements OnInit {
             }
         }
     }
-    visible_trash_mirror:boolean=false;
+    visible_trash_mirror: boolean = false;
     recolectores() {
-        this.visible_trash_mirror=true;
+        this.visible_trash_mirror = true;
     }
 
     showInfo(button: any) {
