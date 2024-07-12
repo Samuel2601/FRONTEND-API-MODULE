@@ -61,16 +61,21 @@ export class LoginComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        this.helper.llamarspinner();
         this.handleQueryParams();
         this.playIntroAudio();        
         this.setHeight();
         window.addEventListener('resize', this.setHeight.bind(this));
 
         if (this.auth.token()) {
-            this.router.navigate(['/home']);
+            setTimeout(() => {
+                this.router.navigate(['/home']);
+            }, 2000);
+            
         } else {
             this.loadUserData();
         }
+        this.helper.cerrarspinner();
     }
 
     private removeWhitespaceFromEmail(): void {
@@ -96,6 +101,7 @@ export class LoginComponent implements OnInit {
                 await this.guardarToken(token);
                 this.storeUserData(this.auth.authToken(token));
                 this.rederict();
+                console.log("envio home");
             }
             if (params['correo'] && params['password']) {
                 this.loginForm.setValue({ correo: params['correo'], pass: params['password'] });
@@ -199,7 +205,7 @@ export class LoginComponent implements OnInit {
         if (data) {
             this.storeEncryptedData('nombreUsuario', data.nombres?data.nombres:data.name+' '+data.last_name);
             this.storeEncryptedData('fotoUsuario', data.foto?data.foto:data.photo);
-            this.storeEncryptedData('correo', data.correo);
+            this.storeEncryptedData('correo', data.email);
         }
     }
 
@@ -246,9 +252,11 @@ export class LoginComponent implements OnInit {
         this.rederict(hasPassword);     
     }
     private rederict(hasPassword?:boolean){
+        this.auth.inicialityPermiss();
+
         setTimeout(() => {
             this.router.navigate([hasPassword ? '/maps/edit-user' : '/home']);
-        }, 2000);
+        }, 3000);
     }
 
     private handleLoginError(error: any): void {
@@ -289,9 +297,9 @@ export class LoginComponent implements OnInit {
     }
 
     async guardarToken(token: string) {
-        const storage = this.loginForm.get('save').value ? localStorage : sessionStorage;
-        
+        const storage = this.loginForm.get('save').value ? localStorage : sessionStorage;        
         storage.setItem('token', token);
+
         const idUser=this.auth.idUserToken(token);
         storage.setItem('idUser', idUser);
     }

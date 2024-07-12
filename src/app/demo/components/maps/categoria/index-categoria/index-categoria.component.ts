@@ -13,6 +13,7 @@ import { DeleteService } from 'src/app/demo/services/delete.service';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { App } from '@capacitor/app';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { forkJoin } from 'rxjs';
 interface Column {
     field: string;
     header: string;
@@ -37,46 +38,73 @@ export class IndexCategoriaComponent implements OnInit {
         private deleteService: DeleteService,
         private messageService: MessageService,
         private dialogService: DialogService,
-        private auth:AuthService
+        private auth: AuthService
     ) {}
     cols!: Column[];
     check: any = {};
+    view:boolean=false;
     async ngOnInit() {
-        this.check.IndexCategoriaComponent =
-            this.helperservice.decryptData('IndexCategoriaComponent') || false;
-        this.check.EditCategoriaComponent =
-            this.helperservice.decryptData('EditCategoriaComponent') || false;
-        this.check.EditSubcategoriaComponent =
-            this.helperservice.decryptData('EditSubcategoriaComponent') ||
-            false;
-        this.check.CreateCategoriaComponent =
-            this.helperservice.decryptData('CreateCategoriaComponent') || false;
-        this.check.CreateSubcategoriaComponent =
-            this.helperservice.decryptData('CreateSubcategoriaComponent') ||
-            false;
+        const checkObservables = {
+            IndexCategoriaComponent: await this.auth.hasPermissionComponent(
+                '/categoria',
+                'get'
+            ),
+            EditCategoriaComponent: await this.auth.hasPermissionComponent(
+                '/categoria',
+                'put'
+            ),
+            EditSubcategoriaComponent: await this.auth.hasPermissionComponent(
+                '/subcategoria',
+                'put'
+            ),
+            CreateCategoriaComponent: await this.auth.hasPermissionComponent(
+                '/categoria',
+                'post'
+            ),
+            CreateSubcategoriaComponent: await this.auth.hasPermissionComponent(
+                '/subcategoria',
+                'post'
+            ),
+        };
+        forkJoin(checkObservables).subscribe(async (check) => {
+            this.check = check;
+            console.log(check);
+            try {
+                // Verificar permiso de vista de categoría
+                if (!this.check.IndexCategoriaComponent) {
+                    // this.router.navigate(['/notfound']);
+                    return console.log('ERROR');
+                }
 
-        if (!this.check.IndexCategoriaComponent) {
-            this.router.navigate(['/notfound']);
-        }
-        this.loading = true;
-        await this.listarCategorias();
-        this.cols = [
-            { field: 'nombre', header: 'Nombre' },
-            { field: 'descripcion', header: 'Descripción' },
-            { field: '', header: '' },
-        ];
-        let aux = await this.listService
-            .listarSubcategorias(this.token)
-            .toPromise();
-        if (aux.data) {
-            this.listadosubcategoria = aux.data;
-        }
+                // Cargar categorías y subcategorías
+                await this.listarCategorias();
+
+                this.cols = [
+                    { field: 'nombre', header: 'Nombre' },
+                    { field: 'descripcion', header: 'Descripción' },
+                    { field: '', header: '' },
+                ];
+
+                const aux = await this.listService
+                    .listarSubcategorias(this.token)
+                    .toPromise();
+                if (aux && aux.data) {
+                    this.listadosubcategoria = aux.data;
+                }
+            } catch (error) {
+                console.error('Error en ngOnInit:', error);
+                this.router.navigate(['/notfound']);
+            } finally {
+                this.loading = true;
+            }
+        });
     }
+
     clear(table: Table) {
         table.clear();
     }
     opcion = false;
-    loading = true;
+    loading = false;
 
     listadocategoria!: any[];
     listadosubcategoria!: any[];
@@ -88,10 +116,11 @@ export class IndexCategoriaComponent implements OnInit {
             return;
         }
 
-        try {           
+        try {
             const categoriasResponse = await this.listService
                 .listarCategorias(this.token)
                 .toPromise();
+            console.log(categoriasResponse);
             if (categoriasResponse.data) {
                 this.listadocategoria = categoriasResponse.data;
 
@@ -228,7 +257,7 @@ export class IndexCategoriaComponent implements OnInit {
                                 summary: 'Eliminación',
                                 detail: 'completado',
                             });
-                        this.ngOnInit();
+                            this.ngOnInit();
                         },
                         (error) => {
                             this.messageService.add({
@@ -249,7 +278,7 @@ export class IndexCategoriaComponent implements OnInit {
                                 summary: 'Eliminación',
                                 detail: 'completado',
                             });
-                        this.ngOnInit();
+                            this.ngOnInit();
                         },
                         (error) => {
                             this.messageService.add({
@@ -282,8 +311,8 @@ export class IndexCategoriaComponent implements OnInit {
                         summary: 'Actualización',
                         detail: 'completado',
                     });
-                //console.log(response);
-                this.ngOnInit();
+                    //console.log(response);
+                    this.ngOnInit();
                 },
                 (error) => {
                     //console.log(error);
@@ -333,26 +362,30 @@ export class IndexCategoriaComponent implements OnInit {
             .map((col) => col.header ?? col.field)
             .join(';');
         // Construir las filas del CSV
-        let csv:any[]=[];
-         this.categorias.map(row => {
-             const resul = row.children.map((element:any) => {
+        let csv: any[] = [];
+        this.categorias.map((row) => {
+            const resul = row.children.map((element: any) => {
                 const categoria = row.data.nombre;
                 const subategoria = element.data.nombre;
                 const descripcion_cat = row.data.descripcion;
                 const descripcion_sub = element.data.descripcion;
-                return [categoria,descripcion_cat,subategoria,descripcion_sub].join(';');
+                return [
+                    categoria,
+                    descripcion_cat,
+                    subategoria,
+                    descripcion_sub,
+                ].join(';');
             });
             console.log(resul);
             csv.push(...resul);
         });
         console.log(csv);
-        csv.map((value:any) => {
+        csv.map((value: any) => {
             if (typeof value === 'string') {
                 return '"' + value.replace(/"/g, '""') + '"';
             }
             return value;
-        })
-        .join(';');
+        }).join(';');
 
         //console.log(csv);
 
@@ -364,15 +397,17 @@ export class IndexCategoriaComponent implements OnInit {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        let ext='.csv';
-        a.download = 'Categorias'+ext;
+        let ext = '.csv';
+        a.download = 'Categorias' + ext;
         a.click();
         URL.revokeObjectURL(url);
-      }
-    
-      convertToCSV(data: any[], columns: any[]): string {
-        const header = columns.map(col => col.header).join(',');
-        const rows = data.map(row => columns.map(col => row[col.field]).join(','));
+    }
+
+    convertToCSV(data: any[], columns: any[]): string {
+        const header = columns.map((col) => col.header).join(',');
+        const rows = data.map((row) =>
+            columns.map((col) => row[col.field]).join(',')
+        );
         return [header, ...rows].join('\r\n');
-      }
+    }
 }

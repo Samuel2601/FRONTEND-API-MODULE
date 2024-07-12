@@ -27,6 +27,8 @@ import { EditFichaSectorialComponent } from '../edit-ficha-sectorial/edit-ficha-
 import { DeleteService } from 'src/app/demo/services/delete.service';
 import { UpdateService } from 'src/app/demo/services/update.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { FilterService } from 'src/app/demo/services/filter.service';
+import { forkJoin } from 'rxjs';
 @Component({
     selector: 'app-index-ficha-sectorial',
     templateUrl: './index-ficha-sectorial.component.html',
@@ -45,25 +47,31 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
     getSeverity(
         status: string
     ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
-        switch (status.toLowerCase()) {
-            case 'suspendido':
-                return 'danger';
-
-            case 'finalizado':
-                return 'success';
-
-            case 'en proceso':
-                return 'info';
-
-            case 'pendiente':
-                return 'warning';
-
-            case 'planificada':
-                return 'info';
-
-            default:
-                return 'secondary'; // Asegúrate de retornar un valor válido por defecto
+        console.log(status);
+        if(status){
+            switch (status.toLowerCase()) {
+                case 'suspendido':
+                    return 'danger';
+    
+                case 'finalizado':
+                    return 'success';
+    
+                case 'en proceso':
+                    return 'info';
+    
+                case 'pendiente':
+                    return 'warning';
+    
+                case 'planificada':
+                    return 'info';
+    
+                default:
+                    return 'secondary'; // Asegúrate de retornar un valor válido por defecto
+            }
+        }else{
+            return null;
         }
+        
     }
     deshabilitarMapaDesdeIndexFichaSectorial(event: MouseEvent) {
         this.stopPropagation(event);
@@ -81,7 +89,8 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
         private admin: AdminService,
         private deleteService: DeleteService,
         private updateService: UpdateService,
-        private auth:AuthService
+        private auth:AuthService,
+        private filter:FilterService
     ) {}
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['filtro'] || changes['valor']) {
@@ -104,8 +113,10 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
     option: any;
     token = this.auth.token();
     id = this.admin.identity(this.token);
-    rol = this.admin.roluser(this.token);
+    rol:any;
+    loading:boolean = false;
     async ngOnInit(): Promise<void> {
+        this.rol =  this.filter.obtenerRolUsuario(this.token,this.auth.roleUserToken());
         //console.log(this.rol);
         if (!this.modal) this.helperservice.llamarspinner();
         if (!this.token) {
@@ -113,38 +124,33 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
             if (!this.modal) this.helperservice.cerrarspinner();
             throw new Error('Token no encontrado');
         }
-        try {
-            this.check.IndexFichaSectorialComponent =
-                this.helperservice.decryptData(
-                    'IndexFichaSectorialComponent'
-                ) || false;
-            if (!this.check.IndexFichaSectorialComponent) {
+        const checkObservables = {
+            IndexFichaSectorialComponent: await this.auth.hasPermissionComponent('/ficha_sectorial', 'get'),
+            EditFichaSectorialComponent: await this.auth.hasPermissionComponent('/ficha_sectorial', 'put'),
+            IndexEstadoActividadProyectoComponent: await this.auth.hasPermissionComponent('/estado_actividad_proyecto', 'get'),
+            IndexActividadProyectoComponent: await this.auth.hasPermissionComponent('/actividad_proyecto', 'get'),
+            TotalFilter: await this.auth.hasPermissionComponent('/ficha_sectorial', 'get'),
+            FichaLimitada: await this.auth.hasPermissionComponent('/ficha_sectorial2', 'get'),
+        };
+        forkJoin(checkObservables).subscribe(async (check) => {
+            this.check = check;
+            console.log(check);
+            try {
+                if (!this.check.IndexFichaSectorialComponent) {
+                    this.router.navigate(['/notfound']);
+                    return;
+                }
+                this.listarficha();
+            } catch (error) {
+                console.error('Error en ngOnInit:', error);
                 this.router.navigate(['/notfound']);
+            } finally {
+                if (!this.modal) this.helperservice.cerrarspinner();
+                setTimeout(() => {
+                    this.loading=true;
+                }, 2000);
             }
-            this.check.EditFichaSectorialComponent =
-                this.helperservice.decryptData('EditFichaSectorialComponent') ||
-                false;
-            this.check.IndexEstadoActividadProyectoComponent =
-                this.helperservice.decryptData(
-                    'IndexEstadoActividadProyectoComponent'
-                ) || false;
-            this.check.IndexActividadProyectoComponent =
-                this.helperservice.decryptData(
-                    'IndexActividadProyectoComponent'
-                ) || false;
-            this.check.TotalFilter =
-                this.helperservice.decryptData('TotalFilter') || false;
-            this.check.FichaLimitada =
-                this.helperservice.decryptData('FichaLimitada') || false;
-
-            //console.log(this.check);
-        } catch (error) {
-            //console.error('Error al verificar permisos:', error);
-            this.router.navigate(['/notfound']);
-        }
-
-        this.listarficha();
-        if (!this.modal) this.helperservice.cerrarspinner();
+        });
     }
 
     isMobil() {
@@ -205,7 +211,7 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
                                 (ficha: any) => ficha[this.filtro] == this.valor
                             );
                         }
-                        if (this.rol.nombre != 'Administrador') {
+                        if (this.rol.name != 'Administrador') {
                             this.fichasectorial = this.fichasectorial.filter(
                                 (ficha: any) => ficha.view
                             );

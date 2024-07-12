@@ -18,10 +18,8 @@ export class ListService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    let params = new HttpParams()
-        .set('campo', campo||'')
-        .set('valor', valor||'');
-    return this.http.get(this.url + 'obtenerUserPorCriterio',  { headers: headers, params: params });
+    
+    return this.http.get(this.url + 'obtenerUserPorCriterio',  { headers: headers,  });
   }
 
   listarFichaSectorial(token: any, campo?: string, valor?: any): Observable<any> {
@@ -29,10 +27,8 @@ export class ListService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    let params = new HttpParams()
-        .set('campo', campo||'')
-        .set('valor', valor||'');
-    return this.http.get(this.url + 'listar_ficha_sectorial',  { headers: headers, params: params });
+    
+    return this.http.get(this.url + 'ficha_sectorial',  { headers: headers,  });
   }
 
   listarIncidentesDenuncias(token: any, campo?: string, valor?: any,all?:boolean): Observable<any> {
@@ -49,17 +45,14 @@ export class ListService {
     }else{
       params = params.set('all', true);
     }
-    return this.http.get(this.url + 'listar_incidentes_denuncias',  { headers: headers, params: params });
+    return this.http.get(this.url + 'incidentes_denuncia',  { headers: headers,  });
   }
   listarCategorias(token: any, campo?: string, valor?: any): Observable<any> {
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    let params = new HttpParams()
-        .set('campo', campo||'')
-        .set('valor', valor||'');
-    return this.http.get(this.url + 'listar_categorias',  { headers: headers, params: params });
+    return this.http.get(this.url + 'categoria',  { headers: headers });
   }
   
 
@@ -68,10 +61,8 @@ export class ListService {
         'Content-Type': 'application/json',
         Authorization: token,
     });
-    let params = new HttpParams()
-        .set('campo', campo||'')
-        .set('valor', valor||'');
-    return this.http.get(this.url + 'listar_subcategorias', { headers: headers, params: params });
+    
+    return this.http.get(this.url + 'subcategoria', { headers: headers});
 }
 
   listarEncargadosCategorias(token: any, campo?: string, valor?: any): Observable<any> {
@@ -79,10 +70,8 @@ export class ListService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    let params = new HttpParams()
-        .set('campo', campo||'')
-        .set('valor', valor||'');
-    return this.http.get(this.url + 'listar_encargados_categorias', { headers: headers, params: params });
+    
+    return this.http.get(this.url + 'encargado_categoria', { headers: headers,  });
   }
 
   listarRolesUsuarios(token: any, campo?: string, valor?: any): Observable<any> {
@@ -90,10 +79,8 @@ export class ListService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    let params = new HttpParams()
-        .set('campo', campo||'')
-        .set('valor', valor||'');
-    return this.http.get(this.url + 'listar_roles_usuarios',  { headers: headers, params: params });
+    
+    return this.http.get(this.url + 'obtenerrole',  { headers: headers,  });
   }
 
   listarEstadosIncidentes(token: any): Observable<any> {
@@ -101,7 +88,7 @@ export class ListService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.get(this.url + 'listar_estados_incidentes', { headers: headers });
+    return this.http.get(this.url + 'estado_incidente', { headers: headers });
   }
 
   listarEstadosActividadesProyecto(token: any): Observable<any> {
@@ -109,7 +96,7 @@ export class ListService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.get(this.url + 'listar_estados_actividades_proyecto', { headers: headers });
+    return this.http.get(this.url + 'estado_actividad_proyecto', { headers: headers });
   }
 
   listarTiposActividadesProyecto(token: any): Observable<any> {
@@ -117,7 +104,7 @@ export class ListService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.get(this.url + 'listar_tipos_actividades_proyecto', { headers: headers });
+    return this.http.get(this.url + 'actividad_proyecto', { headers: headers });
   }
 
   listarDireccionesGeo(token: any, campo?: string, valor?: string): Observable<any> {
@@ -125,16 +112,14 @@ export class ListService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    let params = new HttpParams()
-        .set('campo', campo||'')
-        .set('valor', valor||'');
-    return this.http.get(this.url + 'listar_direcciones_geo',  { headers: headers, params: params });
+    
+    return this.http.get(this.url + 'direccion_geo',  { headers: headers,  });
   }
   ListarPermisos(token: any): Observable<any> {
 		let headers = new HttpHeaders({
 			'Content-Type': 'application/json',
 			Authorization: token,
 		});
-		return this.http.get(this.url + 'listar_permisos', { headers: headers });
+		return this.http.get(this.url + 'obtenerpermisosporcriterio', { headers: headers });
 	}
 }

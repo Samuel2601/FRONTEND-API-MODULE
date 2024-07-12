@@ -21,7 +21,7 @@ import { PermissionGuard } from './guards/permission.guard';
                     { 
                         path: 'maps', 
                         loadChildren: () => import('./demo/components/maps/maps.module').then(m => m.MapsModule), 
-                        canActivate: [AuthGuard] // Aplica el guard aquí
+                        //canActivate: [AuthGuard] // Aplica el guard aquí
                     },
                     { path: 'home', component: HomeComponent },
                     { path: '', component: HomeComponent }

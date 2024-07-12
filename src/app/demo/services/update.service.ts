@@ -40,7 +40,7 @@ export class UpdateService {
             formData.append('foto', file);
         }
 
-        return this.http.put(this.url + 'actualizar_usuario/' + id, formData, {
+        return this.http.put(this.url + 'actualizarUser/' + id, formData, {
             headers: headers,
         });
     }
@@ -54,7 +54,7 @@ export class UpdateService {
             Authorization: token,
         });
         return this.http.put(
-            this.url + 'actualizar_actividad_proyecto/' + id,
+            this.url + 'actividad_proyecto/' + id,
             data,
             { headers: headers }
         );
@@ -86,7 +86,7 @@ export class UpdateService {
               compressedFiles.forEach((compressedFile, index) => {
                 formData.append('evidencia' + index, compressedFile);
               });
-              this.http.put(this.url + 'actualizar_incidente_denuncia/' + id, formData, { headers: headers })
+              this.http.put(this.url + 'incidentes_denuncia/' + id, formData, { headers: headers })
                 .subscribe(
                   (response) => {
                     observer.next(response);
@@ -97,7 +97,7 @@ export class UpdateService {
             })
             .catch((error) => observer.error(error));
         } else {
-          this.http.put(this.url + 'actualizar_incidente_denuncia/' + id, formData, { headers: headers })
+          this.http.put(this.url + 'incidentes_denuncia/' + id, formData, { headers: headers })
             .subscribe(
               (response) => {
                 observer.next(response);
@@ -115,7 +115,7 @@ export class UpdateService {
             'Content-Type': 'application/json',
             Authorization: token,
         });
-        return this.http.put(this.url + 'actualizar_categoria/' + id, data, {
+        return this.http.put(this.url + 'categoria/' + id, data, {
             headers: headers,
         });
     }
@@ -125,7 +125,7 @@ export class UpdateService {
             'Content-Type': 'application/json',
             Authorization: token,
         });
-        return this.http.put(this.url + 'actualizar_subcategoria/' + id, data, {
+        return this.http.put(this.url + 'subcategoria/' + id, data, {
             headers: headers,
         });
     }
@@ -140,7 +140,7 @@ export class UpdateService {
             Authorization: token,
         });
         return this.http.put(
-            this.url + 'actualizar_encargado_categoria/' + id,
+            this.url + 'encargado_categoria/' + id,
             data,
             { headers: headers }
         );
@@ -151,7 +151,7 @@ export class UpdateService {
             'Content-Type': 'application/json',
             Authorization: token,
         });
-        return this.http.put(this.url + 'actualizar_rol_usuario/' + id, data, {
+        return this.http.put(this.url + 'actualizarrole/' + id, data, {
             headers: headers,
         });
     }
@@ -166,7 +166,7 @@ export class UpdateService {
             Authorization: token,
         });
         return this.http.put(
-            this.url + 'actualizar_estado_incidente/' + id,
+            this.url + 'estado_incidente/' + id,
             data,
             { headers: headers }
         );
@@ -182,7 +182,7 @@ export class UpdateService {
             Authorization: token,
         });
         return this.http.put(
-            this.url + 'actualizar_estado_actividad_proyecto/' + id,
+            this.url + 'estado_actividad_proyecto/' + id,
             data,
             { headers: headers }
         );
@@ -198,7 +198,7 @@ export class UpdateService {
             Authorization: token,
         });
         return this.http.put(
-            this.url + 'actualizar_tipo_actividad_proyecto/' + id,
+            this.url + 'actividad_proyecto/' + id,
             data,
             { headers: headers }
         );
@@ -210,7 +210,7 @@ export class UpdateService {
             Authorization: token,
         });
         return this.http.put(
-            this.url + 'actualizar_direccion_geo/' + id,
+            this.url + 'direccion_geo/' + id,
             data,
             { headers: headers }
         );
@@ -220,7 +220,7 @@ export class UpdateService {
             'Content-Type': 'application/json',
             Authorization: token,
         });
-        return this.http.put(this.url + 'actualizar_permisos/' + id, data, {
+        return this.http.put(this.url + 'actualizarpermiso/' + id, data, {
             headers: headers,
         });
     }

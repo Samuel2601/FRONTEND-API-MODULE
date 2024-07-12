@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { Router } from '@angular/router';
@@ -21,7 +21,7 @@ export class AuthService {
     public permissions$: Observable<any[]> =
         this.permissionsSubject.asObservable();
     public roles$: Observable<any[]> = this.rolesSubject.asObservable();
-    private url:string;
+    private url: string;
 
     constructor(
         private http: HttpClient,
@@ -30,17 +30,35 @@ export class AuthService {
         private socketService: SocketService
     ) {
         this.url = GLOBAL.url;
-        this.socketService
-            .onPermissionChange()
-            .subscribe((permissionChange) => {
-                const currentPermissions = this.permissionsSubject.getValue();
-                this.updatePermissions(currentPermissions, permissionChange);
-            });
+        if (this.isAuthenticated()) {
+            this.inicialityPermiss();
+            this.socketService
+                .onPermissionChange()
+                .subscribe((permissionChange) => {
+                    const currentPermissions =
+                        this.permissionsSubject.getValue();
+                    this.updatePermissions(
+                        currentPermissions,
+                        permissionChange
+                    );
+                });
 
-        this.socketService.onRoleChange().subscribe((roleChange) => {
-            const currentRoles = this.rolesSubject.getValue();
-            this.updateRoles(currentRoles, roleChange);
-        });
+            this.socketService.onRoleChange().subscribe((roleChange) => {
+                const currentRoles = this.rolesSubject.getValue();
+                this.updateRoles(currentRoles, roleChange);
+            });
+        }
+    }
+    init: number = 0;
+    public async inicialityPermiss() {
+        if (this.init == 0) {
+            this.init++;
+            const userId = this.idUserToken();
+            const userRole = this.roleUserToken();
+            this.getUserPermissions(userId).subscribe();
+            this.getUserRole(userRole).subscribe();
+            this.init--;
+        }
     }
 
     private updatePermissions(
@@ -61,13 +79,22 @@ export class AuthService {
     private updateRoles(currentRoles: any[], roleChange: any) {
         const { action, roleId } = roleChange;
 
-        if (action === 'ROLE_ADDED') {
-            this.rolesSubject.next([...currentRoles, roleId]);
-        } else if (action === 'ROLE_REMOVED') {
-            this.rolesSubject.next(
-                currentRoles.filter((r) => r._id !== roleId)
+        if (action === 'ROLE_REMOVED') {
+            this.rolesSubject.next([]);
+        } else if (action === 'ROLE_ADDED') {
+            this.getUserRole(roleId).subscribe(
+                () => {
+                    // Llamar a función para obtener nuevo token
+                    this.refreshToken();
+                },
+                (error) => {
+                    console.error('Error updating roles:', error);
+                }
             );
         }
+    }
+    refreshToken() {
+        const decodedToken = this.authToken();
     }
 
     obtenerGPS(): Observable<any> {
@@ -122,11 +149,14 @@ export class AuthService {
             const aux = this.calcularTiempoRestante(token);
             if (aux <= 0) {
                 this.clearSession();
-                window.location.href = '/auth/login';
+                console.log("regreso a  login");
+                //window.location.href = '/auth/login';
+                this.redirectToLoginIfNeeded();
                 return null;
             }
         } else {
-            this.redirectToLoginIfNeeded();
+            console.log("regreso a  login");
+            //this.redirectToLoginIfNeeded();
         }
         return token || null;
     }
@@ -182,12 +212,16 @@ export class AuthService {
             .pipe(
                 map((response: any) => {
                     this.permissionsSubject.next(response.data);
+                    localStorage.setItem(
+                        'permissions',
+                        JSON.stringify(response.data)
+                    );
                     return response.data;
                 })
             );
     }
 
-    getUserRole(userId: string): Observable<any> {
+    getUserRole(userRole: string): Observable<any> {
         const token = this.token();
         let headers = new HttpHeaders({
             'Content-Type': 'application/json',
@@ -195,13 +229,61 @@ export class AuthService {
         });
 
         return this.http
-            .get(`${GLOBAL.url}obtenerRole?id=${userId}`, { headers })
+            .get(`${GLOBAL.url}obtenerRole?id=${userRole}`, { headers })
             .pipe(
                 map((response: any) => {
                     this.rolesSubject.next(response.data.permisos);
+                    localStorage.setItem(
+                        'roles',
+                        JSON.stringify(response.data.permisos)
+                    );
                     return response.data.permisos;
                 })
             );
+    }
+
+    getPermisos(): any[] {
+        let permisos = [];
+        let roles = [];
+
+        // Intentar obtener permisos y roles desde localStorage
+        const storedPermissions = localStorage.getItem('permissions');
+        const storedRoles = localStorage.getItem('roles');
+
+        if (storedPermissions && storedRoles) {
+            // Si están en localStorage, parsear y devolver
+            permisos = JSON.parse(storedPermissions);
+            roles = JSON.parse(storedRoles);
+        } else {
+            // Si no están en localStorage, obtener del subject y actualizar localStorage
+            permisos = this.permissionsSubject.getValue();
+            roles = this.rolesSubject.getValue();
+            localStorage.setItem('permissions', JSON.stringify(permisos));
+            localStorage.setItem('roles', JSON.stringify(roles));
+            // Recargar la página después de actualizar localStorage
+            //location.reload();
+        }
+
+        // Combinar roles y permisos y devolver
+        return [...roles, ...permisos];
+    }
+
+    async hasPermissionComponent(
+        permission: string,
+        method: string
+    ): Promise<Observable<boolean>> {
+        let permisos = [];
+        if (this.isAuthenticated()) {
+            if (this.getPermisos().length == 0) {
+                await this.inicialityPermiss();
+            }
+            permisos = this.getPermisos();
+        }
+        const hasPermissionBOL = permisos.some(
+            (e) => e.name === permission && e.method === method
+        );
+        console.log(hasPermissionBOL);
+        return of(hasPermissionBOL);
     }
 
     isAuthenticated(): boolean {
@@ -232,6 +314,7 @@ export class AuthService {
 
     private redirectToLoginIfNeeded() {
         if (!['/auth/login', '/home', '/'].includes(this.router.url)) {
+            console.log("regreso a  login");
             this.router.navigate(['/auth/login']);
             if (this.helpers.llamadasActivas > 0) {
                 this.helpers.cerrarspinner();

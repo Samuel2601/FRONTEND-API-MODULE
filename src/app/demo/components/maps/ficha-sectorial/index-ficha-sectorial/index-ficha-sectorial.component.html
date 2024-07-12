@@ -6,291 +6,321 @@
 (touchend)="onTouchEnd()"
 -->
 <p-toast></p-toast>
-<p-dialog
-    *ngIf="!check.FichaLimitada"
-    [header]="'Listado de Ficha Sectorial de: ' + this.valor"
-    [modal]="false"
-    [(visible)]="vermodal"
-    [position]="'bottom'"
-    [style]="{ width: '50vw', 'z-index': 10000 }"
-    [maximizable]="true"
-    [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
->
-    <div
-        class="d-flex flex-column flex-sm-row align-items-center justify-content-center gap-2"
+{{loading}}
+<ng-container *ngIf="loading">
+    <p-dialog
+        *ngIf="!check.FichaLimitada"
+        [header]="'Listado de Ficha Sectorial de: ' + this.valor"
+        [modal]="false"
+        [(visible)]="vermodal"
+        [position]="'bottom'"
+        [style]="{ width: '50vw', 'z-index': 10000 }"
+        [maximizable]="true"
+        [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
     >
-        <div class="col-auto">
-            <div class="flex pt-4 justify-content-end">
-                <button
-                    class="m-3"
-                    *ngIf="check.IndexActividadProyectoComponent"
-                    pButton
-                    label="Actividades"
-                    icon="pi pi-box"
-                    (click)="llamarmodal2()"
-                ></button>
-                <button
-                    class="m-3"
-                    *ngIf="check.IndexEstadoActividadProyectoComponent"
-                    pButton
-                    label="Estados"
-                    icon="pi pi-bell"
-                    (click)="llamarmodal()"
-                ></button>
-            </div>
-        </div>
-    </div>
-    <p-table [paginatorDropdownAppendTo]="'body'"
-        styleClass="p-datatable-striped"
-        #dt1
-        [value]="fichasectorial"
-        dataKey="_id"
-        [rows]="10"
-        [showCurrentPageReport]="true"
-        [rowsPerPageOptions]="[10, 25, 50]"
-        [loading]="load_lista"
-        [paginator]="true"
-        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
-        [globalFilterFields]="[
-            'direccion_geo',
-            'actividad.nombre',
-            'encargado.nombres',
-            'estado.nombre'
-        ]"
-        [sortMode]="'multiple'"
-    >
-        <ng-template pTemplate="caption">
-            <div class="flex">
-                <button
-                    pButton
-                    label=""
-                    class="p-button-outlined"
-                    icon="pi pi-filter-slash"
-                    (click)="clear(dt1)"
-                ></button>
-                <span class="p-input-icon-left ml-auto">
-                    <i class="pi pi-search"></i>
-                    <input
-                        pInputText
-                        type="text"
-                        (input)="
-                            dt1.filterGlobal(
-                                $any($event.target).value,
-                                'contains'
-                            )
-                        "
-                        placeholder="Buscar"
-                    />
-                </span>
-            </div>
-        </ng-template>
-        <ng-template pTemplate="header">
-            <tr>
-                <th style="min-width: 15rem" *ngIf="!modal">
-                    <div class="flex align-items-center">
-                        Dirección
-                        <p-columnFilter
-                            type="text"
-                            field="direccion_geo"
-                            display="menu"
-                        ></p-columnFilter>
-                        <th pSortableColumn="direccion_geo" style="width: 20%">
-                            <p-sortIcon field="direccion_geo"></p-sortIcon>
-                        </th>
-                    </div>
-                </th>
-                <th style="min-width: 10rem">
-                    <div class="flex align-items-center">
-                        Actividad
-                        <p-columnFilter
-                            type="text"
-                            field="actividad.nombre"
-                            display="menu"
-                        ></p-columnFilter>
-                        <th
-                            pSortableColumn="actividad.nombre"
-                            style="width: 20%"
-                        >
-                            <p-sortIcon field="actividad.nombre"></p-sortIcon>
-                        </th>
-                    </div>
-                </th>
-                <th style="min-width: 15rem">
-                    <div class="flex align-items-center">
-                        Fecha del evento
-                        <p-columnFilter
-                            type="text"
-                            field="fecha_evento"
-                            display="menu"
-                        ></p-columnFilter>
-                        <th pSortableColumn="fecha_evento" style="width: 20%">
-                            <p-sortIcon field="fecha_evento"></p-sortIcon>
-                        </th>
-                    </div>
-                </th>
-                <th style="min-width: 10rem" *ngIf="!check.FichaLimitada">
-                    <div class="flex align-items-center">
-                        Encargado
-                        <p-columnFilter
-                            type="text"
-                            field="encargado.nombres"
-                            display="menu"
-                        ></p-columnFilter>
-                        <th
-                            pSortableColumn="encargado.nombre"
-                            style="width: 20%"
-                        >
-                            <p-sortIcon field="encargado.nombre"></p-sortIcon>
-                        </th>
-                    </div>
-                </th>
-                <th style="min-width: 10rem">
-                    <div class="flex align-items-center">
-                        Estado
-                        <p-columnFilter
-                            type="text"
-                            field="estado.nombre"
-                            display="menu"
-                        ></p-columnFilter>
-                        <th pSortableColumn="estado.nombre" style="width: 20%">
-                            <p-sortIcon field="estado.nombre"></p-sortIcon>
-                        </th>
-                    </div>
-                </th>
-                <!-- Agrega las columnas restantes según tu necesidad -->
-            </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-incidente>
-            <tr (click)="showdialog(incidente)">
-                <td *ngIf="!modal">
-                    <ng-container *ngIf="isJSONString(incidente.direccion_geo)">{{ parseJSON(incidente.direccion_geo).nombre }}</ng-container>
-                            <ng-container *ngIf="!isJSONString(incidente.direccion_geo)">{{ incidente.direccion_geo }}</ng-container>  
-                </td>
-                <td
-                    (click)="
-                        incidente.foto &&
-                            incidente.foto.length > 0 &&
-                            stopPropagation($event)
-                    "
-                >
-                    <span
-                        *ngIf="incidente.foto && incidente.foto.length > 0"
-                        class="pi pi-image"
-                        style="vertical-align: middle"
-                        (click)="
-                            displayBasic = true; openModalimagen(incidente.foto)
-                        "
-                    ></span>
-                    {{ incidente.actividad.nombre }}
-                </td>
-
-                <td>
-                    {{ incidente.fecha_evento | date : "medium" : "es" }}
-                </td>
-                <td *ngIf="!check.FichaLimitada">
-                    {{ incidente.encargado.nombres }}
-                </td>
-                <td>
-                    <p-tag
-                        [value]="incidente.estado.nombre"
-                        [severity]="getSeverity(incidente.estado.nombre)"
-                    >
-                    </p-tag>
-                </td>
-                <!-- Agrega el modal al final del componente -->
-            </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-            <tr>
-                <td colspan="5">No se encontraron incidentes.</td>
-            </tr>
-        </ng-template>
-    </p-table>
-</p-dialog>
-<p-dialog
-    *ngIf="check.FichaLimitada"
-    header="Header"
-    [modal]="false"
-    [(visible)]="vermodal"
-    [position]="'bottom'"
-    [style]="{ width: '50vw', 'z-index': 10000 }"
-    [maximizable]="true"
-    [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
->
-    <ng-template pTemplate="header">
         <div
             class="d-flex flex-column flex-sm-row align-items-center justify-content-center gap-2"
         >
-            <div class="col-12">
-                <div class="p-fluid p-formgrid grid">
-                    <h3>Actividades de {{ valor }}</h3>
+            <div class="col-auto">
+                <div class="flex pt-4 justify-content-end">
+                    <button
+                        class="m-3"
+                        *ngIf="check.IndexActividadProyectoComponent"
+                        pButton
+                        label="Actividades"
+                        icon="pi pi-box"
+                        (click)="llamarmodal2()"
+                    ></button>
+                    <button
+                        class="m-3"
+                        *ngIf="check.IndexEstadoActividadProyectoComponent"
+                        pButton
+                        label="Estados"
+                        icon="pi pi-bell"
+                        (click)="llamarmodal()"
+                    ></button>
                 </div>
             </div>
         </div>
-    </ng-template>
-    <p-table [paginatorDropdownAppendTo]="'body'"
+        <p-table
+            [paginatorDropdownAppendTo]="'body'"
+            styleClass="p-datatable-striped"
+            #dt1
+            [value]="fichasectorial"
+            dataKey="_id"
+            [rows]="10"
+            [showCurrentPageReport]="true"
+            [rowsPerPageOptions]="[10, 25, 50]"
+            [loading]="load_lista"
+            [paginator]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+            [globalFilterFields]="[
+                'direccion_geo',
+                'actividad.nombre',
+                'encargado.nombres',
+                'estado.nombre'
+            ]"
+            [sortMode]="'multiple'"
+        >
+            <ng-template pTemplate="caption">
+                <div class="flex">
+                    <button
+                        pButton
+                        label=""
+                        class="p-button-outlined"
+                        icon="pi pi-filter-slash"
+                        (click)="clear(dt1)"
+                    ></button>
+                    <span class="p-input-icon-left ml-auto">
+                        <i class="pi pi-search"></i>
+                        <input
+                            pInputText
+                            type="text"
+                            (input)="
+                                dt1.filterGlobal(
+                                    $any($event.target).value,
+                                    'contains'
+                                )
+                            "
+                            placeholder="Buscar"
+                        />
+                    </span>
+                </div>
+            </ng-template>
+            <ng-template pTemplate="header">
+                <tr>
+                    <th style="min-width: 15rem" *ngIf="!modal">
+                        <div class="flex align-items-center">
+                            Dirección
+                            <p-columnFilter
+                                type="text"
+                                field="direccion_geo"
+                                display="menu"
+                            ></p-columnFilter>
+                            <th
+                                pSortableColumn="direccion_geo"
+                                style="width: 20%"
+                            >
+                                <p-sortIcon field="direccion_geo"></p-sortIcon>
+                            </th>
+                        </div>
+                    </th>
+                    <th style="min-width: 10rem">
+                        <div class="flex align-items-center">
+                            Actividad
+                            <p-columnFilter
+                                type="text"
+                                field="actividad.nombre"
+                                display="menu"
+                            ></p-columnFilter>
+                            <th
+                                pSortableColumn="actividad.nombre"
+                                style="width: 20%"
+                            >
+                                <p-sortIcon
+                                    field="actividad.nombre"
+                                ></p-sortIcon>
+                            </th>
+                        </div>
+                    </th>
+                    <th style="min-width: 15rem">
+                        <div class="flex align-items-center">
+                            Fecha del evento
+                            <p-columnFilter
+                                type="text"
+                                field="fecha_evento"
+                                display="menu"
+                            ></p-columnFilter>
+                            <th
+                                pSortableColumn="fecha_evento"
+                                style="width: 20%"
+                            >
+                                <p-sortIcon field="fecha_evento"></p-sortIcon>
+                            </th>
+                        </div>
+                    </th>
+                    <th style="min-width: 10rem" *ngIf="!check.FichaLimitada">
+                        <div class="flex align-items-center">
+                            Encargado
+                            <p-columnFilter
+                                type="text"
+                                field="encargado.nombres"
+                                display="menu"
+                            ></p-columnFilter>
+                            <th
+                                pSortableColumn="encargado.nombre"
+                                style="width: 20%"
+                            >
+                                <p-sortIcon
+                                    field="encargado.nombre"
+                                ></p-sortIcon>
+                            </th>
+                        </div>
+                    </th>
+                    <th style="min-width: 10rem">
+                        <div class="flex align-items-center">
+                            Estado
+                            <p-columnFilter
+                                type="text"
+                                field="estado.nombre"
+                                display="menu"
+                            ></p-columnFilter>
+                            <th
+                                pSortableColumn="estado.nombre"
+                                style="width: 20%"
+                            >
+                                <p-sortIcon field="estado.nombre"></p-sortIcon>
+                            </th>
+                        </div>
+                    </th>
+                    <!-- Agrega las columnas restantes según tu necesidad -->
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-incidente>
+                <tr (click)="showdialog(incidente)">
+                    <td *ngIf="!modal">
+                        <ng-container
+                            *ngIf="isJSONString(incidente.direccion_geo)"
+                            >{{
+                                parseJSON(incidente.direccion_geo).nombre
+                            }}</ng-container
+                        >
+                        <ng-container
+                            *ngIf="!isJSONString(incidente.direccion_geo)"
+                            >{{ incidente.direccion_geo }}</ng-container
+                        >
+                    </td>
+                    <td
+                        (click)="
+                            incidente.foto &&
+                                incidente.foto.length > 0 &&
+                                stopPropagation($event)
+                        "
+                    >
+                        <span
+                            *ngIf="incidente.foto && incidente.foto.length > 0"
+                            class="pi pi-image"
+                            style="vertical-align: middle"
+                            (click)="
+                                displayBasic = true;
+                                openModalimagen(incidente.foto)
+                            "
+                        ></span>
+                        {{ incidente.actividad.nombre }}
+                    </td>
+
+                    <td>
+                        {{ incidente.fecha_evento | date : "medium" : "es" }}
+                    </td>
+                    <td *ngIf="!check.FichaLimitada">
+                        {{ incidente.encargado.nombres }}
+                    </td>
+                    <td>
+                        <p-tag
+                            [value]="incidente.estado.nombre"
+                            [severity]="getSeverity(incidente.estado.nombre)"
+                        >
+                        </p-tag>
+                    </td>
+                    <!-- Agrega el modal al final del componente -->
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="5">No se encontraron incidentes.</td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </p-dialog>
+    <p-dialog
         *ngIf="check.FichaLimitada"
-        styleClass="p-datatable-striped"
-        #dt1
-        [value]="fichasectorial"
-        dataKey="_id"
-        [rows]="10"
-        [showCurrentPageReport]="true"
-        [rowsPerPageOptions]="[10, 25, 50]"
-        [loading]="load_lista"
-        [paginator]="true"
-        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+        header="Header"
+        [modal]="false"
+        [(visible)]="vermodal"
+        [position]="'bottom'"
+        [style]="{ width: '50vw', 'z-index': 10000 }"
+        [maximizable]="true"
+        [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
     >
         <ng-template pTemplate="header">
-            <tr>
-                <th style="min-width: 8rem">
-                    <div class="flex align-items-center">Actividad</div>
-                </th>
-                <th style="min-width: 15rem">
-                    <div class="flex align-items-center">Desripción</div>
-                </th>
-                <th style="min-width: 8rem">
-                    <div class="flex align-items-center">Fecha del evento</div>
-                </th>
-                <!-- Agrega las columnas restantes según tu necesidad -->
-            </tr>
+            <div
+                class="d-flex flex-column flex-sm-row align-items-center justify-content-center gap-2"
+            >
+                <div class="col-12">
+                    <div class="p-fluid p-formgrid grid">
+                        <h3>Actividades de {{ valor }}</h3>
+                    </div>
+                </div>
+            </div>
         </ng-template>
-        <ng-template pTemplate="body" let-incidente>
-            <tr>
-                <td
-                    (click)="
-                        incidente.foto &&
-                            incidente.foto.length > 0 &&
-                            stopPropagation($event)
-                    "
-                >
-                    <span
-                        *ngIf="incidente.foto && incidente.foto.length > 0"
-                        class="pi pi-image"
-                        style="vertical-align: middle"
+        <p-table
+            [paginatorDropdownAppendTo]="'body'"
+            *ngIf="check.FichaLimitada"
+            styleClass="p-datatable-striped"
+            #dt1
+            [value]="fichasectorial"
+            dataKey="_id"
+            [rows]="10"
+            [showCurrentPageReport]="true"
+            [rowsPerPageOptions]="[10, 25, 50]"
+            [loading]="load_lista"
+            [paginator]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+        >
+            <ng-template pTemplate="header">
+                <tr>
+                    <th style="min-width: 8rem">
+                        <div class="flex align-items-center">Actividad</div>
+                    </th>
+                    <th style="min-width: 15rem">
+                        <div class="flex align-items-center">Desripción</div>
+                    </th>
+                    <th style="min-width: 8rem">
+                        <div class="flex align-items-center">
+                            Fecha del evento
+                        </div>
+                    </th>
+                    <!-- Agrega las columnas restantes según tu necesidad -->
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-incidente>
+                <tr>
+                    <td
                         (click)="
-                            displayBasic = true; openModalimagen(incidente.foto)
+                            incidente.foto &&
+                                incidente.foto.length > 0 &&
+                                stopPropagation($event)
                         "
-                    ></span>
-                    {{ incidente.actividad.nombre }}
-                </td>
-                <td>
-                    {{ incidente.descripcion }}
-                </td>
+                    >
+                        <span
+                            *ngIf="incidente.foto && incidente.foto.length > 0"
+                            class="pi pi-image"
+                            style="vertical-align: middle"
+                            (click)="
+                                displayBasic = true;
+                                openModalimagen(incidente.foto)
+                            "
+                        ></span>
+                        {{ incidente.actividad.nombre }}
+                    </td>
+                    <td>
+                        {{ incidente.descripcion }}
+                    </td>
 
-                <td>
-                    {{ incidente.fecha_evento | date : "medium" : "es" }}
-                </td>
-                <!-- Agrega el modal al final del componente -->
-            </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-            <tr>
-                <td colspan="5">No se encontraron incidentes.</td>
-            </tr>
-        </ng-template>
-    </p-table>
-</p-dialog>
+                    <td>
+                        {{ incidente.fecha_evento | date : "medium" : "es" }}
+                    </td>
+                    <!-- Agrega el modal al final del componente -->
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="5">No se encontraron incidentes.</td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </p-dialog>
+</ng-container>
 
 <ng-container *ngIf="!modal">
     <div class="card">
@@ -327,7 +357,8 @@
         <div class="card-body">
             <p-toast></p-toast>
 
-            <p-table [paginatorDropdownAppendTo]="'body'"
+            <p-table
+                [paginatorDropdownAppendTo]="'body'"
                 *ngIf="!check.FichaLimitada"
                 styleClass="p-datatable-striped"
                 #dt1
@@ -514,8 +545,16 @@
                     <tr (click)="visible = true; option = incidente">
                         <td>{{ rowIndex + 1 }}</td>
                         <td>
-                            <ng-container *ngIf="isJSONString(incidente.direccion_geo)">{{ parseJSON(incidente.direccion_geo).nombre }}</ng-container>
-                            <ng-container *ngIf="!isJSONString(incidente.direccion_geo)">{{ incidente.direccion_geo }}</ng-container>  
+                            <ng-container
+                                *ngIf="isJSONString(incidente.direccion_geo)"
+                                >{{
+                                    parseJSON(incidente.direccion_geo).nombre
+                                }}</ng-container
+                            >
+                            <ng-container
+                                *ngIf="!isJSONString(incidente.direccion_geo)"
+                                >{{ incidente.direccion_geo }}</ng-container
+                            >
                         </td>
                         <td>
                             {{ incidente.actividad.nombre }}
@@ -575,7 +614,8 @@
                     </tr>
                 </ng-template>
             </p-table>
-            <p-table [paginatorDropdownAppendTo]="'body'"
+            <p-table
+                [paginatorDropdownAppendTo]="'body'"
                 *ngIf="check.FichaLimitada"
                 styleClass="p-datatable-striped"
                 #dt1
@@ -621,8 +661,16 @@
                     <tr>
                         <td>{{ rowIndex + 1 }}</td>
                         <td>
-                            <ng-container *ngIf="isJSONString(incidente.direccion_geo)">{{ parseJSON(incidente.direccion_geo).nombre }}</ng-container>
-                            <ng-container *ngIf="!isJSONString(incidente.direccion_geo)">{{ incidente.direccion_geo }}</ng-container>                            
+                            <ng-container
+                                *ngIf="isJSONString(incidente.direccion_geo)"
+                                >{{
+                                    parseJSON(incidente.direccion_geo).nombre
+                                }}</ng-container
+                            >
+                            <ng-container
+                                *ngIf="!isJSONString(incidente.direccion_geo)"
+                                >{{ incidente.direccion_geo }}</ng-container
+                            >
                         </td>
                         <td>
                             {{ incidente.actividad.nombre }}
@@ -776,7 +824,6 @@
 </p-galleria>
 
 <p-dialog
-    
     header="Detalles de la Ficha Sectorial"
     [(visible)]="visible"
     [modal]="false"

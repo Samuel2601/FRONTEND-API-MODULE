@@ -16,7 +16,7 @@ export class CreateService {
 	}
   registrarUsuario(data: any): Observable<any> {
    let headers = new HttpHeaders().set('Content-Type', 'application/json');
-    return this.http.post(this.url + 'registrar_usuario', data, { headers: headers });
+    return this.http.post(this.url + 'register', data, { headers: headers });
   }
   /*
   registrarUsuario(token: any, data: any, formulario: FormGroup): Observable<any> {
@@ -80,7 +80,7 @@ export class CreateService {
           });
 
           // Envía las imágenes comprimidas al servidor
-          this.http.post(this.url + 'registrar_actividad_proyecto', formData, { headers: headers })
+          this.http.post(this.url + 'ficha_sectorial', formData, { headers: headers })
             .subscribe(
               (response) => {
                 observer.next(response);
@@ -114,7 +114,7 @@ export class CreateService {
           });
   
           // Envía las imágenes comprimidas al servidor
-          this.http.post(this.url + 'registrar_incidente_denuncia', formData, { headers: headers })
+          this.http.post(this.url + 'incidentes_denuncia', formData, { headers: headers })
             .subscribe(
               (response) => {
                 observer.next(response);
@@ -134,7 +134,7 @@ export class CreateService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.post(this.url + 'registrar_categoria', data, { headers: headers });
+    return this.http.post(this.url + 'categoria', data, { headers: headers });
   }
 
   registrarSubcategoria(token: any, data: any): Observable<any> {
@@ -142,7 +142,7 @@ export class CreateService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.post(this.url + 'registrar_subcategoria', data, { headers: headers });
+    return this.http.post(this.url + 'subcategoria', data, { headers: headers });
   }
 
   registrarEncargadoCategoria(token: any, data: any): Observable<any> {
@@ -150,7 +150,7 @@ export class CreateService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.post(this.url + 'registrar_encargado_categoria', data, { headers: headers });
+    return this.http.post(this.url + 'encargado_categoria', data, { headers: headers });
   }
 
   registrarRolUsuario(token: any, data: any): Observable<any> {
@@ -158,7 +158,7 @@ export class CreateService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.post(this.url + 'registrar_rol_usuario', data, { headers: headers });
+    return this.http.post(this.url + 'registrarrolesmasivo', data, { headers: headers });
   }
 
   registrarEstadoIncidente(token: any, data: any): Observable<any> {
@@ -166,7 +166,7 @@ export class CreateService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.post(this.url + 'registrar_estado_incidente', data, { headers: headers });
+    return this.http.post(this.url + 'estado_incidente', data, { headers: headers });
   }
 
   registrarEstadoActividadProyecto(token: any, data: any): Observable<any> {
@@ -174,7 +174,7 @@ export class CreateService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.post(this.url + 'registrar_estado_actividad_proyecto', data, { headers: headers });
+    return this.http.post(this.url + 'estado_actividad_proyecto', data, { headers: headers });
   }
 
   registrarTipoActividadProyecto(token: any, data: any): Observable<any> {
@@ -182,14 +182,14 @@ export class CreateService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.post(this.url + 'registrar_tipo_actividad_proyecto', data, { headers: headers });
+    return this.http.post(this.url + 'actividad_proyecto', data, { headers: headers });
   }
   registrarPermiso(token: any, data: any): Observable<any> {
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.post(this.url + 'registrar_permisos', data, { headers: headers });
+    return this.http.post(this.url + 'registrarpermisosmasivo', data, { headers: headers });
   }
 
   registrarDireccionGeo(token: any, data: any, foto: File): Observable<any> {
@@ -205,7 +205,7 @@ export class CreateService {
         formData.append('foto', compressedFile);
   
         // Envía la imagen comprimida al servidor
-        this.http.post(this.url + 'registrar_direccion_geo', formData, { headers: headers })
+        this.http.post(this.url + 'direccion_geo', formData, { headers: headers })
           .subscribe(
             (response) => {
               observer.next(response);

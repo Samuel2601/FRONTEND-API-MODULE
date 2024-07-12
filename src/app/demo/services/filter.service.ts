@@ -17,7 +17,7 @@ export class FilterService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.get(this.url + 'obtener_usuario/' + id, { headers: headers });
+    return this.http.get(this.url + 'usuario/' + id, { headers: headers });
   }
 
   obtenerActividadProyecto(token: any, id: string): Observable<any> {
@@ -25,7 +25,7 @@ export class FilterService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.get(this.url + 'obtener_actividad_proyecto/' + id, { headers: headers });
+    return this.http.get(this.url + 'ficha_sectorial/' + id, { headers: headers });
   }
 
   obtenerIncidenteDenuncia(token: any, id: string): Observable<any> {
@@ -33,7 +33,7 @@ export class FilterService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.get(this.url + 'obtener_incidente_denuncia/' + id, { headers: headers });
+    return this.http.get(this.url + 'incidentes_denuncia/' + id, { headers: headers });
   }
 
   obtenerCategoria(token: any, id: string): Observable<any> {
@@ -41,7 +41,7 @@ export class FilterService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.get(this.url + 'obtener_categoria/' + id, { headers: headers });
+    return this.http.get(this.url + 'categoria/' + id, { headers: headers });
   }
 
   obtenerSubcategoria(token: any, id: string): Observable<any> {
@@ -49,7 +49,7 @@ export class FilterService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.get(this.url + 'obtener_subcategoria/' + id, { headers: headers });
+    return this.http.get(this.url + 'subcategoria/' + id, { headers: headers });
   }
 
   obtenerEncargadoCategoria(token: any, id: string): Observable<any> {
@@ -57,23 +57,32 @@ export class FilterService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.get(this.url + 'obtener_encargado_categoria/' + id, { headers: headers });
+    return this.http.get(this.url + 'encargado_categoria/' + id, { headers: headers });
   }
 
-  obtenerRolUsuario(token: any, id: string): Observable<any> {
-    let headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      Authorization: token,
+  async obtenerRolUsuario(token: string, rolUser: string): Promise<any> {
+    const headers = new HttpHeaders({
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
     });
-    return this.http.get(this.url + 'obtener_rol_usuario/' + id, { headers: headers });
-  }
+
+    try {
+        const response: any = await this.http
+            .get(`${GLOBAL.url}obtenerRole?id=${rolUser}`, { headers })
+            .toPromise();
+        return response.data;
+    } catch (error) {
+        console.error('Error al obtener el rol del usuario:', error);
+        throw error;
+    }
+}
 
   obtenerEstadoIncidente(token: any, id: string): Observable<any> {
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.get(this.url + 'obtener_estado_incidente/' + id, { headers: headers });
+    return this.http.get(this.url + 'actividad_proyecto/' + id, { headers: headers });
   }
 
   obtenerEstadoActividadProyecto(token: any, id: string): Observable<any> {
@@ -81,7 +90,7 @@ export class FilterService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.get(this.url + 'obtener_estado_actividad_proyecto/' + id, { headers: headers });
+    return this.http.get(this.url + 'estado_actividad_proyecto/' + id, { headers: headers });
   }
 
   obtenerTipoActividadProyecto(token: any, id: string): Observable<any> {
@@ -89,7 +98,7 @@ export class FilterService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.get(this.url + 'obtener_tipo_actividad_proyecto/' + id, { headers: headers });
+    return this.http.get(this.url + 'actividad_proyecto/' + id, { headers: headers });
   }
 
   obtenerDireccionGeo(token: any, id: string): Observable<any> {
@@ -97,7 +106,7 @@ export class FilterService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.get(this.url + 'obtener_direccion_geo/' + id, { headers: headers });
+    return this.http.get(this.url + 'direccion_geo/' + id, { headers: headers });
   }
   tienePermiso(token: any, componente: string, rolUsuario: string): Observable<any> {
     let headers = new HttpHeaders({
