@@ -53,9 +53,6 @@ export class EditUsuarioComponent implements OnInit, AfterViewInit {
                     this.modal = true; // En cualquier otra ruta, modal es true
                 }
             });
-            if (!this.token) {
-                this.router.navigate(['/home']);
-            }
         }
 
         if (!this.id) {

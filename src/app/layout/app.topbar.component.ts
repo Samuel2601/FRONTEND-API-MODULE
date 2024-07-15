@@ -21,35 +21,14 @@ export class AppTopBarComponent implements OnInit {
 
     @ViewChild('topbarmenu') menu!: ElementRef;
     
-    constructor(public layoutService: LayoutService, private helper: HelperService,private router: Router,private auth:AuthService) { }
+    constructor(public layoutService: LayoutService,private auth:AuthService) { }
     ngOnInit(): void {
         //console.log(this.foto);
     }
-    token = this.auth.token()||undefined;
+    token = this.auth.token();
     logout(): void {
-        if(this.helper.isMobil()){
-            const nombreUsuario = localStorage.getItem('nombreUsuario') || sessionStorage.getItem('nombreUsuario');
-            const fotoUsuario = localStorage.getItem('fotoUsuario') || sessionStorage.getItem('fotoUsuario');
-            const correo = localStorage.getItem('correo') || sessionStorage.getItem('correo');
-            const pass = localStorage.getItem('pass') || sessionStorage.getItem('pass');
-            
-            // Limpiar todo excepto los valores preservados
-            sessionStorage.clear();
-            localStorage.clear();
-    
-            // Restaurar los valores preservados
-            if (nombreUsuario) localStorage.setItem('nombreUsuario', nombreUsuario);
-            if (fotoUsuario) localStorage.setItem('fotoUsuario', fotoUsuario);
-            if (correo) localStorage.setItem('correo', correo);
-            if (pass) localStorage.setItem('pass', pass);
-        } else {
-            sessionStorage.clear();
-            localStorage.clear();
-        }
-    
-        this.router.navigate(["/maps"]).then(() => {
-            window.location.reload();
-        });
+        this.auth.clearSession();
+        window.location.reload();
     }
     
 

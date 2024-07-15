@@ -29,10 +29,7 @@ export class IndexEncargadoCategoriaComponent {
     }
     token = this.auth.token();
     listarCategorias(): void {
-        if (!this.token) {
-            throw this.router.navigate(['/auth/login']);
-        }
-        this.listService.listarEncargadosCategorias(this.token).subscribe(
+        this.listService.listarEncargadosCategorias(this.token,{populate:'encargado,categoria'},false).subscribe(
             (response) => {
                 this.encargadosCategoria = response.data;
                 console.log(response.data);

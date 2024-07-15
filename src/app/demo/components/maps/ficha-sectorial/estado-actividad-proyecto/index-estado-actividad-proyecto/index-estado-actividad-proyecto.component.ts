@@ -34,9 +34,6 @@ export class IndexEstadoActividadProyectoComponent implements OnInit{
   }
   token=this.auth.token();
   listarestadoser(){
-    if(!this.token){
-      throw this.router.navigate(["/auth/login"]);
-    }
     this.listService.listarEstadosActividadesProyecto(this.token).subscribe(response=>{
       if(response.data){
         this.actividadEstado=response.data

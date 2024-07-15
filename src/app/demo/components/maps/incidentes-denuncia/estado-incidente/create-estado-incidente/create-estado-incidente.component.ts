@@ -60,10 +60,8 @@ export class CreateEstadoIncidenteComponent implements OnInit {
     token = this.auth.token();
     registrarEstadoIncidente() {
         if (this.estadoIncidenteForm?.valid) {
-            if (!this.token) {
-                throw this.router.navigate(['/auth/login']);
-            }
-            if (this.token && this.estadoIncidenteForm.value) {
+   
+            if ( this.estadoIncidenteForm.value) {
                 this.createService
                     .registrarEstadoIncidente(
                         this.token,

@@ -32,9 +32,6 @@ export class CreateSubcategoriaComponent implements OnInit{
   }
   token=this.auth.token();
   listarCategorias() {
-    if(!this.token){
-      throw this.router.navigate(["/auth/login"]);
-    }
     this.listService.listarCategorias(this.token).subscribe(response => {
       this.categorias = response.data;
       //console.log(response);
@@ -42,9 +39,6 @@ export class CreateSubcategoriaComponent implements OnInit{
   }
   registrarSubcategoria() {
     if (this.subcategoriaForm.valid) {
-      if(!this.token){
-        throw this.router.navigate(["/auth/login"]);
-      }
       //console.log(this.subcategoriaForm);
     this.createService.registrarSubcategoria(this.token, this.subcategoriaForm.value).subscribe(response => {
         //console.log(response);

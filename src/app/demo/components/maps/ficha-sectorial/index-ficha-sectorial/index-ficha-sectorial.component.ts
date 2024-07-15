@@ -47,7 +47,6 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
     getSeverity(
         status: string
     ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
-        console.log(status);
         if(status){
             switch (status.toLowerCase()) {
                 case 'suspendido':
@@ -118,12 +117,7 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
     async ngOnInit(): Promise<void> {
         this.rol =  this.filter.obtenerRolUsuario(this.token,this.auth.roleUserToken());
         //console.log(this.rol);
-        if (!this.modal) this.helperservice.llamarspinner();
-        if (!this.token) {
-            this.router.navigate(['/auth/login']);
-            if (!this.modal) this.helperservice.cerrarspinner();
-            throw new Error('Token no encontrado');
-        }
+        if (!this.modal) this.helperservice.llamarspinner('index ficha');
         const checkObservables = {
             IndexFichaSectorialComponent: await this.auth.hasPermissionComponent('/ficha_sectorial', 'get'),
             EditFichaSectorialComponent: await this.auth.hasPermissionComponent('/ficha_sectorial', 'put'),
@@ -145,7 +139,7 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
                 console.error('Error en ngOnInit:', error);
                 this.router.navigate(['/notfound']);
             } finally {
-                if (!this.modal) this.helperservice.cerrarspinner();
+                if (!this.modal) this.helperservice.cerrarspinner('index ficha');
                 setTimeout(() => {
                     this.loading=true;
                 }, 2000);
@@ -175,13 +169,9 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
 
     listarficha() {
         if (!this.modal) {
-            this.helperservice.llamarspinner();
+            this.helperservice.llamarspinner('listar ficha sectorial');
         }
         this.load_lista = true;
-        if (!this.token) {
-            throw this.router.navigate(['/auth/login']);
-        }
-
         let filtroServicio = '';
         let valorServicio: any;
 
@@ -235,7 +225,7 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
             );
 
         if (!this.modal) {
-            this.helperservice.cerrarspinner();
+            this.helperservice.cerrarspinner('listar ficha sectorial');
         }
     }
 

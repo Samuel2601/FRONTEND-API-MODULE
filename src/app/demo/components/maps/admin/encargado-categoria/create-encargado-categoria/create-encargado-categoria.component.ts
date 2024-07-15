@@ -39,9 +39,6 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
     }
     token = this.auth.token();
     listarCategorias() {
-        if (!this.token) {
-            throw this.router.navigate(['/auth/login']);
-        }
         this.listService.listarCategorias(this.token).subscribe((response) => {
             this.categorias = response.data;
             ////console.log(response);
@@ -50,9 +47,6 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
     roles: any[] = [];
 
     async listarUsuarios(): Promise<void> {
-        if (!this.token) {
-            throw this.router.navigate(['/auth/login']);
-        }
         this.listService
             .listarRolesUsuarios(this.token)
             .subscribe(async (response) => {

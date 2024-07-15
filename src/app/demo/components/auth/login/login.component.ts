@@ -61,7 +61,7 @@ export class LoginComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.helper.llamarspinner();
+        this.helper.llamarspinner('login');
         this.handleQueryParams();
         this.playIntroAudio();        
         this.setHeight();
@@ -75,7 +75,7 @@ export class LoginComponent implements OnInit {
         } else {
             this.loadUserData();
         }
-        this.helper.cerrarspinner();
+        this.helper.cerrarspinner('login');
     }
 
     private removeWhitespaceFromEmail(): void {

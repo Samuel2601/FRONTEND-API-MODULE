@@ -1,75 +1,57 @@
 <div class="card">
     <div class="card-header">
-        <div class="row">
-            <div class="col-auto">
-                <h2>Listado de Roles de Usuario</h2>
-            </div>
-            <div class="col-6">
-                <p-button icon="pi pi-user-plus" label="Crear nuevo Rol" (onClick)="newRol()"></p-button>
-            </div>
-        </div>
+      <h2>Listado de Roles de Usuario</h2>
     </div>
     <div class="card-body">
-        <p-toast></p-toast>
-        <div class="table-responsive-sm">
-            <p-table [paginatorDropdownAppendTo]="'body'"
-                styleClass="p-datatable-striped"
-                class="table table-sm align-middle table-striped table-hover"
-                [value]="roles"
-                dataKey="_id"
-                editMode="row"
-                [tableStyle]="{ 'min-width': '50rem' }"
-                currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
-            >
-                <ng-template pTemplate="header">
-                    <tr>
-                        <th scope="col">Nombre</th>
-                        <th scope="col">Orden</th>
-                        <th scope="col"></th>
-                    </tr>
+      <p-treeTable [value]="roles" [scrollable]="true" [tableStyle]="{ 'min-width': '50rem' }">
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th scope="col">Nombre</th>
+            <th scope="col">Orden</th>
+            <th scope="col">Permisos</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
+          <tr [pEditableRow]="rowNode">
+            <td>
+              <p-treeTableCellEditor>
+                <ng-template pTemplate="input">
+                  <input pInputText type="text" [(ngModel)]="rowData.name" />
                 </ng-template>
-                <ng-template
-                    pTemplate="body"
-                    let-rol
-                    let-editing="editing"
-                    let-ri="rowIndex"
-                >
-                    <tr [pEditableRow]="rol">
-                        <td>
-                            <p-cellEditor>
-                                <ng-template pTemplate="input">
-                                    <input
-                                        pInputText
-                                        type="text"
-                                        [(ngModel)]="rol.nombre"
-                                        required
-                                        class="form-control"
-                                    />
-                                </ng-template>
-                                <ng-template pTemplate="output">
-                                    {{ rol.nombre }}
-                                </ng-template>
-                            </p-cellEditor>
-                        </td>
-                        <td>
-                            <p-cellEditor>
-                                <ng-template pTemplate="input">
-                                    <input
-                                        pInputText
-                                        type="number"
-                                        [(ngModel)]="rol.orden"
-                                        required
-                                        class="form-control"
-                                    />
-                                </ng-template>
-                                <ng-template pTemplate="output">
-                                    {{ rol.orden }}
-                                </ng-template>
-                            </p-cellEditor>
-                        </td>
-                    </tr>
+                <ng-template pTemplate="output">
+                  {{ rowData.name }}
                 </ng-template>
-            </p-table>
-        </div>
+              </p-treeTableCellEditor>
+            </td>
+            <td>
+              <p-treeTableCellEditor>
+                <ng-template pTemplate="input">
+                  <input pInputText type="number" [(ngModel)]="rowData.orden" />
+                </ng-template>
+                <ng-template pTemplate="output">
+                  {{ rowData.orden }}
+                </ng-template>
+              </p-treeTableCellEditor>
+            </td>
+            <td>
+              <p-treeTable [value]="rowData.permisos">
+                <ng-template pTemplate="body" let-permiso>
+                  <tr>
+                    <td>{{ permiso.data.name }}</td>
+                  </tr>
+                </ng-template>
+              </p-treeTable>
+            </td>
+            <td>
+              <div class="btn-group">
+                <button pButton pRipple type="button" icon="pi pi-check" (click)="saveRoles()" class="p-button-rounded p-button-success"></button>
+                <button pButton pRipple type="button" icon="pi pi-times" (click)="cancelEdit()" class="p-button-rounded p-button-danger"></button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-treeTable>
     </div>
-</div>
+  </div>
+  

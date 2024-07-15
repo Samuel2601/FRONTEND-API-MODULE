@@ -41,8 +41,7 @@ export class IndexCategoriaComponent implements OnInit {
         private auth: AuthService
     ) {}
     cols!: Column[];
-    check: any = {};
-    view:boolean=false;
+    check: any = {};    
     async ngOnInit() {
         const checkObservables = {
             IndexCategoriaComponent: await this.auth.hasPermissionComponent(
@@ -111,11 +110,6 @@ export class IndexCategoriaComponent implements OnInit {
     async listarCategorias(): Promise<void> {
         this.loading = true;
         this.opcion = false;
-        if (!this.token) {
-            this.router.navigate(['/auth/login']);
-            return;
-        }
-
         try {
             const categoriasResponse = await this.listService
                 .listarCategorias(this.token)
@@ -129,8 +123,8 @@ export class IndexCategoriaComponent implements OnInit {
                         const subcategoriaResponse = await this.listService
                             .listarSubcategorias(
                                 this.token,
-                                'categoria',
-                                categoria._id
+                                {'categoria':
+                                categoria._id}
                             )
                             .toPromise();
                         const children = subcategoriaResponse.data.map(

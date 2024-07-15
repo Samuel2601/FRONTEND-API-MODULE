@@ -52,11 +52,8 @@ export class CreateRolUserComponent implements OnInit {
 
     registrar() {
         if (this.Form?.valid) {
-            if (!this.token) {
-                throw this.router.navigate(['/auth/login']);
-            }
             this.Form.get('orden').setValue(this.roles.length+1);
-            if (this.token && this.Form.value) {
+            if (this.Form.value) {
                 this.createService
                     .registrarRolUsuario(this.token, this.Form.value)
                     .subscribe(

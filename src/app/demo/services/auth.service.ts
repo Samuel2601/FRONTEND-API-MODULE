@@ -150,13 +150,12 @@ export class AuthService {
             if (aux <= 0) {
                 this.clearSession();
                 console.log("regreso a  login");
-                //window.location.href = '/auth/login';
                 this.redirectToLoginIfNeeded();
                 return null;
             }
         } else {
             console.log("regreso a  login");
-            //this.redirectToLoginIfNeeded();
+            this.redirectToLoginIfNeeded();
         }
         return token || null;
     }
@@ -206,11 +205,13 @@ export class AuthService {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
         });
+        const params = this.paramsf(body, false);
 
         return this.http
-            .post(`${GLOBAL.url}obtenerPermisosPorCriterio`, body, { headers })
+            .get(`${GLOBAL.url}obtenerpermisosporcriterio`, { headers, params: params,})
             .pipe(
                 map((response: any) => {
+                    console.log("LLAMADO API PERMISOS:",response);
                     this.permissionsSubject.next(response.data);
                     localStorage.setItem(
                         'permissions',
@@ -219,6 +220,18 @@ export class AuthService {
                     return response.data;
                 })
             );
+    }
+    paramsf(campos: any = {}, all: boolean = true) {
+        // Construir los parámetros de la URL
+        let params = new HttpParams();
+        if (all) {
+            params = params.append('populate', 'all');
+        }
+        // Añadir campos de filtrado a los parámetros
+        Object.keys(campos).forEach((campo) => {
+            params = params.append(campo, campos[campo]);
+        });
+        return params;
     }
 
     getUserRole(userRole: string): Observable<any> {
@@ -232,6 +245,7 @@ export class AuthService {
             .get(`${GLOBAL.url}obtenerRole?id=${userRole}`, { headers })
             .pipe(
                 map((response: any) => {
+                    console.log("LLAMADO PARA OBTENER ROL",response);
                     this.rolesSubject.next(response.data.permisos);
                     localStorage.setItem(
                         'roles',
@@ -245,25 +259,28 @@ export class AuthService {
     getPermisos(): any[] {
         let permisos = [];
         let roles = [];
-
+    
         // Intentar obtener permisos y roles desde localStorage
         const storedPermissions = localStorage.getItem('permissions');
         const storedRoles = localStorage.getItem('roles');
-
-        if (storedPermissions && storedRoles) {
-            // Si están en localStorage, parsear y devolver
+    
+        if (storedPermissions !== null && storedRoles !== null) {
+            // Si están en localStorage y no son null, parsear y devolver
             permisos = JSON.parse(storedPermissions);
             roles = JSON.parse(storedRoles);
         } else {
-            // Si no están en localStorage, obtener del subject y actualizar localStorage
-            permisos = this.permissionsSubject.getValue();
-            roles = this.rolesSubject.getValue();
+            // Si no están en localStorage o son null, obtener del subject
+            permisos = this.permissionsSubject.getValue() || [];
+            roles = this.rolesSubject.getValue() || [];
+    
+            // Actualizar localStorage con arrays vacíos si no están definidos
             localStorage.setItem('permissions', JSON.stringify(permisos));
             localStorage.setItem('roles', JSON.stringify(roles));
-            // Recargar la página después de actualizar localStorage
-            //location.reload();
+            
+            // Opcional: Recargar la página después de actualizar localStorage
+            // location.reload();
         }
-
+    
         // Combinar roles y permisos y devolver
         return [...roles, ...permisos];
     }
@@ -307,18 +324,39 @@ export class AuthService {
         return true;
     }
 
-    private clearSession() {
-        localStorage.clear();
-        sessionStorage.clear();
+    public clearSession() {
+        if(this.helpers.isMobil()){
+            const nombreUsuario = localStorage.getItem('nombreUsuario') || sessionStorage.getItem('nombreUsuario');
+            const fotoUsuario = localStorage.getItem('fotoUsuario') || sessionStorage.getItem('fotoUsuario');
+            const correo = localStorage.getItem('correo') || sessionStorage.getItem('correo');
+            const pass = localStorage.getItem('pass') || sessionStorage.getItem('pass');
+            
+            // Limpiar todo excepto los valores preservados
+            sessionStorage.clear();
+            localStorage.clear();
+    
+            // Restaurar los valores preservados
+            if (nombreUsuario) localStorage.setItem('nombreUsuario', nombreUsuario);
+            if (fotoUsuario) localStorage.setItem('fotoUsuario', fotoUsuario);
+            if (correo) localStorage.setItem('correo', correo);
+            if (pass) localStorage.setItem('pass', pass);
+        } else {
+            sessionStorage.clear();
+            localStorage.clear();
+        }
     }
 
-    private redirectToLoginIfNeeded() {
-        if (!['/auth/login', '/home', '/'].includes(this.router.url)) {
-            console.log("regreso a  login");
+    public redirectToLoginIfNeeded() {
+        const currentUrl = this.router.url;
+    
+        // Verifica si la URL actual contiene '/auth/login' independientemente de los parámetros adicionales
+        if (!['/home', '/'].includes(currentUrl) && !currentUrl.startsWith('/auth/login')) {
+            console.log("Redirigiendo a login");
             this.router.navigate(['/auth/login']);
             if (this.helpers.llamadasActivas > 0) {
-                this.helpers.cerrarspinner();
+                this.helpers.cerrarspinner('auth');
             }
         }
     }
+    
 }

@@ -38,9 +38,6 @@ export class IndexEstadoIncidenteComponent implements OnInit {
   token=this.auth.token();
   listartEstados(){
     this.load_lista=true;
-    if(!this.token){
-      throw this.router.navigate(["/auth/login"]);
-    }
     this.listarService.listarEstadosIncidentes(this.token).subscribe(response=>{
       //console.log(response);
       this.incidentesDenuncias=response.data;

@@ -94,9 +94,6 @@ export class EditIncidentesDenunciaComponent implements OnInit {
             this.router.navigate(['/notfound']);
         }
 
-        if (!this.token) {
-            throw this.router.navigate(['/auth/login']);
-        }
         if (this.conf) {
             this.id = this.conf.data.id;
             this.edit = this.conf.data.edit;
@@ -197,11 +194,7 @@ export class EditIncidentesDenunciaComponent implements OnInit {
         if (!event) {
             event = this.incidencia.get('categoria').value?._id;
         }
-        //console.log("nueva subcategoria");
-        if (!this.token) {
-            //this.modalService.dismissAll();
-            throw this.router.navigate(['/auth/login']);
-        }
+
         if (event) {
             const id = event;
             this.listService
@@ -231,10 +224,6 @@ export class EditIncidentesDenunciaComponent implements OnInit {
     }
 
     async listarCategorias() {
-        if (!this.token) {
-            //this.modalService.dismissAll();
-            throw this.router.navigate(['/auth/login']);
-        }
         this.listService.listarCategorias(this.token).subscribe(
             (response) => {
                 this.categorias = response.data;
@@ -255,9 +244,7 @@ export class EditIncidentesDenunciaComponent implements OnInit {
     }
     estados: any = [];
     listartEstados() {
-        if (!this.token) {
-            throw this.router.navigate(['/auth/login']);
-        }
+
         this.listService.listarEstadosIncidentes(this.token).subscribe(
             (response) => {
                 ////console.log(response);

@@ -43,9 +43,6 @@ export class CreateEstadoActividadProyectoComponent implements OnInit {
   token = this.auth.token();
   registrarEstadoActividadP() {
     if(this.estadoIncidenteForm.valid){
-      if(!this.token){
-        throw this.router.navigate(["/auth/login"]);
-      }
       this.createService.registrarEstadoActividadProyecto(this.token,this.estadoIncidenteForm.value).subscribe(response=>{
         //console.log(response);
         if(response.data){

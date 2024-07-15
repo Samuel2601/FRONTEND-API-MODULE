@@ -26,7 +26,7 @@ export class IndexUsuarioComponent implements OnInit{
       { label: 'Correo', value: 'correo' },
       { label: 'Teléfono', value: 'telefono' },
       { label: 'Cédula', value: 'cedula' },
-      { label: 'Rol', value: 'rol_user' }
+      { label: 'Rol', value: 'role' }
   ]
   constructor(private ref: DynamicDialogRef,private router: Router,private listService:ListService,private helperservice:HelperService,private dialogService: DialogService,private auth:AuthService){
   
@@ -38,10 +38,11 @@ export class IndexUsuarioComponent implements OnInit{
   listusers(){
     this.load_lista=true;
     this.listService.listarUsuarios(this.token).subscribe(response=>{
-      if(response){
+      console.log(response);
+      if(response.data){
         this.usuarios=response.data;
         this.usuariosconst=response.data;
-        this.ordenaryfiltrar('rol_user',undefined,this.orden);
+        this.ordenaryfiltrar('role',undefined,this.orden);
         ////console.log(this.usuarios);
         this.load_lista=false; 
       }
@@ -54,7 +55,7 @@ export class IndexUsuarioComponent implements OnInit{
     ////console.log(categoria, valor, orden);
     if (categoria && valor) {
         // Filtrar por categoría y valor
-        if (categoria == 'rol_user') {
+        if (categoria == 'role') {
             this.usuarios = this.usuariosconst.filter(usuario => {
                 return usuario[categoria].orden == valor || usuario[categoria].nombre.includes(valor);
             });
@@ -80,8 +81,8 @@ export class IndexUsuarioComponent implements OnInit{
             });
         }
     } else if (categoria) {
-        if (categoria === 'rol_user' && !valor) {
-            // Ordenar por rol_user.orden si la categoría es rol_user y no se proporciona un valor
+        if (categoria === 'role' && !valor) {
+            // Ordenar por role.orden si la categoría es role y no se proporciona un valor
             this.usuarios = this.usuariosconst.sort((a, b) => {
                 const compareValue = (a: any, b: any) => {
                     if (a < b) {

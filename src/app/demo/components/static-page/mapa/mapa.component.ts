@@ -303,18 +303,13 @@ export class MapaComponent implements OnInit {
     }
     async ngOnInit() {
         //console.log(this.cate, this.sub);
-        this.helperService.llamarspinner();
+        this.helperService.llamarspinner('init index mapa');
         this.listCategoria();
         App.addListener('backButton', (data) => {
             this.sidebarVisible ? (this.sidebarVisible = false) : '';
             this.mostrarficha ? (this.mostrarficha = false) : '';
             this.mostrarincidente ? (this.mostrarincidente = false) : '';
         });
-        if (!this.token) {
-            this.router.navigate(['/auth/login']);
-            this.helperService.cerrarspinner();
-            throw new Error('Token no encontrado');
-        }
         try {
             this.check.IndexFichaSectorialComponent =
                 this.helperService.decryptData(
@@ -344,7 +339,7 @@ export class MapaComponent implements OnInit {
         await this.getWFSgeojson(this.urlgeoser);
 
         setTimeout(() => {
-            this.helperService.cerrarspinner();
+            this.helperService.cerrarspinner('init index mapa');
         }, 1500);
     }
     addtemplateBG() {
@@ -1256,14 +1251,12 @@ export class MapaComponent implements OnInit {
     }
 
     procederSinCargar() {
-        this.helperService.llamarspinner();
+        this.helperService.llamarspinner('sinardap funcion');
         // Lógica para proceder sin cargar las imágenes
         //console.log('Enviado sin cargar imágenes adicionales');
         //console.log(this.incidencia.value);
         //console.log(this.selectedFilesnew);
-        if (!this.token) {
-            throw this.router.navigate(['/auth/login']);
-        }
+
         ////console.log(this.nuevoIncidenteDenuncia.value);
         this.incidencia
             .get('ciudadano')
@@ -1286,7 +1279,7 @@ export class MapaComponent implements OnInit {
                                 summary: 'Ingresado',
                                 detail: 'Correctamente',
                             });
-                            this.helperService.cerrarspinner();
+                            this.helperService.cerrarspinner('sinardap');
                             setTimeout(() => {
                                 this.helperService.cerrarMapa();
                             }, 1000);
@@ -1304,7 +1297,7 @@ export class MapaComponent implements OnInit {
                                 detail: error.error.message || 'Sin conexión',
                             });
                         }
-                        this.helperService.cerrarspinner();
+                        this.helperService.cerrarspinner('sinardap');
                     }
                 );
         } else {
@@ -1313,7 +1306,7 @@ export class MapaComponent implements OnInit {
                 summary: 'ERROR',
                 detail: 'Complete todo el formulario',
             });
-            this.helperService.cerrarspinner();
+            this.helperService.cerrarspinner('sinardap');
         }
     }
     upload: boolean = true;

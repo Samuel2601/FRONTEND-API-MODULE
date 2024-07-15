@@ -38,7 +38,7 @@ export class StackBarriosComponent implements OnInit {
         if (this.constIncidente.length === 0) {
             try {
                 const response: any = await this.listar
-                    .listarIncidentesDenuncias(this.token, '', '', false)
+                    .listarIncidentesDenuncias(this.token)
                     .toPromise();
                 if (response.data) {
                     this.constIncidente = response.data;
@@ -243,9 +243,8 @@ export class StackBarriosComponent implements OnInit {
                     const response: any = await this.listar
                         .listarIncidentesDenuncias(
                             this.token,
-                            'direccion_geo.nombre',
-                            element.properties.nombre,
-                            false
+                            {'direccion_geo.nombre':
+                            element.properties.nombre}                            
                         )
                         .toPromise();
                     if (response.data) {

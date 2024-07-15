@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { GLOBAL } from './GLOBAL';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import imageCompression from 'browser-image-compression';
 @Injectable({
@@ -19,29 +19,33 @@ export class UpdateService {
         data: any,
         file: any
     ): Observable<any> {
-        let headers = new HttpHeaders({
+        const headers = new HttpHeaders({
             Authorization: token,
         });
-
+    
         const formData = new FormData();
-        formData.append('cedula', data.cedula);
-        formData.append('correo', data.correo);
-        formData.append('estado', data.estado);
-        formData.append('nombres', data.nombres);
+        formData.append('dni', data.dni);
+        formData.append('email', data.email);
+        formData.append('status', data.status);
+        formData.append('name', data.name);
+        formData.append('last_name', data.last_name);
         formData.append('password', data.password);
         formData.append('password_temp', data.password_temp);
         formData.append(
-            'rol_user',
-            data.rol_user._id ? data.rol_user._id : data.rol_user
+            'role',
+            data.role._id ? data.role._id : data.role
         );
-        formData.append('telefono', data.telefono);
-
+        formData.append('telf', data.telf);
+    
         if (file) {
-            formData.append('foto', file);
+            formData.append('photo', file);
         }
-
-        return this.http.put(this.url + 'actualizarUser/' + id, formData, {
+    
+        const params = new HttpParams().set('id', id);
+        
+        return this.http.put(this.url + 'actualizarUser', formData, {
             headers: headers,
+            params: params,
         });
     }
 
@@ -50,83 +54,121 @@ export class UpdateService {
         id: string,
         data: any
     ): Observable<any> {
-        let headers = new HttpHeaders({
+        const headers = new HttpHeaders({
             Authorization: token,
         });
-        return this.http.put(
-            this.url + 'actividad_proyecto/' + id,
-            data,
-            { headers: headers }
-        );
+        const params = new HttpParams().set('id', id);
+        return this.http.put(this.url + 'actividad_proyecto', data, {
+            headers: headers,
+            params: params,
+        });
     }
 
-    actualizarIncidenteDenuncia(token: any, id: string, data: any): Observable<any> {
-      let headers = new HttpHeaders({
-        Authorization: token,
-      });
-      console.log(data);
-      return new Observable((observer) => {
-        const formData = new FormData();
-        if (data.categoria) formData.append('categoria', data.categoria._id);
-        if (data.subcategoria) formData.append('subcategoria', data.subcategoria._id);
-        if (data.ciudadano) formData.append('ciudadano', data.ciudadano._id ? data.ciudadano._id : data.ciudadano);
-        if (data.descripcion) formData.append('descripcion', data.descripcion);
-        if (data.estado) formData.append('estado', data.estado._id);
-        if (data.respuesta) formData.append('respuesta', data.respuesta);
-        if (data.encargado) formData.append('encargado', data.encargado);
-        if (data.direccion_geo) formData.append('direccion_geo', JSON.stringify(data.direccion_geo));
-        formData.append('view', data.view);
-        if (data.view_id) formData.append('view_id', data.view_id);
-        if (data.view_date) formData.append('view_date', data.view_date);
-  
-        if ((data.evidencia  instanceof File) || (data.evidencia  instanceof Blob)) {
-          const compressedFilesPromises = data.evidencia.map((foto: any) => this.compressor(foto));
-          Promise.all(compressedFilesPromises)
-            .then((compressedFiles) => {
-              compressedFiles.forEach((compressedFile, index) => {
-                formData.append('evidencia' + index, compressedFile);
-              });
-              this.http.put(this.url + 'incidentes_denuncia/' + id, formData, { headers: headers })
-                .subscribe(
-                  (response) => {
-                    observer.next(response);
-                    observer.complete();
-                  },
-                  (error) => observer.error(error)
+    actualizarIncidenteDenuncia(
+        token: any,
+        id: string,
+        data: any
+    ): Observable<any> {
+        const headers = new HttpHeaders({
+            Authorization: token,
+        });
+        console.log(data);
+        const params = new HttpParams().set('id', id);
+
+        return new Observable((observer) => {
+            const formData = new FormData();
+            if (data.categoria)
+                formData.append('categoria', data.categoria._id);
+            if (data.subcategoria)
+                formData.append('subcategoria', data.subcategoria._id);
+            if (data.ciudadano)
+                formData.append(
+                    'ciudadano',
+                    data.ciudadano._id ? data.ciudadano._id : data.ciudadano
                 );
-            })
-            .catch((error) => observer.error(error));
-        } else {
-          this.http.put(this.url + 'incidentes_denuncia/' + id, formData, { headers: headers })
-            .subscribe(
-              (response) => {
-                observer.next(response);
-                observer.complete();
-              },
-              (error) => observer.error(error)
-            );
-        }
-      });
+            if (data.descripcion)
+                formData.append('descripcion', data.descripcion);
+            if (data.estado) formData.append('estado', data.estado._id);
+            if (data.respuesta) formData.append('respuesta', data.respuesta);
+            if (data.encargado) formData.append('encargado', data.encargado);
+            if (data.direccion_geo)
+                formData.append(
+                    'direccion_geo',
+                    JSON.stringify(data.direccion_geo)
+                );
+            formData.append('view', data.view);
+            if (data.view_id) formData.append('view_id', data.view_id);
+            if (data.view_date) formData.append('view_date', data.view_date);
+    
+            if (
+                data.evidencia instanceof File ||
+                data.evidencia instanceof Blob
+            ) {
+                const compressedFilesPromises = data.evidencia.map(
+                    (foto: any) => this.compressor(foto)
+                );
+                Promise.all(compressedFilesPromises)
+                    .then((compressedFiles) => {
+                        compressedFiles.forEach((compressedFile, index) => {
+                            formData.append(
+                                'evidencia' + index,
+                                compressedFile
+                            );
+                        });
+                        this.http
+                            .put(
+                                this.url + 'incidentes_denuncia',
+                                formData,
+                                { headers: headers, params: params }
+                            )
+                            .subscribe(
+                                (response) => {
+                                    observer.next(response);
+                                    observer.complete();
+                                },
+                                (error) => observer.error(error)
+                            );
+                    })
+                    .catch((error) => observer.error(error));
+            } else {
+                
+                this.http
+                    .put(this.url + 'incidentes_denuncia', formData, {
+                        headers: headers,
+                        params: params,
+                    })
+                    .subscribe(
+                        (response) => {
+                            observer.next(response);
+                            observer.complete();
+                        },
+                        (error) => observer.error(error)
+                    );
+            }
+        });
     }
 
-    //return this.http.put(this.url + 'actualizar_incidente_denuncia/' + id, data, { headers: headers });
     actualizarCategoria(token: any, id: string, data: any): Observable<any> {
-        let headers = new HttpHeaders({
+        const headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
         });
-        return this.http.put(this.url + 'categoria/' + id, data, {
+        const params = new HttpParams().set('id', id);
+        return this.http.put(this.url + 'categoria', data, {
             headers: headers,
+            params: params,
         });
     }
 
     actualizarSubcategoria(token: any, id: string, data: any): Observable<any> {
-        let headers = new HttpHeaders({
+        const headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
         });
-        return this.http.put(this.url + 'subcategoria/' + id, data, {
+        const params = new HttpParams().set('id', id);
+        return this.http.put(this.url + 'subcategoria', data, {
             headers: headers,
+            params: params,
         });
     }
 
@@ -135,24 +177,26 @@ export class UpdateService {
         id: string,
         data: any
     ): Observable<any> {
-        let headers = new HttpHeaders({
+        const headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
         });
-        return this.http.put(
-            this.url + 'encargado_categoria/' + id,
-            data,
-            { headers: headers }
-        );
+        const params = new HttpParams().set('id', id);
+        return this.http.put(this.url + 'encargado_categoria', data, {
+            headers: headers,
+            params: params,
+        });
     }
 
     actualizarRolUsuario(token: any, id: string, data: any): Observable<any> {
-        let headers = new HttpHeaders({
+        const headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
         });
-        return this.http.put(this.url + 'actualizarrole/' + id, data, {
+        const params = new HttpParams().set('id', id);
+        return this.http.put(this.url + 'actualizarrole', data, {
             headers: headers,
+            params: params,
         });
     }
 
@@ -161,15 +205,15 @@ export class UpdateService {
         id: string,
         data: any
     ): Observable<any> {
-        let headers = new HttpHeaders({
+        const headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
         });
-        return this.http.put(
-            this.url + 'estado_incidente/' + id,
-            data,
-            { headers: headers }
-        );
+        const params = new HttpParams().set('id', id);
+        return this.http.put(this.url + 'estado_incidente', data, {
+            headers: headers,
+            params: params,
+        });
     }
 
     actualizarEstadoActividadProyecto(
@@ -177,14 +221,15 @@ export class UpdateService {
         id: string,
         data: any
     ): Observable<any> {
-        let headers = new HttpHeaders({
+        const headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
         });
+        const params = new HttpParams().set('id', id);
         return this.http.put(
-            this.url + 'estado_actividad_proyecto/' + id,
+            this.url + 'estado_actividad_proyecto',
             data,
-            { headers: headers }
+            { headers: headers, params: params }
         );
     }
 
@@ -193,35 +238,39 @@ export class UpdateService {
         id: string,
         data: any
     ): Observable<any> {
-        let headers = new HttpHeaders({
+        const headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
         });
-        return this.http.put(
-            this.url + 'actividad_proyecto/' + id,
-            data,
-            { headers: headers }
-        );
+        const params = new HttpParams().set('id', id);
+        return this.http.put(this.url + 'actividad_proyecto', data, {
+            headers: headers,
+            params: params,
+        });
     }
 
     actualizarDireccionGeo(token: any, id: string, data: any): Observable<any> {
-        let headers = new HttpHeaders({
+        const headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
         });
-        return this.http.put(
-            this.url + 'direccion_geo/' + id,
-            data,
-            { headers: headers }
-        );
-    }
-    actualizarPermisos(token: any, id: string, data: any): Observable<any> {
-        let headers = new HttpHeaders({
-            'Content-Type': 'application/json',
-            Authorization: token,
-        });
-        return this.http.put(this.url + 'actualizarpermiso/' + id, data, {
+        const params = new HttpParams().set('id', id);
+        return this.http.put(this.url + 'direccion_geo', data, {
             headers: headers,
+            params: params,
+        });
+    }
+    actualizarPermisos(token: string, id: string, data: any): Observable<any> {
+        const headers = new HttpHeaders({
+            'Content-Type': 'application/json',
+            Authorization: token,
+        });
+    
+        const params = new HttpParams().set('id', id);
+    
+        return this.http.put<any>(`${this.url}actualizarpermiso`, data, {
+            headers: headers,
+            params: params,
         });
     }
 

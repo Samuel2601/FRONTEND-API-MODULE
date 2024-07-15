@@ -62,9 +62,6 @@ export class EditFichaSectorialComponent implements OnInit {
         if (!this.check.EditFichaSectorialComponent) {
             this.router.navigate(['/notfound']);
         }
-        if (!this.token) {
-            throw this.router.navigate(['/auth/login']);
-        }
 
         if (this.config && this.config.data && this.config.data.id) {
             this.id = this.config.data.id;
@@ -143,9 +140,6 @@ export class EditFichaSectorialComponent implements OnInit {
         this.fichaSectorialForm.get(campo)?.enable();
     }
     listartEstados() {
-        if (!this.token) {
-            throw this.router.navigate(['/auth/login']);
-        }
         this.listarService
             .listarEstadosActividadesProyecto(this.token)
             .subscribe(
@@ -171,9 +165,6 @@ export class EditFichaSectorialComponent implements OnInit {
     }
 
     listarActividadProyecto() {
-        if (!this.token) {
-            throw this.router.navigate(['/auth/login']);
-        }
         this.listarService.listarTiposActividadesProyecto(this.token).subscribe(
             (response) => {
                 //console.log(response);
@@ -309,7 +300,7 @@ export class EditFichaSectorialComponent implements OnInit {
         this.load_form = false;
         //console.log("fichaSectorialForm", this.fichaSectorialForm, this.fichaSectorialForm.value);
         if (this.fichaSectorialForm?.valid) {
-            if (this.token && this.fichaSectorialForm.value) {
+            if ( this.fichaSectorialForm.value) {
                 this.updateService
                     .actualizarActividadProyecto(
                         this.token,
@@ -347,10 +338,6 @@ export class EditFichaSectorialComponent implements OnInit {
                             }
                         }
                     );
-            } else {
-                if (!this.token) {
-                    throw this.router.navigate(['/auth/login']);
-                }
             }
         } else {
             //console.log(this.fichaSectorialForm);

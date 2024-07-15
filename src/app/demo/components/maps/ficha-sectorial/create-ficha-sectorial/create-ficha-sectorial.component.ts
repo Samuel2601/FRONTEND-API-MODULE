@@ -56,9 +56,6 @@ export class CreateFichaSectorialComponent implements OnInit {
     token = this.auth.token();
     mostrar: boolean = false;
     ngOnInit(): void {
-        if (!this.token) {
-            throw this.router.navigate(['/auth/login']);
-        }
         if (this.config && this.config.data && this.config.data.data) {
             this.data = this.config.data.data;
         }
@@ -98,9 +95,6 @@ export class CreateFichaSectorialComponent implements OnInit {
         this.listarActividadProyecto();
     }
     listartEstados() {
-        if (!this.token) {
-            throw this.router.navigate(['/auth/login']);
-        }
         this.listarService
             .listarEstadosActividadesProyecto(this.token)
             .subscribe(
@@ -126,9 +120,6 @@ export class CreateFichaSectorialComponent implements OnInit {
     }
 
     listarActividadProyecto() {
-        if (!this.token) {
-            throw this.router.navigate(['/auth/login']);
-        }
         this.listarService.listarTiposActividadesProyecto(this.token).subscribe(
             (response) => {
                 //console.log(response);
@@ -270,7 +261,7 @@ export class CreateFichaSectorialComponent implements OnInit {
         this.load_form = false;
         //console.log("fichaSectorialForm",this.fichaSectorialForm);
         if (this.fichaSectorialForm?.valid) {
-            if (this.token && this.fichaSectorialForm.value) {
+            if (this.fichaSectorialForm.value) {
                 this.createService
                     .registrarActividadProyecto(
                         this.token,
@@ -307,10 +298,6 @@ export class CreateFichaSectorialComponent implements OnInit {
                             }
                         }
                     );
-            } else {
-                if (!this.token) {
-                    throw this.router.navigate(['/auth/login']);
-                }
             }
         } else {
             //console.log(this.fichaSectorialForm);

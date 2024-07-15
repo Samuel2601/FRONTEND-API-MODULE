@@ -14,7 +14,8 @@
     <div class="card-body">
         <p-toast></p-toast>
         <div class="table-responsive-sm">
-            <p-table [paginatorDropdownAppendTo]="'body'"
+            <p-table
+                [paginatorDropdownAppendTo]="'body'"
                 styleClass="p-datatable-striped"
                 class="table table-sm align-middle table-striped table-hover"
                 [value]="permisos"
@@ -31,8 +32,9 @@
             >
                 <ng-template pTemplate="header">
                     <tr>
-                        <th scope="col">Nombre Componente</th>
-                        <th scope="col">Roles Permitidos</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Método</th>
+                        <th scope="col">Usuarios</th>
                         <th scope="col"></th>
                     </tr>
                 </ng-template>
@@ -46,41 +48,56 @@
                         <td>
                             <p-cellEditor>
                                 <ng-template pTemplate="input">
-                                    {{ permiso.nombreComponente }}
+                                    <input
+                                        pInputText
+                                        [(ngModel)]="permiso.name"
+                                    />
                                 </ng-template>
                                 <ng-template pTemplate="output">
-                                    {{ permiso.nombreComponente }}
+                                    {{ permiso.name }}
                                 </ng-template>
                             </p-cellEditor>
                         </td>
                         <td>
                             <p-cellEditor>
                                 <ng-template pTemplate="input">
-                                    <div *ngFor="let rol of roles">
-                                        <input
-                                            type="checkbox"
-                                            [value]="rol._id"
-                                            class="form-check-input"
-                                            [checked]="
-                                                checklist(permiso, rol._id)
-                                            "
-                                            (change)="toggleRol(permiso, rol)"
-                                        />
-                                        {{ rol.nombre }}
-                                    </div>
+                                    <input
+                                        pInputText
+                                        [(ngModel)]="permiso.method"
+                                    />
                                 </ng-template>
                                 <ng-template pTemplate="output">
-                                    <div
-                                        *ngFor="
-                                            let rol of permiso.rolesPermitidos
-                                        "
-                                    >
-                                        {{ rol.nombre }}
+                                    {{ permiso.method }}
+                                </ng-template>
+                            </p-cellEditor>
+                        </td>
+                        <td>
+                            <!--
+                            (onChange)="onRowEditSave(permiso)"
+                            -->
+                            <p-cellEditor>
+                                <ng-template pTemplate="input">
+                                    <p-multiSelect 
+                                        [options]="users" 
+                                        [(ngModel)]="permiso.user" 
+                                        optionLabel="name" 
+                                        optionValue="_id"
+                                        
+                                        [filter]="true"
+                                        defaultLabel="Seleccione Usuarios"
+                                        display="chip"
+                                        placeholder="Seleccione Usuarios"
+                                        class="w-full"
+                                    ></p-multiSelect>
+                                </ng-template>
+                                <ng-template pTemplate="output">
+                                    <div *ngFor="let userId of permiso.user">
+                                        {{ getUserById(userId)?.name }} {{ getUserById(userId)?.last_name }}
                                     </div>
                                 </ng-template>
                             </p-cellEditor>
                         </td>
-
+                        
                         <td>
                             <div
                                 class="btn-group"
@@ -121,7 +138,6 @@
                                         class="p-button-rounded p-button-text p-button-danger btn btn-danger"
                                     ></button>
                                 </div>
-                                <!--<button *ngIf="!editing" pButton pRipple type="button" icon="bi bi-trash" class="p-button-rounded p-button-text btn btn-danger" (click)="confirmarEliminacion(permiso)"></button>-->
                             </div>
                         </td>
                     </tr>

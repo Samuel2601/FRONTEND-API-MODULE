@@ -86,7 +86,7 @@ export class StackIncidentesComponent implements OnInit {
         if (this.constIncidente.length === 0) {
             try {
                 const response: any = await this.listar
-                    .listarIncidentesDenuncias(this.token, '', '', false)
+                    .listarIncidentesDenuncias(this.token)
                     .toPromise();
                 if (response.data) {
                     this.constIncidente = response.data;
@@ -210,12 +210,14 @@ export class StackIncidentesComponent implements OnInit {
         // Obtener todos los incidentes si aún no se han cargado
         if (this.constIncidente.length === 0) {
             try {
+                const fil = {
+                    [this.filtro]: this.valor
+                };
+                
                 const response: any = await this.listar
                     .listarIncidentesDenuncias(
                         this.token,
-                        this.filtro,
-                        this.valor,
-                        false
+                        fil
                     )
                     .toPromise();
                 if (response.data) {

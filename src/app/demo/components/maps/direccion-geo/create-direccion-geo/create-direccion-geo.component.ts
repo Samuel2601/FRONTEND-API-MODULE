@@ -39,9 +39,6 @@ export class CreateDireccionGeoComponent implements OnInit, AfterViewInit {
   }
   token=this.auth.token();
   ngOnInit(): void {
-    if(!this.token){
-      throw this.router.navigate(["/auth/login"]);
-    }
     if (this.config && this.config.data && this.config.data.feature) {
       this.valor = this.config.data.feature;
     }
@@ -110,7 +107,7 @@ export class CreateDireccionGeoComponent implements OnInit, AfterViewInit {
 
   registrarFichaSectorial() {
     if (this.fichaSectorialForm?.valid) {
-      if (this.token && this.fichaSectorialForm.value) {
+      if (this.fichaSectorialForm.value) {
         this.createService.registrarDireccionGeo(this.token, this.valor.id,this.archivoSeleccionado).subscribe(response => {
           //console.log(response);
           if(response.data){
@@ -134,10 +131,6 @@ export class CreateDireccionGeoComponent implements OnInit, AfterViewInit {
             });*/
           } 
         });
-      }else{
-        if(!this.token){
-          throw this.router.navigate(["/auth/login"]);
-        }
       }
     }else{
       //console.log(this.fichaSectorialForm.valid);

@@ -30,9 +30,6 @@ export class CreateCategoriaComponent implements OnInit{
   registrarCategoria(){
     if (this.categoriaForm.valid) {
       const token = this.auth.token();
-      if(!token){
-        throw this.router.navigate(["/auth/login"]);
-      }
       const data = {
         nombre: this.categoriaForm.value.nombre,
         descripcion: this.categoriaForm.value.descripcion

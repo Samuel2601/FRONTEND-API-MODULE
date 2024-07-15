@@ -18,14 +18,13 @@ import { AuthService } from 'src/app/demo/services/auth.service';
 export class IndexPermisosComponent {
     permisos: any = [];
     clonedProducts: { [s: string]: any } = {};
-    roles: any;
+    users: any;
     rolselect: string[] = [];
 
     constructor(
         private auth: AuthService,
         private ref: DynamicDialogRef,
         private listService: ListService,
-        private modalService: NgbModal,
         private updateServices: UpdateService,
         private helper: HelperService,
         private messageService: MessageService,
@@ -41,18 +40,17 @@ export class IndexPermisosComponent {
         this.listService.ListarPermisos(this.token).subscribe(
             (response) => {
                 this.permisos = response.data;
-                ////console.log(response.data);
             },
             (error) => {
                 //console.log(error);
             }
         );
     }
-    toggleRol(permiso: any, rol: any) {
-        if (this.checklist(permiso, rol._id)) {
-            this.deleterol(permiso, rol._id);
+    toggleUser(permiso: any, user: any) {
+        if (this.checklist(permiso, user._id)) {
+            this.deleterol(permiso, user._id);
         } else {
-            this.addrol(permiso, rol);
+            this.addrol(permiso, user);
         }
     }
     checklist(permiso: any, id: any): boolean {
@@ -78,11 +76,9 @@ export class IndexPermisosComponent {
         ////console.log(permiso);
     }
     listarrol() {
-        this.listService
-            .listarRolesUsuarios(this.token)
-            .subscribe((response) => {
-                this.roles = response.data;
-            });
+        this.listService.listarUsuarios(this.token).subscribe((response) => {
+            this.users = response.data;
+        });
     }
     isMobil() {
         return this.helper.isMobil();
@@ -127,18 +123,14 @@ export class IndexPermisosComponent {
 
     onRowEditCancel(categoria: any, rowIndex: number) {
         // Cancelar la edición de la categoría
-        ////console.log('Cancelar edición de la categoría:', categoria);
+        console.log('Cancelar edición de la categoría:', categoria);
+        // Restaurar la categoría a su estado original
+        this.permisos[rowIndex] = this.clonedProducts[categoria._id as string];
+        delete this.clonedProducts[categoria._id as string];
+        console.log('Cancelar edición de la categoría:', categoria);
     }
 
-    verSubcategorias(categoria: any) {
-        // Lógica para ver las subcategorías
-    }
-
-    confirmarEliminacion(categoria: any) {
-        //console.log('Eliminar la categoría:', categoria);
-    }
-    verDetalles(permiso: any) {
-        // Implementa aquí la lógica para mostrar los detalles del permiso
-        //console.log('Detalles del permiso:', permiso);
+    getUserById(userId: any): any {
+        return this.users.find((user: any) => user._id === userId);
     }
 }

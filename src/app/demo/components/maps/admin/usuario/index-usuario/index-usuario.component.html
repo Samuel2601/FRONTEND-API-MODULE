@@ -42,23 +42,34 @@
                 <tr>
                     <th
                         colspan="2"
-                        pSortableColumn="nombres"
+                        pSortableColumn="name"
                         style="width: 20%"
                     >
-                        Nombre <p-sortIcon field="nombres"></p-sortIcon>
+                        Nombre <p-sortIcon field="name"></p-sortIcon>
                     </th>
-                    <th pSortableColumn="rol_user.nombre" style="width: 20%">
-                        Cargo <p-sortIcon field="rol_user.nombre"></p-sortIcon>
+                    <th
+                        colspan="1"
+                        pSortableColumn="last_name"
+                        style="width: 20%"
+                    >
+                        Apellidos <p-sortIcon field="last_name"></p-sortIcon>
                     </th>
-                    <th pSortableColumn="correo" style="width: 20%">
-                        Correo <p-sortIcon field="correo"></p-sortIcon>
+                    <th pSortableColumn="role.orden" style="width: 20%">
+                        Cargo <p-sortIcon field="role.ordnen"></p-sortIcon>
                     </th>
-                    <th pSortableColumn="telefono" style="width: 20%">
-                        Teléfono <p-sortIcon field="telefono"></p-sortIcon>
+                    <th pSortableColumn="email" style="width: 20%">
+                        Correo <p-sortIcon field="email"></p-sortIcon>
                     </th>
-                    <th pSortableColumn="cedula" style="width: 20%">
-                        Cédula <p-sortIcon field="cedula"></p-sortIcon>
+                    <th pSortableColumn="telf" style="width: 20%">
+                        Teléfono <p-sortIcon field="telf"></p-sortIcon>
                     </th>
+                    <th pSortableColumn="dni" style="width: 20%">
+                        Cédula <p-sortIcon field="dni"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="createdAt" style="width: 20%">
+                        Registro <p-sortIcon field="createdAt"></p-sortIcon>
+                    </th>
+                    
                     <th>Opción</th>
                 </tr>
             </ng-template>
@@ -76,11 +87,13 @@
                             shape="circle"
                         ></p-avatar>
                     </td>
-                    <td>{{ user.nombres }}</td>
-                    <td>{{ user.rol_user.nombre }}</td>
-                    <td>{{ user.correo }}</td>
-                    <td>{{ user.telefono }}</td>
-                    <td>{{ user.cedula }}</td>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.last_name }}</td>
+                    <td>{{ user.role.name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.telf }}</td>
+                    <td>{{ user.dni }}</td>
+                    <td>{{ user.createdAt }}</td>
                     <td>
                         <p-button
                             icon="pi pi-user-edit"

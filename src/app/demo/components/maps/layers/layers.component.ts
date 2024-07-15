@@ -169,7 +169,7 @@ export class LayersComponent implements OnInit {
         private admin: AdminService,
         private list: ListService,
         private appRef: ApplicationRef,
-        private auth:AuthService
+        private auth: AuthService
     ) {
         this.subscription = this.layoutService.configUpdate$
             .pipe(debounceTime(25))
@@ -221,17 +221,13 @@ export class LayersComponent implements OnInit {
         }
     }
     async ngOnInit() {
-        this.helperService.llamarspinner();
+        this.helperService.llamarspinner('init index layer');
         App.addListener('backButton', (data) => {
             this.sidebarVisible ? (this.sidebarVisible = false) : '';
             this.mostrarficha ? (this.mostrarficha = false) : '';
             this.mostrarincidente ? (this.mostrarincidente = false) : '';
         });
-        if (!this.token) {
-            this.router.navigate(['/auth/login']);
-            this.helperService.cerrarspinner();
-            throw new Error('Token no encontrado');
-        }
+
         try {
             this.check.IndexFichaSectorialComponent =
                 this.helperService.decryptData(
@@ -266,7 +262,7 @@ export class LayersComponent implements OnInit {
         await this.getWFSgeojson(this.urlgeoser);
         this.getLocation();
         setTimeout(() => {
-            this.helperService.cerrarspinner();
+            this.helperService.cerrarspinner('init index layer');
         }, 1500);
         // this.listCategoria();
     }
@@ -340,7 +336,7 @@ export class LayersComponent implements OnInit {
                                 label: 'TIC-CIOCE',
                                 styleClass: 'itemcustom',
                                 //visible: this.check.DashboardComponent,
-                                visible:false,
+                                visible: false,
                                 command: () => {
                                     if (
                                         (this.opcionb ? true : false) &&
@@ -430,7 +426,7 @@ export class LayersComponent implements OnInit {
                                         label: 'Nueva Ficha Sectorial',
                                         styleClass: 'itemcustom',
                                         visible: false,
-                                           /* this.check
+                                        /* this.check
                                                 .CreateFichaSectorialComponent,*/
                                         command: () => {
                                             if (
@@ -523,8 +519,7 @@ export class LayersComponent implements OnInit {
                         command: () => {
                             if (
                                 (this.opcionb ? true : false) &&
-                                this.check
-                                    .CreateIncidentesDenunciaComponent &&
+                                this.check.CreateIncidentesDenunciaComponent &&
                                 (this.latitud ? true : false) &&
                                 (this.longitud ? true : false)
                             ) {
@@ -974,7 +969,7 @@ export class LayersComponent implements OnInit {
             });
         });
     }
-    
+
     inforecolector: any[] = [];
     markersrecolectores: Map<string, any> = new Map();
 
@@ -1685,36 +1680,29 @@ export class LayersComponent implements OnInit {
         });
     }
     nuevoIncidente(tipo?: string, subtipo?: string) {
-        if (!this.token) {
-            this.router.navigate(['/auth/login']);
-        } else {
-            this.controlFullScreem();
-            const data = this.opcionb; // JSON que quieres enviar
-            /*this.modalService.dismissAll();    
+        this.controlFullScreem();
+        const data = this.opcionb; // JSON que quieres enviar
+        /*this.modalService.dismissAll();    
       const this.ref = this.modalService.open(CreateIncidentesDenunciaComponent, { centered: true });
       this.ref.componentInstance.data = data; 
       this.ref.componentInstance.direccion = { latitud: this.latitud, longitud: this.longitud };  
       */
-            this.ref = this.dialogService.open(
-                CreateIncidentesDenunciaComponent,
-                {
-                    header: '',
-                    width: this.isMobil() ? '100%' : '50%',
-                    data: {
-                        data: data,
-                        direccion: {
-                            latitud: this.latitud,
-                            longitud: this.longitud,
-                        },
-                        tipo: tipo,
-                        subtipo: subtipo,
-                    },
-                }
-            );
-            App.addListener('backButton', (data) => {
-                this.ref.destroy();
-            });
-        }
+        this.ref = this.dialogService.open(CreateIncidentesDenunciaComponent, {
+            header: '',
+            width: this.isMobil() ? '100%' : '50%',
+            data: {
+                data: data,
+                direccion: {
+                    latitud: this.latitud,
+                    longitud: this.longitud,
+                },
+                tipo: tipo,
+                subtipo: subtipo,
+            },
+        });
+        App.addListener('backButton', (data) => {
+            this.ref.destroy();
+        });
     }
     controlFullScreem() {
         const elementToSendFullscreen = this.mapCustom.getDiv()

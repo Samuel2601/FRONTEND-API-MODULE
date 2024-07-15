@@ -8,6 +8,7 @@ import { ChartModule, UIChart } from 'primeng/chart';
 import { Router } from '@angular/router';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
     selector: 'app-list-ficha',
@@ -28,7 +29,7 @@ export class ListFichaComponent implements OnInit {
         private helper: HelperService,
         private messageService: MessageService,
         private router: Router,
-        private auth:AuthService
+        private auth: AuthService
     ) {
         this.filterForm = this.formBuilder.group({
             fecha_inicio: [''],
@@ -47,7 +48,7 @@ export class ListFichaComponent implements OnInit {
     ];
 
     filtro() {
-        this.helper.llamarspinner();
+        this.helper.llamarspinner('Filtro lista de fichas');
         this.load_table = false;
         const fechaInicio = this.filterForm.get('fecha_inicio').value;
         const fechaFin = this.filterForm.get('fecha_fin').value;
@@ -77,7 +78,11 @@ export class ListFichaComponent implements OnInit {
                 (estadoIds.length === 0 ||
                     estadoIds.includes(elemento.estado._id.toString())) &&
                 (direccionesNombres.length === 0 ||
-                    direccionesNombres.includes(this.isJSONString(elemento.direccion_geo)?this.parseJSON(elemento.direccion_geo).nombre:elemento.direccion_geo)) &&
+                    direccionesNombres.includes(
+                        this.isJSONString(elemento.direccion_geo)
+                            ? this.parseJSON(elemento.direccion_geo).nombre
+                            : elemento.direccion_geo
+                    )) &&
                 (view == null || elemento.view == view)
             );
         });
@@ -95,7 +100,7 @@ export class ListFichaComponent implements OnInit {
         }
         this.load_table = true;
         setTimeout(() => {
-            this.helper.cerrarspinner();
+            this.helper.cerrarspinner('Filtro lista de fichas');
         }, 500);
     }
 
@@ -112,100 +117,120 @@ export class ListFichaComponent implements OnInit {
         return item.id; // Cambia 'id' por la propiedad única de tu objeto
     }
     calcularTotalesYPorcentajes(fichas: any[], totalFichas: number) {
-        const totales = fichas.reduce((acc, elemento) => {
-            // Categorías
-            acc.actividades[elemento.actividad.nombre] = (acc.actividades[elemento.actividad.nombre] || 0) + 1;
-        
-            // Encargados
-            acc.encargados[elemento.encargado.nombres] = (acc.encargados[elemento.encargado.nombres] || 0) + 1;
-        
-            // Estados
-            acc.estados[elemento.estado.nombre] = (acc.estados[elemento.estado.nombre] || 0) + 1;
-        
-            // Direcciones
-            const direccion = this.isJSONString(elemento.direccion_geo) ? this.parseJSON(elemento.direccion_geo).nombre : elemento.direccion_geo;
-            acc.direcciones[direccion] = (acc.direcciones[direccion] || 0) + 1;
-        
-            return acc;
-        }, {
-            actividades: {},
-            encargados: {},
-            estados: {},
-            direcciones: {}
-        });
-    
+        const totales = fichas.reduce(
+            (acc, elemento) => {
+                // Categorías
+                acc.actividades[elemento.actividad.nombre] =
+                    (acc.actividades[elemento.actividad.nombre] || 0) + 1;
+
+                // Encargados
+                acc.encargados[elemento.encargado.nombres] =
+                    (acc.encargados[elemento.encargado.nombres] || 0) + 1;
+
+                // Estados
+                acc.estados[elemento.estado.nombre] =
+                    (acc.estados[elemento.estado.nombre] || 0) + 1;
+
+                // Direcciones
+                const direccion = this.isJSONString(elemento.direccion_geo)
+                    ? this.parseJSON(elemento.direccion_geo).nombre
+                    : elemento.direccion_geo;
+                acc.direcciones[direccion] =
+                    (acc.direcciones[direccion] || 0) + 1;
+
+                return acc;
+            },
+            {
+                actividades: {},
+                encargados: {},
+                estados: {},
+                direcciones: {},
+            }
+        );
+
         // Calcular porcentajes
         for (const tipo in totales) {
             for (const key in totales[tipo]) {
                 totales[tipo][key] = {
                     registros: totales[tipo][key],
-                    porcentaje: (totales[tipo][key] / totalFichas) * 100
+                    porcentaje: (totales[tipo][key] / totalFichas) * 100,
                 };
             }
         }
-    
+
         return totales;
     }
-    
+
     // Uso de la función refactorizada
     obtenerTotales(fichas: any[]) {
         return this.calcularTotalesYPorcentajes(fichas, fichas.length);
     }
     check: any = {};
-    ngOnInit() {
-        this.check.DashboardComponent =
-            this.helper.decryptData('DashboardComponent') || false;
-        this.check.ReporteFichaView =
-            this.helper.decryptData('ReporteFichaView') || false;
+    async ngOnInit() {
+        this.helper.llamarspinner('iniciador lista ficha'); // Mostrar el spinner
 
-        if (!this.check.DashboardComponent) {
-            this.router.navigate(['/notfound']);
-            return;
-        }
+        const checkObservables = {
+            DashboardComponent: await this.auth.hasPermissionComponent(
+                '/ficha_sectorial',
+                'get'
+            ),
+            ReporteFichaView: await this.auth.hasPermissionComponent(
+                '/ficha_sectorial',
+                'get'
+            ),
+        };
 
-        if (!this.token) {
-            this.router.navigate(['/auth/login']);
-            throw new Error('Token no encontrado');
-        }
+        forkJoin(checkObservables).subscribe(async (check) => {
+            this.check = check;
+            console.log(check);
+            try {
+                if (!this.check.DashboardComponent) {
+                    this.router.navigate(['/notfound']);
+                    return;
+                }
 
-        this.helper.llamarspinner(); // Mostrar el spinner
-
-        Promise.all([
-            this.cargarRanking(),
-            this.listarEstados(),
-            this.listarCategorias(),
-        ])
-            .then(() => {
-                this.filterForm.get('actividad').valueChanges.subscribe(() => {
-                    this.updateEncargados();
-                });
-                const documentStyle = getComputedStyle(
-                    document.documentElement
-                );
-                const textColor =
-                    documentStyle.getPropertyValue('--text-color');
-                this.options = {
-                    cutout: '60%',
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                color: textColor,
+                Promise.all([
+                    this.cargarRanking(),
+                    this.listarEstados(),
+                    this.listarCategorias(),
+                ])
+                    .then(() => {
+                        this.filterForm
+                            .get('actividad')
+                            .valueChanges.subscribe(() => {
+                                this.updateEncargados();
+                            });
+                        const documentStyle = getComputedStyle(
+                            document.documentElement
+                        );
+                        const textColor =
+                            documentStyle.getPropertyValue('--text-color');
+                        this.options = {
+                            cutout: '60%',
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    labels: {
+                                        color: textColor,
+                                    },
+                                    onHover: this.handleHover,
+                                    onLeave: this.handleLeave,
+                                },
                             },
-                            onHover: this.handleHover,
-                            onLeave: this.handleLeave,
-                        },
-                    },
-                };
-                this.filtro();
-            })
-            .catch((error) => {
-                console.error('Error al cargar datos:', error);
-                // Manejar el error de forma adecuada (mostrar un mensaje al usuario, etc.)
-            })
-            .finally(() => {
-                this.helper.cerrarspinner(); // Ocultar el spinner
-            });
+                        };
+                        this.filtro();
+                    })
+                    .catch((error) => {
+                        console.error('Error al cargar datos:', error);
+                        // Manejar el error de forma adecuada (mostrar un mensaje al usuario, etc.)
+                    });
+            } catch (error) {
+                console.error('Error en ngOnInit:', error);
+                this.router.navigate(['/notfound']);
+            }finally{
+                this.helper.cerrarspinner('iniciador lista ficha'); // Ocultar el spinner
+            }
+        });
     }
 
     async cargarRanking() {
@@ -228,7 +253,11 @@ export class ListFichaComponent implements OnInit {
 
     obtenerValoresUnicosDireccionGeo() {
         const valoresUnicos = new Set(
-            this.constFicha.map((elemento) => this.isJSONString(elemento.direccion_geo)?this.parseJSON(elemento.direccion_geo).nombre:elemento.direccion_geo)
+            this.constFicha.map((elemento) =>
+                this.isJSONString(elemento.direccion_geo)
+                    ? this.parseJSON(elemento.direccion_geo).nombre
+                    : elemento.direccion_geo
+            )
         );
         this.direcciones = Array.from(valoresUnicos).map((nombre) => ({
             nombre,
@@ -236,33 +265,25 @@ export class ListFichaComponent implements OnInit {
     }
 
     listarEstados() {
-        if (this.token) {
-            return this.listar
-                .listarEstadosActividadesProyecto(this.token)
-                .toPromise()
-                .then((response) => {
-                    if (response.data) {
-                        this.estados = response.data;
-                    }
-                });
-        } else {
-            return Promise.resolve(); // Devolver una promesa resuelta si no hay token
-        }
+        return this.listar
+            .listarEstadosActividadesProyecto(this.token)
+            .toPromise()
+            .then((response) => {
+                if (response.data) {
+                    this.estados = response.data;
+                }
+            });
     }
 
     listarCategorias() {
-        if (this.token) {
-            return this.listar
-                .listarTiposActividadesProyecto(this.token)
-                .toPromise()
-                .then((response) => {
-                    if (response.data) {
-                        this.actividades = response.data;
-                    }
-                });
-        } else {
-            return Promise.resolve(); // Devolver una promesa resuelta si no hay token
-        }
+        return this.listar
+            .listarTiposActividadesProyecto(this.token)
+            .toPromise()
+            .then((response) => {
+                if (response.data) {
+                    this.actividades = response.data;
+                }
+            });
     }
 
     async updateEncargados() {
@@ -599,7 +620,7 @@ export class ListFichaComponent implements OnInit {
         this.optionview = rowIndex;
         //console.log(rowIndex);
     }
-    isJSONString(str:string) {
+    isJSONString(str: string) {
         try {
             JSON.parse(str);
             return true;
@@ -611,9 +632,8 @@ export class ListFichaComponent implements OnInit {
         try {
             return JSON.parse(str);
         } catch (e) {
-            console.error("Error parsing JSON string:", e);
+            console.error('Error parsing JSON string:', e);
             return null;
         }
     }
-
 }

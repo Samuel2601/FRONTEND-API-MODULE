@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ListService } from 'src/app/demo/services/list.service';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -6,57 +6,110 @@ import { Router } from '@angular/router';
 import { CreateRolUserComponent } from '../create-rol-user/create-rol-user.component';
 import { App } from '@capacitor/app';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { UpdateService } from 'src/app/demo/services/update.service';
 @Component({
     selector: 'app-index-rol-user',
     templateUrl: './index-rol-user.component.html',
     styleUrl: './index-rol-user.component.scss',
 })
-export class IndexRolUserComponent {
-    roles = [];
-    clonedProducts: { [s: string]: any } = {};
+export class IndexRolUserComponent implements OnInit {
 
+    roles: any[] = [];
+    clonedRoles: { [s: string]: any } = {};
+    permisos: any[] = []; // Array para almacenar los permisos disponibles
+  
     constructor(
-        private listService: ListService,
-        private helper: HelperService,
-        private router: Router,
-        private ref: DynamicDialogRef,
-        private dialogService: DialogService,
-        private auth:AuthService
+      private listService: ListService,
+      private helper: HelperService,
+      private router: Router,
+      private ref: DynamicDialogRef,
+      private dialogService: DialogService,
+      private authService: AuthService,
+      private updateServices: UpdateService,
     ) {}
-
+  
     ngOnInit(): void {
-        this.listarCategorias();
+      this.listarRolesUsuarios();
+      this.listarPermisos(); // Llama a la función para cargar los permisos disponibles
     }
-    token = this.auth.token();
-    listarCategorias(): void {
-        this.listService.listarRolesUsuarios(this.token).subscribe(
-            (response) => {
-                this.roles = response.data;
-                console.log(response.data);
-            },
-            (error) => {
-                //console.log(error);
-            }
-        );
-    }
-    isMobil() {
-        return this.helper.isMobil();
-    }
-    newRol() {
-        if (!this.token) {
-            this.router.navigate(['/auth/login']);
-        } else {
-            this.ref = this.dialogService.open(CreateRolUserComponent, {
-                header: 'Nuevo Rol',
-                width: this.isMobil() ? '100%' : '30%',
-                modal:false,
-            });
-            App.addListener('backButton', (data) => {
-                this.ref.destroy();
-            });
-            this.ref.onClose.subscribe((response: any) => {
-              this.listarCategorias();
-          });
+  
+    listarRolesUsuarios(): void {
+      const token = this.authService.token();
+      this.listService.listarRolesUsuarios(token, { populate: 'permisos' }, false).subscribe(
+        (response) => {
+          this.roles = response.data;
+          console.log(response.data);
+        },
+        (error) => {
+          console.error(error);
         }
+      );
     }
-}
+  
+    listarPermisos(): void {
+      const token = this.authService.token();
+      this.listService.ListarPermisos(token).subscribe(
+        (response) => {
+          this.permisos = response.data;
+        },
+        (error) => {
+          console.error('Error al listar permisos:', error);
+        }
+      );
+    }
+  
+    isMobile(): boolean {
+      return this.helper.isMobil();
+    }
+  
+    newRol(): void {
+      this.ref = this.dialogService.open(CreateRolUserComponent, {
+        header: 'Nuevo Rol',
+        width: this.isMobile() ? '100%' : '30%',
+        modal: false,
+      });
+  
+      this.ref.onClose.subscribe(() => {
+        this.listarRolesUsuarios();
+      });
+    }
+  
+    onRowEditInit(rol: any): void {
+      this.clonedRoles[rol._id] = { ...rol };
+    }
+  
+    onRowEditSave(rol: any): void {
+      const token = this.authService.token();
+      this.updateServices.actualizarRolUsuario(token, rol._id, rol).subscribe(
+        (response) => {
+          console.log('Rol actualizado:', response);
+          // Aquí podrías manejar algún mensaje de éxito si lo deseas
+        },
+        (error) => {
+          console.error('Error al actualizar el rol:', error);
+          // Aquí podrías manejar el error y mostrar un mensaje de error al usuario
+        }
+      );
+    }
+  
+    onRowEditCancel(rol: any, index: number): void {
+      // Restaura el rol original usando el índice proporcionado
+      this.roles[index] = { ...this.clonedRoles[rol._id] };
+      delete this.clonedRoles[rol._id];
+    }
+  
+    addPermission(rol: any): void {
+      rol.permissions.push(''); // Agrega un nuevo permiso vacío al rol
+    }
+  
+    removePermission(rol: any, index: number): void {
+      rol.permissions.splice(index, 1); // Elimina el permiso en el índice especificado del rol
+    }
+
+    cancelEdit() {
+        throw new Error('Method not implemented.');
+        }
+        saveRoles() {
+        throw new Error('Method not implemented.');
+        }
+  }

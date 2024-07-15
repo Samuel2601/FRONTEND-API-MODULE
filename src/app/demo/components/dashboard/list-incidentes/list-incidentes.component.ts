@@ -13,7 +13,7 @@ import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { ChartModule, UIChart } from 'primeng/chart';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, forkJoin } from 'rxjs';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { AuthService } from 'src/app/demo/services/auth.service';
 
@@ -61,7 +61,7 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
         //this.fechaInicio.nativeElement.querySelector('input').blur();
     }
     filtro() {
-        this.helper.llamarspinner();
+        this.helper.llamarspinner('filtro lista incidente');
         this.load_table = false;
         const fechaInicio = this.filterForm.get('fecha_inicio').value;
         const fechaFin = this.filterForm.get('fecha_fin').value;
@@ -136,7 +136,7 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
         }
         this.load_table = true;
         setTimeout(() => {
-            this.helper.cerrarspinner();
+            this.helper.cerrarspinner('filtro lista incidente');
         }, 500);
     }
 
@@ -247,28 +247,45 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
     }
     check: any = {};
     async ngOnInit() {
-        this.check.DashboardComponent =
-            this.helper.decryptData('DashboardComponent') || false;
-        this.check.ReporteIncidenteView =
-            this.helper.decryptData('ReporteIncidenteView') || false;
-        //console.log(this.check.DashboardComponent);
-        if (!this.check.DashboardComponent) {
-            this.router.navigate(['/notfound']);
-        }
-        //this.helper.llamarspinner();
-        if (!this.token) {
-            this.router.navigate(['/auth/login']);
-            //this.helper.cerrarspinner();
-            throw new Error('Token no encontrado');
-        }
-
-        await this.rankin();
-        await this.listCategoria();
-        await this.listarEstado();
-        this.filterForm.get('categoria').valueChanges.subscribe(() => {
-            this.updateSubcategorias();
+        this.helper.llamarspinner('iniciador lista ficha'); // Mostrar el spinner
+        const checkObservables = {
+            DashboardComponent: await this.auth.hasPermissionComponent(
+                '/ficha_sectorial',
+                'get'
+            ),
+            ReporteIncidenteView: await this.auth.hasPermissionComponent(
+                '/incidentes_denuncia',
+                'get'
+            ),
+        };
+        forkJoin(checkObservables).subscribe(async (check) => {
+            this.check = check;
+            console.log(check);
+            try {
+                if (!this.check.DashboardComponent) {
+                    this.router.navigate(['/notfound']);
+                }
+                Promise.all([
+                    this.rankin(),
+                    this.listCategoria(),
+                    this.listarEstado(),
+                ])
+                    .then(() => {
+                        this.filterForm.get('categoria').valueChanges.subscribe(() => {
+                            this.updateSubcategorias();
+                        });
+                    });
+            } catch (error) {
+                console.error('Error en ngOnInit:', error);
+                this.router.navigate(['/notfound']);
+            } finally {
+                this.helper.cerrarspinner('index ficha');
+            }
         });
+
+        
     }
+
     async load_selecte() {
         if (this.cate) {
             let aux = this.categorias.find(
@@ -283,23 +300,21 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
         this.filtro();
     }
     async listarEstado() {
-        if (this.token)
-            this.listar
-                .listarEstadosIncidentes(this.token)
-                .subscribe((response) => {
-                    if (response.data) {
-                        this.estados = response.data;
-                    }
-                });
+        this.listar
+        .listarEstadosIncidentes(this.token)
+        .subscribe((response) => {
+            if (response.data) {
+                this.estados = response.data;
+            }
+        });
     }
     async listCategoria() {
-        if (this.token)
-            this.listar.listarCategorias(this.token).subscribe((response) => {
-                if (response.data) {
-                    this.categorias = response.data;
-                    this.load_selecte();
-                }
-            });
+        this.listar.listarCategorias(this.token).subscribe((response) => {
+            if (response.data) {
+                this.categorias = response.data;
+                this.load_selecte();
+            }
+        }); 
     }
     async updateSubcategorias() {
         this.filterForm.get('subcategoria').setValue([]);
@@ -334,10 +349,10 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
     options: any;
     async rankin() {
         // Obtener todos los incidentes si aún no se han cargado
-        if (this.constIncidente.length === 0 && this.token) {
+        if (this.constIncidente.length === 0) {
             try {
                 const response: any = await this.listar
-                    .listarIncidentesDenuncias(this.token, '', '', false)
+                    .listarIncidentesDenuncias(this.token)
                     .toPromise();
                 if (response.data) {
                     this.constIncidente = response.data;

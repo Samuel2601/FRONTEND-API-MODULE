@@ -581,28 +581,20 @@ export class HomeComponent implements OnInit {
             this.button_active.sub = undefined;
         }
 
-        if (!this.token) {
-            throw this.router.navigate(['/auth/login']);
+        if (this.DashboardComponent) {
+            this.visible_incidente_mirror = true;
         } else {
-            if (this.DashboardComponent) {
-                this.visible_incidente_mirror = true;
-            } else {
-                this.visible_incidente = true;
-            }
+            this.visible_incidente = true;
         }
     }
 
     visible_ficha: boolean = false;
     visible_ficha_mirror: boolean = false;
     ficha() {
-        if (!this.token) {
-            throw this.router.navigate(['/auth/login']);
+        if (this.DashboardComponent) {
+            this.visible_ficha_mirror = true;
         } else {
-            if (this.DashboardComponent) {
-                this.visible_ficha_mirror = true;
-            } else {
-                this.visible_ficha = true;
-            }
+            this.visible_ficha = true;
         }
     }
     visible_trash_mirror: boolean = false;

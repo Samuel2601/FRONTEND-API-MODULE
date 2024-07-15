@@ -25,6 +25,7 @@ import { EditIncidentesDenunciaComponent } from '../edit-incidentes-denuncia/edi
 import { DeleteService } from 'src/app/demo/services/delete.service';
 import { UpdateService } from 'src/app/demo/services/update.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { forkJoin } from 'rxjs';
 @Component({
     selector: 'app-index-incidentes-denuncia',
     templateUrl: './index-incidentes-denuncia.component.html',
@@ -45,7 +46,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
         private admin: AdminService,
         private deleteser: DeleteService,
         private updateService: UpdateService,
-        private auth:AuthService
+        private auth: AuthService
     ) {}
 
     load_lista = true;
@@ -149,64 +150,79 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
     check: any = {};
     token = this.auth.token();
     id = this.admin.identity(this.token);
-    rol = this.admin.roluser(this.token);
 
     async ngOnInit(): Promise<void> {
         //console.log(this.rol);
-        if (!this.modal) this.helperservice.llamarspinner();
-        try {
-            this.check.IndexIncidentesDenunciaComponent =
-                this.helperservice.decryptData(
-                    'IndexIncidentesDenunciaComponent'
-                ) || false;
+        if (!this.modal) this.helperservice.llamarspinner('init index incidente');
+        const checkObservables = {
+            IndexIncidentesDenunciaComponent:
+                await this.auth.hasPermissionComponent(
+                    '/incidentes_denuncia',
+                    'get'
+                ),
+            IndexEstadoIncidenteComponent:
+                await this.auth.hasPermissionComponent(
+                    '/estado_incidente',
+                    'get'
+                ),
+            TotalFilterIncidente: await this.auth.hasPermissionComponent(
+                '/incidentes_denuncia',
+                'get'
+            ),
+            EditIncidentesDenunciaComponent:
+                await this.auth.hasPermissionComponent(
+                    '/incidentes_denuncia',
+                    'put'
+                ),
+            BorrarIncidente: await this.auth.hasPermissionComponent(
+                '/incidentes_denuncia',
+                'delete'
+            ),
+            ViewIncidente: await this.auth.hasPermissionComponent(
+                '/incidentes_denuncia',
+                'get'
+            ),
+            ContestarIncidente: await this.auth.hasPermissionComponent(
+                '/incidentes_denuncia',
+                'get'
+            ),
+            FichaLimitada: await this.auth.hasPermissionComponent(
+                '/incidentes_denuncia',
+                'get'
+            ),
+        };
 
-            this.check.IndexEstadoIncidenteComponent =
-                this.helperservice.decryptData(
-                    'IndexEstadoIncidenteComponent'
-                ) || false;
-
-            this.check.TotalFilterIncidente =
-                this.helperservice.decryptData('TotalFilterIncidente') || false;
-            this.check.EditIncidentesDenunciaComponent =
-                this.helperservice.decryptData(
-                    'EditIncidentesDenunciaComponent'
-                ) || false;
-            this.check.BorrarIncidente =
-                this.helperservice.decryptData('BorrarIncidente') || false;
-
-            this.check.IndexEstadoIncidenteComponent =
-                this.helperservice.decryptData(
-                    'IndexEstadoIncidenteComponent'
-                ) || false;
-            this.check.ViewIncidente =
-                this.helperservice.decryptData('ViewIncidente') || false;
-            this.check.ContestarIncidente =
-                this.helperservice.decryptData('ContestarIncidente') || false;
-            if (!this.check.IndexIncidentesDenunciaComponent) {
+        forkJoin(checkObservables).subscribe(async (check) => {
+            this.check = check;
+            console.log(check);
+            try {
+                if (!this.check.IndexIncidentesDenunciaComponent) {
+                    this.router.navigate(['/notfound']);
+                    return;
+                }
+                await this.buscarencargos();
+            } catch (error) {
+                console.error('Error en ngOnInit:', error);
                 this.router.navigate(['/notfound']);
+            } finally {
+                setTimeout(() => {
+                    if (!this.modal) this.helperservice.cerrarspinner('init index incidente');
+                }, 1000);
+              
             }
-            this.check.FichaLimitada =
-                this.helperservice.decryptData('FichaLimitada') || false;
-
-            ////console.log(this.check);
-            await this.buscarencargos();
-        } catch (error) {
-            ////console.error('Error al verificar permisos:', error);
-            this.router.navigate(['/notfound']);
-        }
+        });
     }
 
     encargos: any[] = [];
     async buscarencargos() {
         this.listService
-            .listarEncargadosCategorias(this.token, 'encargado', this.id)
+            .listarEncargadosCategorias(this.token, { encargado: this.id })
             .subscribe((response) => {
-                //console.log(response);
+                console.log(response);
                 if (response.data) {
                     this.encargos = response.data;
                 }
                 this.listarIncidentesDenuncias();
-                if (!this.modal) this.helperservice.cerrarspinner();
             });
     }
     itemh: any[] = [];
@@ -214,36 +230,33 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
     listarIncidentesDenuncias(): void {
         this.itemh = [];
         this.loadpath = false;
-        if (!this.modal) {
-            this.helperservice.llamarspinner();
-        }
         this.load_lista = true;
-        if (!this.token) {
-            throw this.router.navigate(['/auth/login']);
-        }
 
-        let filtroServicio = '';
-        let valorServicio: any;
+        let filtroServicio: string[];
+        let valorServicio: any[];
 
         if (this.filtro && this.valor) {
-            filtroServicio = this.filtro;
-            valorServicio = this.valor;
+            filtroServicio.push(this.filtro);
+            valorServicio.push(this.valor);
             this.itemh.push({ label: this.valor });
         }
 
         if (!this.check.TotalFilterIncidente && this.encargos.length == 0) {
-            filtroServicio = 'ciudadano';
-            valorServicio = this.id;
+            filtroServicio.push('ciudadano');
+            valorServicio.push(this.id);
         }
-        //console.log(filtroServicio, valorServicio,this.encargos);
+        console.log(filtroServicio, valorServicio, this.encargos);
         this.listService
             .listarIncidentesDenuncias(
                 this.token,
-                filtroServicio,
-                valorServicio
+                this.helperservice.construirFiltros(
+                    filtroServicio,
+                    valorServicio
+                )
             )
             .subscribe(
                 (response) => {
+                    console.log(response);
                     if (response.data) {
                         this.incidentesDenuncias = response.data;
                         if (
@@ -363,10 +376,6 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                     }
                 }
             );
-
-        if (!this.modal) {
-            this.helperservice.cerrarspinner();
-        }
     }
     visible: boolean = false;
     option: any;
@@ -382,11 +391,15 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
         });
     }
     editar(edit: boolean) {
-        let editor=edit;
-        
-        if(this.encargos.find(element=>element.categoria._id==this.option.categoria._id)){
+        let editor = edit;
+
+        if (
+            this.encargos.find(
+                (element) => element.categoria._id == this.option.categoria._id
+            )
+        ) {
             editor = true;
-            console.log(this.encargos,edit,this.option);
+            console.log(this.encargos, edit, this.option);
         }
         this.ref = this.dialogService.open(EditIncidentesDenunciaComponent, {
             header: 'Editar Incidente',

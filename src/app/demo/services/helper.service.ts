@@ -25,10 +25,7 @@ export class HelperService {
     private mapComponent: LayersComponent | null = null;
     private homeComponent: HomeComponent | null = null;
 
-    constructor(
-        private dialogService: DialogService,
-        private router: Router,
-    ) {}
+    constructor(private dialogService: DialogService, private router: Router) {}
 
     isMobil(): boolean {
         return window.innerWidth <= 575;
@@ -101,7 +98,8 @@ export class HelperService {
         return false;
     }
 
-    llamarspinner(mensaje?: string[], tiempo?: number) {
+    llamarspinner(id:any,mensaje?: string[], tiempo?: number) {
+        console.log("Componente",id);
         if (this.llamadasActivas === 0) {
             this.spiner = this.dialogService.open(SpinnerComponent, {
                 header: 'Cargando',
@@ -113,18 +111,32 @@ export class HelperService {
         this.llamadasActivas++;
     }
 
-    cerrarspinner() {
+    cerrarspinner(id:any) {
         this.llamadasActivas--;
-        if (this.llamadasActivas === 0 && this.spiner !== null) {
+        console.log("Componente",id);
+        console.log(`Llamadas activas: ${this.llamadasActivas}`);
+    
+        if (this.llamadasActivas === 0) {
             setTimeout(() => {
-                try {
-                    this.spiner.destroy();
-                } catch (error) {
-                    console.error('Error closing spinner:', error);
+                if (this.spiner !== null) {
+                    try {
+                        console.log('Intentando destruir el spinner');
+                        this.spiner.destroy();
+                        this.spiner = null; // Asegúrate de establecerlo a null después de destruirlo
+                        console.log('Spinner destruido correctamente');
+                    } catch (error) {
+                        console.error('Error closing spinner:', error);
+                    }
+                } else {
+                    console.log('Spinner ya es null, no es necesario destruirlo');
                 }
-            }, 200);
+            }, 1000);
+        } else {
+            console.log('Aún hay llamadas activas, no se destruye el spinner');
         }
     }
+    
+    
 
     setMapComponent(mapComponent: LayersComponent) {
         this.mapComponent = mapComponent;
@@ -161,11 +173,11 @@ export class HelperService {
         }
     }
     showLoading() {
-        this.llamarspinner();
+        this.llamarspinner('helper');
     }
 
     hideLoading() {
-        this.cerrarspinner();
+        this.cerrarspinner('helper');
     }
 
     navigateToUrlWithDelay(url: string, delay: number) {
@@ -220,5 +232,36 @@ export class HelperService {
         return this.stbarrioficha.value
             ? this.stbarrioficha.value.encontrarMaximo()
             : undefined;
+    }
+    construirFiltros(
+        filtroServicio: string[],
+        valorServicio: any[]
+    ): { [key: string]: any } {
+        console.log(filtroServicio, valorServicio);
+        // Construir el objeto de filtros
+        const filtros: { [key: string]: any } = {};
+        try {
+            // Verificar si los arrays tienen la misma longitud
+            if (filtroServicio.length !== valorServicio.length) {
+                console.error(
+                    'Los arrays de filtros y valores deben tener la misma longitud'
+                );
+                return {};
+            }
+
+            // Si los arrays están vacíos, devolver un objeto vacío
+            if (filtroServicio.length === 0 || valorServicio.length === 0) {
+                return {};
+            }
+
+            for (let i = 0; i < filtroServicio.length; i++) {
+                filtros[filtroServicio[i]] = valorServicio[i];
+            }
+            console.log(filtros);
+            return filtros;
+        } catch (error) {
+            console.error(error);
+            return filtros;
+        }
     }
 }

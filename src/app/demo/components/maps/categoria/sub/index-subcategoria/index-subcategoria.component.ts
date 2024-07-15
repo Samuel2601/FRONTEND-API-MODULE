@@ -26,12 +26,7 @@ export class IndexSubcategoriaComponent {
     }
     check: any = {};
     ngOnInit(): void {
-        //this.helperservice.llamarspinner();
-        if (!this.token) {
-            this.router.navigate(['/auth/login']);
-            //this.helperservice.cerrarspinner();
-            throw new Error('Token no encontrado');
-        }
+        this.helperservice.llamarspinner('subcategoria');
         this.check.IndexSubcategoriaComponent =
             this.helperservice.decryptData('IndexSubcategoriaComponent') ||
             false;
@@ -43,9 +38,6 @@ export class IndexSubcategoriaComponent {
     token = this.auth.token();
     listarSubcategorias(): void {
         this.load_lista = true;
-        if (!this.token) {
-            throw this.router.navigate(['/auth/login']);
-        }
         this.listService
             .listarSubcategorias(this.token, 'categoria', this.id)
             .subscribe(
@@ -57,7 +49,7 @@ export class IndexSubcategoriaComponent {
                     //console.log(error);
                 }
             );
-        this.helperservice.cerrarspinner();
+        this.helperservice.cerrarspinner('subcategoria');
     }
     onRowEditInit(subcategoria: any) {
         this.clonedProducts[subcategoria._id as string] = { ...subcategoria };

@@ -251,17 +251,12 @@ export class MapaTrashComponent implements OnInit {
         }
     }
     async ngOnInit() {
-        this.helperService.llamarspinner();
+        this.helperService.llamarspinner('init mapa basurero');
         App.addListener('backButton', (data) => {
             this.sidebarVisible ? (this.sidebarVisible = false) : '';
             this.mostrarficha ? (this.mostrarficha = false) : '';
             this.mostrarincidente ? (this.mostrarincidente = false) : '';
         });
-        if (!this.token) {
-            this.router.navigate(['/auth/login']);
-            this.helperService.cerrarspinner();
-            throw new Error('Token no encontrado');
-        }
 
         await this.getWFSgeojson(this.urlgeoser);
         this.recargarmapa();
@@ -270,7 +265,7 @@ export class MapaTrashComponent implements OnInit {
             this.cargarRecolectores();
         }, 1000);
         setTimeout(() => {
-            this.helperService.cerrarspinner();
+            this.helperService.cerrarspinner('init mapa basurero');
         }, 1500);
     }
     addtemplateBG() {

@@ -41,9 +41,6 @@ export class IndexActividadProyectoComponent implements OnInit {
   }
   token=this.auth.token();
   listarActividadProyecto(){
-    if(!this.token){
-      throw this.router.navigate(["/auth/login"]);
-    }
     this.listService.listarTiposActividadesProyecto(this.token).subscribe(response=>{
       //console.log(response);
       if(response.data){
