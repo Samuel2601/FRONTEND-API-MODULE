@@ -175,8 +175,9 @@ export class StackFichasComponent implements OnInit {
         // Obtener todos los incidentes si aún no se han cargado
         if (this.constFicha.length === 0) {
             try {
+                console.log(this.filtro, this.valor);
                 const response: any = await this.listar
-                    .listarFichaSectorial(this.token, this.filtro, this.valor)
+                    .listarFichaSectorial(this.token)
                     .toPromise();
                 ////console.log(response);
                 if (response.data) {

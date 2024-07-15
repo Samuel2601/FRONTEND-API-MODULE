@@ -211,7 +211,7 @@ export class ListFichaComponent implements OnInit {
     async cargarRanking() {
         if (this.constFicha.length === 0) {
             return this.listar
-                .listarFichaSectorial(this.token, '', '')
+                .listarFichaSectorial(this.token)
                 .toPromise()
                 .then((response) => {
                     if (response.data) {
@@ -299,7 +299,7 @@ export class ListFichaComponent implements OnInit {
         if (this.constFicha.length === 0) {
             try {
                 const response: any = this.listar
-                    .listarFichaSectorial(this.token, '', '')
+                    .listarFichaSectorial(this.token)
                     .toPromise();
                 if (response.data) {
                     this.constFicha = response.data;

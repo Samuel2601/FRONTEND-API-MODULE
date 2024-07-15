@@ -38,7 +38,7 @@ export class StackbarriofichaComponent {
         if (this.constFicha.length === 0) {
             try {
                 const response: any = await this.listar
-                    .listarFichaSectorial(this.token, '', '')
+                    .listarFichaSectorial(this.token)
                     .toPromise();
                 if (response.data) {
                     this.constFicha = response.data;

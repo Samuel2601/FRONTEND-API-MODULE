@@ -22,14 +22,25 @@ export class ListService {
     return this.http.get(this.url + 'obtenerUserPorCriterio',  { headers: headers,  });
   }
 
-  listarFichaSectorial(token: any, campo?: string, valor?: any): Observable<any> {
+  listarFichaSectorial(token: any, campos: any = {}, all: boolean = true): Observable<any> {
     let headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      Authorization: token,
+        'Content-Type': 'application/json',
+        Authorization: token,
     });
-    
-    return this.http.get(this.url + 'ficha_sectorial',  { headers: headers,  });
-  }
+
+    // Construir los parámetros de la URL
+    let params = new HttpParams();
+    if (all) {
+        params = params.append('populate', 'all');
+    }
+    // Añadir campos de filtrado a los parámetros
+    Object.keys(campos).forEach((campo) => {
+        params = params.append(campo, campos[campo]);
+    });
+
+    return this.http.get(this.url + 'ficha_sectorial', { headers: headers, params: params });
+}
+
 
   listarIncidentesDenuncias(token: any, campo?: string, valor?: any,all?:boolean): Observable<any> {
     let headers = new HttpHeaders({
