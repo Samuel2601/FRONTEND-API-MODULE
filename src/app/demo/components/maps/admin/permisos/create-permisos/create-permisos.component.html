@@ -1,69 +1,48 @@
-<div class="card-body">
-    <div class="col-12">
-        <div class="p-fluid p-formgrid grid">
-            <div class="field col-4">
-                <label for="componenteSelect" class="form-label"
-                    >Seleccionar componente
-                </label>
-                <p-dropdown
-                    appendTo="body"
-                    [options]="componentes"
-                    [(ngModel)]="newpermiso.nombreComponente"
-                    optionLabel="componente"
-                    placeholder="Selecicona la Componente"
-                >
-                    <ng-template pTemplate="selectedItem">
-                        <div
-                            class="flex align-items-center gap-2"
-                            *ngIf="newpermiso.nombreComponente"
-                        >
-                            <div>{{ newpermiso.nombreComponente }}</div>
-                        </div>
-                    </ng-template>
-                    <ng-template let-componente pTemplate="item">
-                        <div class="flex align-items-center gap-2">
-                            <div>{{ componente }}</div>
-                        </div>
-                    </ng-template>
-                </p-dropdown>
-            </div>
-
-            <div class="field col-4">
-                <label for="rol" class="form-label">Rol</label>
-                <p-multiSelect
-                    appendTo="body"
-                    [options]="roles"
-                    [(ngModel)]="newpermiso.rolesPermitidos"
-                    placeholder="Seleccion los roles"
-                    optionLabel="rol"
-                >
-                    <ng-template let-value pTemplate="selectedItems">
-                        <div
-                            class="inline-flex align-items-center gap-2 px-1"
-                            *ngFor="let option of value"
-                        >
-                            <div>{{ option.nombre }},</div>
-                        </div>
-                        <div *ngIf="!value || value.length === 0">
-                            Select Countries
-                        </div>
-                    </ng-template>
-                    <ng-template let-country pTemplate="item">
-                        <div class="flex align-items-center gap-2">
-                            <div>{{ country.nombre }}</div>
-                        </div>
-                    </ng-template>
-                </p-multiSelect>
-            </div>
-
-            <button
-                pButton
-                type="submit"
-                class="btn btn-primary"
-                (click)="enviar()"
-            >
-                Guardar
-            </button>
+<div class="card">
+    <div class="flex flex-wrap gap-3 mb-4">
+        <div class="flex-auto">
+            <label for="integer" class="font-bold block mb-2"> Permiso </label>
+            <input
+                pInputText
+                id="integer"
+                pKeyFilter="int"
+                class="w-full"
+                [(ngModel)]="newpermiso.name"
+            />
         </div>
+        <div class="flex-auto">
+            <label for="number" class="font-bold block mb-2"> Método </label>
+            <p-dropdown
+                appendTo="body"
+                [options]="method_arr"
+                [(ngModel)]="newpermiso.method"
+                optionLabel="componente"
+                placeholder="Selecicona la Componente"
+            >
+                <ng-template pTemplate="selectedItem">
+                    <div
+                        class="flex align-items-center gap-2"
+                        *ngIf="newpermiso.method"
+                    >
+                        <div>{{ newpermiso.method }}</div>
+                    </div>
+                </ng-template>
+                <ng-template let-componente pTemplate="item">
+                    <div class="flex align-items-center gap-2">
+                        <div>{{ componente }}</div>
+                    </div>
+                </ng-template>
+            </p-dropdown>
+        </div>
+    </div>
+    <div class="flex flex-wrap gap-3">
+        <button
+            pButton
+            type="submit"
+            class="btn btn-primary"
+            (click)="enviar()"
+        >
+            Guardar
+        </button>
     </div>
 </div>

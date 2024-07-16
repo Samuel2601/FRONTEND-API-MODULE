@@ -27,7 +27,9 @@
             ></p-button>
         </div>
 
-        <p-table [paginatorDropdownAppendTo]="'body'"
+        <p-table
+            [paginatorDropdownAppendTo]="'body'"
+            #dt
             [value]="usuarios"
             *ngIf="usuarios.length > 0 && !load_lista"
             [scrollable]="true"
@@ -37,14 +39,31 @@
             [rowsPerPageOptions]="[10, 25, 50]"
             currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
             [paginator]="true"
+            [globalFilterFields]="['name', 'last_name', 'email', 'telf', 'dni']"
         >
+            <ng-template pTemplate="caption">
+                <div class="flex">
+                    <p-iconField iconPosition="left" class="ml-auto">
+                        <p-inputIcon>
+                            <i class="pi pi-search"></i>
+                        </p-inputIcon>
+                        <input
+                            pInputText
+                            type="text"
+                            (input)="
+                                dt.filterGlobal(
+                                    $any($event.target).value,
+                                    'contains'
+                                )
+                            "
+                            placeholder="Buscar palabra clave"
+                        />
+                    </p-iconField>
+                </div>
+            </ng-template>
             <ng-template pTemplate="header">
                 <tr>
-                    <th
-                        colspan="2"
-                        pSortableColumn="name"
-                        style="width: 20%"
-                    >
+                    <th colspan="2" pSortableColumn="name" style="width: 20%">
                         Nombre <p-sortIcon field="name"></p-sortIcon>
                     </th>
                     <th
@@ -69,7 +88,7 @@
                     <th pSortableColumn="createdAt" style="width: 20%">
                         Registro <p-sortIcon field="createdAt"></p-sortIcon>
                     </th>
-                    
+
                     <th>Opción</th>
                 </tr>
             </ng-template>

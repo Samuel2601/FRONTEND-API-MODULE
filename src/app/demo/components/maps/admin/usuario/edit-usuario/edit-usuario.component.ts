@@ -1,20 +1,21 @@
 import { AfterViewInit, Component, OnInit } from '@angular/core';
-import { FilterService } from 'src/app/demo/services/filter.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AdminService } from 'src/app/demo/services/admin.service';
-import { UpdateService } from 'src/app/demo/services/update.service';
-import { GLOBAL } from 'src/app/demo/services/GLOBAL';
-import { Capacitor } from '@capacitor/core';
-import { HelperService } from 'src/app/demo/services/helper.service';
-import { ListService } from 'src/app/demo/services/list.service';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Message, MessageService } from 'primeng/api';
 import { DynamicDialogConfig, DialogService } from 'primeng/dynamicdialog';
 import { NativeBiometric } from 'capacitor-native-biometric';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { UpdateService } from 'src/app/demo/services/update.service';
+import { GLOBAL } from 'src/app/demo/services/GLOBAL';
+import { HelperService } from 'src/app/demo/services/helper.service';
+import { FilterService } from 'src/app/demo/services/filter.service';
+import { ListService } from 'src/app/demo/services/list.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AdminService } from 'src/app/demo/services/admin.service';
+
 @Component({
     selector: 'app-edit-usuario',
     templateUrl: './edit-usuario.component.html',
-    styleUrl: './edit-usuario.component.scss',
+    styleUrls: ['./edit-usuario.component.scss'],
     providers: [MessageService, DialogService],
 })
 export class EditUsuarioComponent implements OnInit, AfterViewInit {
@@ -22,6 +23,13 @@ export class EditUsuarioComponent implements OnInit, AfterViewInit {
     modal: boolean = true;
     editing: boolean = true;
     url = GLOBAL.url;
+    token: any;
+    id: any;
+    messages: Message[] = [];
+    archivoSeleccionado: File | null = null;
+    load_form: boolean = false;
+    nombreArchivo: any;
+
     constructor(
         private _route: ActivatedRoute,
         private router: Router,
@@ -33,197 +41,165 @@ export class EditUsuarioComponent implements OnInit, AfterViewInit {
         private messageService: MessageService,
         private config: DynamicDialogConfig,
         private dialogService: DialogService,
-        private auth:AuthService
+        private auth: AuthService,
+        private http: HttpClient
     ) {}
+    ngAfterViewInit(): void {
+        throw new Error('Method not implemented.');
+    }
 
-    ngAfterViewInit(): void {}
-
-    token: any = this.auth.token();
-    id: any;
     ngOnInit(): void {
+        // Obtener el token de autenticación
+        this.token = this.auth.token();
+
+        // Verificar si se recibe un ID a través de la configuración del diálogo
         if (this.config && this.config.data && this.config.data.id) {
             this.id = this.config.data.id;
             this.modal = true; // Si config.data.id está definido, se trata de un dialog
         } else {
+            // Suscribirse a los cambios de la ruta para determinar si es un modal o no
             this.router.events.subscribe((val) => {
-                // Verificar la ruta actual y ajustar el valor de modal
-                if (this.router.url == '/maps/edit-user') {
-                    this.modal = false; // Si la ruta es /maps/edit-user, modal es false
-                } else {
-                    this.modal = true; // En cualquier otra ruta, modal es true
-                }
+                this.modal = this.router.url !== '/maps/edit-user';
             });
         }
 
+        // Si no se ha definido un ID, obtenerlo del servicio adminservice
         if (!this.id) {
             this.id = this.adminservice.identity(this.token);
             this.editing = true;
         } else {
             this.editing = this.id == this.adminservice.identity(this.token);
-            //console.log(this.editing,this.id, this.adminservice.identity(this.token));
         }
 
+        // Obtener la lista de roles disponibles
         this.listarRol();
+
+        // Obtener los detalles del usuario para editar
         this.obteneruser(this.id);
     }
-
-    listrol!: any[];
-    listarRol() {
+    listrol:any;
+    listarRol(): void {
         this.list.listarRolesUsuarios(this.token).subscribe((response) => {
             if (response.data) {
                 this.listrol = response.data;
             }
         });
     }
-    isMobil() {
-        return this.helper.isMobil();
-    }
-    messages: Message[] | undefined;
-    obteneruser(id: any) {
+
+    obteneruser(id: any): void {
         this._filterservice.obtenerUsuario(this.token, id).subscribe(
             (response) => {
                 this.datauser = response.data;
-                this.datauser.password = '';
-                //console.log(this.datauser);
-                if (this.datauser.password_temp != 'undefined') {
-                    this.messages = [
-                        {
-                            severity: 'error',
-                            detail: 'Por favor de cambiar su contraseña y guardar',
-                        },
-                    ];
+                this.datauser.password = ''; // Limpiar la contraseña temporal si existe
+                if (this.datauser.password_temp) {
+                    this.messages = [{
+                        severity: 'error',
+                        detail: 'Por favor cambie su contraseña y guarde.',
+                    }];
                 }
             },
             (error) => {
                 this.messageService.add({
                     severity: 'error',
-                    summary: ('(' + error.status + ')').toString(),
+                    summary: `(${error.status})`,
                     detail: error.error.message || 'Sin conexión',
                 });
             }
         );
     }
-    updateUser() {
+
+    updateUser(): void {
+        // Limpiar la contraseña temporal si existe
         if (this.datauser.password_temp) {
-            this.datauser.password_temp = undefined;
+            this.datauser.password_temp = '';
         }
-        this.updateservice
-            .actualizarUsuario(
-                this.token,
-                this.id,
-                this.datauser,
-                this.archivoSeleccionado
-            )
-            .subscribe(
-                async (response) => {
-                    //console.log(response);
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Actualizado',
-                        detail: response.message,
-                    });
-                    const correoCookiepass = localStorage.getItem('pass');
-                    if (
-                        this.helper.isMobil() &&
-                        (!correoCookiepass ||
-                            this.datauser.password !=
-                                this.helper.decryptDataLogin(correoCookiepass))
-                    ) {
-                        // Realizar autenticación biométrica
-                        const result = await NativeBiometric.isAvailable();
-                        if (result.isAvailable) {
-                            const verified =
-                                await NativeBiometric.verifyIdentity({
-                                    reason: 'Para un facil inicio de sesión',
-                                    title: 'Inicio de Sesión',
-                                    subtitle: 'Coloque su dedo en el sensor.',
-                                    description:
-                                        'Se requiere Touch ID o Face ID',
-                                })
-                                    .then(() => true)
-                                    .catch(() => false);
 
-                            if (!verified) {
-                                this.messageService.add({
-                                    severity: 'error',
-                                    summary: '(fallo)',
-                                    detail: 'Sin biometria',
-                                });
-                                // Si la autenticación biométrica falla, muestra un mensaje al usuario o realiza alguna acción adecuada
-                                //return;
-                            } else {
-                                localStorage.setItem(
-                                    'pass',
-                                    this.helper.encryptDataLogin(
-                                        this.datauser.password,
-                                        'buzon'
-                                    )
-                                );
-                            }
-                        }
+        // Construir FormData con los datos del usuario
+        const formData = new FormData();
+        for (const key in this.datauser) {
+            if (this.datauser.hasOwnProperty(key)) {
+                const value = this.datauser[key];
+                if (value !== undefined && value !== null) {
+                    if (key === 'role' && typeof value === 'object' && value._id) {
+                        formData.append('role', value._id);
+                    } else {
+                        formData.append(key, value.toString());
                     }
-                    setTimeout(() => {
-                        this.router.navigate(['/home']);
-                    }, 500);
-                },
-                (error) => {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: ('(' + error.status + ')').toString(),
-                        detail: error.error.message || 'Sin conexión',
-                    });
                 }
-            );
-    }
-
-    hover = false;
-    nombreArchivo: any;
-    archivoSeleccionado: File | any;
-
-    activarHover() {
-        this.hover = true;
-    }
-
-    desactivarHover() {
-        this.hover = false;
-    }
-    load_form: boolean = false;
-    onFilesSelected2(event: any): void {
-        this.load_form = true;
-        const files: FileList = event.target.files;
-        ////console.log(files);
-        if (files && files.length > 0) {
-            for (let i = 0; i < Math.min(files.length, 3); i++) {
-                const file = files[i];
-                if (!file.type.startsWith('image/')) {
-                    alert('Por favor, seleccione archivos de imagen.');
-                    return;
-                }
-                if (file.size > 4 * 1024 * 1024) {
-                    alert(
-                        'Por favor, seleccione archivos de imagen que sean menores a 4MB.'
-                    );
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = (e: any) => {
-                    this.nombreArchivo = e.target.result;
-                };
-                reader.readAsDataURL(file);
-                //console.log(file, this.nombreArchivo);
-                this.archivoSeleccionado = file;
             }
         }
-        setTimeout(() => {
-            this.load_form = false;
-        }, 1500);
+
+        // Agregar la foto seleccionada si existe
+        if (this.archivoSeleccionado) {
+            formData.append('photo', this.archivoSeleccionado);
+        }
+
+        console.log(formData); // Verificar que formData tenga los datos correctos antes de enviar
+
+        // Realizar la solicitud de actualización utilizando el servicio de actualización
+        this.updateservice.actualizarUsuario(this.token, this.id, formData).subscribe(
+            async (response) => {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Actualizado',
+                    detail: response.message,
+                });
+
+                // Si es dispositivo móvil y la contraseña cambió, realizar autenticación biométrica
+                const correoCookiepass = localStorage.getItem('pass');
+                if (
+                    this.helper.isMobil() &&
+                    (!correoCookiepass ||
+                        this.datauser.password !==
+                            this.helper.decryptDataLogin(correoCookiepass))
+                ) {
+                    const result = await NativeBiometric.isAvailable();
+                    if (result.isAvailable) {
+                        const verified = await NativeBiometric.verifyIdentity({
+                            reason: 'Para un fácil inicio de sesión',
+                            title: 'Inicio de Sesión',
+                            subtitle: 'Coloque su dedo en el sensor.',
+                            description: 'Se requiere Touch ID o Face ID',
+                        }).then(() => true).catch(() => false);
+
+                        if (!verified) {
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: '(fallo)',
+                                detail: 'Sin biometría',
+                            });
+                        } else {
+                            localStorage.setItem(
+                                'pass',
+                                this.helper.encryptDataLogin(
+                                    this.datauser.password,
+                                    'buzon'
+                                )
+                            );
+                        }
+                    }
+                }
+
+                // Redirigir a la página de inicio después de actualizar
+                setTimeout(() => {
+                    this.router.navigate(['/home']);
+                }, 500);
+            },
+            (error) => {
+                console.error(error);
+                this.messageService.add({
+                    severity: 'error',
+                    summary: `(${error.status})`,
+                    detail: error.error.message || 'Sin conexión',
+                });
+            }
+        );
     }
+
     onFilesSelected(event: any): void {
         this.load_form = true;
         const files: FileList = event.files;
         this.nombreArchivo = URL.createObjectURL(files[0]);
-        //console.log(files);
         this.archivoSeleccionado = files[0];
         setTimeout(() => {
             this.load_form = false;

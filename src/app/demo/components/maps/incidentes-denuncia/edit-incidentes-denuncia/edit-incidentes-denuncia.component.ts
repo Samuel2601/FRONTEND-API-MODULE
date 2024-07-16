@@ -16,6 +16,7 @@ import {
 } from '@capacitor/camera';
 import { UpdateService } from 'src/app/demo/services/update.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
     selector: 'app-edit-incidentes-denuncia',
@@ -35,7 +36,7 @@ export class EditIncidentesDenunciaComponent implements OnInit {
         private messageService: MessageService,
         private update: UpdateService,
         private ref: DynamicDialogRef,
-        private auth:AuthService
+        private auth: AuthService
     ) {
         this.incidencia = this.fb.group({
             direccion_geo: [{ value: '', disabled: true }],
@@ -82,34 +83,50 @@ export class EditIncidentesDenunciaComponent implements OnInit {
     ];
     edit: boolean;
     async ngOnInit() {
-        console.log('Edición');
-        this.load_form = false;
-        this.check.EditIncidentesDenunciaComponent =
-            this.helper.decryptData('EditIncidentesDenunciaComponent') || false;
-        this.check.EditIncidenteAll =
-            this.helper.decryptData('EditIncidenteAll') || false;
-        this.check.ContestarIncidente =
-            this.helper.decryptData('ContestarIncidente') || false;
-        if (!this.check.EditIncidentesDenunciaComponent) {
-            this.router.navigate(['/notfound']);
-        }
+        this.helper.llamarspinner('edit incidente');
+        const checkObservables = {
+            EditIncidentesDenunciaComponent:
+                await this.auth.hasPermissionComponent(
+                    '/incidentes_denuncia',
+                    'put'
+                ),
+            EditIncidenteAll: await this.auth.hasPermissionComponent(
+                '/incidentes_denuncia',
+                'put'
+            ),
+            ContestarIncidente: await this.auth.hasPermissionComponent(
+                '/incidentes_denuncia',
+                'put'
+            ),
+        };
+        forkJoin(checkObservables).subscribe(async (check) => {
+            this.check = check;
+            try {
+                this.load_form = false;
+                if (!this.check.EditIncidentesDenunciaComponent) {
+                    this.router.navigate(['/notfound']);
+                }
 
-        if (this.conf) {
-            this.id = this.conf.data.id;
-            this.edit = this.conf.data.edit;
-            this.obtenerincidente();
-            this.listarCategorias();
-            this.listartEstados();
-            if (this.edit) {
-                this.incidencia.get('estado').enable();
-                this.incidencia.get('encargado').enable();
-                this.incidencia.get('respuesta').enable();
-                this.incidencia.get('evidencia').enable();
+                if (this.conf) {
+                    this.id = this.conf.data.id;
+                    this.edit = this.conf.data.edit;
+                    this.obtenerincidente();
+                    this.listarCategorias();
+                    this.listartEstados();
+                    if (this.edit) {
+                        this.incidencia.get('estado').enable();
+                        this.incidencia.get('encargado').enable();
+                        this.incidencia.get('respuesta').enable();
+                        this.incidencia.get('evidencia').enable();
+                    }
+                }
+            } catch (error) {
+                console.error('Error en ngOnInit:', error);
+                this.router.navigate(['/notfound']);
+            } finally {
+                this.helper.cerrarspinner('edit incidente');
             }
-        }
-        setTimeout(() => {
-            //console.log(this.incidencia,this.categorias,this.subcategorias,this.estados)
-        }, 2000);
+        });
     }
     obtenerincidente() {
         this.filter
@@ -150,11 +167,14 @@ export class EditIncidentesDenunciaComponent implements OnInit {
     }
     enviar() {
         //console.log(this.incidencia);
-        if( this.incidencia.get('ciudadano').value?._id != this.id_user || this.edit){
+        if (
+            this.incidencia.get('ciudadano').value?._id != this.id_user ||
+            this.edit
+        ) {
             this.incidencia.get('encargado').enable();
             this.incidencia.get('encargado').setValue(this.id_user);
         }
-     
+
         this.update
             .actualizarIncidenteDenuncia(
                 this.token,
@@ -244,7 +264,6 @@ export class EditIncidentesDenunciaComponent implements OnInit {
     }
     estados: any = [];
     listartEstados() {
-
         this.listService.listarEstadosIncidentes(this.token).subscribe(
             (response) => {
                 ////console.log(response);

@@ -23,7 +23,7 @@ import {
 } from '@angular/common';
 import * as turf from '@turf/turf';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
-import { Subscription, debounceTime, map } from 'rxjs';
+import { Subscription, debounceTime, forkJoin, map } from 'rxjs';
 import { Capacitor, Plugins } from '@capacitor/core';
 const { Geolocation } = Plugins;
 import { App } from '@capacitor/app';
@@ -114,7 +114,7 @@ interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
         ConfirmDialogModule,
         ToastModule,
         BadgeModule,
-        CalendarModule
+        CalendarModule,
     ],
     templateUrl: './mapa-ficha.component.html',
     styleUrl: './mapa-ficha.component.scss',
@@ -241,7 +241,7 @@ export class MapaFichaComponent implements OnInit {
         private config: PrimeNGConfig,
         private adminservice: AdminService,
         private createService: CreateService,
-        private auth:AuthService
+        private auth: AuthService
     ) {
         this.fichaSectorialForm = this.fb.group({
             descripcion: ['', Validators.required],
@@ -251,7 +251,7 @@ export class MapaFichaComponent implements OnInit {
             actividad: [undefined, Validators.required],
             fecha_evento: [''],
             observacion: [''],
-            foto:[]
+            foto: [],
         });
         this.subscription = this.layoutService.configUpdate$
             .pipe(debounceTime(25))
@@ -304,59 +304,69 @@ export class MapaFichaComponent implements OnInit {
         }
     }
     async ngOnInit() {
-        this.helperService.llamarspinner('init mapa ficha');
-        this.listCategoria();
-        App.addListener('backButton', (data) => {
-            this.sidebarVisible ? (this.sidebarVisible = false) : '';
-            this.mostrarficha ? (this.mostrarficha = false) : '';
-            this.mostrarincidente ? (this.mostrarincidente = false) : '';
-        });
-
-        try {
-            this.check.IndexFichaSectorialComponent =
-                this.helperService.decryptData(
-                    'IndexFichaSectorialComponent'
-                ) || false; 
-            if(!this.check.IndexFichaSectorialComponent){
-                this.messages.push({
-                    severity: 'danger',
-                    summary: 'ERROR',
-                    detail: 'No tienes Permisos para crear esto.',
+        this.helperService.llamarspinner('init index layer');
+        const checkObservables = {
+            IndexFichaSectorialComponent:
+                await this.auth.hasPermissionComponent(
+                    '/ficha_sectorial',
+                    'get'
+                ),
+            IndexIncidentesDenunciaComponent:
+                await this.auth.hasPermissionComponent(
+                    '/incidentes_denuncia',
+                    'get'
+                ),
+            CreateIncidentesDenunciaComponent:
+                await this.auth.hasPermissionComponent(
+                    '/incidentes_denuncia',
+                    'post'
+                ),
+            CreateFichaSectorialComponent:
+                await this.auth.hasPermissionComponent(
+                    '/ficha_sectorial',
+                    'post'
+                ),
+            CreateDireccionGeoComponent: await this.auth.hasPermissionComponent(
+                '/direccion_geo',
+                'post'
+            ),
+            DashboardComponent: await this.auth.hasPermissionComponent(
+                'dashboard',
+                'get'
+            ),
+        };
+        forkJoin(checkObservables).subscribe(async (check) => {
+            this.check = check;
+            try {
+                this.listCategoria();
+                App.addListener('backButton', (data) => {
+                    this.sidebarVisible ? (this.sidebarVisible = false) : '';
+                    this.mostrarficha ? (this.mostrarficha = false) : '';
+                    this.mostrarincidente
+                        ? (this.mostrarincidente = false)
+                        : '';
                 });
-                setTimeout(() => {
-                    this.helperService.cerrarMapaFicha();
-                    this.helperService.cerrarspinner('init mapa ficha');
-                }, 1000);
-                throw new Error('Permisos no valido');
-                
-            }
-                //await this.helperService.checkPermiso('IndexFichaSectorialComponent') || false;
-            this.check.IndexIncidentesDenunciaComponent =
-                this.helperService.decryptData(
-                    'IndexIncidentesDenunciaComponent'
-                ) || false;
-            this.check.CreateIncidentesDenunciaComponent =
-                this.helperService.decryptData(
-                    'CreateIncidentesDenunciaComponent'
-                ) || false;
-            this.check.CreateFichaSectorialComponent =
-                this.helperService.decryptData(
-                    'CreateFichaSectorialComponent'
-                ) || false;
-            this.check.CreateDireccionGeoComponent =
-                this.helperService.decryptData('CreateDireccionGeoComponent') ||
-                false;
-            this.check.DashboardComponent =
-                this.helperService.decryptData('DashboardComponent') || false;
-        } catch (error) {
-            console.error('Error al verificar permisos:', error);
-            this.router.navigate(['/notfound']);
-        }
-        await this.getWFSgeojson(this.urlgeoser);
 
-        setTimeout(() => {
-            this.helperService.cerrarspinner('init mapa ficha');
-        }, 1500);
+                if (!this.check.IndexFichaSectorialComponent) {
+                    this.messages.push({
+                        severity: 'danger',
+                        summary: 'ERROR',
+                        detail: 'No tienes Permisos para crear esto.',
+                    });
+                    setTimeout(() => {
+                        this.helperService.cerrarMapaFicha();
+                        this.helperService.cerrarspinner('init mapa ficha');
+                    }, 1000);
+                    throw new Error('Permisos no valido');
+                }
+                await this.getWFSgeojson(this.urlgeoser);
+            } catch (error) {
+                console.error('Error en ngOnInit:', error);
+                this.router.navigate(['/notfound']);
+            } finally {
+                this.helperService.cerrarspinner('init index layer');
+            }
+        });
     }
     addtemplateBG() {
         setTimeout(() => {
@@ -1108,12 +1118,14 @@ export class MapaFichaComponent implements OnInit {
         this.listCategoria();
     }
     listCategoria() {
-        this.list.listarTiposActividadesProyecto(this.token).subscribe((response) => {
-            if (response.data) {
-                this.categorias = response.data;
-                //console.log(this.categorias);
-            }
-        });
+        this.list
+            .listarTiposActividadesProyecto(this.token)
+            .subscribe((response) => {
+                if (response.data) {
+                    this.categorias = response.data;
+                    //console.log(this.categorias);
+                }
+            });
     }
     subcategorias: any[] = [];
     onCategoriaClick(cateogria: any) {
@@ -1258,11 +1270,12 @@ export class MapaFichaComponent implements OnInit {
                             });
                             this.helperService.cerrarspinner('init sin carga');
                             setTimeout(() => {
-                                this.helperService.cerrarMapaFicha();                                
-                                throw this.router.navigate(['maps/ficha-sectorial']);
+                                this.helperService.cerrarMapaFicha();
+                                throw this.router.navigate([
+                                    'maps/ficha-sectorial',
+                                ]);
                             }, 1000);
                         }
-                     
                     },
                     (error) => {
                         // Manejar errores

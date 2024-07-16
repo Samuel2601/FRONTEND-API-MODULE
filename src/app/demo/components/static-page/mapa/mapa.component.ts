@@ -24,7 +24,7 @@ import {
 } from '@angular/common';
 import * as turf from '@turf/turf';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
-import { Subscription, debounceTime, map } from 'rxjs';
+import { Subscription, debounceTime, forkJoin, map } from 'rxjs';
 import { Capacitor, Plugins } from '@capacitor/core';
 const { Geolocation } = Plugins;
 import { App } from '@capacitor/app';
@@ -242,7 +242,7 @@ export class MapaComponent implements OnInit {
         private config: PrimeNGConfig,
         private adminservice: AdminService,
         private createService: CreateService,
-        private auth:AuthService
+        private auth: AuthService
     ) {
         this.incidencia = this.fb.group({
             direccion_geo: [{ value: '' }],
@@ -302,45 +302,56 @@ export class MapaComponent implements OnInit {
         }
     }
     async ngOnInit() {
-        //console.log(this.cate, this.sub);
-        this.helperService.llamarspinner('init index mapa');
-        this.listCategoria();
-        App.addListener('backButton', (data) => {
-            this.sidebarVisible ? (this.sidebarVisible = false) : '';
-            this.mostrarficha ? (this.mostrarficha = false) : '';
-            this.mostrarincidente ? (this.mostrarincidente = false) : '';
+        this.helperService.llamarspinner('init index layer');
+        const checkObservables = {
+            IndexFichaSectorialComponent:
+                await this.auth.hasPermissionComponent(
+                    '/ficha_sectorial',
+                    'get'
+                ),
+            IndexIncidentesDenunciaComponent:
+                await this.auth.hasPermissionComponent(
+                    '/incidentes_denuncia',
+                    'get'
+                ),
+            CreateIncidentesDenunciaComponent:
+                await this.auth.hasPermissionComponent(
+                    '/incidentes_denuncia',
+                    'post'
+                ),
+            CreateFichaSectorialComponent:
+                await this.auth.hasPermissionComponent(
+                    '/ficha_sectorial',
+                    'post'
+                ),
+            CreateDireccionGeoComponent: await this.auth.hasPermissionComponent(
+                '/direccion_geo',
+                'post'
+            ),
+            DashboardComponent: await this.auth.hasPermissionComponent(
+                'dashboard',
+                'get'
+            ),
+        };
+        forkJoin(checkObservables).subscribe(async (check) => {
+            this.check = check;
+            try {
+                App.addListener('backButton', (data) => {
+                    this.sidebarVisible ? (this.sidebarVisible = false) : '';
+                    this.mostrarficha ? (this.mostrarficha = false) : '';
+                    this.mostrarincidente
+                        ? (this.mostrarincidente = false)
+                        : '';
+                });
+                this.listCategoria();
+                await this.getWFSgeojson(this.urlgeoser);
+            } catch (error) {
+                console.error('Error en ngOnInit:', error);
+                this.router.navigate(['/notfound']);
+            } finally {
+                this.helperService.cerrarspinner('init index layer');
+            }
         });
-        try {
-            this.check.IndexFichaSectorialComponent =
-                this.helperService.decryptData(
-                    'IndexFichaSectorialComponent'
-                ) || false; //await this.helperService.checkPermiso('IndexFichaSectorialComponent') || false;
-            this.check.IndexIncidentesDenunciaComponent =
-                this.helperService.decryptData(
-                    'IndexIncidentesDenunciaComponent'
-                ) || false;
-            this.check.CreateIncidentesDenunciaComponent =
-                this.helperService.decryptData(
-                    'CreateIncidentesDenunciaComponent'
-                ) || false;
-            this.check.CreateFichaSectorialComponent =
-                this.helperService.decryptData(
-                    'CreateFichaSectorialComponent'
-                ) || false;
-            this.check.CreateDireccionGeoComponent =
-                this.helperService.decryptData('CreateDireccionGeoComponent') ||
-                false;
-            this.check.DashboardComponent =
-                this.helperService.decryptData('DashboardComponent') || false;
-        } catch (error) {
-            console.error('Error al verificar permisos:', error);
-            this.router.navigate(['/notfound']);
-        }
-        await this.getWFSgeojson(this.urlgeoser);
-
-        setTimeout(() => {
-            this.helperService.cerrarspinner('init index mapa');
-        }, 1500);
     }
     addtemplateBG() {
         setTimeout(() => {
@@ -1131,7 +1142,7 @@ export class MapaComponent implements OnInit {
                         );
                         if (aux) {
                             console.log(aux);
-                            
+
                             this.onSubCategoriaClick(aux);
                         }
                     }
@@ -1334,7 +1345,7 @@ export class MapaComponent implements OnInit {
             summary: 'Excelente',
             detail: this.selectedFiles.length + 'Imagenes subidas',
         });
-        
+
         this.mostrargale = true;
     }
     async tomarFotoYEnviar(event: any) {
@@ -1389,7 +1400,7 @@ export class MapaComponent implements OnInit {
     displayCustom: boolean | undefined;
 
     images: any[] | undefined;
-    activeIndexG:number=0;
+    activeIndexG: number = 0;
     imageClick(index: number) {
         this.activeIndexG = index;
         this.displayCustom = true;

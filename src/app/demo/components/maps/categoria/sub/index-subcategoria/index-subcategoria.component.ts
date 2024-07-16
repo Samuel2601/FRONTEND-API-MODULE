@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { UpdateService } from 'src/app/demo/services/update.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { forkJoin } from 'rxjs';
 @Component({
     selector: 'app-index-subcategoria',
     templateUrl: './index-subcategoria.component.html',
@@ -20,20 +21,33 @@ export class IndexSubcategoriaComponent {
         private router: Router,
         private updateservice: UpdateService,
         private helperservice: HelperService,
-        private auth:AuthService
+        private auth: AuthService
     ) {
         this.id = this.route.snapshot.queryParamMap.get('id');
     }
     check: any = {};
-    ngOnInit(): void {
-        this.helperservice.llamarspinner('subcategoria');
-        this.check.IndexSubcategoriaComponent =
-            this.helperservice.decryptData('IndexSubcategoriaComponent') ||
-            false;
-        if (!this.check.IndexSubcategoriaComponent) {
-            this.router.navigate(['/notfound']);
-        }
-        this.listarSubcategorias();
+    async ngOnInit(): Promise<void> {
+        const checkObservables = {
+            DashboardComponent: await this.auth.hasPermissionComponent(
+                'dashboard',
+                'get'
+            ),
+        };
+        forkJoin(checkObservables).subscribe(async (check) => {
+            this.check = check;
+            try {
+                this.helperservice.llamarspinner('subcategoria');
+                if (!this.check.IndexSubcategoriaComponent) {
+                    this.router.navigate(['/notfound']);
+                }
+                this.listarSubcategorias();
+            } catch (error) {
+                console.error('Error en ngOnInit:', error);
+                this.router.navigate(['/notfound']);
+            } finally {
+                this.helperservice.cerrarspinner('subcategoria');
+            }
+        });
     }
     token = this.auth.token();
     listarSubcategorias(): void {
@@ -49,7 +63,6 @@ export class IndexSubcategoriaComponent {
                     //console.log(error);
                 }
             );
-        this.helperservice.cerrarspinner('subcategoria');
     }
     onRowEditInit(subcategoria: any) {
         this.clonedProducts[subcategoria._id as string] = { ...subcategoria };

@@ -3,55 +3,28 @@
       <h2>Listado de Roles de Usuario</h2>
     </div>
     <div class="card-body">
-      <p-treeTable [value]="roles" [scrollable]="true" [tableStyle]="{ 'min-width': '50rem' }">
-        <ng-template pTemplate="header" let-columns>
+      <p-table [value]="roles">
+        <ng-template pTemplate="header">
           <tr>
-            <th scope="col">Nombre</th>
-            <th scope="col">Orden</th>
-            <th scope="col">Permisos</th>
-            <th scope="col">Acciones</th>
+            <th>Nombre</th>
+            <th>Orden</th>
+            <th>Permisos</th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
-          <tr [pEditableRow]="rowNode">
+        <ng-template pTemplate="body" let-role>
+          <tr>
+            <td>{{role.name}}</td>
+            <td>{{role.orden}}</td>
             <td>
-              <p-treeTableCellEditor>
-                <ng-template pTemplate="input">
-                  <input pInputText type="text" [(ngModel)]="rowData.name" />
-                </ng-template>
-                <ng-template pTemplate="output">
-                  {{ rowData.name }}
-                </ng-template>
-              </p-treeTableCellEditor>
-            </td>
-            <td>
-              <p-treeTableCellEditor>
-                <ng-template pTemplate="input">
-                  <input pInputText type="number" [(ngModel)]="rowData.orden" />
-                </ng-template>
-                <ng-template pTemplate="output">
-                  {{ rowData.orden }}
-                </ng-template>
-              </p-treeTableCellEditor>
-            </td>
-            <td>
-              <p-treeTable [value]="rowData.permisos">
-                <ng-template pTemplate="body" let-permiso>
-                  <tr>
-                    <td>{{ permiso.data.name }}</td>
-                  </tr>
-                </ng-template>
-              </p-treeTable>
-            </td>
-            <td>
-              <div class="btn-group">
-                <button pButton pRipple type="button" icon="pi pi-check" (click)="saveRoles()" class="p-button-rounded p-button-success"></button>
-                <button pButton pRipple type="button" icon="pi pi-times" (click)="cancelEdit()" class="p-button-rounded p-button-danger"></button>
-              </div>
+              <button pButton type="button" icon="pi pi-plus" (click)="mostrarSubtablaPermisos(role)">
+                Ver Permisos
+              </button>
             </td>
           </tr>
         </ng-template>
-      </p-treeTable>
+      </p-table>
     </div>
   </div>
+  
+
   

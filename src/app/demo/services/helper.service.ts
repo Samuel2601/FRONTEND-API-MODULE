@@ -21,7 +21,7 @@ export class HelperService {
     public geocoderService: google.maps.Geocoder;
     public key = 'labella'; //'buzon';
     llamadasActivas = 0;
-    spiner: any;
+    spiner: any=null;
     private mapComponent: LayersComponent | null = null;
     private homeComponent: HomeComponent | null = null;
 
@@ -98,9 +98,9 @@ export class HelperService {
         return false;
     }
 
-    llamarspinner(id:any,mensaje?: string[], tiempo?: number) {
-        console.log("Componente",id);
-        if (this.llamadasActivas === 0) {
+    llamarspinner(id: any) {
+        console.log("LLAMO", id);
+        if (this.llamadasActivas === 0 && this.spiner==null) {  // Verifica si el spinner no está ya abierto
             this.spiner = this.dialogService.open(SpinnerComponent, {
                 header: 'Cargando',
                 dismissableMask: false,
@@ -113,13 +113,14 @@ export class HelperService {
 
     cerrarspinner(id:any) {
         this.llamadasActivas--;
-        console.log("Componente",id);
+        console.log("CERRO",id);
         console.log(`Llamadas activas: ${this.llamadasActivas}`);
     
-        if (this.llamadasActivas === 0) {
+        if (this.llamadasActivas == 0) {
             setTimeout(() => {
                 if (this.spiner !== null) {
                     try {
+                        this.spiner.close();
                         console.log('Intentando destruir el spinner');
                         this.spiner.destroy();
                         this.spiner = null; // Asegúrate de establecerlo a null después de destruirlo

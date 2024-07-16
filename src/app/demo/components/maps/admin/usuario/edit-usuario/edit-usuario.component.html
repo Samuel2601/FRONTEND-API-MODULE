@@ -48,8 +48,19 @@
                             pInputText
                             id="firstname2"
                             type="text"
-                            [(ngModel)]="datauser.nombres"
+                            [(ngModel)]="datauser.name"
                             placeholder="Ingresa tus nombres"
+                            [disabled]="editing"
+                        />
+                    </div>
+                    <div class="field col-12 md:col-6">
+                        <label htmlFor="firstname2">Apellidos</label>
+                        <input
+                            pInputText
+                            id="firstname2"
+                            type="text"
+                            [(ngModel)]="datauser.last_name"
+                            placeholder="Ingresa tus Apellidos"
                             [disabled]="editing"
                         />
                     </div>
@@ -59,8 +70,8 @@
                             pInputText
                             id="email2"
                             type="email"
-                            [(ngModel)]="datauser.correo"
-                            placeholder="Ingresa tu correo"
+                            [(ngModel)]="datauser.email"
+                            placeholder="Ingresa tu email"
                             type="email"
                         />
                     </div>
@@ -74,13 +85,14 @@
                             placeholder="Ingresa una nueva contraseña"
                         />
                     </div>
+                    
                     <div class="field col-12 md:col-6">
-                        <label htmlFor="cedula">Cédula</label>
+                        <label htmlFor="dni">Cédula</label>
                         <input
                             pInputText
-                            id="cedula"
+                            id="dni"
                             type="text"
-                            [(ngModel)]="datauser.cedula"
+                            [(ngModel)]="datauser.dni"
                             placeholder="Ingresa tu Cédula"
                             [disabled]="editing"
                         />
@@ -102,30 +114,30 @@
                             appendTo="body"
                             [disabled]="editing"
                             [options]="listrol"
-                            [(ngModel)]="datauser.rol_user"
+                            [(ngModel)]="datauser.role"
                             [placeholder]="
-                                datauser.rol_user
-                                    ? datauser.rol_user.nombre
+                                datauser.role
+                                    ? datauser.role.name
                                     : 'Selecciona uno'
                             "
                         >
                             <ng-template pTemplate="selectedItem">
                                 <div
                                     class="flex align-items-center"
-                                    *ngIf="datauser.rol_user"
+                                    *ngIf="datauser.role"
                                 >
                                     <div>
-                                        {{ datauser.rol_user.nombre }}
+                                        {{ datauser.role.name }}
                                     </div>
                                 </div>
                             </ng-template>
                             <ng-template
-                                let-rol_user
+                                let-role
                                 pTemplate="item"
                                 style="padding-left: 0rem !important"
                             >
                                 <div class="flex">
-                                    <div>{{ rol_user.nombre }}</div>
+                                    <div>{{ role.name }}</div>
                                 </div>
                             </ng-template>
                         </p-dropdown>
@@ -225,8 +237,19 @@
                                 pInputText
                                 id="firstname2"
                                 type="text"
-                                [(ngModel)]="datauser.nombres"
+                                [(ngModel)]="datauser.name"
                                 placeholder="Ingresa tus nombres"
+                                [disabled]="editing"
+                            />
+                        </div>
+                        <div class="field col-12 md:col-6">
+                            <label htmlFor="firstname2">Apellidos</label>
+                            <input
+                                pInputText
+                                id="firstname2"
+                                type="text"
+                                [(ngModel)]="datauser.last_name"
+                                placeholder="Ingresa tus Apellidos"
                                 [disabled]="editing"
                             />
                         </div>
@@ -236,8 +259,8 @@
                                 pInputText
                                 id="email2"
                                 type="email"
-                                [(ngModel)]="datauser.correo"
-                                placeholder="Ingresa tu correo"
+                                [(ngModel)]="datauser.email"
+                                placeholder="Ingresa tu email"
                                 type="email"
                                 [disabled]="editing"
                             />
@@ -253,12 +276,22 @@
                             />
                         </div>
                         <div class="field col-12 md:col-6">
-                            <label htmlFor="cedula">Cédula</label>
+                            <label htmlFor="pass">Confirmación de Contraseña</label>
                             <input
                                 pInputText
-                                id="cedula"
+                                type="password"
+                                id="passconf"
+                                [(ngModel)]="datauser.passwordConfirmation"
+                                placeholder="Ingresa una nueva contraseña"
+                            />
+                        </div>
+                        <div class="field col-12 md:col-6">
+                            <label htmlFor="dni">Cédula</label>
+                            <input
+                                pInputText
+                                id="dni"
                                 type="text"
-                                [(ngModel)]="datauser.cedula"
+                                [(ngModel)]="datauser.dni"
                                 placeholder="Ingresa tu Cédula"
                                 [disabled]="editing"
                             />
@@ -279,30 +312,30 @@
                             <p-dropdown
                                 [disabled]="editing"
                                 [options]="listrol"
-                                [(ngModel)]="datauser.rol_user"
+                                [(ngModel)]="datauser.role"
                                 [placeholder]="
-                                    datauser.rol_user
-                                        ? datauser.rol_user.nombre
+                                    datauser.role
+                                        ? datauser.role.name
                                         : 'Selecciona uno'
                                 "
                             >
                                 <ng-template pTemplate="selectedItem">
                                     <div
                                         class="flex align-items-center"
-                                        *ngIf="datauser.rol_user"
+                                        *ngIf="datauser.role"
                                     >
                                         <div>
-                                            {{ datauser.rol_user.nombre }}
+                                            {{ datauser.role.name }}
                                         </div>
                                     </div>
                                 </ng-template>
                                 <ng-template
-                                    let-rol_user
+                                    let-role
                                     pTemplate="item"
                                     style="padding-left: 0rem !important"
                                 >
                                     <div class="flex">
-                                        <div>{{ rol_user.nombre }}</div>
+                                        <div>{{ role.name }}</div>
                                     </div>
                                 </ng-template>
                             </p-dropdown>

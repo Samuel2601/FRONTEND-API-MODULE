@@ -14,55 +14,13 @@ import { ListService } from 'src/app/demo/services/list.service';
 })
 export class CreatePermisosComponent implements OnInit {
     componente: any;
-    componentes: string[] = [
-        'ReporteIncidenteView',
-        'ReporteFichaView',
-        'BorrarIncidente',
-        'ContestarIncidente',
-        'ViewIncidente',
-        'FichaLimitada',
-        'EditFichaAll',
-        'TotalFilterIncidente',
-        'TotalFilter',
-        'DashboardComponent',
-        'CreateCategoriaComponent',
-        'IndexCategoriaComponent',
-        'EditCategoriaComponent',
-        'CreateSubcategoriaComponent',
-        'IndexSubcategoriaComponent',
-        'EditSubcategoriaComponent',
-        'ErrorComponent',
-        'IndexUsuarioComponent',
-        'EditUsuarioComponent',
-        'CreateUsuarioComponent',
-        'CreateFichaSectorialComponent',
-        'IndexFichaSectorialComponent',
-        'EditFichaSectorialComponent',
-        'IndexIncidentesDenunciaComponent',
-        'CreateIncidentesDenunciaComponent',
-        'EditIncidentesDenunciaComponent',
-        'IndexEncargadoCategoriaComponent',
-        'CreateEncargadoCategoriaComponent',
-        'EditEncargadoCategoriaComponent',
-        'IndexRolUserComponent',
-        'EditRolUserComponent',
-        'CreateRolUserComponent',
-        'IndexEstadoIncidenteComponent',
-        'EditEstadoIncidenteComponent',
-        'CreateEstadoIncidenteComponent',
-        'IndexEstadoActividadProyectoComponent',
-        'EditEstadoActividadProyectoComponent',
-        'CreateEstadoActividadProyectoComponent',
-        'IndexActividadProyectoComponent',
-        'EditActividadProyectoComponent',
-        'CreateActividadProyectoComponent',
-        'IndexDireccionGeoComponent',
-        'EditDireccionGeoComponent',
-        'CreateDireccionGeoComponent',
-        'IndexPermisosComponent',
-        'EditPermisosComponent',
-        'CreatePermisosComponent',
-        'AdminComponent',
+    method_arr: string[] = [
+        'get',
+        'post',
+        'put',
+        'delete',
+        'createBatch',
+        'updateBatch',
     ];
     rol: any;
     roles: any;
@@ -76,27 +34,14 @@ export class CreatePermisosComponent implements OnInit {
         private messageService: MessageService,
         private ref: DynamicDialogRef
     ) {}
-    ngOnInit(): void {
-        this.listarrol();
-    }
+    ngOnInit(): void {}
     token = this.auth.token();
-    listarrol() {
-        this.listService
-            .listarRolesUsuarios(this.token)
-            .subscribe((response) => {
-                this.roles = response.data;
-            });
-    }
-    addrol(id: any) {
-        ////console.log(id,this.rol);
-        this.newpermiso.rolesPermitidos.push(this.rol);
-    }
     enviar() {
         //console.log(this.newpermiso);
         this.createService
-            .registrarPermiso(this.token, this.newpermiso)
+            .registrarPermiso(this.token, [this.newpermiso])
             .subscribe((response) => {
-                //console.log(response);
+                console.log(response);
                 this.messageService.add({
                     severity: 'success',
                     summary: 'Ingresado',

@@ -52,7 +52,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     async ngOnInit() {
         const checkObservables = {
             DashboardComponent: await this.auth.hasPermissionComponent(
-                '/ficha_sectorial',
+                'dashboard',
                 'get'
             ),
         };

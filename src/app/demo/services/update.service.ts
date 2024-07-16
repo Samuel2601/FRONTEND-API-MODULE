@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { catchError, Observable, of, throwError } from 'rxjs';
 import { GLOBAL } from './GLOBAL';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { JwtHelperService } from '@auth0/angular-jwt';
@@ -16,39 +16,22 @@ export class UpdateService {
     actualizarUsuario(
         token: any,
         id: string,
-        data: any,
-        file: any
-    ): Observable<any> {
+        data: FormData,
+      ): Observable<any> {
+        console.log(id, data);
+      
         const headers = new HttpHeaders({
-            Authorization: token,
+          Authorization: token,
         });
-    
-        const formData = new FormData();
-        formData.append('dni', data.dni);
-        formData.append('email', data.email);
-        formData.append('status', data.status);
-        formData.append('name', data.name);
-        formData.append('last_name', data.last_name);
-        formData.append('password', data.password);
-        formData.append('password_temp', data.password_temp);
-        formData.append(
-            'role',
-            data.role._id ? data.role._id : data.role
-        );
-        formData.append('telf', data.telf);
-    
-        if (file) {
-            formData.append('photo', file);
-        }
-    
-        const params = new HttpParams().set('id', id);
-        
-        return this.http.put(this.url + 'actualizarUser', formData, {
-            headers: headers,
-            params: params,
+        const params = new HttpParams().set('id', id);      
+        return this.http.put(this.url + 'actualizaruser', data, {
+          headers: headers,
+          params: params,
         });
-    }
-
+      }
+      
+    
+    
     actualizarActividadProyecto(
         token: any,
         id: string,

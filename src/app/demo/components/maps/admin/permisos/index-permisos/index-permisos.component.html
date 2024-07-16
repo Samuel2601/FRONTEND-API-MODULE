@@ -73,31 +73,182 @@
                         </td>
                         <td>
                             <!--
-                            (onChange)="onRowEditSave(permiso)"
+                            (onChange)="onRowEditSave(permiso) optionValue="_id""
                             -->
                             <p-cellEditor>
                                 <ng-template pTemplate="input">
-                                    <p-multiSelect 
-                                        [options]="users" 
-                                        [(ngModel)]="permiso.user" 
-                                        optionLabel="name" 
-                                        optionValue="_id"
-                                        
-                                        [filter]="true"
-                                        defaultLabel="Seleccione Usuarios"
-                                        display="chip"
-                                        placeholder="Seleccione Usuarios"
-                                        class="w-full"
-                                    ></p-multiSelect>
+                                    <p-multiSelect
+                                        [options]="users"
+                                        [showToggleAll]="true"
+                                        [selectAll]="selectAll"
+                                        [(ngModel)]="permiso.user"
+                                        optionLabel="name"
+                                        [virtualScroll]="true"
+                                        [virtualScrollItemSize]="43"
+                                        class="multiselect-custom-virtual-scroll w-100"
+                                        placeholder="Selecciona los usuarios para este permiso"
+                                        (onSelectAllChange)="onSelectAllChange($event, ri)"
+                                        (ngModelChange)="onModelChange($event,ri)"
+                                        #ms
+                                    >
+                                        <ng-template let-value pTemplate="selectedItems">
+                                            <div class="inline-flex align-items-center gap-2 px-1" *ngIf="value">
+                                                <div *ngFor="let user of value.slice(0, 3)">
+                                                    {{ user.name }},
+                                                </div>
+                                                <span *ngIf="value.length > 3">
+                                                    <a>+{{ value.length - 3 }} más</a>
+                                                </span>
+                                            </div>
+                                            <div *ngIf="!value || value.length === 0">
+                                                No se ha seleccionado ningún usuario
+                                            </div>
+                                        </ng-template>
+
+                                        <ng-template pTemplate="headercheckboxicon" let-allSelected let-partialSelected="partialSelected">
+                                            <i class="pi pi-check" *ngIf="allSelected"></i>
+                                            <i class="pi pi-minus" *ngIf="partialSelected" [ngStyle]="{ color: 'var(--text-color)' }"></i>
+                                        </ng-template>
+
+                                        <ng-template let-user pTemplate="item">
+                                            <div class="flex align-items-center gap-2">
+                                                <div>
+                                                    {{ user.name }} {{ user.last_name }}
+                                                </div>
+                                            </div>
+                                        </ng-template>
+                                    </p-multiSelect>
+
+
                                 </ng-template>
                                 <ng-template pTemplate="output">
-                                    <div *ngFor="let userId of permiso.user">
-                                        {{ getUserById(userId)?.name }} {{ getUserById(userId)?.last_name }}
+                                    <ng-container
+                                        *ngIf="
+                                            permiso.user &&
+                                            permiso.user.length > 0
+                                        "
+                                    >
+                                        <div
+                                            *ngFor="
+                                                let user of permiso.user.slice(
+                                                    0,
+                                                    3
+                                                )
+                                            "
+                                        >
+                                            {{ user.name }}
+                                            {{ user.last_name }},
+                                        </div>
+                                        <span *ngIf="permiso.user.length > 3">
+                                            <a
+                                                (click)="
+                                                    showAllUsersDialog(permiso)
+                                                "
+                                                >+{{
+                                                    permiso.user.length - 3
+                                                }}
+                                                más</a
+                                            >
+                                        </span>
+                                    </ng-container>
+                                    <div
+                                        *ngIf="
+                                            !permiso.user ||
+                                            permiso.user.length === 0
+                                        "
+                                    >
+                                        Ningún usuario seleccionado
                                     </div>
+
+                                    <p-dialog
+                                        [header]="
+                                            'Usuarios Seleccionados - ' +
+                                            permiso.name
+                                        "
+                                        [(visible)]="
+                                            displayUserDialog[permiso._id]
+                                        "
+                                        [style]="{ width: '50vw' }"
+                                    >
+                                        <p-table
+                                            #dt
+                                            [value]="permiso.user"
+                                            [paginator]="true"
+                                            [rows]="10"
+                                            [rowsPerPageOptions]="[5, 10, 20]"
+                                            [paginatorDropdownAppendTo]="'body'"
+                                            dataKey="_id"
+                                            [globalFilterFields]="[
+                                                'name',
+                                                'last_name'
+                                            ]"
+                                        >
+                                            <ng-template pTemplate="caption">
+                                                <div class="flex">
+                                                    <p-iconField
+                                                        iconPosition="left"
+                                                        class="ml-auto"
+                                                    >
+                                                        <p-inputIcon>
+                                                            <i
+                                                                class="pi pi-search"
+                                                            ></i>
+                                                        </p-inputIcon>
+                                                        <input
+                                                            pInputText
+                                                            type="text"
+                                                            (input)="
+                                                                dt.filterGlobal(
+                                                                    $any(
+                                                                        $event.target
+                                                                    ).value,
+                                                                    'contains'
+                                                                )
+                                                            "
+                                                            placeholder="Buscar palabra clave"
+                                                        />
+                                                    </p-iconField>
+                                                </div>
+                                            </ng-template>
+
+                                            <ng-template pTemplate="header">
+                                                <tr>
+                                                    <th style="width: 22%">
+                                                        Nombres
+                                                    </th>
+                                                    <th style="width: 22%">
+                                                        Apellidos
+                                                    </th>
+                                                </tr>
+                                            </ng-template>
+                                            <ng-template
+                                                pTemplate="body"
+                                                let-user
+                                            >
+                                                <tr>
+                                                    <td>
+                                                        {{ user.name }}
+                                                    </td>
+                                                    <td>
+                                                        {{ user.last_name }}
+                                                    </td>
+                                                </tr>
+                                            </ng-template>
+                                            <ng-template
+                                                pTemplate="emptymessage"
+                                            >
+                                                <tr>
+                                                    <td colspan="2">
+                                                        No customers found.
+                                                    </td>
+                                                </tr>
+                                            </ng-template>
+                                        </p-table>
+                                    </p-dialog>
                                 </ng-template>
                             </p-cellEditor>
                         </td>
-                        
+
                         <td>
                             <div
                                 class="btn-group"

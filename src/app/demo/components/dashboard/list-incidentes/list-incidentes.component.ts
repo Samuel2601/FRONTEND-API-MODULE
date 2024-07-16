@@ -38,7 +38,7 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
         private helper: HelperService,
         private messageService: MessageService,
         private router: Router,
-        private auth:AuthService
+        private auth: AuthService
     ) {
         this.filterForm = this.formBuilder.group({
             fecha_inicio: [''],
@@ -247,44 +247,45 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
     }
     check: any = {};
     async ngOnInit() {
-        this.helper.llamarspinner('iniciador lista ficha'); // Mostrar el spinner
-        const checkObservables = {
-            DashboardComponent: await this.auth.hasPermissionComponent(
-                '/ficha_sectorial',
-                'get'
-            ),
-            ReporteIncidenteView: await this.auth.hasPermissionComponent(
-                '/incidentes_denuncia',
-                'get'
-            ),
-        };
-        forkJoin(checkObservables).subscribe(async (check) => {
-            this.check = check;
-            console.log(check);
-            try {
+        try {
+            const checkObservables = {
+                DashboardComponent: this.auth.hasPermissionComponent('dashboard', 'get'),
+                ReporteIncidenteView: this.auth.hasPermissionComponent('/incidentes_denuncia', 'get'),
+            };
+    
+            forkJoin(checkObservables).subscribe(async (check) => {
+                this.check = check;
+                console.log(check);
+    
                 if (!this.check.DashboardComponent) {
                     this.router.navigate(['/notfound']);
+                    return; // Añade return para evitar continuar si no tienes permisos
                 }
-                Promise.all([
-                    this.rankin(),
-                    this.listCategoria(),
-                    this.listarEstado(),
-                ])
-                    .then(() => {
-                        this.filterForm.get('categoria').valueChanges.subscribe(() => {
-                            this.updateSubcategorias();
-                        });
+    
+                try {
+                    await Promise.all([
+                        this.rankin(),
+                        this.listCategoria(),
+                        this.listarEstado(),
+                    ]);
+    
+                    this.filterForm.get('categoria').valueChanges.subscribe(() => {
+                        this.updateSubcategorias();
                     });
-            } catch (error) {
-                console.error('Error en ngOnInit:', error);
-                this.router.navigate(['/notfound']);
-            } finally {
-                this.helper.cerrarspinner('index ficha');
-            }
-        });
-
-        
+    
+                    // Llama a filtro después de que todas las promesas se hayan resuelto
+                    this.filtro();
+                } catch (error) {
+                    console.error('Error en ngOnInit:', error);
+                    this.router.navigate(['/notfound']);
+                }
+            });
+        } catch (error) {
+            console.error('Error en ngOnInit:', error);
+            this.router.navigate(['/notfound']);
+        }
     }
+    
 
     async load_selecte() {
         if (this.cate) {
@@ -297,16 +298,15 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
                 await this.updateSubcategorias();
             }
         }
-        this.filtro();
     }
     async listarEstado() {
         this.listar
-        .listarEstadosIncidentes(this.token)
-        .subscribe((response) => {
-            if (response.data) {
-                this.estados = response.data;
-            }
-        });
+            .listarEstadosIncidentes(this.token)
+            .subscribe((response) => {
+                if (response.data) {
+                    this.estados = response.data;
+                }
+            });
     }
     async listCategoria() {
         this.listar.listarCategorias(this.token).subscribe((response) => {
@@ -314,25 +314,31 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
                 this.categorias = response.data;
                 this.load_selecte();
             }
-        }); 
+        });
     }
     async updateSubcategorias() {
         this.filterForm.get('subcategoria').setValue([]);
         const categoriaSeleccionada = this.filterForm.get('categoria').value;
         this.subcategorias = [];
-        
+
         if (categoriaSeleccionada && categoriaSeleccionada.length > 0) {
             try {
                 // Crear un array de promesas
-                const promises = categoriaSeleccionada.map(element => 
-                    firstValueFrom(this.listar.listarSubcategorias(this.token, 'categoria', element._id))
+                const promises = categoriaSeleccionada.map((element) =>
+                    firstValueFrom(
+                        this.listar.listarSubcategorias(
+                            this.token,
+                            'categoria',
+                            element._id
+                        )
+                    )
                 );
-                
+
                 // Ejecutar todas las promesas en paralelo
                 const responses = await Promise.all(promises);
-                
+
                 // Procesar las respuestas
-                responses.forEach(response => {
+                responses.forEach((response) => {
                     if (response.data) {
                         this.subcategorias.push(...response.data);
                     }
@@ -342,7 +348,6 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
             }
         }
     }
-    
 
     constIncidente: any[] = [];
     incidente: any[] = [];

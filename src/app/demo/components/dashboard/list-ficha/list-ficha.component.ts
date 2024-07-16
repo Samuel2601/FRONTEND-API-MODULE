@@ -50,58 +50,67 @@ export class ListFichaComponent implements OnInit {
     filtro() {
         this.helper.llamarspinner('Filtro lista de fichas');
         this.load_table = false;
-        const fechaInicio = this.filterForm.get('fecha_inicio').value;
-        const fechaFin = this.filterForm.get('fecha_fin').value;
-        const actividad = this.filterForm.get('actividad').value;
-        const encargado = this.filterForm.get('encargado').value;
-        const estado = this.filterForm.get('estado').value;
-        const direccion = this.filterForm.get('direccion').value;
-        const view = this.filterForm.get('view').value;
+        try {
+            const fechaInicio = this.filterForm.get('fecha_inicio').value;
+            const fechaFin = this.filterForm.get('fecha_fin').value;
+            const actividad = this.filterForm.get('actividad').value;
+            const encargado = this.filterForm.get('encargado').value;
+            const estado = this.filterForm.get('estado').value;
+            const direccion = this.filterForm.get('direccion').value;
+            const view = this.filterForm.get('view').value;
 
-        // Optimización de filtros: Usar métodos de búsqueda más eficientes
-        const actividadIds = actividad.map((c: any) => c._id.toString());
-        const encargadoIds = encargado.map((s: any) => s._id.toString());
-        const estadoIds = estado.map((e: any) => e._id.toString());
-        const direccionesNombres = direccion.map((d: any) => d.nombre);
+            // Optimización de filtros: Usar métodos de búsqueda más eficientes
+            const actividadIds = actividad.map((c: any) => c._id.toString());
+            const encargadoIds = encargado.map((s: any) => s._id.toString());
+            const estadoIds = estado.map((e: any) => e._id.toString());
+            const direccionesNombres = direccion.map((d: any) => d.nombre);
 
-        const elementosFiltrados = this.constFicha.filter((elemento) => {
-            const fechaElemento = new Date(elemento.createdAt);
-            return (
-                (!fechaInicio ||
-                    !fechaFin ||
-                    (fechaElemento >= fechaInicio &&
-                        fechaElemento <= fechaFin)) &&
-                (actividadIds.length === 0 ||
-                    actividadIds.includes(elemento.actividad._id.toString())) &&
-                (encargadoIds.length === 0 ||
-                    encargadoIds.includes(elemento.encargado._id.toString())) &&
-                (estadoIds.length === 0 ||
-                    estadoIds.includes(elemento.estado._id.toString())) &&
-                (direccionesNombres.length === 0 ||
-                    direccionesNombres.includes(
-                        this.isJSONString(elemento.direccion_geo)
-                            ? this.parseJSON(elemento.direccion_geo).nombre
-                            : elemento.direccion_geo
-                    )) &&
-                (view == null || elemento.view == view)
-            );
-        });
+            const elementosFiltrados = this.constFicha.filter((elemento) => {
+                const fechaElemento = new Date(elemento.createdAt);
+                return (
+                    (!fechaInicio ||
+                        !fechaFin ||
+                        (fechaElemento >= fechaInicio &&
+                            fechaElemento <= fechaFin)) &&
+                    (actividadIds.length === 0 ||
+                        actividadIds.includes(
+                            elemento.actividad._id.toString()
+                        )) &&
+                    (encargadoIds.length === 0 ||
+                        encargadoIds.includes(
+                            elemento.encargado._id.toString()
+                        )) &&
+                    (estadoIds.length === 0 ||
+                        estadoIds.includes(elemento.estado._id.toString())) &&
+                    (direccionesNombres.length === 0 ||
+                        direccionesNombres.includes(
+                            this.isJSONString(elemento.direccion_geo)
+                                ? this.parseJSON(elemento.direccion_geo).nombre
+                                : elemento.direccion_geo
+                        )) &&
+                    (view == null || elemento.view == view)
+                );
+            });
 
-        this.ficha = elementosFiltrados;
-        // Mostrar totales y porcentajes en la tabla
-        // Obtener totales y porcentajes
-        this.totales = this.obtenerTotales(this.ficha);
+            this.ficha = elementosFiltrados;
+            // Mostrar totales y porcentajes en la tabla
+            // Obtener totales y porcentajes
+            this.totales = this.obtenerTotales(this.ficha);
 
-        for (const key in this.dataForm) {
-            if (Object.prototype.hasOwnProperty.call(this.dataForm, key)) {
-                const element = this.dataForm[key];
-                this.dataForm[key] = this.crearDatosGrafico(this.totales[key]);
+            for (const key in this.dataForm) {
+                if (Object.prototype.hasOwnProperty.call(this.dataForm, key)) {
+                    const element = this.dataForm[key];
+                    this.dataForm[key] = this.crearDatosGrafico(
+                        this.totales[key]
+                    );
+                }
             }
-        }
-        this.load_table = true;
-        setTimeout(() => {
+        } catch (error) {
+            console.log(error);
+        } finally {
+            this.load_table = true;
             this.helper.cerrarspinner('Filtro lista de fichas');
-        }, 500);
+        }
     }
 
     totales: any;
@@ -167,11 +176,9 @@ export class ListFichaComponent implements OnInit {
     }
     check: any = {};
     async ngOnInit() {
-        this.helper.llamarspinner('iniciador lista ficha'); // Mostrar el spinner
-
         const checkObservables = {
             DashboardComponent: await this.auth.hasPermissionComponent(
-                '/ficha_sectorial',
+                'dashboard',
                 'get'
             ),
             ReporteFichaView: await this.auth.hasPermissionComponent(
@@ -182,7 +189,6 @@ export class ListFichaComponent implements OnInit {
 
         forkJoin(checkObservables).subscribe(async (check) => {
             this.check = check;
-            console.log(check);
             try {
                 if (!this.check.DashboardComponent) {
                     this.router.navigate(['/notfound']);
@@ -227,8 +233,6 @@ export class ListFichaComponent implements OnInit {
             } catch (error) {
                 console.error('Error en ngOnInit:', error);
                 this.router.navigate(['/notfound']);
-            }finally{
-                this.helper.cerrarspinner('iniciador lista ficha'); // Ocultar el spinner
             }
         });
     }

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ListService } from 'src/app/demo/services/list.service';
 import { CreatePermisosComponent } from '../create-permisos/create-permisos.component';
@@ -8,6 +8,7 @@ import { MessageService } from 'primeng/api';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { App } from '@capacitor/app';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { MultiSelect } from 'primeng/multiselect';
 
 @Component({
     selector: 'app-index-permisos',
@@ -31,21 +32,53 @@ export class IndexPermisosComponent {
         private dialogService: DialogService
     ) {}
 
-    ngOnInit(): void {
-        this.listarpermisos();
-        this.listarrol();
+    async ngOnInit() {
+        await this.listarpermisos();
+        await this.listarrol();
     }
     token = this.auth.token();
-    listarpermisos(): void {
-        this.listService.ListarPermisos(this.token).subscribe(
-            (response) => {
-                this.permisos = response.data;
-            },
-            (error) => {
-                //console.log(error);
-            }
+    async listarpermisos() {
+        this.listService
+            .ListarPermisos(this.token, { populate: 'user' }, false)
+            .subscribe(
+                (response) => {
+                    this.permisos = response.data;
+                    console.log(this.permisos);
+                },
+                (error) => {
+                    //console.log(error);
+                }
+            );
+    }
+    selectAll: boolean = false;
+    @ViewChild('ms') ms: MultiSelect;
+    onSelectAllChange(event: any, index: any) {
+        if (event.checked) {
+            const selectedUsers = this.ms
+                .visibleOptions()
+                .filter(
+                    (user: any) =>
+                        !this.permisos[index].user.some(
+                            (u: any) => u._id === user._id
+                        )
+                );
+            console.log(selectedUsers, this.permisos[index].user);
+            this.permisos[index].user = [
+                ...this.permisos[index].user,
+                ...selectedUsers,
+            ];
+        } else {
+            this.permisos[index].user = [];
+        }
+        this.selectAll = event.checked;
+    }
+    onModelChange(event: any,index:any) {
+        this.permisos[index].user = event.filter(
+            (user: any, index: number, self: any[]) =>
+                index === self.findIndex((u: any) => u._id === user._id)
         );
     }
+
     toggleUser(permiso: any, user: any) {
         if (this.checklist(permiso, user._id)) {
             this.deleterol(permiso, user._id);
@@ -75,7 +108,7 @@ export class IndexPermisosComponent {
         }
         ////console.log(permiso);
     }
-    listarrol() {
+    async listarrol() {
         this.listService.listarUsuarios(this.token).subscribe((response) => {
             this.users = response.data;
         });
@@ -105,14 +138,25 @@ export class IndexPermisosComponent {
         // Iniciar la edición de la categoría
         ////console.log('Iniciar edición de la categoría:', categoria);
     }
+    displayUserDialog: { [key: string]: boolean } = {};
+    showAllUsersDialog(permiso: any) {
+        this.displayUserDialog[permiso._id] = true;
+    }
 
     onRowEditSave(categoria: any) {
         // Guardar los cambios de la categoría
         ////console.log('Guardar cambios de la categoría:', categoria);
         // Agregar roles seleccionados al permiso
+        categoria.user = categoria.user.map((u: any) => u._id);
         this.updateServices
             .actualizarPermisos(this.token, categoria._id, categoria)
             .subscribe((response) => {
+                const indexToUpdate = this.permisos.findIndex(
+                    (element: any) => element._id === categoria._id
+                );
+                if (indexToUpdate !== -1) {
+                    this.permisos[indexToUpdate] = response.data;
+                }
                 this.messageService.add({
                     severity: 'success',
                     summary: 'Ingresado',
@@ -129,8 +173,7 @@ export class IndexPermisosComponent {
         delete this.clonedProducts[categoria._id as string];
         console.log('Cancelar edición de la categoría:', categoria);
     }
-
-    getUserById(userId: any): any {
-        return this.users.find((user: any) => user._id === userId);
+    imprimir(dato: any) {
+        console.log(dato);
     }
 }

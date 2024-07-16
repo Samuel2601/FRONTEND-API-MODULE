@@ -184,7 +184,7 @@ export class CreateService {
     });
     return this.http.post(this.url + 'actividad_proyecto', data, { headers: headers });
   }
-  registrarPermiso(token: any, data: any): Observable<any> {
+  registrarPermiso(token: any, data: any[]): Observable<any> {
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
       Authorization: token,

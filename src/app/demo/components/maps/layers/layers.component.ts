@@ -22,7 +22,7 @@ import {
 } from '@angular/common';
 import * as turf from '@turf/turf';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
-import { Subscription, debounceTime, map } from 'rxjs';
+import { Subscription, debounceTime, forkJoin, map } from 'rxjs';
 import { Capacitor, Plugins } from '@capacitor/core';
 const { Geolocation } = Plugins;
 import { App } from '@capacitor/app';
@@ -222,50 +222,47 @@ export class LayersComponent implements OnInit {
     }
     async ngOnInit() {
         this.helperService.llamarspinner('init index layer');
-        App.addListener('backButton', (data) => {
-            this.sidebarVisible ? (this.sidebarVisible = false) : '';
-            this.mostrarficha ? (this.mostrarficha = false) : '';
-            this.mostrarincidente ? (this.mostrarincidente = false) : '';
+        const checkObservables = {
+            IndexFichaSectorialComponent:
+                await this.auth.hasPermissionComponent('/ficha_sectorial', 'get'),
+            IndexIncidentesDenunciaComponent:
+                await this.auth.hasPermissionComponent('/incidentes_denuncia', 'get'),
+            CreateIncidentesDenunciaComponent:
+                await this.auth.hasPermissionComponent('/incidentes_denuncia', 'post'),
+            CreateFichaSectorialComponent:
+                await this.auth.hasPermissionComponent('/ficha_sectorial', 'post'),
+            CreateDireccionGeoComponent: await this.auth.hasPermissionComponent(
+                '/direccion_geo',
+                'post'
+            ),
+            DashboardComponent: await this.auth.hasPermissionComponent(
+                'dashboard',
+                'get'
+            ),
+        };
+        forkJoin(checkObservables).subscribe(async (check) => {
+            this.check = check;
+            try {
+                App.addListener('backButton', (data) => {
+                    this.sidebarVisible ? (this.sidebarVisible = false) : '';
+                    this.mostrarficha ? (this.mostrarficha = false) : '';
+                    this.mostrarincidente ? (this.mostrarincidente = false) : '';
+                });
+
+                this.updateItem();
+                this.helperService.setMapComponent(this);
+                this.initmap();
+                await this.getWFSgeojson(this.urlgeoser);
+                this.getLocation();
+            } catch (error) {
+                console.error('Error en ngOnInit:', error);
+                this.router.navigate(['/notfound']);
+            } finally {
+                this.helperService.cerrarspinner('init index layer');
+            }
         });
-
-        try {
-            this.check.IndexFichaSectorialComponent =
-                this.helperService.decryptData(
-                    'IndexFichaSectorialComponent'
-                ) || false; //await this.helperService.checkPermiso('IndexFichaSectorialComponent') || false;
-            this.check.IndexIncidentesDenunciaComponent =
-                this.helperService.decryptData(
-                    'IndexIncidentesDenunciaComponent'
-                ) || false;
-            this.check.CreateIncidentesDenunciaComponent =
-                this.helperService.decryptData(
-                    'CreateIncidentesDenunciaComponent'
-                ) || false;
-            this.check.CreateFichaSectorialComponent =
-                this.helperService.decryptData(
-                    'CreateFichaSectorialComponent'
-                ) || false;
-            this.check.CreateDireccionGeoComponent =
-                this.helperService.decryptData('CreateDireccionGeoComponent') ||
-                false;
-            this.check.DashboardComponent =
-                this.helperService.decryptData('DashboardComponent') || false;
-        } catch (error) {
-            console.error('Error al verificar permisos:', error);
-            this.router.navigate(['/notfound']);
-        }
-
-        this.updateItem();
-
-        this.helperService.setMapComponent(this);
-        this.initmap();
-        await this.getWFSgeojson(this.urlgeoser);
-        this.getLocation();
-        setTimeout(() => {
-            this.helperService.cerrarspinner('init index layer');
-        }, 1500);
-        // this.listCategoria();
     }
+
     categorias: any[] = [];
     listCategoria() {
         this.list.listarCategorias(this.token).subscribe((response) => {
@@ -282,6 +279,7 @@ export class LayersComponent implements OnInit {
             this.items[index].icon = campo ? icono1 : icono2;
         }
     }
+
     //CARGA DE TEMPLATE
     /*  {
         icon: 'bi bi-crosshair',

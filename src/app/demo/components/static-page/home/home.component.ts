@@ -10,6 +10,7 @@ import { MapaFichaComponent } from '../mapa-ficha/mapa-ficha.component';
 import { DashboardModule } from '../../dashboard/dashboard.module';
 import { MapaTrashComponent } from '../mapa-trash/mapa-trash.component';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { forkJoin } from 'rxjs';
 @Component({
     selector: 'app-home',
     standalone: true,
@@ -49,17 +50,8 @@ export class HomeComponent implements OnInit {
             view: true,
         });
     }
-    DashboardComponent: boolean = false;
-    ngOnInit(): void {
-        /*const userId = this.auth.idUserToken();
-        const userRole = this.auth.roleUserToken();
-        this.auth.getUserPermissions(userId).subscribe((response) => {
-            console.log(response);
-        });
-        this.auth.getUserRole(userRole).subscribe((response) => {
-            console.log(response);
-        });*/
-
+    DashboardComponent: any;
+    async ngOnInit(): Promise<void> {
         this.helperService.setHomeComponent(this);
 
         this.responsiveOptions = [
@@ -135,11 +127,20 @@ export class HomeComponent implements OnInit {
                 mobil: true,
             }
         );
-        try {
-            this.DashboardComponent =
-                this.helperService.decryptData('DashboardComponent') || false;
-        } catch (error) {}
-        this.filterProductos();
+        this.DashboardComponent = await this.auth.hasPermissionComponent(
+            'dashboard',
+            'get'
+        ),
+        forkJoin(this.DashboardComponent).subscribe(async (check) => {
+            try {
+                this.filterProductos();
+            } catch (error) {
+                console.error('Error en ngOnInit:', error);
+                this.router.navigate(['/notfound']);
+            } finally {
+                this.helperService.cerrarspinner('init index layer');
+            }
+        });
     }
     setbuttons: any = [
         {
