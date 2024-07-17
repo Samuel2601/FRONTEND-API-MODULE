@@ -182,7 +182,7 @@ export class ListFichaComponent implements OnInit {
                 'get'
             ),
             ReporteFichaView: await this.auth.hasPermissionComponent(
-                '/ficha_sectorial',
+                '/reporteficha',
                 'get'
             ),
         };

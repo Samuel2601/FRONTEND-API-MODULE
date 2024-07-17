@@ -100,6 +100,7 @@ export class CreateService {
     const formData = new FormData();
     formData.append('categoria', data.categoria._id);
     formData.append('subcategoria', data.subcategoria._id);
+    formData.append('estado', data.estado);
     formData.append('ciudadano', data.ciudadano);
     formData.append('descripcion', data.descripcion);
     formData.append('direccion_geo',JSON.stringify(data.direccion_geo));
@@ -110,9 +111,9 @@ export class CreateService {
       Promise.all(compressedFilesPromises)
         .then((compressedFiles) => {
           compressedFiles.forEach((compressedFile, index) => {
-            formData.append('foto' + index, compressedFile);
+            formData.append(`foto${index}`, compressedFile); // Asegúrate de que el nombre del campo coincida
           });
-  
+    
           // Envía las imágenes comprimidas al servidor
           this.http.post(this.url + 'incidentes_denuncia', formData, { headers: headers })
             .subscribe(

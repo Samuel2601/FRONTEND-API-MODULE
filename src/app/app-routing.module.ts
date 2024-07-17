@@ -5,7 +5,6 @@ import { AppLayoutComponent } from "./layout/app.layout.component";
 import { HomeComponent } from './demo/components/static-page/home/home.component';
 import { AuthGuard } from './guards/auth.guard'; // Importa tu guard
 import { PermissionGuard } from './guards/permission.guard';
-
 @NgModule({
     imports: [
         RouterModule.forRoot([

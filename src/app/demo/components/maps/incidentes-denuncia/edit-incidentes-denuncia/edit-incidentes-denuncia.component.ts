@@ -87,15 +87,15 @@ export class EditIncidentesDenunciaComponent implements OnInit {
         const checkObservables = {
             EditIncidentesDenunciaComponent:
                 await this.auth.hasPermissionComponent(
-                    '/incidentes_denuncia',
+                    '/incidentes_denuncia/:id',
                     'put'
                 ),
             EditIncidenteAll: await this.auth.hasPermissionComponent(
-                '/incidentes_denuncia',
+                '/incidentes_denuncia/:id',
                 'put'
             ),
             ContestarIncidente: await this.auth.hasPermissionComponent(
-                '/incidentes_denuncia',
+                '/incidentes_denuncia/:id',
                 'put'
             ),
         };

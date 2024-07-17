@@ -22,7 +22,7 @@ export class StackBarriosComponent implements OnInit {
     ) {}
 
     @Input() modal: any = false;
-    basicData: any = {};
+    basicData: any = {labels:[]};
     basicOptions: any;
     async ngOnInit() {
         await this.getWFSgeojson(this.urlgeoser);

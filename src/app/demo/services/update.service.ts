@@ -17,21 +17,42 @@ export class UpdateService {
         token: any,
         id: string,
         data: FormData,
-      ): Observable<any> {
+        file: File
+    ): Observable<any> {
         console.log(id, data);
-      
+
         const headers = new HttpHeaders({
-          Authorization: token,
+            Authorization: token,
         });
-        const params = new HttpParams().set('id', id);      
+        const formData = new FormData();
+        for (const key in data) {
+            if (data.hasOwnProperty(key)) {
+                const value = data[key];
+                if (key === 'role' && typeof value === 'object' && value._id) {
+                    formData.append('role', value._id);
+                } else {
+                    formData.append(key, value);
+                }
+            }
+        }
+
+        // Agregar la foto seleccionada si existe
+        if (file) {
+            formData.append('photo', file);
+        }
+
+        // Iterar y mostrar valores de FormData
+        /*     formData.forEach((value, key) => {
+            console.log(`${key}: ${value}`);
+        });
+        */
+        const params = new HttpParams().set('id', id);
         return this.http.put(this.url + 'actualizaruser', data, {
-          headers: headers,
-          params: params,
+            headers: headers,
+            params: params,
         });
-      }
-      
-    
-    
+    }
+
     actualizarActividadProyecto(
         token: any,
         id: string,
@@ -82,7 +103,7 @@ export class UpdateService {
             formData.append('view', data.view);
             if (data.view_id) formData.append('view_id', data.view_id);
             if (data.view_date) formData.append('view_date', data.view_date);
-    
+
             if (
                 data.evidencia instanceof File ||
                 data.evidencia instanceof Blob
@@ -99,11 +120,10 @@ export class UpdateService {
                             );
                         });
                         this.http
-                            .put(
-                                this.url + 'incidentes_denuncia',
-                                formData,
-                                { headers: headers, params: params }
-                            )
+                            .put(this.url + 'incidentes_denuncia', formData, {
+                                headers: headers,
+                                params: params,
+                            })
                             .subscribe(
                                 (response) => {
                                     observer.next(response);
@@ -114,7 +134,6 @@ export class UpdateService {
                     })
                     .catch((error) => observer.error(error));
             } else {
-                
                 this.http
                     .put(this.url + 'incidentes_denuncia', formData, {
                         headers: headers,
@@ -209,11 +228,10 @@ export class UpdateService {
             Authorization: token,
         });
         const params = new HttpParams().set('id', id);
-        return this.http.put(
-            this.url + 'estado_actividad_proyecto',
-            data,
-            { headers: headers, params: params }
-        );
+        return this.http.put(this.url + 'estado_actividad_proyecto', data, {
+            headers: headers,
+            params: params,
+        });
     }
 
     actualizarTipoActividadProyecto(
@@ -248,9 +266,9 @@ export class UpdateService {
             'Content-Type': 'application/json',
             Authorization: token,
         });
-    
+
         const params = new HttpParams().set('id', id);
-    
+
         return this.http.put<any>(`${this.url}actualizarpermiso`, data, {
             headers: headers,
             params: params,

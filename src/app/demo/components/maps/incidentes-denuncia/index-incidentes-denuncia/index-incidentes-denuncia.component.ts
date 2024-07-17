@@ -171,7 +171,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
             ),
             EditIncidentesDenunciaComponent:
                 await this.auth.hasPermissionComponent(
-                    '/incidentes_denuncia',
+                    '/incidentes_denuncia/:id',
                     'put'
                 ),
             BorrarIncidente: await this.auth.hasPermissionComponent(

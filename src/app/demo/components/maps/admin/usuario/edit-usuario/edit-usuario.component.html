@@ -3,24 +3,24 @@
     <div class="col-12" *ngIf="datauser">
         <h5 *ngIf="editing">Puedes cambiar tu información personal.</h5>
         <h5 *ngIf="!editing">
-            Formulario de actialización de datos de usuario
+            Formulario de actialización de datos de usuario :
+            {{ datauser.photo }}
         </h5>
         <div class="p-fluid p-formgrid grid">
             <div class="field col-4">
                 <img
                     *ngIf="!load_form"
-                    src="{{
+                    [src]="
                         nombreArchivo
                             ? nombreArchivo
-                            : url +
-                              'helper/obtener_portada_avatar/' +
-                              datauser.foto
-                    }}"
+                            : url + 'obtener_imagen/usuario/' + datauser.photo
+                    "
                     alt="Image"
                     width="100"
                     height="100"
                     style="border-radius: 50%; object-fit: cover"
                 />
+
                 <p-skeleton
                     *ngIf="load_form"
                     shape="circle"
@@ -43,10 +43,10 @@
             <div class="field col-8">
                 <div class="p-fluid p-formgrid grid">
                     <div class="field col-12 md:col-6">
-                        <label htmlFor="firstname2">Nombres</label>
+                        <label htmlFor="firstname">Nombres</label>
                         <input
                             pInputText
-                            id="firstname2"
+                            id="firstname"
                             type="text"
                             [(ngModel)]="datauser.name"
                             placeholder="Ingresa tus nombres"
@@ -85,7 +85,7 @@
                             placeholder="Ingresa una nueva contraseña"
                         />
                     </div>
-                    
+
                     <div class="field col-12 md:col-6">
                         <label htmlFor="dni">Cédula</label>
                         <input
@@ -191,20 +191,21 @@
         <div class="col-12" *ngIf="datauser">
             <h5 *ngIf="editing">Puedes cambiar tu información personal.</h5>
             <h5 *ngIf="!editing">
-                Formulario de actialización de datos de usuario
+                Formulario de actialización de datos de usuario:
+                {{ datauser.photo }}
             </h5>
             <p-messages [(value)]="messages" [enableService]="false" />
             <div class="p-fluid p-formgrid grid">
                 <div class="field col-4">
                     <img
                         *ngIf="!load_form"
-                        src="{{
+                        [src]="
                             nombreArchivo
                                 ? nombreArchivo
                                 : url +
-                                  'helper/obtener_portada_avatar/' +
-                                  datauser.foto
-                        }}"
+                                  'obtener_imagen/usuario/' +
+                                  datauser.photo
+                        "
                         alt="Image"
                         width="100"
                         height="100"
@@ -232,10 +233,10 @@
                 <div class="field col-8">
                     <div class="p-fluid p-formgrid grid">
                         <div class="field col-12 md:col-6">
-                            <label htmlFor="firstname2">Nombres</label>
+                            <label htmlFor="firstname">Nombres</label>
                             <input
                                 pInputText
-                                id="firstname2"
+                                id="firstname"
                                 type="text"
                                 [(ngModel)]="datauser.name"
                                 placeholder="Ingresa tus nombres"
@@ -276,7 +277,9 @@
                             />
                         </div>
                         <div class="field col-12 md:col-6">
-                            <label htmlFor="pass">Confirmación de Contraseña</label>
+                            <label htmlFor="pass"
+                                >Confirmación de Contraseña</label
+                            >
                             <input
                                 pInputText
                                 type="password"

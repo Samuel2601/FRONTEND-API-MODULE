@@ -120,7 +120,7 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
         if (!this.modal) this.helperservice.llamarspinner('index ficha');
         const checkObservables = {
             IndexFichaSectorialComponent: await this.auth.hasPermissionComponent('/ficha_sectorial', 'get'),
-            EditFichaSectorialComponent: await this.auth.hasPermissionComponent('/ficha_sectorial', 'put'),
+            EditFichaSectorialComponent: await this.auth.hasPermissionComponent('/ficha_sectorial/:id', 'put'),
             IndexEstadoActividadProyectoComponent: await this.auth.hasPermissionComponent('/estado_actividad_proyecto', 'get'),
             IndexActividadProyectoComponent: await this.auth.hasPermissionComponent('/actividad_proyecto', 'get'),
             TotalFilter: await this.auth.hasPermissionComponent('/ficha_sectorial', 'get'),

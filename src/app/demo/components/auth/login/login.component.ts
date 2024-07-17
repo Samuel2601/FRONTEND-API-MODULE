@@ -206,6 +206,8 @@ export class LoginComponent implements OnInit {
             this.storeEncryptedData('nombreUsuario', data.nombres?data.nombres:data.name+' '+data.last_name);
             this.storeEncryptedData('fotoUsuario', data.foto?data.foto:data.photo);
             this.storeEncryptedData('correo', data.email);
+            this.guardarNombreUsuario(data.nombres?data.nombres:data.name+' '+data.last_name);
+            this.guardarFoto( data.foto?data.foto:data.photo)
         }
     }
 
@@ -307,7 +309,7 @@ export class LoginComponent implements OnInit {
     guardarFoto(foto: string): void {
         if (foto) {
             const storage = this.loginForm.get('save').value ? localStorage : sessionStorage;
-            storage.setItem('foto', foto);
+            storage.setItem('fotoUsuario', foto);
         }
     }
 

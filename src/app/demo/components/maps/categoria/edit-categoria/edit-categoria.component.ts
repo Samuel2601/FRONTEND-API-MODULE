@@ -28,8 +28,9 @@ export class EditCategoriaComponent implements OnInit {
   obtenerCategoria(){
     this.loadcategoria=false;
     this.obtener.obtenerCategoria(this.token,this.id).subscribe(response=>{
+      console.log(response);
       this.categoria=response.data;
-      //console.log(this.categoria);
+   
     });
     setTimeout(() => {
       this.loadcategoria=true;

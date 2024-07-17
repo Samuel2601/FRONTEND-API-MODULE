@@ -12,7 +12,7 @@ import { AuthService } from '../demo/services/auth.service';
 })
 export class AppTopBarComponent implements OnInit {
     url = GLOBAL.url;
-    foto=sessionStorage.getItem('foto')?sessionStorage.getItem('foto'):localStorage.getItem('foto');
+    foto=sessionStorage.getItem('fotoUsuario')?sessionStorage.getItem('fotoUsuario'):localStorage.getItem('fotoUsuario');
     items!: MenuItem[];
 
     @ViewChild('menubutton') menuButton!: ElementRef;

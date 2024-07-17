@@ -18,7 +18,7 @@ import { AdminService } from 'src/app/demo/services/admin.service';
     styleUrls: ['./edit-usuario.component.scss'],
     providers: [MessageService, DialogService],
 })
-export class EditUsuarioComponent implements OnInit, AfterViewInit {
+export class EditUsuarioComponent implements OnInit {
     datauser: any;
     modal: boolean = true;
     editing: boolean = true;
@@ -44,9 +44,6 @@ export class EditUsuarioComponent implements OnInit, AfterViewInit {
         private auth: AuthService,
         private http: HttpClient
     ) {}
-    ngAfterViewInit(): void {
-        throw new Error('Method not implemented.');
-    }
 
     ngOnInit(): void {
         // Obtener el token de autenticación
@@ -77,7 +74,7 @@ export class EditUsuarioComponent implements OnInit, AfterViewInit {
         // Obtener los detalles del usuario para editar
         this.obteneruser(this.id);
     }
-    listrol:any;
+    listrol: any;
     listarRol(): void {
         this.list.listarRolesUsuarios(this.token).subscribe((response) => {
             if (response.data) {
@@ -90,12 +87,15 @@ export class EditUsuarioComponent implements OnInit, AfterViewInit {
         this._filterservice.obtenerUsuario(this.token, id).subscribe(
             (response) => {
                 this.datauser = response.data;
+                console.log(this.datauser);
                 this.datauser.password = ''; // Limpiar la contraseña temporal si existe
                 if (this.datauser.password_temp) {
-                    this.messages = [{
-                        severity: 'error',
-                        detail: 'Por favor cambie su contraseña y guarde.',
-                    }];
+                    this.messages = [
+                        {
+                            severity: 'error',
+                            detail: 'Por favor cambie su contraseña y guarde.',
+                        },
+                    ];
                 }
             },
             (error) => {
@@ -107,93 +107,102 @@ export class EditUsuarioComponent implements OnInit, AfterViewInit {
             }
         );
     }
+    /*        // Construir FormData con los datos del usuario
+        const formData = new FormData();
+        console.log(this.datauser);
 
+        for (const key in this.datauser) {
+            if (Object.prototype.hasOwnProperty.call(this.datauser, key)) {
+                const element = this.datauser[key];
+                if (element == undefined || element == null || element == '') {
+                    delete this.datauser[key];
+                }
+            }
+        }
+
+         */
     updateUser(): void {
         // Limpiar la contraseña temporal si existe
         if (this.datauser.password_temp) {
             this.datauser.password_temp = '';
         }
-
-        // Construir FormData con los datos del usuario
-        const formData = new FormData();
-        for (const key in this.datauser) {
-            if (this.datauser.hasOwnProperty(key)) {
-                const value = this.datauser[key];
-                if (value !== undefined && value !== null) {
-                    if (key === 'role' && typeof value === 'object' && value._id) {
-                        formData.append('role', value._id);
-                    } else {
-                        formData.append(key, value.toString());
-                    }
-                }
-            }
+        this.datauser.role = this.datauser.role._id;
+        if (this.datauser.password === '' || this.datauser.password === undefined || this.datauser.password === null) {
+            delete this.datauser.password;
         }
-
-        // Agregar la foto seleccionada si existe
-        if (this.archivoSeleccionado) {
-            formData.append('photo', this.archivoSeleccionado);
-        }
-
-        console.log(formData); // Verificar que formData tenga los datos correctos antes de enviar
-
+        
         // Realizar la solicitud de actualización utilizando el servicio de actualización
-        this.updateservice.actualizarUsuario(this.token, this.id, formData).subscribe(
-            async (response) => {
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Actualizado',
-                    detail: response.message,
-                });
+        this.updateservice
+            .actualizarUsuario(
+                this.token,
+                this.id,
+                this.datauser,
+                this.archivoSeleccionado
+            )
+            .subscribe(
+                async (response) => {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Actualizado',
+                        detail: response.message,
+                    });
 
-                // Si es dispositivo móvil y la contraseña cambió, realizar autenticación biométrica
-                const correoCookiepass = localStorage.getItem('pass');
-                if (
-                    this.helper.isMobil() &&
-                    (!correoCookiepass ||
-                        this.datauser.password !==
-                            this.helper.decryptDataLogin(correoCookiepass))
-                ) {
-                    const result = await NativeBiometric.isAvailable();
-                    if (result.isAvailable) {
-                        const verified = await NativeBiometric.verifyIdentity({
-                            reason: 'Para un fácil inicio de sesión',
-                            title: 'Inicio de Sesión',
-                            subtitle: 'Coloque su dedo en el sensor.',
-                            description: 'Se requiere Touch ID o Face ID',
-                        }).then(() => true).catch(() => false);
+                    // Si es dispositivo móvil y la contraseña cambió, realizar autenticación biométrica
+                    const correoCookiepass = localStorage.getItem('pass');
+                    if (
+                        this.helper.isMobil() &&
+                        (!correoCookiepass ||
+                            this.datauser.password !==
+                                this.helper.decryptDataLogin(correoCookiepass))
+                    ) {
+                        const result = await NativeBiometric.isAvailable();
+                        if (result.isAvailable) {
+                            const verified =
+                                await NativeBiometric.verifyIdentity({
+                                    reason: 'Para un fácil inicio de sesión',
+                                    title: 'Inicio de Sesión',
+                                    subtitle: 'Coloque su dedo en el sensor.',
+                                    description:
+                                        'Se requiere Touch ID o Face ID',
+                                })
+                                    .then(() => true)
+                                    .catch(() => false);
 
-                        if (!verified) {
-                            this.messageService.add({
-                                severity: 'error',
-                                summary: '(fallo)',
-                                detail: 'Sin biometría',
-                            });
-                        } else {
-                            localStorage.setItem(
-                                'pass',
-                                this.helper.encryptDataLogin(
-                                    this.datauser.password,
-                                    'buzon'
-                                )
-                            );
+                            if (!verified) {
+                                this.messageService.add({
+                                    severity: 'error',
+                                    summary: '(fallo)',
+                                    detail: 'Sin biometría',
+                                });
+                            } else {
+                                localStorage.setItem(
+                                    'pass',
+                                    this.helper.encryptDataLogin(
+                                        this.datauser.password,
+                                        'buzon'
+                                    )
+                                );
+                            }
                         }
                     }
+                    const currentUrl = this.router.url;
+                    // Redirigir a la página de inicio después de actualizar
+                    setTimeout(() => {
+                        // Si no estamos en /maps/administracion, redirigir a /home
+                        if (!currentUrl.startsWith('/maps/administracion')) {
+                            this.router.navigate(['/home']);
+                        }
+                    }, 500);
+                },
+                (error) => {
+                    console.error(error);
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: `(${error.status})`,
+                        detail: error.error.message || 'Sin conexión',
+                    });
                 }
-
-                // Redirigir a la página de inicio después de actualizar
-                setTimeout(() => {
-                    this.router.navigate(['/home']);
-                }, 500);
-            },
-            (error) => {
-                console.error(error);
-                this.messageService.add({
-                    severity: 'error',
-                    summary: `(${error.status})`,
-                    detail: error.error.message || 'Sin conexión',
-                });
-            }
-        );
+            );
     }
 
     onFilesSelected(event: any): void {

@@ -37,6 +37,7 @@ export class IndexEstadoActividadProyectoComponent implements OnInit{
     this.listService.listarEstadosActividadesProyecto(this.token).subscribe(response=>{
       if(response.data){
         this.actividadEstado=response.data
+        console.log(this.actividadEstado);
       }
     },error=>{
 

@@ -45,10 +45,15 @@
                         [(ngModel)]="categoria.nombre"
                     />
                 </div>
-                <div class="field col-12 md:col-6">
-                    <label for="nombre" class="form-label"
-                        >URL del icono</label
-                    >
+                <div
+                    class="field col-12 md:col-6"
+                    style="
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                    "
+                >
+                    <label for="nombre" class="form-label">URL del icono</label>
                     <input
                         type="text"
                         class="form-control"
@@ -70,6 +75,20 @@
                         pInputTextarea
                         [(ngModel)]="categoria.descripcion"
                     ></textarea>
+                </div>
+                <div
+                    class="field col-12 md:col-6"
+                    style="
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                    "
+                >
+                    <img
+                        [src]="categoria.icono"
+                        alt=""
+                        style="max-width: 150px; width: auto"
+                    />
                 </div>
             </ng-container>
         </div>

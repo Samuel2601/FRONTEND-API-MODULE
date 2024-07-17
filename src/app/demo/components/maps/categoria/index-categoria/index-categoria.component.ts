@@ -41,7 +41,7 @@ export class IndexCategoriaComponent implements OnInit {
         private auth: AuthService
     ) {}
     cols!: Column[];
-    check: any = {};    
+    check: any = {};
     async ngOnInit() {
         const checkObservables = {
             IndexCategoriaComponent: await this.auth.hasPermissionComponent(
@@ -49,11 +49,11 @@ export class IndexCategoriaComponent implements OnInit {
                 'get'
             ),
             EditCategoriaComponent: await this.auth.hasPermissionComponent(
-                '/categoria',
+                '/categoria/:id',
                 'put'
             ),
             EditSubcategoriaComponent: await this.auth.hasPermissionComponent(
-                '/subcategoria',
+                '/subcategoria/:id',
                 'put'
             ),
             CreateCategoriaComponent: await this.auth.hasPermissionComponent(
@@ -121,11 +121,9 @@ export class IndexCategoriaComponent implements OnInit {
                 const categorias = await Promise.all(
                     this.listadocategoria.map(async (categoria: any) => {
                         const subcategoriaResponse = await this.listService
-                            .listarSubcategorias(
-                                this.token,
-                                {'categoria':
-                                categoria._id}
-                            )
+                            .listarSubcategorias(this.token, {
+                                categoria: categoria._id,
+                            })
                             .toPromise();
                         const children = subcategoriaResponse.data.map(
                             (subcategoria: any) => ({
@@ -207,18 +205,27 @@ export class IndexCategoriaComponent implements OnInit {
     @ViewChild('Confirmar') Confirmar!: TemplateRef<any>;
     load_btn_delte = true;
     visibledelete = false;
+    catbool: boolean = false;
     async remoRow(row: any, cat: boolean) {
+        this.load_btn_delte = true
+        this.responsemodal=undefined;
         this.iddelete = undefined;
-        //console.log(row);
-        if (cat) {
+        console.log(row, cat);
+        this.catbool = cat;
+        if (this.catbool) {
             this.responsemodal = await this.deleteService
                 .verificarCategoria(this.token, row._id)
                 .toPromise();
+            this.responsemodal.cantidadSubcategorias = this.responsemodal.data.length;
         } else {
             this.responsemodal = await this.deleteService
                 .verificarSubCategoria(this.token, row._id)
                 .toPromise();
-            //console.log(this.responsemodal);
+            this.responsemodal.cantidadIncidentes = this.responsemodal.data.length;
+        }
+        console.log(this.responsemodal.cantidadIncidentes,this.responsemodal.cantidadSubcategorias);
+        if(this.responsemodal.data.length==0){
+            this.load_btn_delte=false;
         }
         setTimeout(() => {
             this.iddelete = row;
@@ -241,6 +248,8 @@ export class IndexCategoriaComponent implements OnInit {
                 data.eliminarSubcategorias = true;
             }
             if (this.iddelete.cat) {
+                console.log(this.responsemodal.data);
+                /*
                 this.deleteService
                     .eliminarCategoria(this.token, this.iddelete._id, data)
                     .subscribe(
@@ -260,8 +269,10 @@ export class IndexCategoriaComponent implements OnInit {
                                 detail: error.error.message || 'Sin conexión',
                             });
                         }
-                    );
+                    );*/
             } else {
+                console.log(this.responsemodal.data);
+                /*
                 this.deleteService
                     .eliminarSubcategoria(this.token, this.iddelete._id, data)
                     .subscribe(
@@ -281,7 +292,7 @@ export class IndexCategoriaComponent implements OnInit {
                                 detail: error.error.message || 'Sin conexión',
                             });
                         }
-                    );
+                    );*/
             }
         }
     }

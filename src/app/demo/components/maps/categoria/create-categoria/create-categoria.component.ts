@@ -24,6 +24,7 @@ export class CreateCategoriaComponent implements OnInit {
     ) {
         this.categoriaForm = this.fb.group({
             nombre: ['', Validators.required],
+            icono: ['', Validators.required],
             descripcion: ['', Validators.required],
         });
     }
@@ -54,6 +55,7 @@ export class CreateCategoriaComponent implements OnInit {
             const data = {
                 nombre: this.categoriaForm.value.nombre,
                 descripcion: this.categoriaForm.value.descripcion,
+                icono: this.categoriaForm.value.icono,
             };
             this.createService
                 .registrarCategoria(token, data)

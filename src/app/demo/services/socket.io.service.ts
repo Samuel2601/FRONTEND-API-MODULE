@@ -51,6 +51,7 @@ export class SocketService {
     onRoleChange(): Observable<any> {
         return new Observable((observer) => {
             this.socket.on('role-updated', (data) => {
+                console.log("SE ACTUALIZO EL ROL");
                 observer.next(data);
             });
         });

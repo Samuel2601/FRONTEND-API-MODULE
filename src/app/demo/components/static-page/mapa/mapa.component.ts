@@ -962,7 +962,7 @@ export class MapaComponent implements OnInit {
                 if (!this.infoWindowActual) {
                     this.features[polygon.id] = feature;
                     this.id_feature = polygon.id;
-                    this.url_imag = `${this.url}helper/obtener_portada_barrio/${
+                    this.url_imag = `${this.url}obtener_imagen/direccion_geo/${
                         this.features[this.id_feature].id
                     }`;
 

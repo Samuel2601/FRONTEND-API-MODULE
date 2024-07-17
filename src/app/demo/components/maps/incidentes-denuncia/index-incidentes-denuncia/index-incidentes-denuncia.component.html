@@ -61,7 +61,7 @@
             'direccion_geo.nombre',
             'categoria.nombre',
             'subcategoria.nombre',
-            'ciudadano.nombres',
+            'ciudadano.name',
             'estado.nombre'
         ]"
         [sortMode]="'multiple'"
@@ -175,7 +175,7 @@
                 <td>
                     {{ incidente.categoria.nombre }}
                 </td>
-                <td>
+                <td *ngIf="incidente.estado">
                     <p-tag
                         [value]="incidente.estado.nombre"
                         [severity]="getSeverity(incidente.estado.nombre)"
@@ -247,7 +247,7 @@
                 'direccion_geo.nombre',
                 'categoria.nombre',
                 'subcategoria.nombre',
-                'ciudadano.nombres',
+                'ciudadano.name',
                 'estado.nombre'
             ]"
             [sortMode]="'multiple'"
@@ -340,15 +340,15 @@
                             Ciudadano
                             <p-columnFilter
                                 type="text"
-                                field="ciudadano.nombres"
+                                field="ciudadano.name"
                                 display="menu"
                             ></p-columnFilter>
                             <th
-                                pSortableColumn="ciudadano.nombres"
+                                pSortableColumn="ciudadano.name"
                                 style="width: 20%"
                             >
                                 <p-sortIcon
-                                    field="ciudadano.nombres"
+                                    field="ciudadano.name"
                                 ></p-sortIcon>
                             </th>
                         </div>
@@ -409,15 +409,15 @@
                             Encargado
                             <p-columnFilter
                                 type="text"
-                                field="encargado.nombres"
+                                field="encargado.name"
                                 display="menu"
                             ></p-columnFilter>
                             <th
-                                pSortableColumn="encargado.nombres"
+                                pSortableColumn="encargado.name"
                                 style="width: 20%"
                             >
                                 <p-sortIcon
-                                    field="encargado.nombres"
+                                    field="encargado.name"
                                 ></p-sortIcon>
                             </th>
                         </div>
@@ -459,9 +459,9 @@
                         {{ incidente.subcategoria.nombre }}
                     </td>
                     <td>
-                        {{ incidente.ciudadano.nombres }}
+                        {{ incidente.ciudadano.name }}
                     </td>
-                    <td>
+                    <td *ngIf="incidente.estado">
                         <p-tag
                             [value]="incidente.estado.nombre"
                             [severity]="
@@ -486,7 +486,7 @@
                             *ngIf="incidente.foto.length > 0"
                             [src]="
                                 url +
-                                'helper/obtener_portada/' +
+                                'obtener_imagen/incidentes_denuncia/' +
                                 incidente.foto[0]
                             "
                             class="navbar-brand-img mx-auto"
@@ -500,7 +500,7 @@
                     </td>
                     <td *ngIf="!isMobil()&&!check.FichaLimitada">
                         <ng-container *ngIf="incidente.encargado">{{
-                            incidente.encargado.nombres
+                            incidente.encargado.name
                         }}</ng-container>
                         <ng-container *ngIf="!incidente.encargado"
                             >--</ng-container
@@ -522,7 +522,7 @@
                             *ngIf="incidente.evidencia.length > 0"
                             [src]="
                                 url +
-                                'helper/obtener_portada/' +
+                                'obtener_imagen/usuario/' +
                                 incidente.evidencia[0]
                             "
                             class="navbar-brand-img mx-auto"
@@ -556,14 +556,14 @@
 >
     <ng-template pTemplate="item" let-item>
         <img
-            [src]="url + 'helper/obtener_portada/' + item"
+            [src]="url + 'obtener_imagen/usuario/' + item"
             style="width: 100%; display: block"
         />
     </ng-template>
     <ng-template pTemplate="thumbnail" let-item>
         <div class="grid grid-nogutter justify-content-center">
             <img
-                [src]="url + 'helper/obtener_portada/' + item"
+                [src]="url + 'obtener_imagen/usuario/' + item"
                 style="display: block"
                 style="width: 30%"
             />
@@ -592,7 +592,7 @@
         </p>
         <p>
             <strong>Estado:</strong>
-            <p-tag
+            <p-tag *ngIf="option.estado"
                 [value]="option.estado.nombre"
                 [severity]="getSeverity(option.estado.nombre, option.createdAt)"
             ></p-tag>
@@ -603,7 +603,7 @@
         </p>
         <p>
             <strong>Ciudadano:</strong>
-            {{ option.ciudadano.nombres }}
+            {{ option.ciudadano.name }}
         </p>
         <p>
             <strong>Descripción:</strong>
@@ -612,7 +612,7 @@
         <p *ngIf="!check.FichaLimitada">
             <strong>Encargado:</strong
             ><ng-container *ngIf="option.encargado">{{
-                option.encargado.nombres
+                option.encargado.name
             }}</ng-container>
             <ng-container *ngIf="!option.encargado">--</ng-container>
         </p>
@@ -648,7 +648,7 @@
                 <p-button
                     class="m-3"
                     *ngIf="
-                        ((option.estado.orden != 2 &&
+                        ((option.estado&&option.estado.orden != 2 &&
                             check.EditIncidentesDenunciaComponent) ||
                             check.ContestarIncidente) &&
                         option._id == id
@@ -660,7 +660,7 @@
                 <p-button
                     class="m-3"
                     *ngIf="
-                        option.estado.orden != 2 &&
+                    option.estado&&option.estado.orden != 2 &&
                         check.EditIncidentesDenunciaComponent
                     "
                     [label]="'Responder'"
@@ -670,7 +670,7 @@
                 <p-button
                     class="m-3"
                     *ngIf="
-                        option.estado.orden == 1 ||
+                    option.estado&&option.estado.orden == 1 ||
                         check.BorrarIncidente == true
                     "
                     label="Borrar"

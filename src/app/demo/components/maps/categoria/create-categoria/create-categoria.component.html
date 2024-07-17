@@ -24,6 +24,20 @@
                         />
                     </div>
                     <div class="field col-12 md:col-6">
+                        <label for="icono" class="form-label"
+                            >URL de icono</label
+                        >
+                        <input
+                            type="text"
+                            pInputText
+                            class="form-control"
+                            id="icono"
+                            name="icono"
+                            formControlName="icono"
+                            required
+                        />
+                    </div>
+                    <div class="field col-12 md:col-6">
                         <label for="descripcion" class="form-label"
                             >Descripción</label
                         >
@@ -35,6 +49,22 @@
                             formControlName="descripcion"
                             required
                         ></textarea>
+                    </div>
+                    <div
+                        class="field col-12 md:col-6"
+                        style="
+                            display: flex;
+                            flex-wrap: nowrap;
+                            align-items: center;
+                            justify-content: space-around;
+                        "
+                        *ngIf="categoriaForm.value.icono"
+                    >
+                        <img
+                            [src]="categoriaForm.value.icono"
+                            alt=""
+                            style="max-width: 150px; width: auto"
+                        />
                     </div>
                 </div>
 

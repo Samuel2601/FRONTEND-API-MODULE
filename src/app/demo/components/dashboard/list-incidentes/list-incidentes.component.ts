@@ -250,7 +250,7 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
         try {
             const checkObservables = {
                 DashboardComponent: this.auth.hasPermissionComponent('dashboard', 'get'),
-                ReporteIncidenteView: this.auth.hasPermissionComponent('/incidentes_denuncia', 'get'),
+                ReporteIncidenteView: this.auth.hasPermissionComponent('/reporteincidente', 'get'),
             };
     
             forkJoin(checkObservables).subscribe(async (check) => {

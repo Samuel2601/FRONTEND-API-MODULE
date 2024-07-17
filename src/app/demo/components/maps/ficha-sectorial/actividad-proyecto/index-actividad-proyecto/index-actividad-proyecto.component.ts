@@ -40,7 +40,7 @@ export class IndexActividadProyectoComponent implements OnInit {
             CreateActividadProyectoComponent:
                 await this.auth.hasPermissionComponent('/actividad_proyecto', 'post'),
             EditActividadProyectoComponent:
-                await this.auth.hasPermissionComponent('/actividad_proyecto', 'put'),
+                await this.auth.hasPermissionComponent('/actividad_proyecto/:id', 'put'),
         };
         forkJoin(checkObservables).subscribe(async (check) => {
             this.check = check;
@@ -68,7 +68,7 @@ export class IndexActividadProyectoComponent implements OnInit {
         this.listService
             .listarTiposActividadesProyecto(this.token)
             .subscribe((response) => {
-                //console.log(response);
+                console.log(response);
                 if (response.data) {
                     this.actividadPro = response.data;
                 }

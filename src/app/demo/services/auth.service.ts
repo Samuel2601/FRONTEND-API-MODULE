@@ -8,6 +8,8 @@ import { GLOBAL } from './GLOBAL';
 import { HelperService } from './helper.service';
 import { SocketService } from './socket.io.service';
 
+import { MessageService } from 'primeng/api';
+
 @Injectable({
     providedIn: 'root',
 })
@@ -27,7 +29,8 @@ export class AuthService {
         private http: HttpClient,
         private router: Router,
         private helpers: HelperService,
-        private socketService: SocketService
+        private socketService: SocketService,
+        private messageService: MessageService
     ) {
         this.url = GLOBAL.url;
         if (this.isAuthenticated()) {
@@ -69,10 +72,18 @@ export class AuthService {
 
         if (action === 'PERMISSION_ADDED') {
             this.permissionsSubject.next([...currentPermissions, permiso]);
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Permisos agregados',
+            });
         } else if (action === 'PERMISSION_REMOVED') {
             this.permissionsSubject.next(
                 currentPermissions.filter((p) => p._id !== permiso._id)
             );
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Permisos removidos',
+            });
         }
     }
 
@@ -81,20 +92,67 @@ export class AuthService {
 
         if (action === 'ROLE_REMOVED') {
             this.rolesSubject.next([]);
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Rol Removido',
+                detail: `Tu rol ha sido removido.`,
+            });
         } else if (action === 'ROLE_ADDED') {
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Rol agregado',
+                detail: `Se te ha sido asignado un nuevo rol.`,
+            });
             this.getUserRole(roleId).subscribe(
-                () => {
+                async () => {
                     // Llamar a función para obtener nuevo token
-                    this.refreshToken();
+                    await this.refreshToken();
                 },
                 (error) => {
                     console.error('Error updating roles:', error);
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: `Error actualizando roles: ${error.message}`,
+                    });
                 }
             );
         }
     }
-    refreshToken() {
-        const decodedToken = this.authToken();
+
+    // Método para refrescar el token
+    async refreshToken() {
+        const token = this.token();
+        const id = this.idUserToken();
+        let headers = new HttpHeaders({
+            'Content-Type': 'application/json',
+            Authorization: token,
+        });
+        const params = new HttpParams().set('id', id);
+
+        // Realizar la solicitud para refrescar el token
+        try {
+            const response = await this.http
+                .put<{ token: string }>(
+                    this.url + 'refreshtoken',
+                    { id },
+                    { headers: headers, params: params }
+                )
+                .toPromise();
+            // Guardar el nuevo token recibido
+            this.guardarToken(response.token);
+            return response;
+        } catch (error) {
+            console.error('Error al refrescar el token', error);
+            throw error;
+        }
+    }
+
+    // Método para guardar el token en el almacenamiento local
+    guardarToken(token: string) {
+        localStorage.setItem('token', token);
+        const idUser = this.idUserToken(token);
+        localStorage.setItem('idUser', idUser);
     }
 
     obtenerGPS(): Observable<any> {
@@ -149,12 +207,12 @@ export class AuthService {
             const aux = this.calcularTiempoRestante(token);
             if (aux <= 0) {
                 this.clearSession();
-                console.log("regreso a  login");
+                console.log('regreso a  login');
                 this.redirectToLoginIfNeeded();
                 return null;
             }
         } else {
-            console.log("regreso a  login");
+            console.log('regreso a  login');
             this.redirectToLoginIfNeeded();
         }
         return token || null;
@@ -208,10 +266,13 @@ export class AuthService {
         const params = this.paramsf(body, false);
 
         return this.http
-            .get(`${GLOBAL.url}obtenerpermisosporcriterio`, { headers, params: params,})
+            .get(`${GLOBAL.url}obtenerpermisosporcriterio`, {
+                headers,
+                params: params,
+            })
             .pipe(
                 map((response: any) => {
-                    console.log("LLAMADO API PERMISOS:",response);
+                    console.log('LLAMADO API PERMISOS:', response);
                     this.permissionsSubject.next(response.data);
                     localStorage.setItem(
                         'permissions',
@@ -234,7 +295,15 @@ export class AuthService {
         return params;
     }
 
-    getUserRole(userRole: string): Observable<any> {
+    getUserRole(userRole: any): Observable<any> {
+        let id: string;
+        if (typeof userRole === 'object' && userRole !== null && userRole._id) {
+            id = userRole._id;
+        } else if (typeof userRole === 'string') {
+            id = userRole;
+        } else {
+            throw new Error('Invalid userRole type');
+        }
         const token = this.token();
         let headers = new HttpHeaders({
             'Content-Type': 'application/json',
@@ -242,10 +311,10 @@ export class AuthService {
         });
 
         return this.http
-            .get(`${GLOBAL.url}obtenerRole?id=${userRole}`, { headers })
+            .get(`${GLOBAL.url}obtenerRole?id=${id}`, { headers })
             .pipe(
                 map((response: any) => {
-                    console.log("LLAMADO PARA OBTENER ROL",response);
+                    console.log('LLAMADO PARA OBTENER ROL', response);
                     this.rolesSubject.next(response.data.permisos);
                     localStorage.setItem(
                         'roles',
@@ -259,11 +328,11 @@ export class AuthService {
     getPermisos(): any[] {
         let permisos = [];
         let roles = [];
-    
+
         // Intentar obtener permisos y roles desde localStorage
         const storedPermissions = localStorage.getItem('permissions');
         const storedRoles = localStorage.getItem('roles');
-    
+
         if (storedPermissions !== null && storedRoles !== null) {
             // Si están en localStorage y no son null, parsear y devolver
             permisos = JSON.parse(storedPermissions);
@@ -272,15 +341,15 @@ export class AuthService {
             // Si no están en localStorage o son null, obtener del subject
             permisos = this.permissionsSubject.getValue() || [];
             roles = this.rolesSubject.getValue() || [];
-    
+
             // Actualizar localStorage con arrays vacíos si no están definidos
             localStorage.setItem('permissions', JSON.stringify(permisos));
             localStorage.setItem('roles', JSON.stringify(roles));
-            
+
             // Opcional: Recargar la página después de actualizar localStorage
             // location.reload();
         }
-    
+
         // Combinar roles y permisos y devolver
         return [...roles, ...permisos];
     }
@@ -325,38 +394,41 @@ export class AuthService {
     }
 
     public clearSession() {
-        if(this.helpers.isMobil()){
-            const nombreUsuario = localStorage.getItem('nombreUsuario') || sessionStorage.getItem('nombreUsuario');
-            const fotoUsuario = localStorage.getItem('fotoUsuario') || sessionStorage.getItem('fotoUsuario');
-            const correo = localStorage.getItem('correo') || sessionStorage.getItem('correo');
-            const pass = localStorage.getItem('pass') || sessionStorage.getItem('pass');
-            
-            // Limpiar todo excepto los valores preservados
-            sessionStorage.clear();
-            localStorage.clear();
-    
-            // Restaurar los valores preservados
-            if (nombreUsuario) localStorage.setItem('nombreUsuario', nombreUsuario);
-            if (fotoUsuario) localStorage.setItem('fotoUsuario', fotoUsuario);
-            if (correo) localStorage.setItem('correo', correo);
-            if (pass) localStorage.setItem('pass', pass);
-        } else {
-            sessionStorage.clear();
-            localStorage.clear();
-        }
+        const nombreUsuario =
+            localStorage.getItem('nombreUsuario') ||
+            sessionStorage.getItem('nombreUsuario');
+        const fotoUsuario =
+            localStorage.getItem('fotoUsuario') ||
+            sessionStorage.getItem('fotoUsuario');
+        const correo =
+            localStorage.getItem('correo') || sessionStorage.getItem('correo');
+        const pass =
+            localStorage.getItem('pass') || sessionStorage.getItem('pass');
+
+        // Limpiar todo excepto los valores preservados
+        sessionStorage.clear();
+        localStorage.clear();
+
+        // Restaurar los valores preservados
+        if (nombreUsuario) localStorage.setItem('nombreUsuario', nombreUsuario);
+        if (fotoUsuario) localStorage.setItem('fotoUsuario', fotoUsuario);
+        if (correo) localStorage.setItem('correo', correo);
+        if (pass) localStorage.setItem('pass', pass);
     }
 
     public redirectToLoginIfNeeded() {
         const currentUrl = this.router.url;
-    
+
         // Verifica si la URL actual contiene '/auth/login' independientemente de los parámetros adicionales
-        if (!['/home', '/'].includes(currentUrl) && !currentUrl.startsWith('/auth/login')) {
-            console.log("Redirigiendo a login");
+        if (
+            !['/home', '/'].includes(currentUrl) &&
+            !currentUrl.startsWith('/auth/login')
+        ) {
+            console.log('Redirigiendo a login');
             this.router.navigate(['/auth/login']);
             if (this.helpers.llamadasActivas > 0) {
                 this.helpers.cerrarspinner('auth');
             }
         }
     }
-    
 }

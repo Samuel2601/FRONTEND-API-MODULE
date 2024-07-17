@@ -13,7 +13,8 @@
     <div class="modal-body">
         <p-toast></p-toast>
         <div class="table-responsive-sm" *ngIf="actividadPro">
-            <p-table [paginatorDropdownAppendTo]="'body'"
+            <p-table
+                [paginatorDropdownAppendTo]="'body'"
                 [value]="actividadPro"
                 [tableStyle]="{ 'min-width': '50rem' }"
                 [paginator]="true"
@@ -29,13 +30,30 @@
                 </ng-template>
                 <ng-template pTemplate="body" let-product>
                     <tr>
-                        <td>{{ product.nombre }}</td>
-                        <td *ngIf="check.EditActividadProyectoComponent"><p-button
-                            icon="pi pi-pencil"
-                            [rounded]="true"
-                            severity="success"
-                            (click)="editRow(product)"
-                        ></p-button></td>
+                        <td>
+                            <div
+                                style="
+                                    display: flex;
+                                    justify-content: space-between;
+                                    align-items: center;
+                                "
+                            >
+                                {{ product.nombre }}
+                                <img
+                                    [src]="product.icono"
+                                    alt=""
+                                    style="max-width: 50px; width: auto"
+                                />
+                            </div>
+                        </td>
+                        <td *ngIf="check.EditActividadProyectoComponent">
+                            <p-button
+                                icon="pi pi-pencil"
+                                [rounded]="true"
+                                severity="success"
+                                (click)="editRow(product)"
+                            ></p-button>
+                        </td>
                     </tr>
                 </ng-template>
             </p-table>

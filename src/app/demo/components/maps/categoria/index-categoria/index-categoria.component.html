@@ -114,14 +114,14 @@
                         <p>
                             ¿Estás seguro que deseas eliminar esta
                             {{
-                                responsemodal.cantidadSubcategorias
+                                catbool
                                     ? "categoría"
                                     : "subcategoría"
                             }}?
                         </p>
                     </div>
                 </div>
-                <div class="flex pt-4 justify-content-end">
+                <div class="flex pt-4 justify-content-end" *ngIf="load_btn_delte">
                     <p-button
                         label="Next"
                         icon="pi pi-arrow-right"
@@ -291,7 +291,7 @@
         </p-stepperPanel>
     </p-stepper>
     <ng-template pTemplate="footer">
-        <p-button severity="danger" (click)="visibledelete = false">
+        <p-button severity="danger" (click)="visibledelete = false; ">
             Cancelar
         </p-button>
         <p-button

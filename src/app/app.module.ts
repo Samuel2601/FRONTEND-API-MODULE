@@ -10,14 +10,17 @@ import { TranslateModule } from '@ngx-translate/core';
 import { PermissionGuard } from './guards/permission.guard';
 import { AuthService } from './demo/services/auth.service';
 import { SocketService } from './demo/services/socket.io.service';
+import { MessageService } from 'primeng/api';
 
+import { ToastModule } from 'primeng/toast';
 @NgModule({
     declarations: [AppComponent, NotfoundComponent],
-    imports: [AppRoutingModule, AppLayoutModule,ButtonModule,TranslateModule.forRoot()],
+    imports: [AppRoutingModule, AppLayoutModule,ButtonModule,TranslateModule.forRoot(),ToastModule],
     providers: [
         { provide: LocationStrategy, useClass: PathLocationStrategy },
         DialogService,
-        SocketService, AuthService, PermissionGuard
+        SocketService, AuthService, PermissionGuard,
+        MessageService
     ],
     bootstrap: [AppComponent],
 })

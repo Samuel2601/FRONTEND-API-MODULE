@@ -39,7 +39,7 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
         private messageService: MessageService,
         private config: DynamicDialogConfig,
         private ref: DynamicDialogRef,
-        private auth:AuthService
+        private auth: AuthService
     ) {
         this.nuevoIncidenteDenuncia = this.fb.group({
             categoria: ['', Validators.required],
@@ -47,6 +47,7 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
             descripcion: ['', Validators.required],
             direccion_geo: [{}, Validators.required],
             ciudadano: ['', Validators.required],
+            estado: ['', Validators.required],
         });
     }
     data: any;
@@ -54,18 +55,6 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
     geolocation: any;
     mostrar: boolean = false;
 
-    DimissModal() {
-        //this.modalService.dismissAll();
-    }
-
-    async checkPermissions() {
-        const result = await Geolocation['requestPermissions']();
-        if (result.location === 'granted') {
-            //console.log('Permiso de ubicación concedido');
-        } else {
-            //console.log('Permiso de ubicación denegado');
-        }
-    }
     async tomarFoto() {
         const image: any = await Camera.getPhoto({
             quality: 100,
@@ -108,6 +97,23 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
                 console.error('Error al realizar la solicitud:', error);
             });
     }
+    listartEstados(){
+        this.listService.listarEstadosIncidentes(this.token).subscribe(response=>{
+          if(response.data&&response.data.length>0){
+            const aux=response.data.find(elemnent=>elemnent.orden==1);
+            this.nuevoIncidenteDenuncia.get('estado').setValue(aux._id); 
+            console.log(this.nuevoIncidenteDenuncia.get('estado').value);
+          }
+        },error=>{
+          console.error(error);
+          if(error.error.message=='InvalidToken'){
+            this.router.navigate(["/auth/login"]);
+          }else{
+            this.messageService.add({severity: 'error', summary:  ('('+error.status+')').toString(), detail: error.error.message||'Sin conexión'});
+          }      
+        });
+      }
+
     tipocat: any;
     tiposucat: any;
     async ngOnInit() {
@@ -126,7 +132,9 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
         this.load_form = false;
         if (this.data) {
             this.nuevoIncidenteDenuncia.get('direccion_geo').setValue({
-                nombre:  this.data?.properties?.nombre?this.data.properties.nombre: 'Barrio sin nombre',
+                nombre: this.data?.properties?.nombre
+                    ? this.data.properties.nombre
+                    : 'Barrio sin nombre',
                 latitud: this.direccion.latitud,
                 longitud: this.direccion.longitud,
             });
@@ -151,6 +159,7 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
                     this.direccion.longitud
                 ),
                 this.listarCategorias(),
+                this.listartEstados()
             ]);
         } finally {
             setTimeout(() => {
@@ -180,11 +189,10 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
     }
     token = this.auth.token();
     selectcategoria() {
-
         if (this.nuevoIncidenteDenuncia.get('categoria')) {
             const id = this.nuevoIncidenteDenuncia.get('categoria')?.value._id;
             this.listService
-                .listarSubcategorias(this.token, 'categoria', id)
+                .listarSubcategorias(this.token, { categoria: id }, false)
                 .subscribe(
                     (response) => {
                         //console.log(response)
@@ -222,7 +230,6 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
         }
     }
     async listarCategorias() {
-
         this.listService.listarCategorias(this.token).subscribe(
             (response) => {
                 this.categorias = response.data;
@@ -332,37 +339,6 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
             detail: this.selectedFiles.length + 'Imagenes subidas',
         });
         this.mostrargale = true;
-        //console.log(this.selectedFiles,this.imagenesSeleccionadas );
-
-        /*
-    if(!this.isMobil()){
-      this.imagenesSeleccionadas=[];
-      this.selectedFiles=[];
-    }
-    if (files && files.length > 0) {
-      for (let i = 0; i < Math.min(files.length, 3); i++) {
-        const file = files[i];
-        if (!file.type.startsWith('image/')) {
-          alert('Por favor, seleccione archivos de imagen.');
-          return;
-        }
-        if (file.size > 4 * 1024 * 1024) {
-          alert('Por favor, seleccione archivos de imagen que sean menores a 4MB.');
-          return;
-        }
-  
-        const reader = new FileReader();
-        reader.onload = (e: any) => {
-          this.imagenesSeleccionadas.push(e.target.result);
-        };
-        reader.readAsDataURL(file);
-        this.selectedFiles.push(file);        
-      }
-      setTimeout(() => {        
-        this.load_carrusel = true;
-      }, 500);
-    }
-    */
     }
 
     selectedFiles: File[] = [];
@@ -433,52 +409,52 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
         this.nuevoIncidenteDenuncia
             .get('ciudadano')
             ?.setValue(this.adminservice.identity(this.token));
-        
-        if(this.nuevoIncidenteDenuncia.valid){
+
+        if (this.nuevoIncidenteDenuncia.valid) {
             this.nuevoIncidenteDenuncia.enable();
             this.load_form = false;
+            console.log(this.nuevoIncidenteDenuncia.value);
             this.createService
-            .registrarIncidenteDenuncia(
-                this.token,
-                this.nuevoIncidenteDenuncia.value,
-                this.selectedFiles
-            )
-            .subscribe(
-                (response) => {
-                    // Manejar la respuesta del servidor
-                    //console.log(response);
-                    if (response.data) {
-                        this.messageService.add({
-                            severity: 'success',
-                            summary: 'Ingresado',
-                            detail: 'Correctamente',
-                        });
-                        //this.modalService.dismissAll();
-                        this.ref.close();
+                .registrarIncidenteDenuncia(
+                    this.token,
+                    this.nuevoIncidenteDenuncia.value,
+                    this.selectedFiles
+                )
+                .subscribe(
+                    (response) => {
+                        // Manejar la respuesta del servidor
+                        //console.log(response);
+                        if (response.data) {
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Ingresado',
+                                detail: 'Correctamente',
+                            });
+                            //this.modalService.dismissAll();
+                            this.ref.close();
+                        }
+                    },
+                    (error) => {
+                        // Manejar errores
+                        //console.error(error);
+                        if (error.error.message == 'InvalidToken') {
+                            this.router.navigate(['/auth/login']);
+                        } else {
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: ('(' + error.status + ')').toString(),
+                                detail: error.error.message || 'Sin conexión',
+                            });
+                        }
                     }
-                },
-                (error) => {
-                    // Manejar errores
-                    //console.error(error);
-                    if (error.error.message == 'InvalidToken') {
-                        this.router.navigate(['/auth/login']);
-                    } else {
-                        this.messageService.add({
-                            severity: 'error',
-                            summary: ('(' + error.status + ')').toString(),
-                            detail: error.error.message || 'Sin conexión',
-                        });
-                    }
-                }
-            );
-        }else{
+                );
+        } else {
             this.messageService.add({
                 severity: 'error',
                 summary: 'ERROR',
-                detail: 'Complete todo el formulario'
+                detail: 'Complete todo el formulario',
             });
         }
-       
     }
     hover = false;
     nombreArchivo: any;

@@ -589,7 +589,7 @@
                                 "
                                 [src]="
                                     url +
-                                    'helper/obtener_portada_ficha/' +
+                                    'obtener_imagen/ficha_sectorial/' +
                                     incidente.foto[0]
                                 "
                                 class="navbar-brand-img mx-auto"
@@ -746,7 +746,7 @@
                     [class.active]="i === 0"
                 >
                     <img
-                        [src]="url + 'helper/obtener_portada_ficha/' + imagen"
+                        [src]="url + 'obtener_imagen/ficha_sectorial/' + imagen"
                         class="d-block w-100"
                         alt="Imagen"
                     />
@@ -785,7 +785,7 @@
                 class="m-1"
             >
                 <img
-                    [src]="url + 'helper/obtener_portada_ficha/' + imagen"
+                    [src]="url + 'obtener_imagen/ficha_sectorial/' + imagen"
                     class="img-thumbnail"
                     style="cursor: pointer; max-width: 100px; max-height: 100px"
                     (click)="mostrarImagen(i)"
@@ -807,14 +807,14 @@
 >
     <ng-template pTemplate="item" let-item>
         <img
-            [src]="url + 'helper/obtener_portada_ficha/' + item"
+            [src]="url + 'obtener_imagen/ficha_sectorial/' + item"
             style="width: 100%; display: block"
         />
     </ng-template>
     <ng-template pTemplate="thumbnail" let-item>
         <div class="grid grid-nogutter justify-content-center">
             <img
-                [src]="url + 'helper/obtener_portada_ficha/' + item"
+                [src]="url + 'obtener_imagen/ficha_sectorial/' + item"
                 style="display: block"
                 style="width: 30%"
             />

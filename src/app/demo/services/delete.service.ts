@@ -89,7 +89,7 @@ export class DeleteService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.get(this.url + 'categoria/' + id, { headers: headers });
+    return this.http.get(this.url + 'subcategoria?categoria=' + id, { headers: headers });
   }
 
   eliminarCategoria(token: any, id: string,data: any): Observable<any> {
@@ -105,7 +105,7 @@ export class DeleteService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.get(this.url + 'subcategoria/' + id, { headers: headers });
+    return this.http.get(this.url + 'incidentes_denuncia?subcategoria=' + id, { headers: headers });
   }
 
   eliminarSubcategoria(token: any, id: string,data: any): Observable<any> {
