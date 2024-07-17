@@ -61,10 +61,9 @@ export class UpdateService {
         const headers = new HttpHeaders({
             Authorization: token,
         });
-        const params = new HttpParams().set('id', id);
-        return this.http.put(this.url + 'actividad_proyecto', data, {
+        //const params = new HttpParams().set('id', id);
+        return this.http.put(this.url + 'actividad_proyecto/'+ id, data, {
             headers: headers,
-            params: params,
         });
     }
 
@@ -243,10 +242,9 @@ export class UpdateService {
             'Content-Type': 'application/json',
             Authorization: token,
         });
-        const params = new HttpParams().set('id', id);
-        return this.http.put(this.url + 'actividad_proyecto', data, {
+        //const params = new HttpParams().set('id', id);
+        return this.http.put(this.url + 'actividad_proyecto/'+ id, data, {
             headers: headers,
-            params: params,
         });
     }
 

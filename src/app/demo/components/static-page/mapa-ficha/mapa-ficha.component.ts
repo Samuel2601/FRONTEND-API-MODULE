@@ -86,6 +86,8 @@ import { BadgeModule } from 'primeng/badge';
 import { CreateService } from 'src/app/demo/services/create.service';
 import { CalendarModule } from 'primeng/calendar';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { InputSwitchModule } from 'primeng/inputswitch';
+import { InputTextModule } from 'primeng/inputtext';
 interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
     id?: string;
 }
@@ -94,6 +96,8 @@ interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
     standalone: true,
     imports: [
         NgbModule,
+        InputSwitchModule,
+        InputTextModule,
         FormsModule,
         CommonModule,
         CardModule,
@@ -252,6 +256,9 @@ export class MapaFichaComponent implements OnInit {
             fecha_evento: [''],
             observacion: [''],
             foto: [],
+            es_articulo:[false],
+            mostrar_en_mapa:[false],
+            icono_marcador: ['',Validators.pattern('https?://.+')],
         });
         this.subscription = this.layoutService.configUpdate$
             .pipe(debounceTime(25))

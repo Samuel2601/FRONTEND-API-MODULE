@@ -52,6 +52,7 @@ export class EditActividadProyectoComponent {
     }
 
     updateCate() {
+        console.log(this.categoria);
         this.update
             .actualizarTipoActividadProyecto(this.token, this.id, this.categoria)
             .subscribe(
@@ -69,6 +70,7 @@ export class EditActividadProyectoComponent {
                     }
                 },
                 (error) => {
+                    console.error(error);
                     this.messageService.add({
                         severity: 'error',
                         summary: ('(' + error.status + ')').toString(),

@@ -169,7 +169,10 @@
                         </div>
                     </div>
 
-                    <span class="p-float-label mb-3 mt-3" *ngIf="!load_fullscreen">
+                    <span
+                        class="p-float-label mb-3 mt-3"
+                        *ngIf="!load_fullscreen"
+                    >
                         <p-autoComplete
                             appendTo="body"
                             [(ngModel)]="query"
@@ -180,9 +183,7 @@
                             [forceSelection]="true"
                             (onSelect)="imprimir(query)"
                             [inputStyle]="{
-                                width: isMobil()
-                                    ? responsiveimage()
-                                    : '80vh'
+                                width: isMobil() ? responsiveimage() : '80vh'
                             }"
                         >
                         </p-autoComplete>
@@ -191,7 +192,16 @@
                         </label>
                     </span>
 
-                    <div class="card" id="map2" style="min-height: 70vh;margin-left: -18px; margin-right: -18px; margin-bottom: 0 !important;"></div>
+                    <div
+                        class="card"
+                        id="map2"
+                        style="
+                            min-height: 70vh;
+                            margin-left: -18px;
+                            margin-right: -18px;
+                            margin-bottom: 0 !important;
+                        "
+                    ></div>
                     <div [style.display]="'none'">
                         <div class="controls fullscreen-control">
                             <button
@@ -240,7 +250,22 @@
         >
             <form [formGroup]="fichaSectorialForm">
                 <h4>Descripción de la Actividad</h4>
+                <div
+                    style="
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-start;
+                    "
+                >
+                    <p style="margin: 1rem">
+                        Es un articulo que quieras publicar?
+                    </p>
+                    <p-inputSwitch formControlName="es_articulo" />
+                </div>
+
+                <!-- Mostrar textarea si es_articulo está apagado (false) -->
                 <textarea
+                    *ngIf="!fichaSectorialForm.get('es_articulo').value"
                     [style]="{
                         height: '320px',
                         width: '-webkit-fill-available'
@@ -249,24 +274,61 @@
                     cols="30"
                     pInputTextarea
                     formControlName="descripcion"
+                ></textarea>
+
+                <!-- Mostrar p-editor si es_articulo está encendido (true) -->
+                <p-editor
+                    *ngIf="fichaSectorialForm.get('es_articulo').value"
+                    formControlName="descripcion"
+                    [style]="{
+                        height: '320px',
+                        width: '-webkit-fill-available'
+                    }"
                 >
-                </textarea>
+                </p-editor>
                 <div class="mb-5">
                     <h4 for="fecha_evento" class="form-label">
                         Fecha del Evento
                     </h4>
-                    <p-calendar
-                        [touchUI]="isMobil()"
-                        [readonlyInput]="isMobil()"
-                        id="fecha_evento"
-                        name="fecha_evento"
-                        formControlName="fecha_evento"
-                        [showTime]="true"
-                        [showIcon]="true"
-                        appendTo="body"
-                        inputId="buttondisplay"
-                    ></p-calendar>
+                    <div
+                        style="
+                            display: flex;
+                            align-items: center;
+                            justify-content: flex-start;
+                        "
+                    >
+                        <p-calendar
+                            [touchUI]="isMobil()"
+                            [readonlyInput]="isMobil()"
+                            id="fecha_evento"
+                            name="fecha_evento"
+                            formControlName="fecha_evento"
+                            [showTime]="true"
+                            [showIcon]="true"
+                            appendTo="body"
+                            inputId="buttondisplay"
+                        ></p-calendar>
+                        <p style="margin: 1rem">
+                            Quieres que se muestre en los mapas?
+                        </p>
+                        <p-inputSwitch formControlName="mostrar_en_mapa" />
+                    </div>
                 </div>
+                <div class="mb-5" *ngIf="fichaSectorialForm.get('mostrar_en_mapa').value">
+                    <h4 for="fecha_evento" class="form-label">
+                        Quieres añadir la URL del Marcador?
+                    </h4>
+                    <div
+                        style="
+                            display: flex;
+                            align-items: center;
+                            justify-content: flex-start;
+                        "
+                    >
+                    <input type="text" pInputText formControlName="icono_marcador" />
+                    </div>
+                </div>
+                
             </form>
             <h4>Puedes agregar fotos, es opcional. (maximo 5 fotos)</h4>
             <div class="mb-3" *ngIf="!isMobil() && upload">
