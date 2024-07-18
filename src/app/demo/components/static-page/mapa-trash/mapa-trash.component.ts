@@ -244,12 +244,7 @@ export class MapaTrashComponent implements OnInit {
                 console.error('Error getting location:', error);
             });
     }
-    ngOnDestroy() {
-        if (this.mapCustom) {
-            google.maps.event.clearInstanceListeners(this.mapCustom);
-            this.mapCustom = null;
-        }
-    }
+
     async ngOnInit() {
         this.helperService.llamarspinner('init mapa basurero');
         App.addListener('backButton', (data) => {
@@ -1074,5 +1069,12 @@ export class MapaTrashComponent implements OnInit {
                 this.getLocation();
             }
         }, 500);
+    }
+    ngOnDestroy(): void {
+        // Limpia el mapa cuando el componente se destruye
+        if (this.mapCustom) {
+            google.maps.event.clearInstanceListeners(this.mapCustom);
+            this.mapCustom = null;
+        }
     }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ListService } from 'src/app/demo/services/list.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -11,6 +11,8 @@ import { DashboardModule } from '../../dashboard/dashboard.module';
 import { MapaTrashComponent } from '../mapa-trash/mapa-trash.component';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { forkJoin } from 'rxjs';
+import { MapaMostrarFichasComponent } from '../mapa-mostrar-fichas/mapa-mostrar-fichas.component';
+import { MostrarFichasArticulosComponent } from '../mostrar-fichas-articulos/mostrar-fichas-articulos.component';
 @Component({
     selector: 'app-home',
     standalone: true,
@@ -20,14 +22,27 @@ import { forkJoin } from 'rxjs';
         MapaFichaComponent,
         DashboardModule,
         MapaTrashComponent,
+        MapaMostrarFichasComponent,
+        MostrarFichasArticulosComponent
     ],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss',
 })
 export class HomeComponent implements OnInit {
+    @ViewChild('mapaMostrarFichasRef')
+    mapaMostrarFichasRef: MapaMostrarFichasComponent;
+
+    @ViewChild('mapaCreateIncidente')
+    mapaCreateIncidente: MapaComponent;
+
+    @ViewChild('mapaCreateFicha')
+    mapaCreateFicha: MapaFichaComponent;
+
+    @ViewChild('mapaVerRecolectores')
+    mapaVerRecolectores: MapaTrashComponent;
+
     responsiveOptions: any[] = [];
     productos: any[] = [];
-    token = this.auth.token() || undefined;
     incidencia: FormGroup<any>;
     constructor(
         private list: ListService,
@@ -50,8 +65,11 @@ export class HomeComponent implements OnInit {
             view: true,
         });
     }
-    DashboardComponent: any;
+    check: any;
     async ngOnInit(): Promise<void> {
+        this.list.listarFichaSectorialMapa().subscribe((response) => {
+            console.log(response);
+        });
         this.helperService.setHomeComponent(this);
 
         this.responsiveOptions = [
@@ -127,11 +145,22 @@ export class HomeComponent implements OnInit {
                 mobil: true,
             }
         );
-        this.DashboardComponent = await this.auth.hasPermissionComponent(
+        const check = {
+            DashboardComponent:await this.auth.hasPermissionComponent(
             'dashboard',
             'get'
         ),
-        forkJoin(this.DashboardComponent).subscribe(async (check) => {
+        Ficha:await this.auth.hasPermissionComponent(
+            '/ficha_sectorial',
+            'post'
+        ),
+        Incidente:await this.auth.hasPermissionComponent(
+            '/incidentes_denuncia',
+            'post'
+        ),
+    };
+        forkJoin(check).subscribe(async (check) => {
+            this.check = check;
             try {
                 this.filterProductos();
             } catch (error) {
@@ -565,42 +594,68 @@ export class HomeComponent implements OnInit {
     isMobil(): boolean {
         return this.helperService.isMobil();
     }
-
+    visible_fichas_mostrar: boolean = true;
     visible_incidente: boolean = false;
     visible_incidente_mirror: boolean = false;
     button_active: any = { cate: '', sub: '' };
+    token=this.auth.token()||undefined;
+
     incidente(cate?, sub?) {
-        if (cate) {
-            this.button_active.cate = cate;
-        } else {
-            this.button_active.cate = undefined;
-        }
+        if (this.auth.token()) {
+            if (cate) {
+                this.button_active.cate = cate;
+            } else {
+                this.button_active.cate = undefined;
+            }
 
-        if (sub) {
-            this.button_active.sub = sub;
-        } else {
-            this.button_active.sub = undefined;
-        }
+            if (sub) {
+                this.button_active.sub = sub;
+            } else {
+                this.button_active.sub = undefined;
+            }
 
-        if (this.DashboardComponent) {
-            this.visible_incidente_mirror = true;
-        } else {
-            this.visible_incidente = true;
+            if (this.check.DashboardComponent) {
+                this.visible_incidente_mirror = true;
+            } else {
+                this.visible_fichas_mostrar = false;
+                setTimeout(() => {
+                    this.visible_incidente = true;
+                }, 5000);
+            }
+        }else{
+            this.auth.redirectToLoginIfNeeded(true);
         }
     }
 
     visible_ficha: boolean = false;
     visible_ficha_mirror: boolean = false;
+    visible_ficha_table:boolean=false;
     ficha() {
-        if (this.DashboardComponent) {
-            this.visible_ficha_mirror = true;
-        } else {
-            this.visible_ficha = true;
+        if (this.auth.token()) {
+            if (this.check.DashboardComponent) {
+                this.visible_fichas_mostrar = false;
+                setTimeout(() => {
+                    this.visible_ficha_mirror = true;
+                }, 5000);
+            } else if(this.check.Ficha) {
+                this.visible_ficha = true;
+            }else{
+                this.visible_ficha_table=true;
+            }
+        }else{
+            this.auth.redirectToLoginIfNeeded(true);
         }
     }
     visible_trash_mirror: boolean = false;
     recolectores() {
-        this.visible_trash_mirror = true;
+        if (this.auth.token()) {
+            this.visible_fichas_mostrar = false;
+            setTimeout(() => {
+                this.visible_trash_mirror = true;
+            }, 5000);
+        }else{
+            this.auth.redirectToLoginIfNeeded(true);
+        }
     }
 
     showInfo(button: any) {

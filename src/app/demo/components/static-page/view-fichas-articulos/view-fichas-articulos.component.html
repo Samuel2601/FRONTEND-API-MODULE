@@ -1,0 +1,6 @@
+<div *ngIf="ficha">
+    <h2>{{ ficha.direccion_geo.nombre }}</h2>
+    <p>{{ ficha.descripcion }}</p>
+    <img *ngIf="ficha.imagen_url" [src]="ficha.imagen_url" style="max-width: 100%; height: auto;" />
+    <!-- Puedes añadir más detalles de la ficha aquí -->
+</div>

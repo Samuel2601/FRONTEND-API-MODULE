@@ -1,0 +1,174 @@
+.combo-box {
+    position: relative ;
+  }
+  
+  .options-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-top: none;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+  }
+  
+  .options-list li {
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  
+  .options-list li:hover {
+    background-color: #f9f9f9;
+  }
+  
+  
+  .card-body {
+    .row-cols-lg-2 {
+        @media (min-width: 992px) {
+            /* Pantallas grandes: 2 columnas */
+            display: flex;
+            flex-wrap: wrap;
+  
+            > * {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+        }
+  
+        @media (max-width: 991.98px) {
+            /* Dispositivos móviles: 1 columna */
+            display: block;
+  
+            > * {
+                width: 100%;
+            }
+        }
+    }
+  }
+  $input-width: 430px; // Ancho para escritorio
+  
+  .inputmap {
+  @media (max-width: 700px) { // Estilos para dispositivos móviles
+    width: calc(100vw - 30px); // Restar 30px al ancho total de la ventana
+  }
+  
+  @media (min-width: 700px) { // Estilos para escritorio
+    width: $input-width;
+  }
+  height: 50px;
+  }
+  
+  #lista {
+  @media (max-width: 700px) { // Estilos para dispositivos móviles
+    width: calc(100vw - 50px); // Restar 30px al ancho total de la ventana
+  }
+  
+  @media (min-width: 700px) { // Estilos para escritorio
+    width: $input-width;
+  }
+  height: 50px;
+  }
+  
+  .formulario-flotante {
+  position: absolute;
+  
+  z-index: 1000; /* Asegura que el formulario esté por encima del mapa */
+  border-radius: 5px;
+  // box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  @media (max-width: 700px) { // Estilos para dispositivos móviles
+    top: 24px; /* Ajusta la posición vertical según tus necesidades */
+    left:auto; /* Ajusta la posición horizontal según tus necesidades */
+  }
+  
+  @media (min-width: 700px) { // Estilos para escritorio
+    top: 24px; /* Ajusta la posición vertical según tus necesidades */
+    left: 55px; /* Ajusta la posición horizontal según tus necesidades */
+  }
+  }
+  
+  #formulario {
+  position: absolute;
+  padding: 0px;
+  border: 0px solid black;
+  z-index: 1000;
+  }
+  
+  
+  
+  .container {
+  height: -webkit-fill-available; /* Altura total de la ventana */
+  z-index: 1000;
+  }
+  
+  #listarficha {
+  @media (max-width: 767px) { // Estilos para dispositivos móviles
+    //width: 100%;
+    bottom: 0;
+    --bs-gutter-x: 0rem;
+  }
+  
+  @media (min-width: 768px) { // Estilos para escritorio
+   // width: 97%;
+    --bs-gutter-x: 1.5rem; // Establecer el espacio entre columnas de Bootstrap
+  }
+  }
+  .container{
+  
+  
+  @media (min-width:1400px) {
+      max-width: -webkit-fill-availabl !important;
+  }
+  @media (min-width:1400px) {  
+    max-width: -webkit-fill-available;
+  }
+  }
+  
+  .imagen-popup {
+  margin: 0;
+  padding: 0;
+  display: block;
+  width: 100%;
+  display: block;
+  height: 100px;
+  
+  object-fit: cover; /* Para ajustar la imagen dentro del contenedor sin distorsionarla */
+  }
+  .fullscreen-button{
+    background: none rgb(255, 255, 255);
+      border: 0px;
+      margin: 10px;
+      padding: 0px;
+      text-transform: none;
+      appearance: none;
+      position: absolute;
+      cursor: pointer;
+      user-select: none;
+      border-radius: 2px;
+      height: 40px;
+      width: 40px;
+      box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 4px -1px;
+      overflow: hidden;
+      top: 0px;
+      right: 0px;
+  }
+  .fullscreen-button .hover-image {
+    display: none;
+  }
+  
+  .fullscreen-button:hover .normal-image {
+    display: none;
+  }
+  
+  .fullscreen-button:hover .hover-image {
+    display: inline-block;
+  }
+  .p-inputtext{
+      width: 400px;
+  }
+  .p-fluid .p-button-icon-only {
+        width: 3rem !important;
+  }
