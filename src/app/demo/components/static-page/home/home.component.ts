@@ -12,19 +12,19 @@ import { MapaTrashComponent } from '../mapa-trash/mapa-trash.component';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { forkJoin } from 'rxjs';
 import { MapaMostrarFichasComponent } from '../mapa-mostrar-fichas/mapa-mostrar-fichas.component';
-import { MostrarFichasArticulosComponent } from '../mostrar-fichas-articulos/mostrar-fichas-articulos.component';
+import { MostrarFichasArticulosComponent } from "../mostrar-fichas-articulos/mostrar-fichas-articulos.component";
 @Component({
     selector: 'app-home',
     standalone: true,
     imports: [
-        ImportsModule,
-        MapaComponent,
-        MapaFichaComponent,
-        DashboardModule,
-        MapaTrashComponent,
-        MapaMostrarFichasComponent,
-        MostrarFichasArticulosComponent,
-    ],
+    ImportsModule,
+    MapaComponent,
+    MapaFichaComponent,
+    DashboardModule,
+    MapaTrashComponent,
+    MapaMostrarFichasComponent,
+    MostrarFichasArticulosComponent
+],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss',
 })
@@ -66,6 +66,7 @@ export class HomeComponent implements OnInit {
         });
     }
     check: any;
+    setbuttons:any[]=[];
     async ngOnInit(): Promise<void> {
         this.list.listarFichaSectorialMapa().subscribe((response) => {
             console.log(response);
@@ -150,6 +151,14 @@ export class HomeComponent implements OnInit {
                 'dashboard',
                 'get'
             ),
+            ReporteFicha: await this.auth.hasPermissionComponent(
+                'reporteficha',
+                'get'
+            ),
+            ReporteIncidente: await this.auth.hasPermissionComponent(
+                'reporteincidente',
+                'get'
+            ),
             Ficha: await this.auth.hasPermissionComponent(
                 '/ficha_sectorial',
                 'post'
@@ -163,6 +172,430 @@ export class HomeComponent implements OnInit {
             this.check = check;
             try {
                 this.filterProductos();
+                this.setbuttons = [
+                    {
+                        label: 'Más Usados',
+                        items: [
+                            {
+                                label: 'ESVIAL',
+                                info: 'Puedes reportar Incidentes o mirar las Infracciones de tránsito',
+                                icon: 'https://i.postimg.cc/bYKqrncJ/Iconos-disen-o-09.png',
+                                showInfo: false,
+                                style: false,
+                                items: [
+                                    {
+                                        label: 'Incidentes ESVIAL',
+                                        info: 'Puedes reportar los incidentes y denuncias con respecto a ESVIAL.',
+                                        icon: 'https://i.postimg.cc/C51r9XxQ/Imagen-de-Whats-App-2024-06-26-a-las-12-09-30-1cfaf812-fotor-bg-remover-20240626121913.png',
+                                        dev: true,
+                                        showInfo: false,
+                                        command: async () => {
+                                            this.incidente(
+                                                'ESVIAL',
+                                                'Transporte terrestre y seguridad vial'
+                                            );
+                                        },
+                                    },
+                                    {
+                                        label: 'Infracciones de Tránsito',
+                                        info: 'Servicio en línea para la consulta de citaciones.',
+                                        icon: 'https://i.postimg.cc/FsCZ1JkL/Imagen-de-Whats-App-2024-06-26-a-las-12-07-32-5233ccb0-fotor-bg-remover-20240626121152.png',
+                                        dev: true,
+                                        showInfo: false,
+                                        command: async () => {
+                                            window.open(
+                                                'https://servicios.axiscloud.ec/AutoServicio/inicio.jsp?ps_empresa=10&ps_accion=P55',
+                                                '_blank'
+                                            );
+                                        },
+                                    },
+                                    {
+                                        label: 'Página oficial',
+                                        info: 'Conoce su sitio oficial',
+                                        icon: 'https://i.postimg.cc/7YnWXf1v/375591046-633240775578090-7070193202552108562-n-removebg-preview-1.png',
+                                        dev: true,
+                                        showInfo: false,
+                                        command: async () => {
+                                            window.open(
+                                                'https://esvialep.gob.ec/',
+                                                '_blank'
+                                            );
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                label: 'EPMAPSE',
+                                info: 'Puedes reportar los incidentes y denuncias con respecto a EPMAPSE.',
+                                icon: 'https://i.postimg.cc/j2625XdV/icoco-epmapse.png',
+                                showInfo: false,
+                                style: false,
+                                items: [
+                                    {
+                                        label: 'Incidentes EPMAPSE',
+                                        info: 'Puedes reportar los incidentes y denuncias con respecto a EPMAPSE.',
+                                        icon: 'https://i.postimg.cc/yYGf4ccS/Agua-Potable-y-Alcantarillado.png',
+                                        dev: true,
+                                        showInfo: false,
+                                        command: async () => {
+                                            this.incidente('Agua Potable y Alcantarillado');
+                                        },
+                                    },
+                                    {
+                                        label: 'Página oficial',
+                                        info: 'Conoce su sitio oficial',
+                                        icon: 'https://i.postimg.cc/2jHdQSw6/epmapse-mod-removebg-preview-2.png',
+                                        dev: true,
+                                        showInfo: false,
+                                        command: async () => {
+                                            window.open(
+                                                'https://epmapse.gob.ec/',
+                                                '_blank'
+                                            );
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                label: 'BOMBEROS',
+                                info: 'Puedes reportar los incidentes y denuncias con respecto a BOMBEROS.',
+                                icon: 'https://i.postimg.cc/Gh55HjWs/icoco-bomberos.png',
+                                showInfo: false,
+                                style: false,
+                                items: [
+                                    {
+                                        label: 'Incidentes BOMBEROS',
+                                        info: 'Puedes reportar los incidentes y denuncias con respecto a BOMBEROS.',
+                                        icon: 'https://i.postimg.cc/pdYh1sx9/11.png',
+                                        dev: true,
+                                        showInfo: false,
+                                        command: async () => {
+                                            this.incidente(
+                                                'Cuerpo de Bomberos',
+                                                'Incendios / Desastres varios'
+                                            );
+                                        },
+                                    },
+                                    {
+                                        label: 'Página oficial',
+                                        info: 'Conoce su sitio oficial',
+                                        icon: 'https://i.postimg.cc/d0p2bHhy/352708610-231200392990592-6209922991130766173-n-removebg-preview.png',
+                                        dev: true,
+                                        showInfo: false,
+                                        command: async () => {
+                                            window.open(
+                                                'https://bomberosdeesmeraldas.gob.ec/',
+                                                '_blank'
+                                            );
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                label: 'RECOLECTORES',
+                                info: 'Puedes reportar los incidentes y denuncias con respecto a RECOLECTORES.',
+                                icon: 'https://i.postimg.cc/KvSyxyB3/Iconos-disen-o-01.png',
+                                showInfo: false,
+                                style: false,
+                                items: [
+                                    {
+                                        label: 'Incidentes Recolectores',
+                                        info: 'Puedes reportar los incidentes y denuncias con respecto a BOMBEROS.',
+                                        icon: 'https://i.postimg.cc/c4LhscCW/Imagen-de-Whats-App-2024-06-26-a-las-12-06-55-15776554-fotor-bg-remover-20240626121226.png',
+                                        dev: true,
+                                        showInfo: false,
+                                        command: async () => {
+                                            this.incidente(
+                                                'Higiene',
+                                                ' Servicio de recolección de desechos'
+                                            );
+                                        },
+                                    },
+                                    {
+                                        label: 'Rastreo de Recolectores',
+                                        info: 'Encuentralos, más cerca de ti',
+                                        icon: 'https://i.postimg.cc/wBcRdtxs/basureros-logo-esmeraldas-la-bella-recorte-2.png',
+                                        style: true,
+                                        showInfo: false,
+                                        command: async () => {
+                                            this.recolectores();
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                label: 'Otros Incidentes',
+                                info: 'Puedes reportar los incidentes y denuncias que se presenten en la ciudad.',
+                                icon: 'https://i.postimg.cc/yNvM11Wj/NOTICIAS.png',
+                                showInfo: false,
+                                style: false,
+                                command: async () => {
+                                    this.incidente();
+                                },
+                            },
+                            {
+                                label: 'Fichas Sectoriales',
+                                info: 'Accede a información detallada sobre eventos y actividades en tu sector.',
+                                icon: 'https://i.postimg.cc/zfpQgsy7/Iconos-disen-o-05.png',
+                                showInfo: false,
+                                style: false,
+                                command: async () => {
+                                    this.auth.token()?'':this.visible_ficha_view_table=true,this.visible_fichas_mostrar=false;//this.auth.redirectToLoginIfNeeded(true);
+                                    this.check.ReporteFicha&&!this.check.Ficha?
+                                    this.visible_ficha = true:'';
+            
+                                },
+                                
+                                items: this.check.Ficha?[
+                                    {
+                                        label: 'Repore de Fichas',
+                                        info: 'Puedes reportar los incidentes y denuncias con respecto a BOMBEROS.',
+                                        icon: 'https://i.postimg.cc/GpFfDvfq/Imagen-de-Whats-App-2024-06-26-a-las-12-09-30-57f62e61-removebg-preview.png',
+                                        dev: true,
+                                        showInfo: false,
+                                        command: async () => {
+                                            this.isMobil()? this.router.navigate(['/dashboard/ficha']): this.visible_ficha = true;
+                                        },
+                                    },
+                                    {
+                                        label: 'Crear una Ficha',
+                                        info: 'Encuentralos, más cerca de ti',
+                                        icon: 'https://i.postimg.cc/NG4bqngb/Imagen-de-Whats-App-2024-06-26-a-las-12-07-36-c26979b6-fotor-bg-remover-20240626121035.png',
+                                        style: true,
+                                        showInfo: false,
+                                        command: async () => {
+                                            this.auth.token()?'':this.auth.redirectToLoginIfNeeded(true);
+                                            this.isMobil()? this.router.navigate(['/crear-ficha']): (this.visible_fichas_mostrar=false,this.visible_ficha_mirror = true);
+                                        },
+                                    },
+                                ]:undefined,
+            
+            
+                            },
+                        ],
+                    },
+                    {
+                        label: 'Otros Servicios',
+                        items: [
+                            {
+                                label: 'Tramites Municipal',
+                                info: 'Descubre otros servicios disponibles para ti.',
+                                icon: 'https://i.postimg.cc/hGPB6bxC/Iconos-disen-o-12.png',
+                                showInfo: false,
+                                style: false,
+                                command: async () => {
+                                    window.open(
+                                        'https://tramites.esmeraldas.gob.ec/',
+                                        '_blank'
+                                    );
+                                },
+                            },
+                            {
+                                label: 'Registro de la Propiedad',
+                                info: 'Realiza tus trámites en Registro de la Propiedad, certificación e inscripción.',
+                                icon: 'https://i.postimg.cc/pXfMd1JG/Iconos-disen-o-14.png',
+                                showInfo: false,
+                                style: false,
+                                command: async () => {
+                                    window.open(
+                                        'https://tramites.esmeraldas.gob.ec/login.jsp?id_servicio=15',
+                                        '_blank'
+                                    );
+                                },
+                            },
+                            {
+                                label: 'Noticias',
+                                info: 'Mantente informado sobre comunicados de la alcaldía.',
+                                icon: 'https://i.postimg.cc/cLcWF5Kg/Iconos-disen-o-11.png',
+                                showInfo: false,
+                                style: false,
+                                command: async () => {
+                                    window.open(
+                                        'https://esmeraldas.gob.ec/noticias.html',
+                                        '_blank'
+                                    );
+                                },
+                            },
+                            {
+                                label: 'Ciudad Global',
+                                info: 'Interactúa con las diferentes unidades de la Alcaldía Ciudadana.',
+                                icon: 'https://i.postimg.cc/4NVs93s1/Iconos-disen-o-08.png',
+                                showInfo: false,
+                                style: false,
+                                items: [
+                                    {
+                                        label: 'Mapa de la Ciudad',
+                                        info: 'Interactúa con las diferentes unidades de la Alcaldía Ciudadana.',
+                                        icon: 'https://i.postimg.cc/qMNZLPYt/Imagen-de-Whats-App-2024-06-26-a-las-12-09-30-27b5bceb-removebg-preview.png',
+                                        showInfo: false,
+                                        command: async () => {
+                                            this.router.navigate(['/maps']);
+                                        },
+                                    },
+                                    {
+                                        label: "TIC's",
+                                        info: 'Conócenos',
+                                        icon: 'https://i.postimg.cc/NG4bqngb/Imagen-de-Whats-App-2024-06-26-a-las-12-07-36-c26979b6-fotor-bg-remover-20240626121035.png',
+                                        showInfo: false,
+                                        command: async () => {
+                                            window.open(
+                                                'https://esmeraldas.gob.ec/direcciones/ti/info_tics.html',
+                                                '_blank'
+                                            );
+                                        },
+                                    },
+                                    {
+                                        label: 'Servicios',
+                                        info: 'Descubre otros servicios que ofrecemos.',
+                                        icon: 'https://i.postimg.cc/XJnzkpS3/Imagen-de-Whats-App-2024-06-26-a-las-12-09-35-803347bd-removebg-preview.png',
+                                        showInfo: false,
+                                        command: async () => {
+                                            window.open(
+                                                'https://esmeraldas.gob.ec/direcciones/ti/servicios-ti.html',
+                                                '_blank'
+                                            );
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                label: 'Gestión de Riesgos',
+                                info: 'Información general sobre gestión de riesgos.',
+                                icon: 'https://i.postimg.cc/CMfV3KBV/Iconos-disen-o-15.png',
+                                showInfo: false,
+                                style: false,
+                                command: async () => {
+                                    window.open(
+                                        'https://esmeraldas.gob.ec/direcciones/gestion-de-riesgos/informaci%C3%B3n-general.html',
+                                        '_blank'
+                                    );
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        label: 'Concejales',
+                        items: [
+                            {
+                                label: 'Lilian Orejuela',
+                                info: 'Rendición de cuentas de Lilian Orejuela.',
+                                icon: 'https://i.postimg.cc/R0FKBmB9/consejal-1.png',
+                                showInfo: false,
+                                style: true,
+                                command: async () => {
+                                    window.open(
+                                        'https://www.esmeraldas.gob.ec/alcaldia/concejales-canton-esmeraldas/consejal-lilian.html',
+                                        '_blank'
+                                    );
+                                },
+                            },
+                            {
+                                label: 'Jorge Perea',
+                                info: 'Rendición de cuentas de Jorge Perea.',
+                                icon: 'https://i.postimg.cc/MZYbk9kW/JORGE-fotor-bg-remover-2024053183620.png',
+                                showInfo: false,
+                                style: true,
+                                command: async () => {
+                                    window.open(
+                                        'https://www.esmeraldas.gob.ec/alcaldia/concejales-canton-esmeraldas/concejal-jorge-perea.html',
+                                        '_blank'
+                                    );
+                                },
+                            },
+                            {
+                                label: 'Ramón Echeverría',
+                                info: 'Rendición de cuentas de Ramón Echeverría.',
+                                icon: 'https://i.postimg.cc/VLfy1Zd4/49938764-2088066691300558-8718155154085380096-n-fotor-bg-remover-2024053193834.png',
+                                showInfo: false,
+                                style: true,
+                                command: async () => {
+                                    window.open(
+                                        'https://www.esmeraldas.gob.ec/alcaldia/concejales-canton-esmeraldas/concejal-ram%C3%B3n-echeverria.html',
+                                        '_blank'
+                                    );
+                                },
+                            },
+                            {
+                                label: 'Yoli Márquez',
+                                info: 'Rendición de cuentas de Yoli Márquez.',
+                                icon: 'https://i.postimg.cc/BQQ5J2s2/441262099-7433463006749036-7393373753399887830-n-fotor-bg-remover-2024053114411.png',
+                                showInfo: false,
+                                style: true,
+                                command: async () => {
+                                    window.open(
+                                        'https://www.esmeraldas.gob.ec/alcaldia/concejales-canton-esmeraldas/vicealcaldesa.html',
+                                        '_blank'
+                                    );
+                                },
+                            },
+                            {
+                                label: 'Galo Cabezas',
+                                info: 'Rendición de Cuentas Galo Cabezas.',
+                                icon: 'https://i.postimg.cc/C5JjjxCZ/357410929-6259323480831905-1173226859756085474-n-fotor-bg-remover-20240605102912.png',
+                                showInfo: false,
+                                style: true,
+                                command: async () => {
+                                    window.open(
+                                        'https://www.esmeraldas.gob.ec/alcaldia/concejales-canton-esmeraldas/rendici%C3%B3n-de-cuenta-abg-galo-cabezas.html',
+                                        '_blank'
+                                    );
+                                },
+                            },
+                            {
+                                label: 'José Maffares',
+                                info: 'Rendición de Cuentas José Maffares.',
+                                icon: 'https://i.postimg.cc/26YFYrqc/425605791-2113349195709417-9111459625782608350-n-removebg-preview.png',
+                                showInfo: false,
+                                style: true,
+                                command: async () => {
+                                    window.open(
+                                        'https://www.esmeraldas.gob.ec/alcaldia/concejales-canton-esmeraldas/concejal-jos%C3%A9-maffares-guagua.html',
+                                        '_blank'
+                                    );
+                                },
+                            },
+                            {
+                                label: 'Luisa Cuero',
+                                info: 'Rendición de Cuentas Luisa Cuero.',
+                                icon: 'https://i.postimg.cc/QdFpTsFt/346839338-266235752519361-8128170372082584323-n-fotor-bg-remover-20240607125013.png',
+                                showInfo: false,
+                                style: true,
+                                command: async () => {
+                                    window.open(
+                                        'https://www.esmeraldas.gob.ec/alcaldia/concejales-canton-esmeraldas/rendici%C3%B3n-de-cuenta-luisa-cuero.html',
+                                        '_blank'
+                                    );
+                                },
+                            },
+                            {
+                                label: 'Laura Yagual',
+                                info: 'Rendición de Cuentas Laura Yagual.',
+                                icon: 'https://i.postimg.cc/HsZwnjsR/348425824-994304325315637-2066268990053037357-n-fotor-bg-remover-202406101637.png',
+                                showInfo: false,
+                                style: true,
+                                command: async () => {
+                                    window.open(
+                                        'https://www.esmeraldas.gob.ec/alcaldia/concejales-canton-esmeraldas/concejal-laura-yagual.html',
+                                        '_blank'
+                                    );
+                                },
+                            },
+                            {
+                                label: 'Victor Rodríguez',
+                                info: 'Rendición de Cuentas Victor Rodríguez.',
+                                icon: 'https://i.postimg.cc/qqCdzqxq/Imagen-de-Whats-App-2024-07-02-a-las-10-39-12-e997acba-removebg-preview.png',
+                                showInfo: false,
+                                style: true,
+                                command: async () => {
+                                    window.open(
+                                        'https://esmeraldas.gob.ec/alcaldia/concejales-canton-esmeraldas/concejal-victor-manuel-rodriguez-santos.html',
+                                        '_blank'
+                                    );
+                                },
+                            },
+                        ],
+                    },
+                ];
             } catch (error) {
                 console.error('Error en ngOnInit:', error);
                 this.router.navigate(['/notfound']);
@@ -171,401 +604,7 @@ export class HomeComponent implements OnInit {
             }
         });
     }
-    setbuttons: any = [
-        {
-            label: 'Más Usados',
-            items: [
-                {
-                    label: 'ESVIAL',
-                    info: 'Puedes reportar Incidentes o mirar las Infracciones de tránsito',
-                    icon: 'https://i.postimg.cc/bYKqrncJ/Iconos-disen-o-09.png',
-                    showInfo: false,
-                    style: false,
-                    items: [
-                        {
-                            label: 'Incidentes ESVIAL',
-                            info: 'Puedes reportar los incidentes y denuncias con respecto a ESVIAL.',
-                            icon: 'https://i.postimg.cc/C51r9XxQ/Imagen-de-Whats-App-2024-06-26-a-las-12-09-30-1cfaf812-fotor-bg-remover-20240626121913.png',
-                            dev: true,
-                            showInfo: false,
-                            command: async () => {
-                                this.incidente(
-                                    'ESVIAL',
-                                    'Transporte terrestre y seguridad vial'
-                                );
-                            },
-                        },
-                        {
-                            label: 'Infracciones de Tránsito',
-                            info: 'Servicio en línea para la consulta de citaciones.',
-                            icon: 'https://i.postimg.cc/FsCZ1JkL/Imagen-de-Whats-App-2024-06-26-a-las-12-07-32-5233ccb0-fotor-bg-remover-20240626121152.png',
-                            dev: true,
-                            showInfo: false,
-                            command: async () => {
-                                window.open(
-                                    'https://servicios.axiscloud.ec/AutoServicio/inicio.jsp?ps_empresa=10&ps_accion=P55',
-                                    '_blank'
-                                );
-                            },
-                        },
-                        {
-                            label: 'Página oficial',
-                            info: 'Conoce su sitio oficial',
-                            icon: 'https://i.postimg.cc/7YnWXf1v/375591046-633240775578090-7070193202552108562-n-removebg-preview-1.png',
-                            dev: true,
-                            showInfo: false,
-                            command: async () => {
-                                window.open(
-                                    'https://esvialep.gob.ec/',
-                                    '_blank'
-                                );
-                            },
-                        },
-                    ],
-                },
-                {
-                    label: 'EPMAPSE',
-                    info: 'Puedes reportar los incidentes y denuncias con respecto a EPMAPSE.',
-                    icon: 'https://i.postimg.cc/j2625XdV/icoco-epmapse.png',
-                    showInfo: false,
-                    style: false,
-                    items: [
-                        {
-                            label: 'Incidentes EPMAPSE',
-                            info: 'Puedes reportar los incidentes y denuncias con respecto a EPMAPSE.',
-                            icon: 'https://i.postimg.cc/yYGf4ccS/Agua-Potable-y-Alcantarillado.png',
-                            dev: true,
-                            showInfo: false,
-                            command: async () => {
-                                this.incidente('Agua Potable y Alcantarillado');
-                            },
-                        },
-                        {
-                            label: 'Página oficial',
-                            info: 'Conoce su sitio oficial',
-                            icon: 'https://i.postimg.cc/2jHdQSw6/epmapse-mod-removebg-preview-2.png',
-                            dev: true,
-                            showInfo: false,
-                            command: async () => {
-                                window.open(
-                                    'https://epmapse.gob.ec/',
-                                    '_blank'
-                                );
-                            },
-                        },
-                    ],
-                },
-                {
-                    label: 'BOMBEROS',
-                    info: 'Puedes reportar los incidentes y denuncias con respecto a BOMBEROS.',
-                    icon: 'https://i.postimg.cc/Gh55HjWs/icoco-bomberos.png',
-                    showInfo: false,
-                    style: false,
-                    items: [
-                        {
-                            label: 'Incidentes BOMBEROS',
-                            info: 'Puedes reportar los incidentes y denuncias con respecto a BOMBEROS.',
-                            icon: 'https://i.postimg.cc/pdYh1sx9/11.png',
-                            dev: true,
-                            showInfo: false,
-                            command: async () => {
-                                this.incidente(
-                                    'Cuerpo de Bomberos',
-                                    'Incendios / Desastres varios'
-                                );
-                            },
-                        },
-                        {
-                            label: 'Página oficial',
-                            info: 'Conoce su sitio oficial',
-                            icon: 'https://i.postimg.cc/d0p2bHhy/352708610-231200392990592-6209922991130766173-n-removebg-preview.png',
-                            dev: true,
-                            showInfo: false,
-                            command: async () => {
-                                window.open(
-                                    'https://bomberosdeesmeraldas.gob.ec/',
-                                    '_blank'
-                                );
-                            },
-                        },
-                    ],
-                },
-                {
-                    label: 'RECOLECTORES',
-                    info: 'Puedes reportar los incidentes y denuncias con respecto a RECOLECTORES.',
-                    icon: 'https://i.postimg.cc/KvSyxyB3/Iconos-disen-o-01.png',
-                    showInfo: false,
-                    style: false,
-                    items: [
-                        {
-                            label: 'Incidentes Recolectores',
-                            info: 'Puedes reportar los incidentes y denuncias con respecto a BOMBEROS.',
-                            icon: 'https://i.postimg.cc/c4LhscCW/Imagen-de-Whats-App-2024-06-26-a-las-12-06-55-15776554-fotor-bg-remover-20240626121226.png',
-                            dev: true,
-                            showInfo: false,
-                            command: async () => {
-                                this.incidente(
-                                    'Higiene',
-                                    ' Servicio de recolección de desechos'
-                                );
-                            },
-                        },
-                        {
-                            label: 'Rastreo de Recolectores',
-                            info: 'Encuentralos, más cerca de ti',
-                            icon: 'https://i.postimg.cc/wBcRdtxs/basureros-logo-esmeraldas-la-bella-recorte-2.png',
-                            style: true,
-                            showInfo: false,
-                            command: async () => {
-                                this.recolectores();
-                            },
-                        },
-                    ],
-                },
-                {
-                    label: 'Otros Incidentes',
-                    info: 'Puedes reportar los incidentes y denuncias que se presenten en la ciudad.',
-                    icon: 'https://i.postimg.cc/fW3wMKPp/Iconos-disen-o-07.png',
-                    showInfo: false,
-                    style: false,
-                    command: async () => {
-                        this.incidente();
-                    },
-                },
-                {
-                    label: 'Fichas Sectoriales',
-                    info: 'Accede a información detallada sobre eventos y actividades en tu sector.',
-                    icon: 'https://i.postimg.cc/zfpQgsy7/Iconos-disen-o-05.png',
-                    showInfo: false,
-                    style: false,
-                    command: async () => {
-                        this.ficha();
-                    },
-                },
-            ],
-        },
-        {
-            label: 'Otros Servicios',
-            items: [
-                {
-                    label: 'Tramites Municipal',
-                    info: 'Descubre otros servicios disponibles para ti.',
-                    icon: 'https://i.postimg.cc/hGPB6bxC/Iconos-disen-o-12.png',
-                    showInfo: false,
-                    style: false,
-                    command: async () => {
-                        window.open(
-                            'https://tramites.esmeraldas.gob.ec/',
-                            '_blank'
-                        );
-                    },
-                },
-                {
-                    label: 'Registro de la Propiedad',
-                    info: 'Realiza tus trámites en Registro de la Propiedad, certificación e inscripción.',
-                    icon: 'https://i.postimg.cc/pXfMd1JG/Iconos-disen-o-14.png',
-                    showInfo: false,
-                    style: false,
-                    command: async () => {
-                        window.open(
-                            'https://tramites.esmeraldas.gob.ec/login.jsp?id_servicio=15',
-                            '_blank'
-                        );
-                    },
-                },
-                {
-                    label: 'Noticias',
-                    info: 'Mantente informado sobre comunicados de la alcaldía.',
-                    icon: 'https://i.postimg.cc/cLcWF5Kg/Iconos-disen-o-11.png',
-                    showInfo: false,
-                    style: false,
-                    command: async () => {
-                        window.open(
-                            'https://esmeraldas.gob.ec/noticias.html',
-                            '_blank'
-                        );
-                    },
-                },
-                {
-                    label: 'Ciudad Global',
-                    info: 'Interactúa con las diferentes unidades de la Alcaldía Ciudadana.',
-                    icon: 'https://i.postimg.cc/4NVs93s1/Iconos-disen-o-08.png',
-                    showInfo: false,
-                    style: false,
-                    items: [
-                        {
-                            label: 'Mapa de la Ciudad',
-                            info: 'Interactúa con las diferentes unidades de la Alcaldía Ciudadana.',
-                            icon: 'https://i.postimg.cc/qMNZLPYt/Imagen-de-Whats-App-2024-06-26-a-las-12-09-30-27b5bceb-removebg-preview.png',
-                            showInfo: false,
-                            command: async () => {
-                                this.router.navigate(['/maps']);
-                            },
-                        },
-                        {
-                            label: "TIC's",
-                            info: 'Conócenos',
-                            icon: 'https://i.postimg.cc/NG4bqngb/Imagen-de-Whats-App-2024-06-26-a-las-12-07-36-c26979b6-fotor-bg-remover-20240626121035.png',
-                            showInfo: false,
-                            command: async () => {
-                                window.open(
-                                    'https://esmeraldas.gob.ec/direcciones/ti/info_tics.html',
-                                    '_blank'
-                                );
-                            },
-                        },
-                        {
-                            label: 'Servicios',
-                            info: 'Descubre otros servicios que ofrecemos.',
-                            icon: 'https://i.postimg.cc/XJnzkpS3/Imagen-de-Whats-App-2024-06-26-a-las-12-09-35-803347bd-removebg-preview.png',
-                            showInfo: false,
-                            command: async () => {
-                                window.open(
-                                    'https://esmeraldas.gob.ec/direcciones/ti/servicios-ti.html',
-                                    '_blank'
-                                );
-                            },
-                        },
-                    ],
-                },
-                {
-                    label: 'Gestión de Riesgos',
-                    info: 'Información general sobre gestión de riesgos.',
-                    icon: 'https://i.postimg.cc/CMfV3KBV/Iconos-disen-o-15.png',
-                    showInfo: false,
-                    style: false,
-                    command: async () => {
-                        window.open(
-                            'https://esmeraldas.gob.ec/direcciones/gestion-de-riesgos/informaci%C3%B3n-general.html',
-                            '_blank'
-                        );
-                    },
-                },
-            ],
-        },
-        {
-            label: 'Concejales',
-            items: [
-                {
-                    label: 'Lilian Orejuela',
-                    info: 'Rendición de cuentas de Lilian Orejuela.',
-                    icon: 'https://i.postimg.cc/R0FKBmB9/consejal-1.png',
-                    showInfo: false,
-                    style: true,
-                    command: async () => {
-                        window.open(
-                            'https://www.esmeraldas.gob.ec/alcaldia/concejales-canton-esmeraldas/consejal-lilian.html',
-                            '_blank'
-                        );
-                    },
-                },
-                {
-                    label: 'Jorge Perea',
-                    info: 'Rendición de cuentas de Jorge Perea.',
-                    icon: 'https://i.postimg.cc/MZYbk9kW/JORGE-fotor-bg-remover-2024053183620.png',
-                    showInfo: false,
-                    style: true,
-                    command: async () => {
-                        window.open(
-                            'https://www.esmeraldas.gob.ec/alcaldia/concejales-canton-esmeraldas/concejal-jorge-perea.html',
-                            '_blank'
-                        );
-                    },
-                },
-                {
-                    label: 'Ramón Echeverría',
-                    info: 'Rendición de cuentas de Ramón Echeverría.',
-                    icon: 'https://i.postimg.cc/VLfy1Zd4/49938764-2088066691300558-8718155154085380096-n-fotor-bg-remover-2024053193834.png',
-                    showInfo: false,
-                    style: true,
-                    command: async () => {
-                        window.open(
-                            'https://www.esmeraldas.gob.ec/alcaldia/concejales-canton-esmeraldas/concejal-ram%C3%B3n-echeverria.html',
-                            '_blank'
-                        );
-                    },
-                },
-                {
-                    label: 'Yoli Márquez',
-                    info: 'Rendición de cuentas de Yoli Márquez.',
-                    icon: 'https://i.postimg.cc/BQQ5J2s2/441262099-7433463006749036-7393373753399887830-n-fotor-bg-remover-2024053114411.png',
-                    showInfo: false,
-                    style: true,
-                    command: async () => {
-                        window.open(
-                            'https://www.esmeraldas.gob.ec/alcaldia/concejales-canton-esmeraldas/vicealcaldesa.html',
-                            '_blank'
-                        );
-                    },
-                },
-                {
-                    label: 'Galo Cabezas',
-                    info: 'Rendición de Cuentas Galo Cabezas.',
-                    icon: 'https://i.postimg.cc/C5JjjxCZ/357410929-6259323480831905-1173226859756085474-n-fotor-bg-remover-20240605102912.png',
-                    showInfo: false,
-                    style: true,
-                    command: async () => {
-                        window.open(
-                            'https://www.esmeraldas.gob.ec/alcaldia/concejales-canton-esmeraldas/rendici%C3%B3n-de-cuenta-abg-galo-cabezas.html',
-                            '_blank'
-                        );
-                    },
-                },
-                {
-                    label: 'José Maffares',
-                    info: 'Rendición de Cuentas José Maffares.',
-                    icon: 'https://i.postimg.cc/26YFYrqc/425605791-2113349195709417-9111459625782608350-n-removebg-preview.png',
-                    showInfo: false,
-                    style: true,
-                    command: async () => {
-                        window.open(
-                            'https://www.esmeraldas.gob.ec/alcaldia/concejales-canton-esmeraldas/concejal-jos%C3%A9-maffares-guagua.html',
-                            '_blank'
-                        );
-                    },
-                },
-                {
-                    label: 'Luisa Cuero',
-                    info: 'Rendición de Cuentas Luisa Cuero.',
-                    icon: 'https://i.postimg.cc/QdFpTsFt/346839338-266235752519361-8128170372082584323-n-fotor-bg-remover-20240607125013.png',
-                    showInfo: false,
-                    style: true,
-                    command: async () => {
-                        window.open(
-                            'https://www.esmeraldas.gob.ec/alcaldia/concejales-canton-esmeraldas/rendici%C3%B3n-de-cuenta-luisa-cuero.html',
-                            '_blank'
-                        );
-                    },
-                },
-                {
-                    label: 'Laura Yagual',
-                    info: 'Rendición de Cuentas Laura Yagual.',
-                    icon: 'https://i.postimg.cc/HsZwnjsR/348425824-994304325315637-2066268990053037357-n-fotor-bg-remover-202406101637.png',
-                    showInfo: false,
-                    style: true,
-                    command: async () => {
-                        window.open(
-                            'https://www.esmeraldas.gob.ec/alcaldia/concejales-canton-esmeraldas/concejal-laura-yagual.html',
-                            '_blank'
-                        );
-                    },
-                },
-                {
-                    label: 'Victor Rodríguez',
-                    info: 'Rendición de Cuentas Victor Rodríguez.',
-                    icon: 'https://i.postimg.cc/qqCdzqxq/Imagen-de-Whats-App-2024-07-02-a-las-10-39-12-e997acba-removebg-preview.png',
-                    showInfo: false,
-                    style: true,
-                    command: async () => {
-                        window.open(
-                            'https://esmeraldas.gob.ec/alcaldia/concejales-canton-esmeraldas/concejal-victor-manuel-rodriguez-santos.html',
-                            '_blank'
-                        );
-                    },
-                },
-            ],
-        },
-    ];
+   
 
     filteredProductos: any[] = [];
     imageselecte: any;
@@ -618,9 +657,12 @@ export class HomeComponent implements OnInit {
                 this.visible_incidente_mirror = true;
             } else {
                 this.visible_fichas_mostrar = false;
-                setTimeout(() => {
+                
+                if(this.isMobil()){
                     this.router.navigate(['/crear-incidente']);
-                }, 2500);
+                }else{
+                    this.visible_incidente = true;
+                }
 
                 /*setTimeout(() => {
                     this.visible_incidente = true;
@@ -634,6 +676,7 @@ export class HomeComponent implements OnInit {
     visible_ficha: boolean = false;
     visible_ficha_mirror: boolean = false;
     visible_ficha_table: boolean = false;
+    visible_ficha_view_table:boolean=false;
     ficha() {
         if (this.auth.token()) {
             if (this.check.DashboardComponent) {
@@ -643,9 +686,7 @@ export class HomeComponent implements OnInit {
                 setTimeout(() => {
                     this.visible_ficha_mirror = true;
                 }, 5000);*/
-                setTimeout(() => {
-                    this.router.navigate(['/crear-ficha']);
-                }, 1500);
+               
             } else {
                 this.visible_ficha_table = true;
             }

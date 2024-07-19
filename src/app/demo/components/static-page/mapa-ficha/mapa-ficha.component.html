@@ -328,6 +328,18 @@
                     <input type="text" pInputText formControlName="icono_marcador" />
                     </div>
                 </div>
+                <div class="mb-5" *ngIf="fichaSectorialForm.get('mostrar_en_mapa').value">
+                    <label htmlFor="title_marcador"> Titulo que se mostrará cuando se abra el marcador:</label>
+                    <div
+                        style="
+                            display: flex;
+                            align-items: center;
+                            justify-content: flex-start;
+                        "
+                    >
+                    <input type="text" pInputText formControlName="title_marcador" />
+                    </div>
+                </div>
                 
             </form>
             <h4>Puedes agregar fotos, es opcional. (maximo 5 fotos)</h4>

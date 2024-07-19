@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Loader } from '@googlemaps/js-api-loader';
 import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
@@ -14,24 +14,30 @@ import { ListService } from 'src/app/demo/services/list.service';
     styleUrl: './mapa-mostrar-fichas.component.scss',
 })
 export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
-    
+    @Input() ficha!: any;
     mapCustom: google.maps.Map;
     load_fullscreen: boolean = false;
-
+    fichas_sectoriales_arr: any[];
 
     constructor(
         private list: ListService,
         private helperService: HelperService,
         private router: Router,
-        private googlemaps:GoogleMapsService
+        private googlemaps: GoogleMapsService
     ) {}
 
-    ngOnInit(): void {
-        this.initMap();
-        this.listarFichaSectorialMapa();
+    async ngOnInit() {
+        await this.initMap();
+        console.log('FICHA QUE RECIBE:', this.ficha);
+        if (this.ficha) {
+            this.fichas_sectoriales_arr = [this.ficha];
+            this.marcadoresmapa();
+        } else {
+            this.listarFichaSectorialMapa();
+        }
     }
 
-    initMap(): void {
+    async initMap() {
         this.googlemaps.getLoader().then(() => {
             const haightAshbury = { lat: 0.977035, lng: -79.655415 };
             this.mapCustom = new google.maps.Map(
@@ -51,67 +57,72 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
             this.initFullscreenControl();
         });
     }
-    fichas_sectoriales_arr:any[];
+
     listarFichaSectorialMapa(): void {
         this.list.listarFichaSectorialMapa().subscribe((response: any) => {
             if (response.data && response.data.length > 0) {
-                this.fichas_sectoriales_arr=response.data;
-                const bounds = new google.maps.LatLngBounds(); // Crear objeto para los límites de los marcadores
-
-                this.fichas_sectoriales_arr.forEach((item: any) => {
-                    console.log(item);
-                    const position = new google.maps.LatLng(
-                        item.direccion_geo.latitud,
-                        item.direccion_geo.longitud
-                    );
-
-                    const marker = new google.maps.Marker({
-                        position: position,
-                        map: this.mapCustom,
-                        title: item.direccion_geo.nombre,
-                        icon: {
-                            url: item.icono_marcador, // URL de la imagen del icono del marcador
-                            scaledSize: new google.maps.Size(80, 80), // Tamaño personalizado del icono
-                        },
-                    });
-
-                    // Añadir la posición del marcador a los límites
-                    bounds.extend(position);
-
-                    // Contenido del InfoWindow
-                    let infoContent = `
-                      <div>
-                          <h5>${item.direccion_geo.nombre}</h5>
-                          ${item.descripcion}
-                  `;
-
-                    // Añadir imagen si está disponible
-                    if (item.imagen_url) {
-                        infoContent += `<img src="${item.imagen_url}" style="max-width: 200px; max-height: 150px;" />`;
-                    }
-
-                    // Añadir botón si es un artículo
-                    if (item.es_articulo) {
-                        infoContent += `
-                          <button (click)="verArticulo('${item._id}')">Ver Artículo</button>
-                      `;
-                    }
-
-                    infoContent += `</div>`;
-
-                    const infoWindow = new google.maps.InfoWindow({
-                        content: infoContent,
-                    });
-
-                    marker.addListener('click', () => {
-                        infoWindow.open(this.mapCustom, marker);
-                    });
-                });
-
-                // Ajustar el centro y zoom del mapa para mostrar todos los marcadores
-                this.mapCustom.fitBounds(bounds);
+                this.fichas_sectoriales_arr = response.data;
+                this.marcadoresmapa();
             }
         });
+    }
+    marcadoresmapa() {
+        const bounds = new google.maps.LatLngBounds(); // Crear objeto para los límites de los marcadores
+
+        this.fichas_sectoriales_arr.forEach((item: any) => {
+            console.log(item);
+            const position = new google.maps.LatLng(
+                item.direccion_geo.latitud,
+                item.direccion_geo.longitud
+            );
+
+            const marker = new google.maps.Marker({
+                position: position,
+                map: this.mapCustom,
+                title: item.direccion_geo.nombre,
+                icon: {
+                    url: item.icono_marcador, // URL de la imagen del icono del marcador
+                    scaledSize: new google.maps.Size(80, 80), // Tamaño personalizado del icono
+                },
+            });
+
+            // Añadir la posición del marcador a los límites
+            bounds.extend(position);
+
+            // Contenido del InfoWindow
+            let infoContent = `
+              <div>
+                  <h5>${item.title_marcador}</h5>                          
+          `;
+
+            // Añadir imagen si está disponible
+            if (item.imagen_url) {
+                infoContent += `<img src="${item.imagen_url}" style="max-width: 200px; max-height: 150px;" />`;
+            }
+
+            // Añadir botón si es un artículo
+            if (item.es_articulo) {
+                infoContent += `
+                  <button (click)="verArticulo('${item._id}')">Ver Artículo</button>
+              `;
+            }
+
+            infoContent += `</div>`;
+
+            const infoWindow = new google.maps.InfoWindow({
+                headerContent: item.direccion_geo.nombre,
+                content: infoContent,
+                maxWidth: 300,
+            });
+
+            marker.addListener('click', () => {
+                infoWindow.open(this.mapCustom, marker);
+            });
+        });
+        if (this.mapCustom) {
+            // Ajustar el centro y zoom del mapa para mostrar todos los marcadores
+            this.mapCustom.fitBounds(bounds);
+        }
     }
 
     verArticulo(fichaId: string): void {
@@ -189,7 +200,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
         if (this.mapCustom) {
             google.maps.event.clearInstanceListeners(this.mapCustom);
             this.mapCustom = null;
-            console.log("Mapa liberado");
+            console.log('Mapa liberado');
         }
     }
 }

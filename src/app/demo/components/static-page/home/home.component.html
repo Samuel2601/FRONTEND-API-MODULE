@@ -10,7 +10,7 @@
             >
             <h2 class="font-bold text-4xl sm:text-7xl mt-0 mb-4">
                 Desarrollemos una <br />
-                buena comunicación. {{check.DashboardComponent}}
+                buena comunicación.
             </h2>
             <div class="flex gap-3">
                 <button
@@ -675,6 +675,7 @@
     [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
     #dialog2
     (onShow)="isMobil() ? dialog2.maximize() : '';"
+    (onHide)="visible_fichas_mostrar=true"
     class="safe-margin-top"
     [contentStyle]="{ 'padding-bottom': 0 }"
 >
@@ -693,6 +694,23 @@
 >
     <app-list-ficha *ngIf="visible_ficha"></app-list-ficha>
 </p-dialog>
+
+
+<p-dialog
+    header="Fichas Sectoriales"
+    [modal]="true"
+    [(visible)]="visible_ficha_view_table"
+    [style]="{ width: '80rem' }"
+    [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+    #dialog22
+    (onShow)="isMobil() ? dialog22.maximize() : '';"
+    class="safe-margin-top"
+>
+    
+<app-mostrar-fichas-articulos></app-mostrar-fichas-articulos>
+</p-dialog>
+
+
 <p-dialog
     header="Fichas Sectoriales"
     [modal]="true"
@@ -704,8 +722,6 @@
     class="safe-margin-top"
 >
     <app-list-ficha *ngIf="visible_ficha_table"></app-list-ficha>
-
-    <app-mostrar-fichas-articulos></app-mostrar-fichas-articulos>
 </p-dialog>
 
 <p-dialog

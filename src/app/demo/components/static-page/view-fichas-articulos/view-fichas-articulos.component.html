@@ -1,6 +1,48 @@
-<div *ngIf="ficha">
-    <h2>{{ ficha.direccion_geo.nombre }}</h2>
-    <p>{{ ficha.descripcion }}</p>
-    <img *ngIf="ficha.imagen_url" [src]="ficha.imagen_url" style="max-width: 100%; height: auto;" />
-    <!-- Puedes añadir más detalles de la ficha aquí -->
-</div>
+<p-splitter
+    [panelSizes]="[75, 25]"
+    [style]="{ height: 'auto', 'min-height': '90vh' }"
+    styleClass="mb-5"
+>
+    <!-- Primer Panel (Artículo) -->
+    <ng-template pTemplate>
+        <div class="p-card-body">
+            <div [innerHTML]="ficha.descripcion"></div>
+            <p><strong>Dirección:</strong> {{ ficha.direccion_geo?.nombre }}</p>
+            <p><strong>Estado:</strong> {{ ficha.estado?.nombre }}</p>
+            <p><strong>Actividad:</strong> {{ ficha.actividad?.nombre }}</p>
+            <p>
+                <strong>Fecha del Evento:</strong>
+                {{ ficha.fecha_evento | date }}
+            </p>
+            <p><strong>Observación:</strong> {{ ficha.observacion }}</p>
+        </div>
+    </ng-template>
+
+    <!-- Segundo Panel (Galería y Mapa) -->
+    <ng-template pTemplate>
+        <div class="p-card p-m-2">
+            <p-carousel
+                [value]="ficha.foto"
+                [numVisible]="1"
+                [numScroll]="3"
+                [circular]="true"
+                [responsiveOptions]="responsiveOptions"
+                *ngIf="ficha.foto.length"
+                autoplayInterval="3000"
+            >
+                <ng-template let-foto pTemplate="item">
+                    <img
+                        [src]="url + 'obtener_imagen/ficha_sectorial/' + foto"
+                        alt="FICHA SECTORIAL FOTO"
+                        class="w-full border-round"
+                    />
+                </ng-template>
+            </p-carousel>
+            <div *ngIf="ficha.direccion_geo">
+                <app-mapa-mostrar-fichas
+                    [ficha]="ficha"
+                ></app-mapa-mostrar-fichas>
+            </div>
+        </div>
+    </ng-template>
+</p-splitter>
