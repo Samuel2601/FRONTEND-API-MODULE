@@ -181,6 +181,18 @@
                         <p-inputSwitch formControlName="mostrar_en_mapa" />
                     </div>
                     <div class="field p-fluid" *ngIf="fichaSectorialForm.get('mostrar_en_mapa').value">
+                        <label htmlFor="title_marcador"> Titulo que se mostrará cuando se abra el marcador:</label>
+                        <div
+                            style="
+                                display: flex;
+                                align-items: center;
+                                justify-content: flex-start;
+                            "
+                        >
+                        <input type="text" pInputText formControlName="title_marcador" />
+                        </div>
+                    </div>
+                    <div class="field p-fluid" *ngIf="fichaSectorialForm.get('mostrar_en_mapa').value">
                         <label htmlFor="icono_marcador"> Quieres añadir la URL del Marcador?</label>
                         <div
                             style="

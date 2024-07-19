@@ -102,7 +102,7 @@ export class UpdateService {
             formData.append('view', data.view);
             if (data.view_id) formData.append('view_id', data.view_id);
             if (data.view_date) formData.append('view_date', data.view_date);
-
+            
             if (
                 data.evidencia instanceof File ||
                 data.evidencia instanceof Blob

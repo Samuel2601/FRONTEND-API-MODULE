@@ -44,16 +44,36 @@ export class ListService {
             params: params,
         });
     }
-    listarFichaSectorialMapa(
-    ): Observable<any> {
+    calcularFechaUnMesAdelanteUnMesAtras(): { start: string; end: string } {
+        const end = new Date();
+        end.setMonth(end.getMonth() + 1); // Un mes adelante
+        const start = new Date();
+        start.setMonth(start.getMonth() - 1); // Un mes atrás
+        return {
+            start: start.toISOString(),
+            end: end.toISOString(),
+        };
+    }
+
+    listarFichaSectorialMapa(): Observable<any> {
+        const { start, end } = this.calcularFechaUnMesAdelanteUnMesAtras();
+
         let params = new HttpParams()
-        .set('mostrar_en_mapa', 'true')
-        .set('view', 'true')
-        .set('populate', 'estado,actividad');
+            .set('mostrar_en_mapa', 'true')
+            .set('fecha_evento[start]', start)
+            .set('fecha_evento[end]', end)            
+            .set('view', 'true')
+            .set('populate', 'estado,actividad');
+        const fullUrl = `${this.url}ficha_sectorial?${params.toString()}`;
+        console.log('Full URL:', fullUrl);
         return this.http.get(this.url + 'ficha_sectorial', {
             params: params,
         });
     }
+    /*
+    //?estado.nombre[$ne]=Finalizado para cuando sean distinto a lo que buscas
+        const fullUrl = `${this.url}ficha_sectorial?${params.toString()}`;
+        console.log('Full URL:', fullUrl); */
 
     listarIncidentesDenuncias(
         token: any,

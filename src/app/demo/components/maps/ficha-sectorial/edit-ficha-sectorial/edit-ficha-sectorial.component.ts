@@ -53,6 +53,7 @@ export class EditFichaSectorialComponent implements OnInit {
             view:[],
             view_id:[],
             mostrar_en_mapa:[],
+            title_marcador:[''],
             icono_marcador: ['',Validators.pattern('https?://.+')],
         });
     }
