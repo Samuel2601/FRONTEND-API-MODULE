@@ -23,14 +23,24 @@ export class FilterService {
         const headers = this.getHeaders(token);
         let params = new HttpParams();
         params = params.append('id', id);
-        return this.http.get(this.url + 'obteneruser', { headers,params});
+        return this.http.get(this.url + 'obteneruser', { headers, params });
     }
 
     obtenerActividadProyecto(token: any, id: string): Observable<any> {
         const headers = this.getHeaders(token);
         let params = new HttpParams();
         params = params.append('populate', 'all');
-        return this.http.get(this.url + 'ficha_sectorial/' + id, { headers, params });
+        return this.http.get(this.url + 'ficha_sectorial/' + id, {
+            headers,
+            params,
+        });
+    }
+    obtenerFichaPublica(id: string): Observable<any> {
+        let params = new HttpParams();
+        params = params.append('populate', 'estado,actividad');
+        return this.http.get(this.url + 'ficha_sectorial/' + id, {
+            params,
+        });
     }
 
     obtenerIncidenteDenuncia(token: any, id: string): Observable<any> {
@@ -38,7 +48,8 @@ export class FilterService {
         let params = new HttpParams();
         params = params.append('populate', 'all');
         return this.http.get(this.url + 'incidentes_denuncia/' + id, {
-            headers, params
+            headers,
+            params,
         });
     }
 
@@ -53,7 +64,10 @@ export class FilterService {
         const headers = this.getHeaders(token);
         let params = new HttpParams();
         params = params.append('populate', 'all');
-        return this.http.get(this.url + 'subcategoria/' + id, { headers, params });
+        return this.http.get(this.url + 'subcategoria/' + id, {
+            headers,
+            params,
+        });
     }
 
     obtenerEncargadoCategoria(token: any, id: string): Observable<any> {
@@ -61,25 +75,21 @@ export class FilterService {
         let params = new HttpParams();
         params = params.append('populate', 'all');
         return this.http.get(this.url + 'encargado_categoria/' + id, {
-            headers, params
+            headers,
+            params,
         });
     }
 
     async obtenerRolUsuario(token: string, rolUser: string): Promise<any> {
-        const headers = new HttpHeaders({
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-        });
-        let params = new HttpParams();
-        params = params.append('populate', 'all');
-        try {
-            const response: any = await this.http
-                .get(`${GLOBAL.url}obtenerRole/` + rolUser, { headers , params})
-                .toPromise();
+        const headers = this.getHeaders(token);
+        const params = new HttpParams().set('id', rolUser);
+        const response = await this.http
+            .get<any>(this.url + 'obtenerrole', { headers, params })
+            .toPromise();
+        if (response && response.data) {
             return response.data;
-        } catch (error) {
-            console.error('Error al obtener el rol del usuario:', error);
-            throw error;
+        } else {
+            throw new Error('La respuesta no contiene la propiedad data');
         }
     }
 
@@ -97,7 +107,8 @@ export class FilterService {
         let params = new HttpParams();
         params = params.append('populate', 'all');
         return this.http.get(this.url + 'estado_actividad_proyecto/' + id, {
-            headers, params
+            headers,
+            params,
         });
     }
 
@@ -106,7 +117,8 @@ export class FilterService {
         let params = new HttpParams();
         params = params.append('populate', 'all');
         return this.http.get(this.url + 'actividad_proyecto/' + id, {
-            headers, params
+            headers,
+            params,
         });
     }
 
@@ -114,6 +126,9 @@ export class FilterService {
         const headers = this.getHeaders(token);
         let params = new HttpParams();
         params = params.append('populate', 'all');
-        return this.http.get(this.url + 'direccion_geo/' + id, { headers, params });
+        return this.http.get(this.url + 'direccion_geo/' + id, {
+            headers,
+            params,
+        });
     }
 }

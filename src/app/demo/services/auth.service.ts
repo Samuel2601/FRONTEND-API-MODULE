@@ -368,7 +368,7 @@ export class AuthService {
         const hasPermissionBOL = permisos.some(
             (e) => e.name === permission && e.method === method
         );
-        console.log(hasPermissionBOL);
+        console.log(permission,method,hasPermissionBOL);
         return of(hasPermissionBOL);
     }
 
@@ -416,13 +416,14 @@ export class AuthService {
         if (pass) localStorage.setItem('pass', pass);
     }
 
-    public redirectToLoginIfNeeded() {
+    public redirectToLoginIfNeeded(home:boolean=false) {
         const currentUrl = this.router.url;
 
         // Verifica si la URL actual contiene '/auth/login' independientemente de los parámetros adicionales
         if (
-            !['/home', '/'].includes(currentUrl) &&
-            !currentUrl.startsWith('/auth/login')
+            (!['/home', '/'].includes(currentUrl) &&
+            !currentUrl.startsWith('/auth/login'))
+            ||home
         ) {
             console.log('Redirigiendo a login');
             this.router.navigate(['/auth/login']);

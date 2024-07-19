@@ -66,6 +66,11 @@ export class CreateService {
     formData.append('actividad', data.actividad._id);
     formData.append('fecha_evento', data.fecha_evento);
     formData.append('observacion', data.observacion);
+
+    formData.append('es_articulo', data.es_articulo);
+    formData.append('mostrar_en_mapa', data.mostrar_en_mapa);
+    formData.append('icono_marcador', data.icono_marcador);
+    
     // Iterar sobre los valores de FormData y mostrarlos en la consola
     formData.forEach((value, key) => {
       console.log(`${key}: ${value}`);

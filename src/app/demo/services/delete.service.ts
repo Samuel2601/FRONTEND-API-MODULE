@@ -20,12 +20,12 @@ export class DeleteService {
     return this.http.delete(this.url + 'eliminaruser/' + id, { headers: headers });
   }
 
-  eliminarActividadProyecto(token: any, id: string): Observable<any> {
+  eliminarfichaSectorial(token: any, id: string): Observable<any> {
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.delete(this.url + 'actividad_proyecto/' + id, { headers: headers });
+    return this.http.delete(this.url + 'ficha_sectorial/' + id, { headers: headers });
   }
 
   eliminarIncidenteDenuncia(token: any, id: string): Observable<any> {

@@ -44,6 +44,16 @@ export class ListService {
             params: params,
         });
     }
+    listarFichaSectorialMapa(
+    ): Observable<any> {
+        let params = new HttpParams()
+        .set('mostrar_en_mapa', 'true')
+        .set('view', 'true')
+        .set('populate', 'estado,actividad');
+        return this.http.get(this.url + 'ficha_sectorial', {
+            params: params,
+        });
+    }
 
     listarIncidentesDenuncias(
         token: any,
@@ -55,6 +65,9 @@ export class ListService {
             Authorization: token,
         });
         const params = this.paramsf(campos, all);
+        // Construir la URL completa manualmente
+        const fullUrl = `${this.url}incidentes_denuncia?${params.toString()}`;
+        console.log('Full URL:', fullUrl);
         return this.http.get(this.url + 'incidentes_denuncia', {
             headers: headers,
             params: params,

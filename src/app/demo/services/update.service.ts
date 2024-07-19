@@ -62,7 +62,7 @@ export class UpdateService {
             Authorization: token,
         });
         //const params = new HttpParams().set('id', id);
-        return this.http.put(this.url + 'actividad_proyecto/'+ id, data, {
+        return this.http.put(this.url + 'ficha_sectorial/'+ id, data, {
             headers: headers,
         });
     }
