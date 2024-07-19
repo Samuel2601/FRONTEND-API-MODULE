@@ -137,7 +137,22 @@
                         </div>
                     </div>
                     <div class="field p-fluid">
-                        <label htmlFor="firstname2">Descripción</label>
+                        <div
+                            style="
+                                display: flex;
+                                align-items: center;
+                                justify-content: flex-start;
+                            "
+                        >
+                            <p style="margin: 1rem">
+                                Es un articulo que quieras publicar?
+                            </p>
+                            <p-inputSwitch formControlName="es_articulo" />
+                        </div>
+                    </div>
+
+                    <div class="field p-fluid" >
+                        <label htmlFor="descripcion">Descripción</label>
                         <textarea
                             rows="5"
                             cols="25"
@@ -149,7 +164,7 @@
                         ></textarea>
                     </div>
                     <div class="field p-fluid">
-                        <label htmlFor="firstname2">Observación</label>
+                        <label htmlFor="observacion">Observación</label>
                         <textarea
                             rows="5"
                             cols="25"
@@ -160,6 +175,24 @@
                             formControlName="observacion"
                         ></textarea>
                     </div>
+
+                    <div class="field p-fluid" >
+                        <label htmlFor="mostrar_en_mapa">Mostrar en mapa</label>
+                        <p-inputSwitch formControlName="mostrar_en_mapa" />
+                    </div>
+                    <div class="field p-fluid" *ngIf="fichaSectorialForm.get('mostrar_en_mapa').value">
+                        <label htmlFor="icono_marcador"> Quieres añadir la URL del Marcador?</label>
+                        <div
+                            style="
+                                display: flex;
+                                align-items: center;
+                                justify-content: flex-start;
+                            "
+                        >
+                        <input type="text" pInputText formControlName="icono_marcador" />
+                        </div>
+                    </div>
+                   
                 </div>
             </div>
 

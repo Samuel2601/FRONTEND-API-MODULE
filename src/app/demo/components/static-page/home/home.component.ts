@@ -23,7 +23,7 @@ import { MostrarFichasArticulosComponent } from '../mostrar-fichas-articulos/mos
         DashboardModule,
         MapaTrashComponent,
         MapaMostrarFichasComponent,
-        MostrarFichasArticulosComponent
+        MostrarFichasArticulosComponent,
     ],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss',
@@ -146,19 +146,19 @@ export class HomeComponent implements OnInit {
             }
         );
         const check = {
-            DashboardComponent:await this.auth.hasPermissionComponent(
-            'dashboard',
-            'get'
-        ),
-        Ficha:await this.auth.hasPermissionComponent(
-            '/ficha_sectorial',
-            'post'
-        ),
-        Incidente:await this.auth.hasPermissionComponent(
-            '/incidentes_denuncia',
-            'post'
-        ),
-    };
+            DashboardComponent: await this.auth.hasPermissionComponent(
+                'dashboard',
+                'get'
+            ),
+            Ficha: await this.auth.hasPermissionComponent(
+                '/ficha_sectorial',
+                'post'
+            ),
+            Incidente: await this.auth.hasPermissionComponent(
+                '/incidentes_denuncia',
+                'post'
+            ),
+        };
         forkJoin(check).subscribe(async (check) => {
             this.check = check;
             try {
@@ -598,7 +598,7 @@ export class HomeComponent implements OnInit {
     visible_incidente: boolean = false;
     visible_incidente_mirror: boolean = false;
     button_active: any = { cate: '', sub: '' };
-    token=this.auth.token()||undefined;
+    token = this.auth.token() || undefined;
 
     incidente(cate?, sub?) {
         if (this.auth.token()) {
@@ -619,30 +619,37 @@ export class HomeComponent implements OnInit {
             } else {
                 this.visible_fichas_mostrar = false;
                 setTimeout(() => {
+                    this.router.navigate(['/crear-incidente']);
+                }, 2500);
+
+                /*setTimeout(() => {
                     this.visible_incidente = true;
-                }, 5000);
+                }, 5000);*/
             }
-        }else{
+        } else {
             this.auth.redirectToLoginIfNeeded(true);
         }
     }
 
     visible_ficha: boolean = false;
     visible_ficha_mirror: boolean = false;
-    visible_ficha_table:boolean=false;
+    visible_ficha_table: boolean = false;
     ficha() {
         if (this.auth.token()) {
             if (this.check.DashboardComponent) {
-                this.visible_fichas_mostrar = false;
+                this.visible_ficha = true;
+            } else if (this.check.Ficha) {
+                /*this.visible_fichas_mostrar = false;
                 setTimeout(() => {
                     this.visible_ficha_mirror = true;
-                }, 5000);
-            } else if(this.check.Ficha) {
-                this.visible_ficha = true;
-            }else{
-                this.visible_ficha_table=true;
+                }, 5000);*/
+                setTimeout(() => {
+                    this.router.navigate(['/crear-ficha']);
+                }, 1500);
+            } else {
+                this.visible_ficha_table = true;
             }
-        }else{
+        } else {
             this.auth.redirectToLoginIfNeeded(true);
         }
     }
@@ -653,7 +660,7 @@ export class HomeComponent implements OnInit {
             setTimeout(() => {
                 this.visible_trash_mirror = true;
             }, 5000);
-        }else{
+        } else {
             this.auth.redirectToLoginIfNeeded(true);
         }
     }

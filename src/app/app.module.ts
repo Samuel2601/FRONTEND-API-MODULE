@@ -1,5 +1,9 @@
 import { NgModule } from '@angular/core';
-import { HashLocationStrategy, LocationStrategy, PathLocationStrategy } from '@angular/common';
+import {
+    HashLocationStrategy,
+    LocationStrategy,
+    PathLocationStrategy,
+} from '@angular/common';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { AppLayoutModule } from './layout/app.layout.module';
@@ -15,12 +19,20 @@ import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 @NgModule({
     declarations: [AppComponent, NotfoundComponent],
-    imports: [AppRoutingModule, AppLayoutModule,ButtonModule,TranslateModule.forRoot(),ToastModule],
+    imports: [
+        AppRoutingModule,
+        AppLayoutModule,
+        ButtonModule,
+        TranslateModule.forRoot(),
+        ToastModule,
+    ],
     providers: [
         { provide: LocationStrategy, useClass: PathLocationStrategy },
         DialogService,
-        SocketService, AuthService, PermissionGuard,
-        MessageService
+        SocketService,
+        AuthService,
+        PermissionGuard,
+        MessageService,
     ],
     bootstrap: [AppComponent],
 })

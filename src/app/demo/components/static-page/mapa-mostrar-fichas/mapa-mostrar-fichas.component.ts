@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Loader } from '@googlemaps/js-api-loader';
+import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ImportsModule } from 'src/app/demo/services/import';
 import { ListService } from 'src/app/demo/services/list.service';
@@ -12,19 +13,17 @@ import { ListService } from 'src/app/demo/services/list.service';
     templateUrl: './mapa-mostrar-fichas.component.html',
     styleUrl: './mapa-mostrar-fichas.component.scss',
 })
-export class MapaMostrarFichasComponent {
+export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
     
     mapCustom: google.maps.Map;
     load_fullscreen: boolean = false;
-    loader = new Loader({
-        apiKey: 'AIzaSyAnO4FEgIlMcRRB0NY5bn_h_EQzdyNUoPo', // Reemplaza con tu propia API key de Google Maps
-        version: 'weekly',
-    });
+
 
     constructor(
         private list: ListService,
         private helperService: HelperService,
-        private router: Router
+        private router: Router,
+        private googlemaps:GoogleMapsService
     ) {}
 
     ngOnInit(): void {
@@ -33,7 +32,7 @@ export class MapaMostrarFichasComponent {
     }
 
     initMap(): void {
-        this.loader.load().then(() => {
+        this.googlemaps.getLoader().then(() => {
             const haightAshbury = { lat: 0.977035, lng: -79.655415 };
             this.mapCustom = new google.maps.Map(
                 document.getElementById('map2') as HTMLElement,
@@ -190,6 +189,7 @@ export class MapaMostrarFichasComponent {
         if (this.mapCustom) {
             google.maps.event.clearInstanceListeners(this.mapCustom);
             this.mapCustom = null;
+            console.log("Mapa liberado");
         }
     }
 }

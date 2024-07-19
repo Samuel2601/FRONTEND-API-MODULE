@@ -9,7 +9,7 @@ import { LayoutService } from './service/app.layout.service';
 @Component({
     // eslint-disable-next-line @angular-eslint/component-selector
     selector: '[app-menuitem]',
-    template: `
+    template:`
 		<ng-container>
             <div *ngIf="root && item.visible !== false" class="layout-menuitem-root-text">{{item.label}}</div>
 			<a *ngIf="(!item.routerLink || item.items) && item.visible !== false" [attr.href]="item.url" (click)="itemClick($event)"
@@ -30,7 +30,7 @@ import { LayoutService } from './service/app.layout.service';
 
 			<ul *ngIf="item.items && item.visible !== false" [@children]="submenuAnimation">
 				<ng-template ngFor let-child let-i="index" [ngForOf]="item.items">
-					<li app-menuitem [item]="child" [index]="i" [parentKey]="key" [class]="child.badgeClass"></li>
+					<li app-menuitem [item]="child" *ngIf="child.visible !== false" [index]="i" [parentKey]="key" [ngClass]="child.badgeClass"></li>
 				</ng-template>
 			</ul>
 		</ng-container>

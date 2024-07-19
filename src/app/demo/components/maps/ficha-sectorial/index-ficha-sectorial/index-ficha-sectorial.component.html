@@ -6,9 +6,9 @@
 (touchend)="onTouchEnd()"
 -->
 <p-toast></p-toast>
-<ng-container *ngIf="loading">
+<ng-container *ngIf="modal">
     <p-dialog
-        *ngIf="!check.FichaLimitada"
+        *ngIf="check.IndexFichaSectorialComponent"
         [header]="'Listado de Ficha Sectorial de: ' + this.valor"
         [modal]="false"
         [(visible)]="vermodal"
@@ -24,7 +24,7 @@
                 <div class="flex pt-4 justify-content-end">
                     <button
                         class="m-3"
-                        *ngIf="check.IndexActividadProyectoComponent"
+                        *ngIf="check.TotalFilter && check.IndexActividadProyectoComponent"
                         pButton
                         label="Actividades"
                         icon="pi pi-box"
@@ -32,7 +32,7 @@
                     ></button>
                     <button
                         class="m-3"
-                        *ngIf="check.IndexEstadoActividadProyectoComponent"
+                        *ngIf="check.TotalFilter && check.IndexEstadoActividadProyectoComponent"
                         pButton
                         label="Estados"
                         icon="pi pi-bell"
@@ -138,7 +138,10 @@
                             </th>
                         </div>
                     </th>
-                    <th style="min-width: 10rem" *ngIf="!check.FichaLimitada">
+                    <th
+                        style="min-width: 10rem"
+                        *ngIf="check.IndexFichaSectorialComponent"
+                    >
                         <div class="flex align-items-center">
                             Encargado
                             <p-columnFilter
@@ -186,7 +189,18 @@
                         >
                         <ng-container
                             *ngIf="!isJSONString(incidente.direccion_geo)"
-                            >{{ incidente.direccion_geo }}</ng-container
+                            >
+                            <ng-container
+                                    *ngIf="incidente.direccion_geo.nombre"
+                                >
+                                    {{ incidente.direccion_geo.nombre }}
+                                </ng-container>
+                                <ng-container
+                                    *ngIf="!incidente.direccion_geo.nombre"
+                                >
+                                    {{ incidente.direccion_geo }}
+                                </ng-container>
+                            </ng-container
                         >
                     </td>
                     <td
@@ -211,7 +225,7 @@
                     <td>
                         {{ incidente.fecha_evento | date : "medium" : "es" }}
                     </td>
-                    <td *ngIf="!check.FichaLimitada">
+                    <td *ngIf="check.IndexFichaSectorialComponent">
                         {{ incidente.encargado.nombres }}
                     </td>
                     <td>
@@ -232,7 +246,7 @@
         </p-table>
     </p-dialog>
     <p-dialog
-        *ngIf="check.FichaLimitada"
+        *ngIf="!check.IndexFichaSectorialComponent"
         header="Header"
         [modal]="false"
         [(visible)]="vermodal"
@@ -254,7 +268,6 @@
         </ng-template>
         <p-table
             [paginatorDropdownAppendTo]="'body'"
-            *ngIf="check.FichaLimitada"
             styleClass="p-datatable-striped"
             #dt1
             [value]="fichasectorial"
@@ -358,7 +371,7 @@
 
             <p-table
                 [paginatorDropdownAppendTo]="'body'"
-                *ngIf="!check.FichaLimitada"
+                *ngIf="check.IndexFichaSectorialComponent"
                 styleClass="p-datatable-striped"
                 #dt1
                 [value]="fichasectorial"
@@ -371,6 +384,7 @@
                 currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
                 [globalFilterFields]="[
                     'direccion_geo',
+                    'direccion_geo.nombre',
                     'actividad.nombre',
                     'encargado.nombres',
                     'estado.nombre'
@@ -552,8 +566,18 @@
                             >
                             <ng-container
                                 *ngIf="!isJSONString(incidente.direccion_geo)"
-                                >{{ incidente.direccion_geo }}</ng-container
                             >
+                                <ng-container
+                                    *ngIf="incidente.direccion_geo.nombre"
+                                >
+                                    {{ incidente.direccion_geo.nombre }}
+                                </ng-container>
+                                <ng-container
+                                    *ngIf="!incidente.direccion_geo.nombre"
+                                >
+                                    {{ incidente.direccion_geo }}
+                                </ng-container>
+                            </ng-container>
                         </td>
                         <td>
                             {{ incidente.actividad.nombre }}
@@ -615,7 +639,7 @@
             </p-table>
             <p-table
                 [paginatorDropdownAppendTo]="'body'"
-                *ngIf="check.FichaLimitada"
+                *ngIf="!check.IndexFichaSectorialComponent"
                 styleClass="p-datatable-striped"
                 #dt1
                 [value]="fichasectorial"
@@ -668,8 +692,18 @@
                             >
                             <ng-container
                                 *ngIf="!isJSONString(incidente.direccion_geo)"
-                                >{{ incidente.direccion_geo }}</ng-container
                             >
+                                <ng-container
+                                    *ngIf="incidente.direccion_geo.nombre"
+                                >
+                                    {{ incidente.direccion_geo.nombre }}
+                                </ng-container>
+                                <ng-container
+                                    *ngIf="!incidente.direccion_geo.nombre"
+                                >
+                                    {{ incidente.direccion_geo }}
+                                </ng-container>
+                            </ng-container>
                         </td>
                         <td>
                             {{ incidente.actividad.nombre }}
@@ -871,9 +905,8 @@
                 <p-button
                     class="m-3"
                     *ngIf="
-                        check.EditFichaSectorialComponent &&
-                        (id == option.encargado._id ||
-                            rol.nombre == 'Administrador')
+                        id == option.encargado._id ||
+                        check.EditFichaSectorialComponent
                     "
                     label="Editar"
                     icon="pi pi-file-edit"
@@ -884,7 +917,7 @@
                     class="m-3"
                     *ngIf="
                         id == option.encargado._id ||
-                        rol.nombre == 'Administrador'
+                        check.BorrarFichaSectorialComponent
                     "
                     label="Borrar"
                     icon="pi pi-images"

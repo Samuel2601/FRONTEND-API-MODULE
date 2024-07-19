@@ -20,7 +20,7 @@ import { PermissionGuard } from 'src/app/guards/permission.guard';
         { path: 'categoria/create-categoria', component: CreateCategoriaComponent,canActivate: [AuthGuard,PermissionGuard],data: { expectedPermission: '/categoria' } },
         { path: 'subcategoria', component: IndexSubcategoriaComponent,canActivate: [AuthGuard,PermissionGuard],data: { expectedPermission: '/subcategoria' } },
         { path: 'subcategoria/create-subcategoria', component: CreateSubcategoriaComponent,canActivate: [AuthGuard,PermissionGuard],data: { expectedPermission: '/subcategoria' } },
-        { path: 'ficha-sectorial', component: IndexFichaSectorialComponent,canActivate: [AuthGuard,PermissionGuard],data: { expectedPermission: '/ficha_sectorial' } },
+        { path: 'ficha-sectorial', component: IndexFichaSectorialComponent,data: { expectedPermission: '/ficha_sectorial' } },
         { path: 'incidente', component: IndexIncidentesDenunciaComponent,canActivate: [AuthGuard,PermissionGuard],data: { expectedPermission: '/incidentes_denuncia' } },     
         { path: 'incidente/:id', component: IndexIncidentesDenunciaComponent,canActivate: [AuthGuard,PermissionGuard],data: { expectedPermission: '/incidentes_denuncia' } },      
         { path: 'administracion', component: AdminComponent,canActivate: [AuthGuard,PermissionGuard],data: { expectedPermission: '/usuario' } },

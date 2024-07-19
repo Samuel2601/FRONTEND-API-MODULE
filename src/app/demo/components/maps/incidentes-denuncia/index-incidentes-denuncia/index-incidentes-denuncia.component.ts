@@ -152,8 +152,9 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
     id = this.admin.identity(this.token);
 
     async ngOnInit(): Promise<void> {
-        //console.log(this.rol);
-        if (!this.modal) this.helperservice.llamarspinner('init index incidente');
+        console.log(this.id);
+        if (!this.modal)
+            this.helperservice.llamarspinner('init index incidente');
         const checkObservables = {
             IndexIncidentesDenunciaComponent:
                 await this.auth.hasPermissionComponent(
@@ -166,7 +167,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                     'get'
                 ),
             TotalFilterIncidente: await this.auth.hasPermissionComponent(
-                '/incidentes_denuncia',
+                'mostra_todas_incidente',
                 'get'
             ),
             EditIncidentesDenunciaComponent:
@@ -183,11 +184,11 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                 'get'
             ),
             ContestarIncidente: await this.auth.hasPermissionComponent(
-                '/incidentes_denuncia',
-                'get'
+                '/incidentes_denuncia/:id',
+                'put'
             ),
-            FichaLimitada: await this.auth.hasPermissionComponent(
-                '/incidentes_denuncia',
+            TotalFilter: await this.auth.hasPermissionComponent(
+                'mostra_todas_incidente',
                 'get'
             ),
         };
@@ -206,9 +207,11 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                 this.router.navigate(['/notfound']);
             } finally {
                 setTimeout(() => {
-                    if (!this.modal) this.helperservice.cerrarspinner('init index incidente');
+                    if (!this.modal)
+                        this.helperservice.cerrarspinner(
+                            'init index incidente'
+                        );
                 }, 1000);
-              
             }
         });
     }
@@ -232,15 +235,15 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
         this.loadpath = false;
         this.load_lista = true;
 
-        let filtroServicio: string[];
-        let valorServicio: any[];
-
+        let filtroServicio: any[] = [];
+        let valorServicio: any[] = [];
+        console.log(filtroServicio, valorServicio);
         if (this.filtro && this.valor) {
             filtroServicio.push(this.filtro);
             valorServicio.push(this.valor);
             this.itemh.push({ label: this.valor });
         }
-
+        console.log(filtroServicio, valorServicio);
         if (!this.check.TotalFilterIncidente && this.encargos.length == 0) {
             filtroServicio.push('ciudadano');
             valorServicio.push(this.id);

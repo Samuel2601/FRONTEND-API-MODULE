@@ -5,6 +5,8 @@ import { AppLayoutComponent } from "./layout/app.layout.component";
 import { HomeComponent } from './demo/components/static-page/home/home.component';
 import { AuthGuard } from './guards/auth.guard'; // Importa tu guard
 import { PermissionGuard } from './guards/permission.guard';
+import { MapaFichaComponent } from './demo/components/static-page/mapa-ficha/mapa-ficha.component';
+import { MapaComponent } from './demo/components/static-page/mapa/mapa.component';
 @NgModule({
     imports: [
         RouterModule.forRoot([
@@ -23,6 +25,8 @@ import { PermissionGuard } from './guards/permission.guard';
                         //canActivate: [AuthGuard] // Aplica el guard aquí
                     },
                     { path: 'home', component: HomeComponent },
+                    { path: 'crear-ficha', component: MapaFichaComponent },
+                    { path: 'crear-incidente', component: MapaComponent },
                     { path: '', component: HomeComponent }
                 ]
             },

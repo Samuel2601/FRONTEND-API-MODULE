@@ -12,6 +12,7 @@ import {
     TemplateRef,
     ApplicationRef,
     Input,
+    OnDestroy,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import * as L from 'leaflet';
@@ -86,6 +87,7 @@ import { ToastModule } from 'primeng/toast';
 import { BadgeModule } from 'primeng/badge';
 import { CreateService } from 'src/app/demo/services/create.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
     id?: string;
 }
@@ -125,16 +127,12 @@ interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
         ConfirmationService,
     ],
 })
-export class MapaComponent implements OnInit {
+export class MapaComponent implements OnInit, OnDestroy{
     @Input() cate: any = '';
     @Input() sub: any = '';
     @ViewChildren(SpeedDial) speedDials: QueryList<SpeedDial> | undefined;
     @ViewChild('formulariomap', { static: true }) formularioMapRef!: ElementRef;
-    loader = new Loader({
-        apiKey: 'AIzaSyAnO4FEgIlMcRRB0NY5bn_h_EQzdyNUoPo',
-        version: 'weekly',
-        libraries: ['places'],
-    });
+
     mapOptions = {
         center: {
             lat: 0,
@@ -242,7 +240,8 @@ export class MapaComponent implements OnInit {
         private config: PrimeNGConfig,
         private adminservice: AdminService,
         private createService: CreateService,
-        private auth: AuthService
+        private auth: AuthService,
+        private googlemaps:GoogleMapsService
     ) {
         this.incidencia = this.fb.group({
             direccion_geo: [{ value: '' }],
@@ -299,6 +298,7 @@ export class MapaComponent implements OnInit {
         if (this.mapCustom) {
             google.maps.event.clearInstanceListeners(this.mapCustom);
             this.mapCustom = null;
+            console.log("Mapa liberado");
         }
     }
     async ngOnInit() {
@@ -470,7 +470,7 @@ export class MapaComponent implements OnInit {
     }
     //INICIALIZADOR DEL MAPA
     initmap() {
-        this.loader.load().then(() => {
+        this.googlemaps.getLoader().then(() => {
             this.helperService.autocompleteService =
                 new google.maps.places.AutocompleteService();
             this.helperService.geocoderService = new google.maps.Geocoder();
@@ -1131,7 +1131,7 @@ export class MapaComponent implements OnInit {
         //this.visible_categoria = false;
         this.visible_subcategoria = true;
         this.list
-            .listarSubcategorias(this.token, 'categoria', cateogria._id)
+            .listarSubcategorias(this.token, {'categoria':cateogria._id})
             .subscribe((response) => {
                 //console.log(response);
                 if (response.data) {

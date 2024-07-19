@@ -112,10 +112,9 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
     option: any;
     token = this.auth.token();
     id = this.admin.identity(this.token);
-    rol:any;
     loading:boolean = false;
     async ngOnInit(): Promise<void> {
-        this.rol =  this.filter.obtenerRolUsuario(this.token,this.auth.roleUserToken());
+        
         //console.log(this.rol);
         if (!this.modal) this.helperservice.llamarspinner('index ficha');
         const checkObservables = {
@@ -123,17 +122,13 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
             EditFichaSectorialComponent: await this.auth.hasPermissionComponent('/ficha_sectorial/:id', 'put'),
             IndexEstadoActividadProyectoComponent: await this.auth.hasPermissionComponent('/estado_actividad_proyecto', 'get'),
             IndexActividadProyectoComponent: await this.auth.hasPermissionComponent('/actividad_proyecto', 'get'),
-            TotalFilter: await this.auth.hasPermissionComponent('/ficha_sectorial', 'get'),
-            FichaLimitada: await this.auth.hasPermissionComponent('/ficha_sectorial2', 'get'),
+            TotalFilter: await this.auth.hasPermissionComponent('mostra_todas_fichas', 'get'),
+            BorrarFichaSectorialComponent: await this.auth.hasPermissionComponent('/ficha_sectorial/:id', 'delete'),
         };
         forkJoin(checkObservables).subscribe(async (check) => {
             this.check = check;
             console.log(check);
             try {
-                if (!this.check.IndexFichaSectorialComponent) {
-                    this.router.navigate(['/notfound']);
-                    return;
-                }
                 this.listarficha();
             } catch (error) {
                 console.error('Error en ngOnInit:', error);
@@ -186,7 +181,7 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
         }
 
         this.listService
-            .listarFichaSectorial(this.token, filtroServicio, valorServicio)
+            .listarFichaSectorial(this.token,{ [filtroServicio]: valorServicio})
             .subscribe(
                 (response) => {
                     if (response.data) {
@@ -201,7 +196,7 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
                                 (ficha: any) => ficha[this.filtro] == this.valor
                             );
                         }
-                        if (this.rol.name != 'Administrador') {
+                        if (this.check.TotalFilter) {
                             this.fichasectorial = this.fichasectorial.filter(
                                 (ficha: any) => ficha.view
                             );
@@ -387,9 +382,9 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
         this.visibledelete = true;
     }
     eliminarIncidente() {
-        if (this.rol.nombre == 'Administrador') {
+        if (this.check.BorrarFichaSectorialComponent) {
             this.deleteService
-                .eliminarActividadProyecto(this.token, this.iddelete._id)
+                .eliminarfichaSectorial(this.token, this.iddelete._id)
                 .subscribe(
                     (response) => {
                         this.messageService.add({
@@ -448,7 +443,7 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
         }
     }
     showdialog(incidente: any) {
-        if (!this.check.FichaLimitada) {
+        if (!this.check.TotalFilter) {
             this.visible = true;
             this.option = incidente;
         }

@@ -11,6 +11,7 @@ import {
     ViewChildren,
     TemplateRef,
     ApplicationRef,
+    OnDestroy,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import * as L from 'leaflet';
@@ -88,6 +89,7 @@ import { CalendarModule } from 'primeng/calendar';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { InputTextModule } from 'primeng/inputtext';
+import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
     id?: string;
 }
@@ -130,14 +132,9 @@ interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
         ConfirmationService,
     ],
 })
-export class MapaFichaComponent implements OnInit {
+export class MapaFichaComponent implements OnInit, OnDestroy{
     @ViewChildren(SpeedDial) speedDials: QueryList<SpeedDial> | undefined;
     @ViewChild('formulariomap', { static: true }) formularioMapRef!: ElementRef;
-    loader = new Loader({
-        apiKey: 'AIzaSyAnO4FEgIlMcRRB0NY5bn_h_EQzdyNUoPo',
-        version: 'weekly',
-        libraries: ['places'],
-    });
     mapOptions = {
         center: {
             lat: 0,
@@ -245,7 +242,8 @@ export class MapaFichaComponent implements OnInit {
         private config: PrimeNGConfig,
         private adminservice: AdminService,
         private createService: CreateService,
-        private auth: AuthService
+        private auth: AuthService,
+        private googlemaps:GoogleMapsService
     ) {
         this.fichaSectorialForm = this.fb.group({
             descripcion: ['', Validators.required],
@@ -308,6 +306,7 @@ export class MapaFichaComponent implements OnInit {
         if (this.mapCustom) {
             google.maps.event.clearInstanceListeners(this.mapCustom);
             this.mapCustom = null;
+            console.log("Mapa liberado");
         }
     }
     async ngOnInit() {
@@ -492,7 +491,7 @@ export class MapaFichaComponent implements OnInit {
     }
     //INICIALIZADOR DEL MAPA
     initmap() {
-        this.loader.load().then(() => {
+        this.googlemaps.getLoader().then(() => {
             this.helperService.autocompleteService =
                 new google.maps.places.AutocompleteService();
             this.helperService.geocoderService = new google.maps.Geocoder();

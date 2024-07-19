@@ -15,6 +15,7 @@ import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FilterService } from '../../../../services/filter.service';
 import { UpdateService } from 'src/app/demo/services/update.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
     selector: 'app-edit-ficha-sectorial',
@@ -38,7 +39,7 @@ export class EditFichaSectorialComponent implements OnInit {
         private messageService: MessageService,
         private ref: DynamicDialogRef,
         private filter: FilterService,
-        private auth:AuthService
+        private auth: AuthService
     ) {
         this.fichaSectorialForm = this.fb.group({
             descripcion: ['', Validators.required],
@@ -48,49 +49,64 @@ export class EditFichaSectorialComponent implements OnInit {
             actividad: [undefined, Validators.required],
             fecha_evento: [''],
             observacion: [''],
+            es_articulo:[],
+            view:[],
+            view_id:[],
+            mostrar_en_mapa:[],
+            icono_marcador: ['',Validators.pattern('https?://.+')],
         });
     }
     token = this.auth.token();
     mostrar: boolean = false;
     id: any;
     check: any = {};
-    ngOnInit(): void {
-        this.check.EditFichaSectorialComponent =
-            this.helper.decryptData('EditFichaSectorialComponent') || false;
-        this.check.EditFichaAll =
-            this.helper.decryptData('EditFichaAll') || false;
-        if (!this.check.EditFichaSectorialComponent) {
-            this.router.navigate(['/notfound']);
-        }
+    async ngOnInit(): Promise<void> {
+        const checkObservables = {
+            EditFichaSectorialComponent: await this.auth.hasPermissionComponent(
+                '/ficha_sectorial/:id',
+                'put'
+            ),
+        };
+        forkJoin(checkObservables).subscribe(async (check) => {
+            this.check = check;
+            console.log(check);
+            try {
+                if (!this.check.EditFichaSectorialComponent) {
+                    this.router.navigate(['/notfound']);
+                }
+                if (this.config && this.config.data && this.config.data.id) {
+                    this.id = this.config.data.id;
+                    this.obtenerficha();
+                }
 
-        if (this.config && this.config.data && this.config.data.id) {
-            this.id = this.config.data.id;
-            this.obtenerficha();
-        }
-        //console.log(this.id);
+                const ident = this.adminservice.identity(this.token);
+                if (ident) {
+                    const indentr = this.fichaSectorialForm.get('encargado');
+                    if (indentr) {
+                        indentr.setValue(ident);
+                    } else {
+                        //console.error('El control "direccion_geo" no está definido en el formulario.');
+                    }
+                } else {
+                    this.router.navigate(['/auth/login']);
+                }
 
-        const ident = this.adminservice.identity(this.token);
-        if (ident) {
-            const indentr = this.fichaSectorialForm.get('encargado');
-            if (indentr) {
-                indentr.setValue(ident);
-            } else {
-                //console.error('El control "direccion_geo" no está definido en el formulario.');
-            }
-        } else {
-            this.router.navigate(['/auth/login']);
-        }
-
-        this.router.events.subscribe((val) => {
-            // Verificar la ruta actual y ajustar el valor de model
-            if (this.router.url === '/create-ficha-sectorial') {
-                this.model = false; // Si la ruta es /create-estado-incidente, model es false
-            } else {
-                this.model = true; // En cualquier otra ruta, model es true
+                this.router.events.subscribe((val) => {
+                    // Verificar la ruta actual y ajustar el valor de model
+                    if (this.router.url === '/create-ficha-sectorial') {
+                        this.model = false; // Si la ruta es /create-estado-incidente, model es false
+                    } else {
+                        this.model = true; // En cualquier otra ruta, model es true
+                    }
+                });
+                this.listartEstados();
+                this.listarActividadProyecto();
+            } catch (error) {
+                console.error('Error en ngOnInit:', error);
+                this.router.navigate(['/notfound']);
+            } finally {
             }
         });
-        this.listartEstados();
-        this.listarActividadProyecto();
     }
     isJSONString(str: string) {
         try {
@@ -116,6 +132,9 @@ export class EditFichaSectorialComponent implements OnInit {
                                 if (
                                     key != 'observacion' &&
                                     key != 'estado' &&
+                                    key != 'mostrar_en_mapa'&&
+                                    key != 'icono_marcador'&&
+                                    key != 'es_articulo'&&
                                     !this.check.EditFichaAll
                                 ) {
                                     this.deshabilitarCampo(key);
@@ -125,13 +144,13 @@ export class EditFichaSectorialComponent implements OnInit {
                     }
                     if (
                         this.adminservice.roluser(this.token) &&
-                        this.adminservice.roluser(this.token).nombre == 'Administrador'
+                        this.adminservice.roluser(this.token).nombre ==
+                            'Administrador'
                     ) {
                         this.habilitarCampo('direccion_geo');
                     }
                 }
             });
-       
     }
     deshabilitarCampo(campo: any) {
         this.fichaSectorialForm.get(campo)?.disable();
@@ -300,7 +319,7 @@ export class EditFichaSectorialComponent implements OnInit {
         this.load_form = false;
         //console.log("fichaSectorialForm", this.fichaSectorialForm, this.fichaSectorialForm.value);
         if (this.fichaSectorialForm?.valid) {
-            if ( this.fichaSectorialForm.value) {
+            if (this.fichaSectorialForm.value) {
                 this.updateService
                     .actualizarActividadProyecto(
                         this.token,
@@ -321,7 +340,7 @@ export class EditFichaSectorialComponent implements OnInit {
                             }
                         },
                         (error) => {
-                            //console.error(error);
+                            console.error(error);
                             if (error.error.message == 'InvalidToken') {
                                 this.router.navigate(['/auth/login']);
                             } else {

@@ -1,8 +1,10 @@
 import { OnInit } from '@angular/core';
 import { Component } from '@angular/core';
 import { LayoutService } from './service/app.layout.service';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 import { AuthService } from '../demo/services/auth.service';
+import { catchError } from 'rxjs/operators';
+
 @Component({
     selector: 'app-menu',
     templateUrl: './app.menu.component.html',
@@ -23,33 +25,19 @@ export class AppMenuComponent implements OnInit {
 
     async loadPermissions() {
         const permissionsObservables = {
-            canViewMapa: await this.auth.hasPermissionComponent(
-                '/categoria',
-                'get'
-            ),
-            canViewCategoria: await this.auth.hasPermissionComponent(
-                '/categoria',
-                'get'
-            ),
-            canViewIncidente: await this.auth.hasPermissionComponent(
-                '/categoria',
-                'get'
-            ),
-            canViewFicha: await this.auth.hasPermissionComponent(
-                '/categoria',
-                'get'
-            ),
-            canViewAdministracion: await this.auth.hasPermissionComponent(
-                '/categoria',
-                'get'
-            ),
-            canViewPanelControl: await this.auth.hasPermissionComponent(
-                '/categoria',
-                'get'
-            ),
+            canViewMapa: (await this.auth.hasPermissionComponent('/incidentes_denuncia', 'get')).pipe(catchError(() => of(false))),
+            canViewCategoria: (await this.auth.hasPermissionComponent('/categoria', 'get')).pipe(catchError(() => of(false))),
+            canViewCategoriaCrear: (await this.auth.hasPermissionComponent('/categoria', 'post')).pipe(catchError(() => of(false))),
+            canViewSubCategoriaCrear: (await this.auth.hasPermissionComponent('/subcategoria', 'post')).pipe(catchError(() => of(false))),
+            canViewIncidente: (await this.auth.hasPermissionComponent('/incidentes_denuncia', 'get')).pipe(catchError(() => of(false))),
+            canViewIncidenteReporte: (await this.auth.hasPermissionComponent('reporteincidente', 'get')).pipe(catchError(() => of(false))),
+            //canViewFicha: (await this.auth.hasPermissionComponent('/ficha_sectorial', 'get')).pipe(catchError(() => of(false))),
+            canViewFichaReporte: (await this.auth.hasPermissionComponent('reporteficha', 'get')).pipe(catchError(() => of(false))),
+            canViewAdministracion: (await this.auth.hasPermissionComponent('/categoria', 'post')).pipe(catchError(() => of(false))),
+            canViewPanelControl: (await this.auth.hasPermissionComponent('dashboard', 'get')).pipe(catchError(() => of(false))),
         };
 
-        await forkJoin(permissionsObservables).subscribe(
+        forkJoin(permissionsObservables).subscribe(
             (permissions) => {
                 this.permissions = permissions;
                 console.log(permissions);
@@ -57,111 +45,113 @@ export class AppMenuComponent implements OnInit {
                 this.model = [
                     {
                         label: 'Inicio',
+                        visible: true,
                         items: [
                             {
                                 label: 'Inicio',
                                 icon: 'pi pi-fw pi-map',
                                 routerLink: ['/home'],
+                                visible: true,
                             },
                         ],
                     },
-                    permissions.canViewMapa
-                        ? {
-                              label: 'Mapa',
-                              items: [
-                                  {
-                                      label: 'Mapa',
-                                      icon: 'pi pi-fw pi-map',
-                                      routerLink: ['/maps'],
-                                  },
-                              ],
-                          }
-                        : null,
-                    permissions.canViewCategoria
-                        ? {
-                              label: 'Categoría',
-                              items: [
-                                  {
-                                      label: 'Listado',
-                                      icon: 'pi pi-fw pi-folder-open',
-                                      routerLink: ['/maps/categoria'],
-                                  },
-                                  {
-                                      label: 'Nuevo',
-                                      icon: 'pi pi-fw pi-folder-open',
-                                      routerLink: [
-                                          '/maps/categoria/create-categoria',
-                                      ],
-                                  },
-                                  {
-                                      label: 'Subcategoría',
-                                      icon: 'pi pi-fw pi-folder-open',
-                                      routerLink: [
-                                          '/maps/subcategoria/create-subcategoria',
-                                      ],
-                                  },
-                              ],
-                          }
-                        : null,
-                    permissions.canViewIncidente
-                        ? {
-                              label: 'Incidente',
-                              items: [
-                                  {
-                                      label: 'Incidente',
-                                      icon: 'pi pi-fw pi-exclamation-triangle',
-                                      routerLink: ['/maps/incidente'],
-                                  },
-                                  {
-                                      label: 'Reporte',
-                                      icon: 'pi pi-fw pi-chart-bar',
-                                      routerLink: ['/dashboard/incidente'],
-                                  },
-                              ],
-                          }
-                        : null,
-                    permissions.canViewFicha
-                        ? {
-                              label: 'Ficha',
-                              items: [
-                                  {
-                                      label: 'Ficha',
-                                      icon: 'pi pi-fw pi-file-edit',
-                                      routerLink: ['/maps/ficha-sectorial'],
-                                  },
-                                  {
-                                      label: 'Reporte',
-                                      icon: 'pi pi-fw pi-chart-bar',
-                                      routerLink: ['/dashboard/ficha'],
-                                  },
-                              ],
-                          }
-                        : null,
-                    permissions.canViewAdministracion
-                        ? {
-                              label: 'Administración',
-                              items: [
-                                  {
-                                      label: 'Administración',
-                                      icon: 'pi pi-fw pi-cog',
-                                      routerLink: ['/maps/administracion'],
-                                  },
-                              ],
-                          }
-                        : null,
-                    permissions.canViewPanelControl
-                        ? {
-                              label: 'Panel de Control',
-                              items: [
-                                  {
-                                      label: 'Estadísticas',
-                                      icon: 'pi pi-fw pi-home',
-                                      routerLink: ['/dashboard'],
-                                  },
-                              ],
-                          }
-                        : null,
-                ].filter((item) => item !== null);
+                    {
+                        label: 'Mapa',
+                        visible: permissions.canViewMapa,
+                        items: [
+                            {
+                                label: 'Mapa',
+                                icon: 'pi pi-fw pi-map',
+                                routerLink: ['/maps'],
+                                visible: permissions.canViewMapa,
+                            },
+                        ],
+                    },
+                    {
+                        label: 'Categoría',
+                        visible: permissions.canViewCategoria,
+                        items: [
+                            {
+                                label: 'Listado',
+                                icon: 'pi pi-fw pi-folder-open',
+                                routerLink: ['/maps/categoria'],
+                                visible: permissions.canViewCategoria,
+                            },
+                            {
+                                label: 'Nuevo',
+                                icon: 'pi pi-fw pi-folder-open',
+                                routerLink: ['/maps/categoria/create-categoria'],
+                                visible: permissions.canViewCategoriaCrear,
+                            },
+                            {
+                                label: 'Subcategoría',
+                                icon: 'pi pi-fw pi-folder-open',
+                                routerLink: ['/maps/subcategoria/create-subcategoria'],
+                                visible: permissions.canViewSubCategoriaCrear,
+                            },
+                        ].filter((item) => item.visible !== false),
+                    },
+                    {
+                        label: 'Incidente',
+                        visible: permissions.canViewIncidente,
+                        items: [
+                            {
+                                label: 'Incidente',
+                                icon: 'pi pi-fw pi-exclamation-triangle',
+                                routerLink: ['/maps/incidente'],
+                                visible: permissions.canViewIncidente,
+                            },
+                            {
+                                label: 'Reporte',
+                                icon: 'pi pi-fw pi-chart-bar',
+                                routerLink: ['/dashboard/incidente'],
+                                visible: permissions.canViewIncidenteReporte,
+                            },
+                        ].filter((item) => item.visible !== false),
+                    },
+                    {
+                        label: 'Ficha',
+                        items: [
+                            {
+                                label: 'Ficha',
+                                icon: 'pi pi-fw pi-file-edit',
+                                routerLink: ['/maps/ficha-sectorial'],
+                            },
+                            {
+                                label: 'Reporte',
+                                icon: 'pi pi-fw pi-chart-bar',
+                                routerLink: ['/dashboard/ficha'],
+                                visible: permissions.canViewFichaReporte,
+                            },
+                        ].filter((item) => item.visible !== false),
+                    },
+                    {
+                        label: 'Administración',
+                        visible: permissions.canViewAdministracion,
+                        items: [
+                            {
+                                label: 'Administración',
+                                icon: 'pi pi-fw pi-cog',
+                                routerLink: ['/maps/administracion'],
+                                visible: permissions.canViewAdministracion,
+                            },
+                        ],
+                    },
+                    {
+                        label: 'Panel de Control',
+                        visible: permissions.canViewPanelControl,
+                        items: [
+                            {
+                                label: 'Estadísticas',
+                                icon: 'pi pi-fw pi-home',
+                                routerLink: ['/dashboard'],
+                                badge: 'NEW',
+                                visible: permissions.canViewPanelControl,
+                            },
+                        ],
+                    },
+                ].filter((item) => item.visible !== false);
+                
 
                 this.viewmenu = true;
             },

@@ -5,6 +5,7 @@ import {
     ElementRef,
     TemplateRef,
     ApplicationRef,
+    OnDestroy,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import * as L from 'leaflet';
@@ -53,6 +54,7 @@ import { ToastModule } from 'primeng/toast';
 import { BadgeModule } from 'primeng/badge';
 import { CalendarModule } from 'primeng/calendar';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
     id?: string;
 }
@@ -94,13 +96,9 @@ interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
         ConfirmationService,
     ],
 })
-export class MapaTrashComponent implements OnInit {
+export class MapaTrashComponent implements OnInit, OnDestroy {
     @ViewChild('formulariomap', { static: true }) formularioMapRef!: ElementRef;
-    loader = new Loader({
-        apiKey: 'AIzaSyAnO4FEgIlMcRRB0NY5bn_h_EQzdyNUoPo',
-        version: 'weekly',
-        libraries: ['places'],
-    });
+
     mapOptions = {
         center: {
             lat: 0,
@@ -198,7 +196,8 @@ export class MapaTrashComponent implements OnInit {
         private messageService: MessageService,
         private admin: AdminService,
         private appRef: ApplicationRef,
-        private auth:AuthService
+        private auth:AuthService,
+        private googlemaps:GoogleMapsService
     ) {
         this.subscription = this.layoutService.configUpdate$
             .pipe(debounceTime(25))
@@ -380,7 +379,7 @@ export class MapaTrashComponent implements OnInit {
     }
     //INICIALIZADOR DEL MAPA
     initmap() {
-        this.loader.load().then(() => {
+        this.googlemaps.getLoader().then(() => {
             this.helperService.autocompleteService =
                 new google.maps.places.AutocompleteService();
             this.helperService.geocoderService = new google.maps.Geocoder();
@@ -1075,6 +1074,8 @@ export class MapaTrashComponent implements OnInit {
         if (this.mapCustom) {
             google.maps.event.clearInstanceListeners(this.mapCustom);
             this.mapCustom = null;
+            console.log("Mapa liberado");
+
         }
     }
 }
