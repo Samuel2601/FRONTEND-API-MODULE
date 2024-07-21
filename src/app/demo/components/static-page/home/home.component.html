@@ -61,10 +61,6 @@
         </article>
         <div
             class="w-full xl:w-4 relative flex justify-content-center align-items-center"
-            [ngStyle]="{
-                'margin-top': isMobil() ? '-30px' : '0px',
-                height: isMobil() ? '200px' : 'auto'
-            }"
         >
             <p-carousel
                 [value]="filteredProductos"
@@ -88,24 +84,11 @@
                                 alt="Image"
                                 class="rounded-top"
                                 [ngStyle]="{
-                                    height: isMobil() ? '200px' : 'auto'
+                                    'margin-top': isMobil() ? '-30px' : '0px',
+                                    height: isMobil() ? '40vh' : '50vh'
                                 }"
                                 (click)="showimage(product)"
                             />
-                            <!--
-                                (click)="openLink(product.url)"
- <p-image
-                                src="product.image"
-                                alt="Image"
-                                class="rounded-top"
-                                [ngStyle]="{
-                                    height: isMobil() ? '200px' : 'auto'
-                                }"
-                                [preview]="true"
-                                (click)="openLink(product.url)"
-                            />
-                            -->
-
                             <ng-container *ngIf="product.items">
                                 <article
                                     *ngIf="product.items[2]"
@@ -365,9 +348,9 @@
     </div>
 </div>
 <div *ngIf="visible_fichas_mostrar">
-    
-    <app-mapa-mostrar-fichas *ngIf="visible_fichas_mostrar"></app-mapa-mostrar-fichas>
-
+    <app-mapa-mostrar-fichas
+        *ngIf="visible_fichas_mostrar"
+    ></app-mapa-mostrar-fichas>
 </div>
 
 <ng-container *ngFor="let buttons of setbuttons">
@@ -642,10 +625,10 @@
     [style]="{ width: '80rem' }"
     [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
     #dialog1
-    (onShow)="isMobil() ? dialog1.maximize() : '';"
+    (onShow)="isMobil() ? dialog1.maximize() : ''"
     class="safe-margin-top"
 >
-    <app-mapa 
+    <app-mapa
         *ngIf="visible_incidente"
         [cate]="button_active.cate"
         [sub]="button_active.sub"
@@ -658,7 +641,7 @@
     [style]="{ width: '80rem' }"
     [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
     #dialog11
-    (onShow)="isMobil() ? dialog11.maximize() : '';"
+    (onShow)="isMobil() ? dialog11.maximize() : ''"
     class="safe-margin-top"
 >
     <app-list-incidentes
@@ -674,12 +657,12 @@
     [style]="{ width: '80rem' }"
     [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
     #dialog2
-    (onShow)="isMobil() ? dialog2.maximize() : '';"
-    (onHide)="visible_fichas_mostrar=true"
+    (onShow)="isMobil() ? dialog2.maximize() : ''"
+    (onHide)="visible_fichas_mostrar = true"
     class="safe-margin-top"
     [contentStyle]="{ 'padding-bottom': 0 }"
 >
-    <app-mapa-ficha  *ngIf="visible_ficha_mirror"></app-mapa-ficha>
+    <app-mapa-ficha *ngIf="visible_ficha_mirror"></app-mapa-ficha>
 </p-dialog>
 
 <p-dialog
@@ -689,12 +672,11 @@
     [style]="{ width: '80rem' }"
     [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
     #dialog22
-    (onShow)="isMobil() ? dialog22.maximize() : '';"
+    (onShow)="isMobil() ? dialog22.maximize() : ''"
     class="safe-margin-top"
 >
     <app-list-ficha *ngIf="visible_ficha"></app-list-ficha>
 </p-dialog>
-
 
 <p-dialog
     header="Fichas Sectoriales"
@@ -703,13 +685,11 @@
     [style]="{ width: '80rem' }"
     [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
     #dialog22
-    (onShow)="isMobil() ? dialog22.maximize() : '';"
+    (onShow)="isMobil() ? dialog22.maximize() : ''"
     class="safe-margin-top"
 >
-    
-<app-mostrar-fichas-articulos></app-mostrar-fichas-articulos>
+    <app-mostrar-fichas-articulos></app-mostrar-fichas-articulos>
 </p-dialog>
-
 
 <p-dialog
     header="Fichas Sectoriales"
@@ -718,7 +698,7 @@
     [style]="{ width: '80rem' }"
     [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
     #dialog22
-    (onShow)="isMobil() ? dialog22.maximize() : '';"
+    (onShow)="isMobil() ? dialog22.maximize() : ''"
     class="safe-margin-top"
 >
     <app-list-ficha *ngIf="visible_ficha_table"></app-list-ficha>
@@ -731,10 +711,10 @@
     [style]="{ width: '80rem' }"
     [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
     #dialog22
-    (onShow)="isMobil() ? dialog22.maximize() : '';"
+    (onShow)="isMobil() ? dialog22.maximize() : ''"
     class="safe-margin-top"
 >
-    <app-mapa-trash  *ngIf="visible_trash_mirror"></app-mapa-trash>
+    <app-mapa-trash *ngIf="visible_trash_mirror"></app-mapa-trash>
 </p-dialog>
 
 <p-dialog

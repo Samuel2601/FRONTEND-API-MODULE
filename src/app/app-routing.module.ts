@@ -7,6 +7,7 @@ import { AuthGuard } from './guards/auth.guard'; // Importa tu guard
 import { PermissionGuard } from './guards/permission.guard';
 import { MapaFichaComponent } from './demo/components/static-page/mapa-ficha/mapa-ficha.component';
 import { MapaComponent } from './demo/components/static-page/mapa/mapa.component';
+import { ViewFichasArticulosComponent } from './demo/components/static-page/view-fichas-articulos/view-fichas-articulos.component';
 @NgModule({
     imports: [
         RouterModule.forRoot([
@@ -26,6 +27,7 @@ import { MapaComponent } from './demo/components/static-page/mapa/mapa.component
                     },
                     { path: 'home', component: HomeComponent },
                     { path: 'crear-ficha', component: MapaFichaComponent },
+                    { path: 'ver-ficha/:id', component: ViewFichasArticulosComponent },
                     { path: 'crear-incidente', component: MapaComponent },
                     { path: '', component: HomeComponent }
                 ]
