@@ -263,6 +263,19 @@
                     <p-inputSwitch formControlName="es_articulo" />
                 </div>
 
+                <div class="mb-5" *ngIf="fichaSectorialForm.get('es_articulo').value">
+                    <label htmlFor="title_marcador"> Titulo corto (Se utilizará para marcadores y articulos):</label>
+                    <div
+                        style="
+                            display: flex;
+                            align-items: center;
+                            justify-content: flex-start;
+                        "
+                    >
+                    <input type="text" pInputText formControlName="title_marcador" />
+                    </div>
+                </div>
+
                 <!-- Mostrar textarea si es_articulo está apagado (false) -->
                 <textarea
                     *ngIf="!fichaSectorialForm.get('es_articulo').value"
@@ -316,7 +329,8 @@
                 </div>
                 <div class="mb-5" *ngIf="fichaSectorialForm.get('mostrar_en_mapa').value">
                     <h4 for="fecha_evento" class="form-label">
-                        Quieres añadir la URL del Marcador?
+                        Quieres añadir un marcador personalizado? (Puedes subirlo en 
+                        <a href="https://postimg.cc/" target="_blank">Posmat</a> y añadir la URL del Marcador)
                     </h4>
                     <div
                         style="
@@ -328,18 +342,7 @@
                     <input type="text" pInputText formControlName="icono_marcador" />
                     </div>
                 </div>
-                <div class="mb-5" *ngIf="fichaSectorialForm.get('mostrar_en_mapa').value">
-                    <label htmlFor="title_marcador"> Titulo que se mostrará cuando se abra el marcador:</label>
-                    <div
-                        style="
-                            display: flex;
-                            align-items: center;
-                            justify-content: flex-start;
-                        "
-                    >
-                    <input type="text" pInputText formControlName="title_marcador" />
-                    </div>
-                </div>
+                
                 
             </form>
             <h4>Puedes agregar fotos, es opcional. (maximo 5 fotos)</h4>

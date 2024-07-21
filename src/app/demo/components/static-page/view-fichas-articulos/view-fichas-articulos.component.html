@@ -1,55 +1,36 @@
-<p-splitter
-    [panelSizes]="[75, 25]"
-    [style]="{ height: 'auto', 'min-height': '90vh' }"
-    styleClass="mb-5"
->
-    <!-- Primer Panel (Artículo) -->
-    <ng-template pTemplate>
-        <div class="p-card-body">
-            <div [innerHTML]="ficha.descripcion"></div>
-            <p><strong>Dirección:</strong> {{ ficha.direccion_geo?.nombre }}</p>
-            <p><strong>Estado:</strong> {{ ficha.estado?.nombre }}</p>
-            <p><strong>Actividad:</strong> {{ ficha.actividad?.nombre }}</p>
-            <p>
-                <strong>Fecha del Evento:</strong>
-                {{ ficha.fecha_evento | date }}
-            </p>
-            <p><strong>Observación:</strong> {{ ficha.observacion }}</p>
-        </div>
-    </ng-template>
-
-    <!-- Segundo Panel (Galería y Mapa) -->
-    <ng-template pTemplate>
-        <div class="p-card p-m-2">
-            <p-carousel
-                [value]="ficha.foto"
-                [numVisible]="1"
-                [numScroll]="3"
-                [circular]="true"
-                [responsiveOptions]="responsiveOptions"
-                *ngIf="ficha.foto.length"
-                autoplayInterval="3000"
-            >
-                <ng-template let-foto pTemplate="item">
-                    <img
-                        [src]="url + 'obtener_imagen/ficha_sectorial/' + foto"
-                        alt="FICHA SECTORIAL FOTO"
-                        class="w-full border-round"
+<p-galleria 
+    [value]="ficha.foto" 
+    [(visible)]="displayFoto"
+    [responsiveOptions]="responsiveOptions" 
+    [containerStyle]="{ 'max-width': isMobile()?'90vw':'40vw' }" 
+    [numVisible]="9" 
+    [circular]="true" 
+    [fullScreen]="true" 
+    [showItemNavigators]="true">
+        <ng-template pTemplate="item" let-item>
+            <img 
+            [src]="url + 'obtener_imagen/ficha_sectorial/' + item" 
+                style="width: 100%; display: block;" />
+        </ng-template>
+        <ng-template pTemplate="thumbnail" let-item>
+            <div class="grid grid-nogutter justify-content-center">
+                <img 
+                [src]="url + 'obtener_imagen/ficha_sectorial/' + item" 
+                    style="display: block;" 
+                    [style.width]="isMobile()?'20vw':'5vw'"
                     />
-                </ng-template>
-            </p-carousel>
-            
-        </div>
-    </ng-template>
-</p-splitter>
+            </div>
+        </ng-template>
+</p-galleria>
+
 <div class="surface-section px-4 py-8 md:px-6 lg:px-8">
-    <div class="py-4 text-center md:text-left border-round bg-cover h-20rem lg:h-30rem flex flex-column justify-content-end mb-5" 
-        [ngStyle]="{'background-image': 'url(' + url + 'obtener_imagen/ficha_sectorial/' + currentImage + ')'}">
+    <div class="py-4 text-center md:text-left border-round bg-cover h-20rem lg:h-30rem flex flex-column justify-content-end mb-5 image-container" 
+        [ngStyle]="{'background-image': 'url(' + url + 'obtener_imagen/ficha_sectorial/' + currentImage + ')'}" (click)="displayFoto=true">
         <div class="grid">
-            <div class="col lg:col-offset-2 px-5">
+            <div class="col lg:col-offset-2 px-5" style="background-color: #4caf50;">
                 <div class="text-5xl font-bold text-white">{{ficha.title_marcador}}</div>
                 <p class="line-height-3 text-white text-lg text-center md:text-left mt-3">
-                    Publicado el {{ficha.view_date | date:'long'}}
+                    Fecha del evento: {{ficha.fecha_evento | date:'long'}}
                 </p>
             </div>
         </div>
@@ -58,14 +39,17 @@
     <div class="grid">
         <div class="col-12 lg:col-2">
             <div class="flex flex-row lg:flex-column lg:border-right-1 surface-border gap-5 mb-4 lg:px-5">
-                <div class="text-900 flex flex-row align-items-center justify-content-end" *ngIf="ficha.me_gusta">
-                    <span class="font-semibold mr-3"> {{ficha.me_gusta}} </span><i class="pi pi-bookmark"></i>
+                <div class="text-900 flex flex-row align-items-center justify-content-end">
+                    <span class="font-semibold mr-3">{{ficha.compartido || 0}}</span>
+                    <i class="pi pi-bookmark"></i>
                 </div>
-                <div class="text-900 flex flex-row align-items-center justify-content-end" *ngIf="ficha.me_gusta">
-                    <span class="font-semibold mr-3"> {{ficha.me_gusta}} </span><i class="pi pi-heart"></i>
+                <div class="text-900 flex flex-row align-items-center justify-content-end" (click)="toggleMeGusta()">
+                    <span class="font-semibold mr-3">{{ficha.me_gusta?.length || 0}}</span>
+                    <i [class]=" liked?'pi pi-heart-fill text-red-500':'pi pi-heart'" class="cursor-pointer"></i>
                 </div>
-                <div class="text-900 flex flex-row align-items-center justify-content-end" *ngIf="ficha.comentarios">
-                    <span class="font-semibold mr-3"> {{ficha.comentarios}} </span><i class="pi pi-comments"></i>
+                <div class="text-900 flex flex-row align-items-center justify-content-end">
+                    <span class="font-semibold mr-3">{{ficha.comentarios?.length || 0}}</span>
+                    <i class="pi pi-comments"></i>
                 </div>
             </div>
         </div>
@@ -75,19 +59,24 @@
                     <span class="text-900 surface-100 inline-flex font-semibold py-2 px-3 mr-2 border-round">
                         {{ficha.actividad.nombre}}
                     </span>
-                    <span class="text-900 surface-100 inline-flex font-semibold py-2 px-3 mr-2 border-round"> 
-                        {{ficha.estado.nombre}} 
+                    <span 
+                    class="text-900 font-semibold py-2 px-3 mr-2 border-round"
+                    [ngClass]="getSeverityClass(ficha.estado.nombre)">
+                    {{ ficha.estado.nombre }}
                     </span>
                 </div>
                 <div class="flex align-items-center gap-4">
                     <i class="pi pi-twitter cursor-pointer" (click)="compartirEnTwitter()"></i>
                     <i class="pi pi-facebook cursor-pointer" (click)="compartirEnFacebook()"></i>
                     <i class="pi pi-link cursor-pointer" (click)="copiarEnlace()"></i>
-                  </div>                  
+                </div>                  
             </div>
-            <div class="line-height-3 text-xl text-900 mb-5" [innerHTML]="ficha.descripcion"></div>       
-            <div *ngIf="ficha.direccion_geo">
-                <app-mapa-mostrar-fichas
+            <div class="line-height-3 text-xl text-900 mb-5" [innerHTML]="ficha.descripcion"></div>     
+
+            <div *ngIf="view_map&&ficha.direccion_geo">
+                
+                <h4>Ubicación del encuentro:</h4>
+                <app-mapa-mostrar-fichas *ngIf="view_map&&ficha.direccion_geo"
                     [ficha]="ficha"
                 ></app-mapa-mostrar-fichas>
             </div>
@@ -97,7 +86,8 @@
         </div>
         <div class="col-12 lg:col-3 lg:border-left-1 surface-border">
             <div class="p-3">
-                <div class="flex border-bottom-1 surface-border pb-4 mb-5">
+                <!--
+                 <div class="flex border-bottom-1 surface-border pb-4 mb-5" >
                     <img src="assets/images/blocks/avatars/circle/avatar-f-1.png" class="mr-3 h-5rem w-5rem">
                     <div class="flex flex-column align-items-start">
                         <span class="text-lg text-900 font-medium mb-1">Jessica Doe</span>
@@ -105,40 +95,34 @@
                         <button pButton pRipple label="Follow" class="p-button-rounded p-button-primary"></button>
                     </div>
                 </div>
-                <span class="text-900 font-medium text-xl block mb-5">Other Posts</span>
-                <div class="flex pb-4">
-                    <img src="assets/images/blocks/content/content-5.png" class="mr-3 h-5rem w-5rem">
-                    <div class="flex flex-column align-items-start">
-                        <span class="text-lg text-900 font-medium mb-1">Post Title</span>
-                        <span class="text-600 mb-2">Metus aliquam eleifend mi in nulla posuere.</span>
+                -->
+               
+                <span class="text-900 font-medium text-xl block mb-5">Otros Articulos</span>
+                <ng-container *ngFor="let item of fichas_sectoriales_arr">
+                    <div class="flex pb-4" *ngIf="item._id!=ficha._id" [routerLink]="['/ver-ficha', item._id]" style="cursor: pointer;">
+                        <img *ngIf="item.foto&&item.foto.length>0" [src]=" url + 'obtener_imagen/ficha_sectorial/' + item.foto[0]" class="mr-3 h-5rem w-5rem">
+                        <div class="flex flex-column align-items-start">
+                            <span class="text-lg text-900 font-medium mb-1">{{item.actividad.nombre}}</span>
+                            <span class="text-600 mb-2">{{item.title_marcador}}</span>
+                        </div>
                     </div>
-                </div>
-                <div class="flex pb-4">
-                    <img src="assets/images/blocks/content/content-6.png" class="mr-3 h-5rem w-5rem">
-                    <div class="flex flex-column align-items-start">
-                        <span class="text-lg text-900 font-medium mb-1">Post Title</span>
-                        <span class="text-600 mb-2">Metus aliquam eleifend mi in nulla posuere.</span>
-                    </div>
-                </div>
-                <div class="flex pb-4">
-                    <img src="assets/images/blocks/content/content-7.png" class="mr-3 h-5rem w-5rem">
-                    <div class="flex flex-column align-items-start">
-                        <span class="text-lg text-900 font-medium mb-1">Post Title</span>
-                        <span class="text-600 mb-2">Metus aliquam eleifend mi in nulla posuere.</span>
-                    </div>
-                </div>
-                <div class="flex flex-column gap-3">
+                </ng-container>
+                <!--
+                 <div class="flex flex-column gap-3">
                     <div class="w-full h-full p-5 border-round" 
-                         style="background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, #000000 100%), url('assets/images/blocks/content/content-8.png');">
+                         style="background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, #000000 100%)"
+                         [ngStyle]="{'background-image': 'url(' + url + 'obtener_imagen/ficha_sectorial/' + currentImage + ')'}">
                         <span class="text-white font-medium mb-3">Post Title</span>
                         <span class="text-white-alpha-70 block line-height-3">Metus aliquam eleifend mi in nulla posuere.</span>
                     </div>
                     <div class="w-full h-full p-5 border-round" 
-                         style="background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, #000000 100%), url('assets/images/blocks/content/content-9.png');">
+                         style="background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, #000000 100%)"
+                         [ngStyle]="{'background-image': 'url(' + url + 'obtener_imagen/ficha_sectorial/' + currentImage + ')'}">
                         <span class="text-white font-medium mb-3">Post Title</span>
                         <span class="text-white-alpha-70 block line-height-3">Metus aliquam eleifend mi in nulla posuere.</span>
                     </div>
                 </div>
+                -->               
             </div>
         </div>
     </div>

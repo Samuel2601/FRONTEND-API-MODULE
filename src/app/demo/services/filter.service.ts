@@ -43,6 +43,19 @@ export class FilterService {
         });
     }
 
+    actualizarFichaCompartido(id: string) {
+        return this.http.put(
+            `${this.url}actualizar_ficha_compartido/${id}`,
+            {}
+        );
+    }
+
+    actualizarFichaMeGusta(id: string, meGusta: string[]) {
+        return this.http.put(`${this.url}actualizar_ficha_megusta/${id}`, {
+            me_gusta: meGusta,
+        });
+    }
+
     obtenerIncidenteDenuncia(token: any, id: string): Observable<any> {
         const headers = this.getHeaders(token);
         let params = new HttpParams();

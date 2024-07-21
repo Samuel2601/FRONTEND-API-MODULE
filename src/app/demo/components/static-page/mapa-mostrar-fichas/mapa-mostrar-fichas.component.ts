@@ -101,10 +101,13 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
             }
 
             // Añadir botón si es un artículo
-            if (item.es_articulo) {
+            if (
+                item.es_articulo &&
+                this.router.url !== `/ver-ficha/${item._id}`
+            ) {
                 infoContent += `
-                  <button (click)="verArticulo('${item._id}')">Ver Artículo</button>
-              `;
+                    <a href="/ver-ficha/${item._id}" class="btn-ver-articulo">Ver Artículo</a>
+                `;
             }
 
             infoContent += `</div>`;
@@ -118,6 +121,11 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
             marker.addListener('click', () => {
                 infoWindow.open(this.mapCustom, marker);
             });
+            
+            // Verificar si la URL actual coincide con el marcador
+            if (this.router.url === `/ver-ficha/${item._id}`) {
+                infoWindow.open(this.mapCustom, marker);
+            }
         });
         if (this.mapCustom) {
             // Ajustar el centro y zoom del mapa para mostrar todos los marcadores
@@ -127,7 +135,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
     verArticulo(fichaId: string): void {
         // Redirigir a la página de detalle de la ficha sectorial como artículo
-        this.router.navigate(['/detalle-articulo', fichaId]);
+        this.router.navigate(['/ver-ficha', fichaId]);
     }
 
     initFullscreenControl(): void {

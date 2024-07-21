@@ -4,6 +4,7 @@ import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { ImportsModule } from 'src/app/demo/services/import';
 import { MapaMostrarFichasComponent } from '../mapa-mostrar-fichas/mapa-mostrar-fichas.component';
 import { ActivatedRoute } from '@angular/router';
+import { ListService } from 'src/app/demo/services/list.service';
 
 @Component({
     selector: 'app-view-fichas-articulos',
@@ -16,6 +17,10 @@ export class ViewFichasArticulosComponent implements OnInit {
     @Input() fichaId!: string;
     ficha: any;
     public url = GLOBAL.url;
+    currentImage: string = '';
+    imageIndex: number = 0;
+    liked: boolean = false;
+    displayFoto: boolean = false;
     responsiveOptions = [
         {
             breakpoint: '1199px',
@@ -35,26 +40,43 @@ export class ViewFichasArticulosComponent implements OnInit {
     ];
 
     constructor(
+        private filterService: FilterService,
         private route: ActivatedRoute,
-        private filterService: FilterService
+        private listService: ListService
     ) {}
+    fichas_sectoriales_arr: any[] = [];
+    listarFichaSectorial(): void {
+        this.listService
+            .listarFichaSectorialMapa()
+            .subscribe((response: any) => {
+                if (response.data && response.data.length > 0) {
+                    this.fichas_sectoriales_arr = response.data;
+                }
+            });
+    }
 
     ngOnInit(): void {
-        this.route.paramMap.subscribe((params) => {
-            this.fichaId = params.get('id') || '';
+        this.route.params.subscribe((params) => {
+            this.fichaId = params['id'];
             console.log('RECIBIO LA FICHA: ', this.fichaId);
             if (this.fichaId) {
                 this.obtenerFicha();
+                this.listarFichaSectorial();
             }
         });
     }
-
+    view_map: boolean = false;
     obtenerFicha(): void {
+        this.view_map=false;
         this.filterService.obtenerFichaPublica(this.fichaId).subscribe(
             (response: any) => {
                 if (response.data) {
                     this.ficha = response.data;
                     this.iniciarCambioDeImagen();
+                    this.liked = this.checkIfLiked();
+                    setTimeout(() => {
+                        this.view_map = true;
+                    }, 500);
                 }
             },
             (error) => {
@@ -63,11 +85,6 @@ export class ViewFichasArticulosComponent implements OnInit {
         );
     }
 
-    isMobile(): boolean {
-        return window.innerWidth <= 768;
-    }
-    currentImage: string = '';
-    imageIndex: number = 0;
     iniciarCambioDeImagen(): void {
         if (this.ficha.foto && this.ficha.foto.length > 0) {
             this.currentImage = this.ficha.foto[0];
@@ -79,6 +96,10 @@ export class ViewFichasArticulosComponent implements OnInit {
         }
     }
 
+    isMobile(): boolean {
+        return window.innerWidth <= 768;
+    }
+
     compartirEnTwitter(): void {
         const url = `http://localhost:4200/ver-ficha/${this.fichaId}`;
         const text = `Mira este artículo: ${this.ficha.title_marcador}`;
@@ -86,6 +107,7 @@ export class ViewFichasArticulosComponent implements OnInit {
             url
         )}&text=${encodeURIComponent(text)}`;
         window.open(twitterUrl, '_blank');
+        this.incrementarCompartido();
     }
 
     compartirEnFacebook(): void {
@@ -94,6 +116,7 @@ export class ViewFichasArticulosComponent implements OnInit {
             url
         )}`;
         window.open(facebookUrl, '_blank');
+        this.incrementarCompartido();
     }
 
     copiarEnlace(): void {
@@ -101,10 +124,86 @@ export class ViewFichasArticulosComponent implements OnInit {
         navigator.clipboard.writeText(url).then(
             () => {
                 alert('Enlace copiado al portapapeles');
+                this.incrementarCompartido();
             },
             (err) => {
                 console.error('Error al copiar el enlace: ', err);
             }
         );
+    }
+
+    incrementarCompartido(): void {
+        this.ficha.compartido = (this.ficha.compartido || 0) + 1;
+        this.filterService.actualizarFichaCompartido(this.fichaId).subscribe(
+            (response: any) => {
+                console.log('Compartido actualizado');
+            },
+            (error) => {
+                console.error('Error al actualizar compartido: ', error);
+            }
+        );
+    }
+
+    toggleMeGusta(): void {
+        this.liked = !this.liked;
+        if (this.liked) {
+            this.ficha.me_gusta.push('usuario_id'); // Reemplazar con el ID del usuario real
+        } else {
+            const index = this.ficha.me_gusta.indexOf('usuario_id'); // Reemplazar con el ID del usuario real
+            if (index > -1) {
+                this.ficha.me_gusta.splice(index, 1);
+            }
+        }
+        this.filterService
+            .actualizarFichaMeGusta(this.fichaId, this.ficha.me_gusta)
+            .subscribe(
+                (response: any) => {
+                    console.log('Me gusta actualizado');
+                },
+                (error) => {
+                    console.error('Error al actualizar me gusta: ', error);
+                }
+            );
+    }
+
+    checkIfLiked(): boolean {
+        // Reemplazar 'usuario_id' con el ID del usuario real
+        return (
+            this.ficha.me_gusta && this.ficha.me_gusta.includes('usuario_id')
+        );
+    }
+
+    getSeverityClass(
+        status: string
+    ):
+        | 'severity-success'
+        | 'severity-secondary'
+        | 'severity-info'
+        | 'severity-warning'
+        | 'severity-danger'
+        | 'severity-contrast' {
+        if (status) {
+            switch (status.toLowerCase()) {
+                case 'suspendido':
+                    return 'severity-danger';
+
+                case 'finalizado':
+                    return 'severity-success';
+
+                case 'en proceso':
+                    return 'severity-info';
+
+                case 'pendiente':
+                    return 'severity-warning';
+
+                case 'planificada':
+                    return 'severity-info';
+
+                default:
+                    return 'severity-secondary'; // Asegúrate de retornar un valor válido por defecto
+            }
+        } else {
+            return null;
+        }
     }
 }
