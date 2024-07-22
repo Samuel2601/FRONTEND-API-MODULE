@@ -422,7 +422,7 @@ export class AuthService {
         // Verifica si la URL actual contiene '/auth/login' independientemente de los parámetros adicionales
         if (
             (!['/home', '/'].includes(currentUrl) &&
-            !currentUrl.startsWith('/auth/login'))
+            !currentUrl.startsWith('/auth/login')&&!currentUrl.startsWith('/ver-ficha'))
             ||home
         ) {
             console.log('Redirigiendo a login');

@@ -43,16 +43,15 @@ export class FilterService {
         });
     }
 
-    actualizarFichaCompartido(id: string) {
-        return this.http.put(
-            `${this.url}actualizar_ficha_compartido/${id}`,
-            {}
-        );
+    actualizarFichaCompartido(id_ficha: string) {
+        return this.http.put(`${this.url}actualizar_ficha_compartido/${id_ficha}`, {});
     }
 
-    actualizarFichaMeGusta(id: string, meGusta: string[]) {
-        return this.http.put(`${this.url}actualizar_ficha_megusta/${id}`, {
-            me_gusta: meGusta,
+    actualizarFichaMeGusta(token:any,id_ficha: string, id_user: string) {
+        const headers = this.getHeaders(token);
+        return this.http.put(`${this.url}actualizar_ficha_megusta/${id_ficha}`, {
+            headers,
+            id_user: id_user,
         });
     }
 

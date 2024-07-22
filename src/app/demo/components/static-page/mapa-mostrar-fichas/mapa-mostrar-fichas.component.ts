@@ -31,9 +31,9 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
         console.log('FICHA QUE RECIBE:', this.ficha);
         if (this.ficha) {
             this.fichas_sectoriales_arr = [this.ficha];
-            this.marcadoresmapa();
+            await this.marcadoresmapa();
         } else {
-            this.listarFichaSectorialMapa();
+            await this.listarFichaSectorialMapa();
         }
     }
 
@@ -58,15 +58,15 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
         });
     }
 
-    listarFichaSectorialMapa(): void {
-        this.list.listarFichaSectorialMapa().subscribe((response: any) => {
+    async listarFichaSectorialMapa() {
+        this.list.listarFichaSectorialMapa().subscribe(async (response: any) => {
             if (response.data && response.data.length > 0) {
                 this.fichas_sectoriales_arr = response.data;
-                this.marcadoresmapa();
+                await this.marcadoresmapa();
             }
         });
     }
-    marcadoresmapa() {
+    async marcadoresmapa() {
         const bounds = new google.maps.LatLngBounds(); // Crear objeto para los límites de los marcadores
 
         this.fichas_sectoriales_arr.forEach((item: any) => {

@@ -64,8 +64,8 @@ export class ListService {
             .set('fecha_evento[end]', end)            
             .set('view', 'true')
             .set('populate', 'estado,actividad');
-        const fullUrl = `${this.url}ficha_sectorial?${params.toString()}`;
-        console.log('Full URL:', fullUrl);
+        /*const fullUrl = `${this.url}ficha_sectorial?${params.toString()}`;
+        console.log('Full URL:', fullUrl);*/
         return this.http.get(this.url + 'ficha_sectorial', {
             params: params,
         });

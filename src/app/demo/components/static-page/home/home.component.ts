@@ -68,9 +68,7 @@ export class HomeComponent implements OnInit {
     check: any;
     setbuttons:any[]=[];
     async ngOnInit(): Promise<void> {
-        this.list.listarFichaSectorialMapa().subscribe((response) => {
-            console.log(response);
-        });
+        
         this.helperService.setHomeComponent(this);
 
         this.responsiveOptions = [
@@ -600,6 +598,14 @@ export class HomeComponent implements OnInit {
                 console.error('Error en ngOnInit:', error);
                 this.router.navigate(['/notfound']);
             } finally {
+                this.list.listarFichaSectorialMapa().subscribe((response) => {
+                    if(response.data.length>0){
+                        setTimeout(() => {
+                            this.visible_fichas_mostrar=true;
+                        }, 500);                        
+                    }
+                });
+              
                 this.helperService.cerrarspinner('init index layer');
             }
         });
@@ -633,7 +639,7 @@ export class HomeComponent implements OnInit {
     isMobil(): boolean {
         return this.helperService.isMobil();
     }
-    visible_fichas_mostrar: boolean = true;
+    visible_fichas_mostrar: boolean = false;
     visible_incidente: boolean = false;
     visible_incidente_mirror: boolean = false;
     button_active: any = { cate: '', sub: '' };

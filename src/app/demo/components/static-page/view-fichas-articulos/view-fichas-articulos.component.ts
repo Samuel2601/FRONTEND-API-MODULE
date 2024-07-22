@@ -5,6 +5,7 @@ import { ImportsModule } from 'src/app/demo/services/import';
 import { MapaMostrarFichasComponent } from '../mapa-mostrar-fichas/mapa-mostrar-fichas.component';
 import { ActivatedRoute } from '@angular/router';
 import { ListService } from 'src/app/demo/services/list.service';
+import { AuthService } from 'src/app/demo/services/auth.service';
 
 @Component({
     selector: 'app-view-fichas-articulos',
@@ -42,7 +43,8 @@ export class ViewFichasArticulosComponent implements OnInit {
     constructor(
         private filterService: FilterService,
         private route: ActivatedRoute,
-        private listService: ListService
+        private listService: ListService,
+        private auth: AuthService
     ) {}
     fichas_sectoriales_arr: any[] = [];
     listarFichaSectorial(): void {
@@ -67,7 +69,7 @@ export class ViewFichasArticulosComponent implements OnInit {
     }
     view_map: boolean = false;
     obtenerFicha(): void {
-        this.view_map=false;
+        this.view_map = false;
         this.filterService.obtenerFichaPublica(this.fichaId).subscribe(
             (response: any) => {
                 if (response.data) {
@@ -145,32 +147,41 @@ export class ViewFichasArticulosComponent implements OnInit {
     }
 
     toggleMeGusta(): void {
-        this.liked = !this.liked;
-        if (this.liked) {
-            this.ficha.me_gusta.push('usuario_id'); // Reemplazar con el ID del usuario real
-        } else {
-            const index = this.ficha.me_gusta.indexOf('usuario_id'); // Reemplazar con el ID del usuario real
-            if (index > -1) {
-                this.ficha.me_gusta.splice(index, 1);
-            }
-        }
-        this.filterService
-            .actualizarFichaMeGusta(this.fichaId, this.ficha.me_gusta)
-            .subscribe(
-                (response: any) => {
-                    console.log('Me gusta actualizado');
-                },
-                (error) => {
-                    console.error('Error al actualizar me gusta: ', error);
+        if (this.auth.token()) {
+            const userId: string = this.auth.idUserToken();
+            this.liked = !this.liked;
+            if (this.liked) {
+                this.ficha.me_gusta.push(userId); // Reemplazar con el ID del usuario real
+            } else {
+                const index = this.ficha.me_gusta.indexOf(userId); // Reemplazar con el ID del usuario real
+                if (index > -1) {
+                    this.ficha.me_gusta.splice(index, 1);
                 }
-            );
+            }
+            const token = this.auth.token();
+            this.filterService
+                .actualizarFichaMeGusta(token, this.fichaId, userId)
+                .subscribe(
+                    (response: any) => {
+                        console.log('Me gusta actualizado');
+                    },
+                    (error) => {
+                        console.error('Error al actualizar me gusta: ', error);
+                    }
+                );
+        } else {
+            this.auth.redirectToLoginIfNeeded(true);
+        }
     }
 
     checkIfLiked(): boolean {
-        // Reemplazar 'usuario_id' con el ID del usuario real
-        return (
-            this.ficha.me_gusta && this.ficha.me_gusta.includes('usuario_id')
-        );
+        if (this.auth.token()) {
+            const userId: string = this.auth.idUserToken();
+            // Reemplazar 'usuario_id' con el ID del usuario real
+            return this.ficha.me_gusta && this.ficha.me_gusta.includes(userId);
+        } else {
+            return false;
+        }
     }
 
     getSeverityClass(

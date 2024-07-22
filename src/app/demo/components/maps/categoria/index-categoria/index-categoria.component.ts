@@ -249,7 +249,7 @@ export class IndexCategoriaComponent implements OnInit {
             }
             if (this.iddelete.cat) {
                 console.log(this.responsemodal.data);
-                /*
+                
                 this.deleteService
                     .eliminarCategoria(this.token, this.iddelete._id, data)
                     .subscribe(
@@ -269,10 +269,10 @@ export class IndexCategoriaComponent implements OnInit {
                                 detail: error.error.message || 'Sin conexión',
                             });
                         }
-                    );*/
+                    );
             } else {
                 console.log(this.responsemodal.data);
-                /*
+                
                 this.deleteService
                     .eliminarSubcategoria(this.token, this.iddelete._id, data)
                     .subscribe(
@@ -292,7 +292,7 @@ export class IndexCategoriaComponent implements OnInit {
                                 detail: error.error.message || 'Sin conexión',
                             });
                         }
-                    );*/
+                    );
             }
         }
     }

@@ -2,217 +2,66 @@
     <p-toast></p-toast>
 
     <ng-container *ngIf="load_form">
-        <form
-            [formGroup]="fichaSectorialForm"
-            (ngSubmit)="editarFichaSectorial()"
-        >
+        <form [formGroup]="fichaSectorialForm" (ngSubmit)="editarFichaSectorial()">
             <div class="flex flex-wrap">
                 <div class="w-full lg:w-6 p-4 lg:p-7 surface-card">
                     <div class="flex flex-column gap-2 mx-auto">
                         <div class="field p-fluid">
-                            <label htmlFor="firstname2"
-                                >Dirección Geográfica</label
-                            >
-                            <input
-                                pInputText
-                                id="firstname2"
-                                type="text"
-                                formControlName="direccion_geo"
-                                [placeholder]="
-                                    fichaSectorialForm.get('direccion_geo')
-                                        .value
-                                "
-                            />
+                            <label htmlFor="direccion_geo">Dirección Geográfica</label>
+                            <input pInputText id="direccion_geo" type="text" formControlName="direccion_geo" />
                         </div>
                         <div class="field p-fluid">
-                            <label htmlFor="firstname2"
-                                >Actividad de Proyecto</label
-                            >
-                            <p-dropdown
-                                id="actividad"
-                                name="actividad"
-                                formControlName="actividad"
-                                [options]="actividadesProyecto"
-                                optionLabel="nombre"
-                                [placeholder]="
-                                    fichaSectorialForm.get('actividad').value
-                                        ?.nombre
-                                "
-                            ></p-dropdown>
+                            <label htmlFor="actividad">Actividad de Proyecto</label>
+                            <p-dropdown id="actividad" name="actividad" formControlName="actividad" [options]="actividadesProyecto" optionLabel="nombre"></p-dropdown>
                         </div>
                         <div class="field p-fluid">
-                            <label htmlFor="firstname2"
-                                >Fecha del Evento:</label
-                            >
-                            <p-calendar
-                                [touchUI]="isMobil()"
-                                [readonlyInput]="isMobil()"
-                                id="fecha_evento"
-                                name="fecha_evento"
-                                formControlName="fecha_evento"
-                                [showTime]="true"
-                                [showIcon]="true"
-                                appendTo="body"
-                                inputId="buttondisplay"
-                                [placeholder]="
-                                    fichaSectorialForm.get('fecha_evento').value
-                                        | date : 'dd/MM/yyyy, hh:mm a'
-                                "
-                                [locale]="{
-                                    firstDayOfWeek: 1,
-                                    dayNames: [
-                                        'Domingo',
-                                        'Lunes',
-                                        'Martes',
-                                        'Miércoles',
-                                        'Jueves',
-                                        'Viernes',
-                                        'Sábado'
-                                    ],
-                                    dayNamesShort: [
-                                        'Dom',
-                                        'Lun',
-                                        'Mar',
-                                        'Mié',
-                                        'Jue',
-                                        'Vie',
-                                        'Sáb'
-                                    ],
-                                    dayNamesMin: [
-                                        'Do',
-                                        'Lu',
-                                        'Ma',
-                                        'Mi',
-                                        'Ju',
-                                        'Vi',
-                                        'Sá'
-                                    ],
-                                    monthNames: [
-                                        'Enero',
-                                        'Febrero',
-                                        'Marzo',
-                                        'Abril',
-                                        'Mayo',
-                                        'Junio',
-                                        'Julio',
-                                        'Agosto',
-                                        'Septiembre',
-                                        'Octubre',
-                                        'Noviembre',
-                                        'Diciembre'
-                                    ],
-                                    monthNamesShort: [
-                                        'Ene',
-                                        'Feb',
-                                        'Mar',
-                                        'Abr',
-                                        'May',
-                                        'Jun',
-                                        'Jul',
-                                        'Ago',
-                                        'Sep',
-                                        'Oct',
-                                        'Nov',
-                                        'Dic'
-                                    ]
-                                }"
-                                hourFormat="12"
-                            ></p-calendar>
+                            <label htmlFor="firstname2">Fecha del Evento:</label>
+                            <p-calendar [touchUI]="isMobil()" [readonlyInput]="isMobil()" id="fecha_evento" name="fecha_evento" formControlName="fecha_evento" [showTime]="true" [showIcon]="true" appendTo="body" inputId="buttondisplay" hourFormat="12"></p-calendar>
                         </div>
                     </div>
                 </div>
                 <div class="w-full lg:w-6 p-4 lg:p-7">
                     <div class="field p-fluid">
                         <div class="mb-3">
-                            <label htmlFor="firstname2"
-                                >Estado de Actividad de Proyecto</label
-                            >
-                            <p-dropdown
-                                id="estado"
-                                name="estado"
-                                formControlName="estado"
-                                [options]="estadosActividadProyecto"
-                                optionLabel="nombre"
-                            ></p-dropdown>
+                            <label htmlFor="estado">Estado de Actividad de Proyecto</label>
+                            <p-dropdown id="estado" name="estado" formControlName="estado" [options]="estadosActividadProyecto" optionLabel="nombre"></p-dropdown>
                         </div>
                     </div>
                     <div class="field p-fluid">
-                        <div
-                            style="
-                                display: flex;
-                                align-items: center;
-                                justify-content: flex-start;
-                            "
-                        >
-                            <p style="margin: 1rem">
-                                Es un articulo que quieras publicar?
-                            </p>
-                            <p-inputSwitch formControlName="es_articulo" />
+                        <div style="display: flex; align-items: center; justify-content: flex-start;">
+                            <p style="margin: 1rem">Es un articulo que quieras publicar?</p>
+                            <p-inputSwitch formControlName="es_articulo"></p-inputSwitch>
                         </div>
                     </div>
-
-                    <div class="field p-fluid" >
-                        <label htmlFor="descripcion">Descripción</label>
-                        <textarea
-                            rows="5"
-                            cols="25"
-                            pInputTextarea
-                            id="descripcion"
-                            name="descripcion"
-                            formControlName="descripcion"
-                            required
-                        ></textarea>
+                    <div class="field p-fluid">
+                        <label htmlFor="descripcion">Descripción</label> 
+                        <textarea *ngIf="!fichaSectorialForm.get('es_articulo').value" rows="5" cols="25" pInputTextarea id="descripcion" name="descripcion" formControlName="descripcion" required></textarea>
+                        <p-editor *ngIf="fichaSectorialForm.get('es_articulo').value" formControlName="descripcion" [style]="{ height: '320px', width: '-webkit-fill-available' }"></p-editor>
+                        <div [innerHTML]="fichaSectorialForm.get('descripcion').value"></div>
                     </div>
                     <div class="field p-fluid">
                         <label htmlFor="observacion">Observación</label>
-                        <textarea
-                            rows="5"
-                            cols="25"
-                            pInputTextarea
-                            class="form-control"
-                            id="observacion"
-                            name="observacion"
-                            formControlName="observacion"
-                        ></textarea>
+                        <textarea rows="5" cols="25" pInputTextarea class="form-control" id="observacion" name="observacion" formControlName="observacion"></textarea>
                     </div>
-
-                    <div class="field p-fluid" >
+                    <div class="field p-fluid">
                         <label htmlFor="mostrar_en_mapa">Mostrar en mapa</label>
-                        <p-inputSwitch formControlName="mostrar_en_mapa" />
+                        <p-inputSwitch formControlName="mostrar_en_mapa"></p-inputSwitch>
                     </div>
                     <div class="field p-fluid" *ngIf="fichaSectorialForm.get('mostrar_en_mapa').value">
-                        <label htmlFor="title_marcador"> Titulo que se mostrará cuando se abra el marcador:</label>
-                        <div
-                            style="
-                                display: flex;
-                                align-items: center;
-                                justify-content: flex-start;
-                            "
-                        >
-                        <input type="text" pInputText formControlName="title_marcador" />
+                        <label htmlFor="title_marcador">Titulo que se mostrará cuando se abra el marcador:</label>
+                        <div style="display: flex; align-items: center; justify-content: flex-start;">
+                            <input type="text" pInputText formControlName="title_marcador"/>
                         </div>
                     </div>
                     <div class="field p-fluid" *ngIf="fichaSectorialForm.get('mostrar_en_mapa').value">
-                        <label htmlFor="icono_marcador"> Quieres añadir la URL del Marcador?</label>
-                        <div
-                            style="
-                                display: flex;
-                                align-items: center;
-                                justify-content: flex-start;
-                            "
-                        >
-                        <input type="text" pInputText formControlName="icono_marcador" />
+                        <label htmlFor="icono_marcador">Quieres añadir la URL del Marcador?</label>
+                        <div style="display: flex; align-items: center; justify-content: flex-start;">
+                            <input type="text" pInputText formControlName="icono_marcador"/>
                         </div>
                     </div>
-                   
                 </div>
             </div>
-
-            <p-button
-                label="Registrar"
-                type="submit"
-                icon="bi bi-save"
-            ></p-button>
+            <p-button label="Registrar" type="submit" icon="bi bi-save"></p-button>
         </form>
     </ng-container>
     <ng-container *ngIf="!load_form">
