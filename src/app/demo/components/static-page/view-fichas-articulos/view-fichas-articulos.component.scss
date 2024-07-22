@@ -1,21 +1,21 @@
 .severity-success {
     background-color: green; /* Ajusta el color según tus necesidades */
-    color: white;
+    color: white !important;
 }
 
 .severity-danger {
     background-color: red; /* Ajusta el color según tus necesidades */
-    color: white;
+    color: white !important;
 }
 
 .severity-warning {
     background-color: orange; /* Ajusta el color según tus necesidades */
-    color: white;
+    color: white !important;
 }
 
 .severity-info {
     background-color: blue; /* Ajusta el color según tus necesidades */
-    color: white;
+    color: white !important;
 }
 .image-container {
     transition: background-image 1s ease-in-out;

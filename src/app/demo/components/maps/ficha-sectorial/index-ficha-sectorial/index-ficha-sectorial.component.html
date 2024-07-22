@@ -56,7 +56,7 @@
             [globalFilterFields]="[
                 'direccion_geo',
                 'actividad.nombre',
-                'encargado.nombres',
+                'encargado.name',
                 'estado.nombre'
             ]"
             [sortMode]="'multiple'"
@@ -146,15 +146,15 @@
                             Encargado
                             <p-columnFilter
                                 type="text"
-                                field="encargado.nombres"
+                                field="encargado.name"
                                 display="menu"
                             ></p-columnFilter>
                             <th
-                                pSortableColumn="encargado.nombre"
+                                pSortableColumn="encargado.name"
                                 style="width: 20%"
                             >
                                 <p-sortIcon
-                                    field="encargado.nombre"
+                                    field="encargado.name"
                                 ></p-sortIcon>
                             </th>
                         </div>
@@ -226,7 +226,7 @@
                         {{ incidente.fecha_evento | date : "medium" : "es" }}
                     </td>
                     <td *ngIf="check.IndexFichaSectorialComponent">
-                        {{ incidente.encargado.nombres }}
+                        {{ incidente.encargado.name }} {{ incidente.encargado.last_name }}
                     </td>
                     <td>
                         <p-tag
@@ -344,7 +344,7 @@
                     <div class="p-fluid p-formgrid grid">
                         <h3>Listado de Ficha Sectorial</h3>
                     </div>
-                    <div class="flex pt-4 justify-content-end">
+                    <div class="flex pt-4 justify-content-end" *ngIf="check.TotalFilter">
                         <button
                             class="m-3"
                             *ngIf="check.IndexActividadProyectoComponent"
@@ -386,7 +386,7 @@
                     'direccion_geo',
                     'direccion_geo.nombre',
                     'actividad.nombre',
-                    'encargado.nombres',
+                    'encargado.name',
                     'estado.nombre'
                 ]"
                 [sortMode]="'multiple'"
@@ -497,15 +497,15 @@
                                 Encargado
                                 <p-columnFilter
                                     type="text"
-                                    field="encargado.nombres"
+                                    field="encargado.name"
                                     display="menu"
                                 ></p-columnFilter>
                                 <th
-                                    pSortableColumn="encargado.nombres"
+                                    pSortableColumn="encargado.name"
                                     style="width: 20%"
                                 >
                                     <p-sortIcon
-                                        field="encargado.nombres"
+                                        field="encargado.name"
                                     ></p-sortIcon>
                                 </th>
                             </div>
@@ -592,7 +592,7 @@
                             }}
                         </td>
                         <td>
-                            {{ incidente.encargado.nombres }}
+                            {{ incidente.encargado.name }} {{ incidente.encargado.last_name }}
                         </td>
                         <td>
                             <p-tag
@@ -681,60 +681,37 @@
                     let-incidente
                     let-rowIndex="rowIndex"
                 >
-                    <tr>
-                        <td>{{ rowIndex + 1 }}</td>
-                        <td>
-                            <ng-container
-                                *ngIf="isJSONString(incidente.direccion_geo)"
-                                >{{
-                                    parseJSON(incidente.direccion_geo).nombre
-                                }}</ng-container
-                            >
-                            <ng-container
-                                *ngIf="!isJSONString(incidente.direccion_geo)"
-                            >
-                                <ng-container
-                                    *ngIf="incidente.direccion_geo.nombre"
-                                >
-                                    {{ incidente.direccion_geo.nombre }}
-                                </ng-container>
-                                <ng-container
-                                    *ngIf="!incidente.direccion_geo.nombre"
-                                >
-                                    {{ incidente.direccion_geo }}
-                                </ng-container>
+                <tr (click)="navigateToFicha(incidente._id)">
+                    <td>{{ rowIndex + 1 }}</td>
+                    <td>
+                        <ng-container *ngIf="isJSONString(incidente.direccion_geo)">
+                            {{ parseJSON(incidente.direccion_geo).nombre }}
+                        </ng-container>
+                        <ng-container *ngIf="!isJSONString(incidente.direccion_geo)">
+                            <ng-container *ngIf="incidente.direccion_geo.nombre">
+                                {{ incidente.direccion_geo.nombre }}
                             </ng-container>
-                        </td>
-                        <td>
-                            {{ incidente.actividad.nombre }}
-                        </td>
-                        <td>
-                            {{ incidente.descripcion }}
-                        </td>
-
-                        <td>
-                            {{
-                                incidente.fecha_evento | date : "medium" : "es"
-                            }}
-                        </td>
-                        <td>
-                            <p-button
-                                *ngIf="
-                                    incidente.foto && incidente.foto.length > 0
-                                "
-                                id="fotoButton"
-                                icon="pi bi-camera2-custom"
-                                [raised]="true"
-                                [outlined]="true"
-                                label="Ver"
-                                (click)="
-                                    displayBasic = true;
-                                    openModalimagen(incidente.foto)
-                                "
-                            ></p-button>
-                        </td>
-                        <!-- Agrega el modal al final del componente -->
-                    </tr>
+                            <ng-container *ngIf="!incidente.direccion_geo.nombre">
+                                {{ incidente.direccion_geo }}
+                            </ng-container>
+                        </ng-container>
+                    </td>
+                    <td>{{ incidente.actividad.nombre }}</td>
+                    <td>{{ incidente.title_marcador }}</td>
+                    <td>{{ incidente.fecha_evento | date: "medium" : "es" }}</td>
+                    <td>
+                        <p-button
+                            *ngIf="incidente.foto && incidente.foto.length > 0"
+                            id="fotoButton"
+                            icon="pi bi-camera2-custom"
+                            [raised]="true"
+                            [outlined]="true"
+                            label="Ver"
+                            (click)="displayBasic = true; openModalimagen(incidente.foto); $event.stopPropagation()"
+                        ></p-button>
+                    </td>
+                </tr>
+                
                 </ng-template>
                 <ng-template pTemplate="emptymessage">
                     <tr>
@@ -873,7 +850,7 @@
         </p>
         <p>
             <strong>Encargado:</strong>
-            {{ option.encargado.nombres }}
+            {{ option.encargado.name }} {{ option.encargado.last_name }}
         </p>
         <p>
             <strong>Estado:</strong>

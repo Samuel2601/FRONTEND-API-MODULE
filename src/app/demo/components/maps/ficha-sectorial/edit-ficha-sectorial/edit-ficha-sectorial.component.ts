@@ -128,7 +128,7 @@ export class EditFichaSectorialComponent implements OnInit {
         observacion: [this.ficha.observacion || ''],
         es_articulo: [this.ficha.es_articulo || false],
         view: [this.ficha.view || false],
-        view_id: [this.ficha.view_id || ''],
+        view_id: [this.ficha.view_id || this.auth.idUserToken()],
         mostrar_en_mapa: [this.ficha.mostrar_en_mapa || false],
         title_marcador: [this.ficha.title_marcador || ''],
         icono_marcador: [this.ficha.icono_marcador || '', Validators.pattern('https?://.+')]
@@ -146,7 +146,7 @@ export class EditFichaSectorialComponent implements OnInit {
             const campo = this.fichaSectorialForm.get(key);
             if (campo) {
               campo.setValue(element);
-              if (!this.check.EditFichaAll && ['descripcion', 'observacion', 'estado', 'mostrar_en_mapa', 'icono_marcador', 'es_articulo'].indexOf(key) === -1) {
+              if (!this.check.EditFichaAll && ['descripcion', 'observacion', 'estado', 'mostrar_en_mapa', 'icono_marcador', 'es_articulo','title_marcador'].indexOf(key) === -1) {
                 this.deshabilitarCampo(key);
               }
             }

@@ -92,12 +92,12 @@ export class DeleteService {
     return this.http.get(this.url + 'subcategoria?categoria=' + id, { headers: headers });
   }
 
-  eliminarCategoria(token: any, id: string,data: any): Observable<any> {
+  eliminarCategoria(token: any, id: string): Observable<any> {
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.put(this.url + 'categoria/' + id, data, { headers: headers });
+    return this.http.delete(this.url + 'categoria/' + id, { headers: headers });
   }
 
   verificarSubCategoria(token: any, id: string): Observable<any> {
@@ -108,12 +108,12 @@ export class DeleteService {
     return this.http.get(this.url + 'incidentes_denuncia?subcategoria=' + id, { headers: headers });
   }
 
-  eliminarSubcategoria(token: any, id: string,data: any): Observable<any> {
+  eliminarSubcategoria(token: any, id: string): Observable<any> {
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    return this.http.put(this.url + 'subcategoria/' + id, data , { headers: headers });
+    return this.http.delete(this.url + 'subcategoria/' + id, { headers: headers });
   }
 
   

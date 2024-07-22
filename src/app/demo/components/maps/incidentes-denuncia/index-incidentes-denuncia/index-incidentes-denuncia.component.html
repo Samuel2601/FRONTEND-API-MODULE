@@ -172,7 +172,7 @@
                 <td *ngIf="!valor">
                     {{ incidente.direccion_geo.nombre }}
                 </td>
-                <td>
+                <td *ngIf="incidente.categoria">
                     {{ incidente.categoria.nombre }}
                 </td>
                 <td *ngIf="incidente.estado">
@@ -452,10 +452,10 @@
                     <td>
                         {{ incidente.direccion_geo.nombre }} <ng-container *ngIf="check.ViewIncidente&&incidente.view==false">(Borrado)</ng-container>
                     </td>
-                    <td>
+                    <td *ngIf="incidente.categoria">
                         {{ incidente.categoria.nombre }}
                     </td>
-                    <td>
+                    <td *ngIf="incidente.subcategoria">
                         {{ incidente.subcategoria.nombre }}
                     </td>
                     <td>
@@ -578,11 +578,11 @@
     [style]="{ width: isMobil() ? '100%' : '40vw' }"
 >
     <div class="modal-body" *ngIf="option">
-        <p>
+        <p *ngIf="option.categoria">
             <strong>Categoría:</strong>
             {{ option.categoria.nombre }}
         </p>
-        <p>
+        <p *ngIf="option.subcategoria">
             <strong>Subcategoría:</strong>
             {{ option.subcategoria.nombre }}
         </p>

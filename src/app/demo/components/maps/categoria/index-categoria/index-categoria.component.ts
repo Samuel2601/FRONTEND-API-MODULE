@@ -251,10 +251,10 @@ export class IndexCategoriaComponent implements OnInit {
                 console.log(this.responsemodal.data);
                 
                 this.deleteService
-                    .eliminarCategoria(this.token, this.iddelete._id, data)
+                    .eliminarCategoria(this.token, this.iddelete._id)
                     .subscribe(
                         (response) => {
-                            //console.log(response.data);
+                            console.log(response);
                             this.messageService.add({
                                 severity: 'success',
                                 summary: 'Eliminación',
@@ -263,6 +263,7 @@ export class IndexCategoriaComponent implements OnInit {
                             this.ngOnInit();
                         },
                         (error) => {
+                            console.error(error);
                             this.messageService.add({
                                 severity: 'error',
                                 summary: ('(' + error.status + ')').toString(),
@@ -274,7 +275,7 @@ export class IndexCategoriaComponent implements OnInit {
                 console.log(this.responsemodal.data);
                 
                 this.deleteService
-                    .eliminarSubcategoria(this.token, this.iddelete._id, data)
+                    .eliminarSubcategoria(this.token, this.iddelete._id)
                     .subscribe(
                         (response) => {
                             //console.log(response.data);

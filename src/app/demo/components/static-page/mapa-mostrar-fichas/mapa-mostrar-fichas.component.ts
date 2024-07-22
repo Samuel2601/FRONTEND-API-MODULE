@@ -1,6 +1,8 @@
+import { DatePipe } from '@angular/common';
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Loader } from '@googlemaps/js-api-loader';
+import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ImportsModule } from 'src/app/demo/services/import';
@@ -12,9 +14,11 @@ import { ListService } from 'src/app/demo/services/list.service';
     imports: [ImportsModule],
     templateUrl: './mapa-mostrar-fichas.component.html',
     styleUrl: './mapa-mostrar-fichas.component.scss',
+    providers: [DatePipe]
 })
 export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
     @Input() ficha!: any;
+    url:string=GLOBAL.url;
     mapCustom: google.maps.Map;
     load_fullscreen: boolean = false;
     fichas_sectoriales_arr: any[];
@@ -23,7 +27,8 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
         private list: ListService,
         private helperService: HelperService,
         private router: Router,
-        private googlemaps: GoogleMapsService
+        private googlemaps: GoogleMapsService,
+        private datePipe: DatePipe
     ) {}
 
     async ngOnInit() {
@@ -75,7 +80,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
                 item.direccion_geo.latitud,
                 item.direccion_geo.longitud
             );
-
+        
             const marker = new google.maps.Marker({
                 position: position,
                 map: this.mapCustom,
@@ -85,48 +90,64 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
                     scaledSize: new google.maps.Size(80, 80), // Tamaño personalizado del icono
                 },
             });
-
+        
             // Añadir la posición del marcador a los límites
             bounds.extend(position);
-
+        
             // Contenido del InfoWindow
             let infoContent = `
-              <div>
-                  <h5>${item.title_marcador}</h5>                          
-          `;
-
+                <div>
+                    <h5>${item.title_marcador}</h5>                          
+            `;
+            
             // Añadir imagen si está disponible
-            if (item.imagen_url) {
-                infoContent += `<img src="${item.imagen_url}" style="max-width: 200px; max-height: 150px;" />`;
-            }
-
+           /* if (item.foto && item.foto[0]) {
+                const url_foto=this.url + 'obtener_imagen/ficha_sectorial/' + item.foto[0];
+                infoContent += `<img src="${url_foto}" style="max-width: 200px; max-height: 150px;" />`;
+            }*/
+        
             // Añadir botón si es un artículo
             if (
                 item.es_articulo &&
                 this.router.url !== `/ver-ficha/${item._id}`
             ) {
+                const formattedDate = this.datePipe.transform(item.fecha_evento, 'short');
                 infoContent += `
-                    <a href="/ver-ficha/${item._id}" class="btn-ver-articulo">Ver Artículo</a>
+                <a href="/ver-ficha/${item._id}" class="btn-ver-articulo">Ver Artículo</a> <br> Fecha del evento: ${formattedDate}
+                `;
+            }else{
+                const formattedDate = this.datePipe.transform(item.fecha_evento, 'short');
+                infoContent += `
+                Fecha del evento: ${formattedDate}
                 `;
             }
-
+        
             infoContent += `</div>`;
-
+        
             const infoWindow = new google.maps.InfoWindow({
                 headerContent: item.direccion_geo.nombre,
                 content: infoContent,
-                maxWidth: 300,
+                maxWidth: 400,
             });
-
+        
             marker.addListener('click', () => {
                 infoWindow.open(this.mapCustom, marker);
+                //this.mapCustom.setZoom(15); // Ajusta el nivel de zoom según tus necesidades
+                this.mapCustom.setCenter(marker.getPosition());
             });
-            
+            infoWindow.addListener('closeclick', () => {
+                //this.mapCustom.setZoom(15); // Ajusta el nivel de zoom según tus necesidades
+                //this.mapCustom.setCenter(marker.getPosition());
+              });
+        
             // Verificar si la URL actual coincide con el marcador
             if (this.router.url === `/ver-ficha/${item._id}`) {
                 infoWindow.open(this.mapCustom, marker);
+                this.mapCustom.setZoom(15); // Ajusta el nivel de zoom según tus necesidades
+                this.mapCustom.setCenter(marker.getPosition());
             }
         });
+        
         if (this.mapCustom) {
             // Ajustar el centro y zoom del mapa para mostrar todos los marcadores
             this.mapCustom.fitBounds(bounds);

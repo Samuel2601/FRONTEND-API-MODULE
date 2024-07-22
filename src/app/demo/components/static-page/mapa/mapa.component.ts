@@ -25,7 +25,7 @@ import {
 } from '@angular/common';
 import * as turf from '@turf/turf';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
-import { Subscription, debounceTime, forkJoin, map } from 'rxjs';
+import { Subscription, debounceTime, forkJoin, map, filter } from 'rxjs';
 import { Capacitor, Plugins } from '@capacitor/core';
 const { Geolocation } = Plugins;
 import { App } from '@capacitor/app';
@@ -249,6 +249,7 @@ export class MapaComponent implements OnInit, OnDestroy{
             categoria: [{ value: '' }, Validators.required],
             subcategoria: [{ value: '' }, Validators.required],
             descripcion: ['', Validators.required],
+            estado:['']
         });
         this.subscription = this.layoutService.configUpdate$
             .pipe(debounceTime(25))
@@ -1105,7 +1106,20 @@ export class MapaComponent implements OnInit, OnDestroy{
         this.visible_categoria = true;
         this.listCategoria();
     }
+    estados_id:string='';
+    listEstado() {
+        this.list.listarEstadosIncidentes(this.token).subscribe((response) => {
+            if (response.data) {
+                let arr:any[]=[];
+                arr=response.data;
+                const pendiente= arr.find(element=>element.nombre=="Pendiente");
+                this.estados_id=pendiente._id;
+                this.incidencia.get('estado').setValue(this.estados_id);
+            }
+        });
+    }
     listCategoria() {
+        this.listEstado();
         this.list.listarCategorias(this.token).subscribe((response) => {
             if (response.data) {
                 this.categorias = response.data;

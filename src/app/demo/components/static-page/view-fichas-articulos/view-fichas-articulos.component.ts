@@ -59,7 +59,10 @@ export class ViewFichasArticulosComponent implements OnInit {
 
     ngOnInit(): void {
         this.route.params.subscribe((params) => {
-            this.fichaId = params['id'];
+            if (params['id']) {
+                this.fichaId = params['id'];
+            }
+
             console.log('RECIBIO LA FICHA: ', this.fichaId);
             if (this.fichaId) {
                 this.obtenerFicha();

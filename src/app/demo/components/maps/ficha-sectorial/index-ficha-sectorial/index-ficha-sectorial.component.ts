@@ -118,7 +118,7 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
         //console.log(this.rol);
         if (!this.modal) this.helperservice.llamarspinner('index ficha');
         const checkObservables = {
-            IndexFichaSectorialComponent: await this.auth.hasPermissionComponent('/ficha_sectorial', 'get'),
+            IndexFichaSectorialComponent: await this.auth.hasPermissionComponent('/ficha_sectorial', 'post'),
             EditFichaSectorialComponent: await this.auth.hasPermissionComponent('/ficha_sectorial/:id', 'put'),
             IndexEstadoActividadProyectoComponent: await this.auth.hasPermissionComponent('/estado_actividad_proyecto', 'get'),
             IndexActividadProyectoComponent: await this.auth.hasPermissionComponent('/actividad_proyecto', 'get'),
@@ -129,7 +129,11 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
             this.check = check;
             console.log(check);
             try {
-                this.listarficha();
+                if(check.IndexFichaSectorialComponent||check.TotalFilter){
+                    this.listarficha();
+                }else{
+                    this.listarFichaSectorial();
+                }     
             } catch (error) {
                 console.error('Error en ngOnInit:', error);
                 this.router.navigate(['/notfound']);
@@ -140,6 +144,19 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
                 }, 2000);
             }
         });
+    }
+    limit:boolean=false;
+    listarFichaSectorial(): void {
+        this.load_lista = true;
+        this.listService
+            .listarFichaSectorialMapa()
+            .subscribe((response: any) => {
+                if (response.data && response.data.length > 0) {
+                    this.fichasectorial = response.data;
+                    this.limit=true;
+                }
+                this.load_lista = false;
+            });
     }
 
     isMobil() {
@@ -447,5 +464,8 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
             this.visible = true;
             this.option = incidente;
         }
+    }
+    navigateToFicha(id: string): void {
+        this.router.navigate(['/ver-ficha', id]);
     }
 }

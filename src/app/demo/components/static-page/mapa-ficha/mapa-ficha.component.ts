@@ -257,6 +257,7 @@ export class MapaFichaComponent implements OnInit, OnDestroy{
             es_articulo:[false],
             mostrar_en_mapa:[false],
             icono_marcador: ['',Validators.pattern('https?://.+')],
+            title_marcador:['']
         });
         this.subscription = this.layoutService.configUpdate$
             .pipe(debounceTime(25))

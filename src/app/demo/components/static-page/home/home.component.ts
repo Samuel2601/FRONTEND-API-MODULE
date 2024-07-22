@@ -338,10 +338,20 @@ export class HomeComponent implements OnInit {
                                 showInfo: false,
                                 style: false,
                                 command: async () => {
-                                    this.auth.token()?'':this.visible_ficha_view_table=true,this.visible_fichas_mostrar=false;//this.auth.redirectToLoginIfNeeded(true);
-                                    this.check.ReporteFicha&&!this.check.Ficha?
-                                    this.visible_ficha = true:'';
-            
+                                    if (this.auth.token()) {
+                                        if (!this.check.Ficha) {
+                                            this.visible_ficha_view_table = true;
+                                            this.visible_fichas_mostrar = false;
+                                        }
+                                    } else {
+                                        this.visible_ficha_view_table = true;
+                                        this.visible_fichas_mostrar = false;
+                                        // this.auth.redirectToLoginIfNeeded(true);
+                                    }
+                                    
+                                    if (this.check.ReporteFicha && !this.check.Ficha) {
+                                        this.visible_ficha = true;
+                                    }            
                                 },
                                 
                                 items: this.check.Ficha?[

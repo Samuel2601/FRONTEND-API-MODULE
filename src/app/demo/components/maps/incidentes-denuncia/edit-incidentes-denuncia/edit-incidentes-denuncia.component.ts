@@ -24,7 +24,27 @@ import { forkJoin } from 'rxjs';
     styleUrl: './edit-incidentes-denuncia.component.scss',
 })
 export class EditIncidentesDenunciaComponent implements OnInit {
-    incidencia: FormGroup<any>;
+    incidencia: FormGroup;
+    id: any;
+    check: any = {};
+    token = this.auth.token();
+    load_form: boolean = false;
+
+    categorias: any = [];
+    subcategorias: any = [];
+    id_user: any = this.admin.identity(this.token);
+    imagenesSeleccionadas: any = [];
+    imagenModal: any = [];
+    url = GLOBAL.url;
+    upload: boolean = true;
+    edit: boolean;
+
+    responsiveOptions = [
+        { breakpoint: '1024px', numVisible: 5 },
+        { breakpoint: '768px', numVisible: 3 },
+        { breakpoint: '560px', numVisible: 1 },
+    ];
+
     constructor(
         private conf: DynamicDialogConfig,
         private helper: HelperService,
@@ -51,74 +71,32 @@ export class EditIncidentesDenunciaComponent implements OnInit {
             view: true,
         });
     }
-
-    id: any;
-    check: any = {};
-    token = this.auth.token();
-    load_form: boolean = false;
-
-    categorias: any = [];
-    subcategorias: any = [];
-    id_user: any = this.admin.identity(this.token);
-    imagenesSeleccionadas: any = [];
-    imagenModal: any = [];
-    url = GLOBAL.url;
-    upload: boolean = true;
     responsiveimage(): string {
         return (window.innerWidth - 50).toString();
     }
-    responsiveOptions = [
-        {
-            breakpoint: '1024px',
-            numVisible: 5,
-        },
-        {
-            breakpoint: '768px',
-            numVisible: 3,
-        },
-        {
-            breakpoint: '560px',
-            numVisible: 1,
-        },
-    ];
-    edit: boolean;
+
     async ngOnInit() {
         this.helper.llamarspinner('edit incidente');
         const checkObservables = {
-            EditIncidentesDenunciaComponent:
-                await this.auth.hasPermissionComponent(
-                    '/incidentes_denuncia/:id',
-                    'put'
-                ),
-            EditIncidenteAll: await this.auth.hasPermissionComponent(
-                '/incidentes_denuncia/:id',
-                'put'
-            ),
-            ContestarIncidente: await this.auth.hasPermissionComponent(
-                '/incidentes_denuncia/:id',
-                'put'
-            ),
+            EditIncidentesDenunciaComponent: this.auth.hasPermissionComponent('/incidentes_denuncia/:id', 'put'),
+            EditIncidenteAll: this.auth.hasPermissionComponent('/incidentes_denuncia/:id', 'put'),
+            ContestarIncidente: this.auth.hasPermissionComponent('/incidentes_denuncia/:id', 'put'),
         };
+
         forkJoin(checkObservables).subscribe(async (check) => {
             this.check = check;
             try {
                 this.load_form = false;
                 if (!this.check.EditIncidentesDenunciaComponent) {
                     this.router.navigate(['/notfound']);
+                    return;
                 }
 
                 if (this.conf) {
                     this.id = this.conf.data.id;
-                    this.edit = this.conf.data.edit;
                     this.obtenerincidente();
                     this.listarCategorias();
-                    this.listartEstados();
-                    if (this.edit) {
-                        this.incidencia.get('estado').enable();
-                        this.incidencia.get('encargado').enable();
-                        this.incidencia.get('respuesta').enable();
-                        this.incidencia.get('evidencia').enable();
-                    }
+                    this.listarEstados();
                 }
             } catch (error) {
                 console.error('Error en ngOnInit:', error);
@@ -128,43 +106,37 @@ export class EditIncidentesDenunciaComponent implements OnInit {
             }
         });
     }
-    obtenerincidente() {
-        this.filter
-            .obtenerIncidenteDenuncia(this.token, this.id)
-            .subscribe((response) => {
-                if (response.data) {
-                    //console.log(response.data);
-                    const ficha = response.data;
-                    for (const key in ficha) {
-                        if (Object.prototype.hasOwnProperty.call(ficha, key)) {
-                            const element = ficha[key];
-                            const campo = this.incidencia.get(key);
-                            if (campo) {
-                                campo.setValue(element);
-                                if (key == 'categoria') {
-                                    this.selectcategoria(false, element._id);
-                                }
 
-                                if (
-                                    (ficha.ciudadano._id != this.id_user &&
-                                        key == 'estado') ||
-                                    (ficha.ciudadano._id == this.id_user &&
-                                        key != 'estado') ||
-                                    (this.check.ContestarIncidente && this.edit)
-                                ) {
-                                    this.habilitarCampo(key);
-                                }
+    obtenerincidente() {
+        this.filter.obtenerIncidenteDenuncia(this.token, this.id).subscribe((response) => {
+            if (response.data) {
+                const incidente = response.data;
+                for (const key in incidente) {
+                    if (Object.prototype.hasOwnProperty.call(incidente, key)) {
+                        const element = incidente[key];
+                        const campo = this.incidencia.get(key);
+                        if (campo) {
+                            campo.setValue(element);
+                            if (key == 'categoria') {
+                                this.selectcategoria(false, element._id);
+                            }
+                            if ((incidente.ciudadano._id != this.id_user ||this.check.EditIncidentesDenunciaComponent) && key == 'estado') {
+                                this.habilitarCampos(key);
+                            }
+                            if (incidente.ciudadano._id == this.id_user && key == 'descripcion') {
+                                this.habilitarCampos(key);
                             }
                         }
                     }
-                    if (ficha.foto) {
-                        this.imagenModal = ficha.foto;
-                    }
-                    //console.log(this.incidencia);
-                    this.load_form = true;
                 }
-            });
+                if (incidente.foto) {
+                    this.imagenModal = incidente.foto;
+                }
+                this.load_form = true;
+            }
+        });
     }
+
     enviar() {
         //console.log(this.incidencia);
         if (
@@ -263,10 +235,9 @@ export class EditIncidentesDenunciaComponent implements OnInit {
         );
     }
     estados: any = [];
-    listartEstados() {
+    listarEstados() {
         this.listService.listarEstadosIncidentes(this.token).subscribe(
             (response) => {
-                ////console.log(response);
                 this.estados = response.data;
             },
             (error) => {
@@ -275,7 +246,7 @@ export class EditIncidentesDenunciaComponent implements OnInit {
                 } else {
                     this.messageService.add({
                         severity: 'error',
-                        summary: ('(' + error.status + ')').toString(),
+                        summary: `(${error.status})`,
                         detail: error.error.message || 'Sin conexión',
                     });
                 }
@@ -288,7 +259,7 @@ export class EditIncidentesDenunciaComponent implements OnInit {
     load_imagen: boolean = false;
     newstatus() {
         if (this.incidencia.get('estado').value?.orden > 1) {
-            this.habilitarCampo('respuesta');
+            this.habilitarCampos('respuesta');
             this.load_imagen = true;
         } else {
             this.deshabilitarCampo('respuesta');
@@ -298,7 +269,7 @@ export class EditIncidentesDenunciaComponent implements OnInit {
     deshabilitarCampo(campo: any) {
         this.incidencia.get(campo)?.disable();
     }
-    habilitarCampo(campo: any) {
+    habilitarCampos(campo?: any) {
         this.incidencia.get(campo)?.enable();
     }
     mostrargale: any;
@@ -383,37 +354,6 @@ export class EditIncidentesDenunciaComponent implements OnInit {
         });
         this.mostrargale = true;
         this.load_carrusel = true;
-        ////console.log(this.selectedFiles,this.imagenesSeleccionadas );
-
-        /*
-    if(!this.isMobil()){
-      this.imagenesSeleccionadas=[];
-      this.selectedFiles=[];
-    }
-    if (files && files.length > 0) {
-      for (let i = 0; i < Math.min(files.length, 3); i++) {
-        const file = files[i];
-        if (!file.type.startsWith('image/')) {
-          alert('Por favor, seleccione archivos de imagen.');
-          return;
-        }
-        if (file.size > 4 * 1024 * 1024) {
-          alert('Por favor, seleccione archivos de imagen que sean menores a 4MB.');
-          return;
-        }
-  
-        const reader = new FileReader();
-        reader.onload = (e: any) => {
-          this.imagenesSeleccionadas.push(e.target.result);
-        };
-        reader.readAsDataURL(file);
-        this.selectedFiles.push(file);        
-      }
-      setTimeout(() => {        
-        this.load_carrusel = true;
-      }, 500);
-    }
-    */
     }
     displayCustom: boolean | undefined;
 

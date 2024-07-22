@@ -14,7 +14,7 @@
                                 type="text"
                                 formControlName="ciudadano"
                                 [placeholder]="
-                                    incidencia.get('ciudadano').value?.nombres
+                                    incidencia.get('ciudadano').value?.name
                                 "
                             />
                         </div>
@@ -97,8 +97,7 @@
                     <div
                         class="field p-fluid"
                         *ngIf="
-                            incidencia.get('ciudadano').value?._id != id_user || 
-                            edit
+                            incidencia.get('ciudadano').value?._id != id_user ||this.check.EditIncidentesDenunciaComponent
                         "
                     >
                         <label htmlFor="respuesta">Respuesta</label>
@@ -152,9 +151,8 @@
                 <div
                     class="w-full lg:w-6 p-4 lg:p-7"
                     *ngIf="
-                       ( incidencia.get('ciudadano').value?._id != id_user &&
-                        load_imagen) ||
-                        edit
+                       ( incidencia.get('ciudadano').value?._id != id_user ||this.check.EditIncidentesDenunciaComponent 
+                        )&&load_imagen
                     "
                 >
                     <label htmlFor="respuesta">Imagenes de Respuesta</label>

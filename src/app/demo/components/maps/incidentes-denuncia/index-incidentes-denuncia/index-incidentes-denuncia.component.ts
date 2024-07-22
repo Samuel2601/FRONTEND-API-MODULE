@@ -176,7 +176,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                     'put'
                 ),
             BorrarIncidente: await this.auth.hasPermissionComponent(
-                '/incidentes_denuncia',
+                '/incidentes_denuncia/:id',
                 'delete'
             ),
             ViewIncidente: await this.auth.hasPermissionComponent(
@@ -543,14 +543,17 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
 
     eliminarIncidente() {
         if (this.iddelete) {
+            console.log(this.check.BorrarIncidente);
             if (
                 this.id == this.iddelete.ciudadano._id ||
                 this.check.BorrarIncidente
             ) {
+                console.log('eliminando');
                 this.deleteser
                     .eliminarIncidenteDenuncia(this.token, this.iddelete._id)
                     .subscribe(
                         (response) => {
+                            console.log(response);
                             if (response) {
                                 this.messageService.add({
                                     severity: 'success',
@@ -567,6 +570,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                             }
                         },
                         (error) => {
+                            console.error(error);
                             this.messageService.add({
                                 severity: 'error',
                                 summary: ('(' + error.status + ')').toString(),
@@ -575,6 +579,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                         }
                     );
             } else {
+                console.log('actualziando');
                 this.iddelete.view = false;
                 this.iddelete.view_id = this.id;
                 this.iddelete.view_date = new Date();
