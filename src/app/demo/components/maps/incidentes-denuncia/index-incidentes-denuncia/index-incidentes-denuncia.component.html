@@ -522,7 +522,7 @@
                             *ngIf="incidente.evidencia.length > 0"
                             [src]="
                                 url +
-                                'obtener_imagen/usuario/' +
+                                'obtener_imagen/incidentes_denuncia/' +
                                 incidente.evidencia[0]
                             "
                             class="navbar-brand-img mx-auto"
@@ -556,14 +556,14 @@
 >
     <ng-template pTemplate="item" let-item>
         <img
-            [src]="url + 'obtener_imagen/usuario/' + item"
+            [src]="url + 'obtener_imagen/incidentes_denuncia/' + item"
             style="width: 100%; display: block"
         />
     </ng-template>
     <ng-template pTemplate="thumbnail" let-item>
         <div class="grid grid-nogutter justify-content-center">
             <img
-                [src]="url + 'obtener_imagen/usuario/' + item"
+                [src]="url + 'obtener_imagen/incidentes_denuncia/' + item"
                 style="display: block"
                 style="width: 30%"
             />
