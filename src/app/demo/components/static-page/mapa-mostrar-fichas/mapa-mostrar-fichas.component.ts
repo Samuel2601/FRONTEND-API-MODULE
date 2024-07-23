@@ -107,21 +107,26 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
             }*/
         
             // Añadir botón si es un artículo
+            const formattedDate = this.datePipe.transform(item.fecha_evento, 'short');
             if (
                 item.es_articulo &&
                 this.router.url !== `/ver-ficha/${item._id}`
             ) {
-                const formattedDate = this.datePipe.transform(item.fecha_evento, 'short');
+                
                 infoContent += `
                 <a href="/ver-ficha/${item._id}" class="btn-ver-articulo">Ver Artículo</a> <br> Fecha del evento: ${formattedDate}
                 `;
             }else{
-                const formattedDate = this.datePipe.transform(item.fecha_evento, 'short');
                 infoContent += `
                 Fecha del evento: ${formattedDate}
                 `;
             }
-        
+            // Añadir botón para abrir Google Maps
+                infoContent += `
+                <br>
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${item.direccion_geo.latitud},${item.direccion_geo.longitud}" target="_blank" class="btn-direcciones">Cómo llegar</a>
+            `;
+                
             infoContent += `</div>`;
         
             const infoWindow = new google.maps.InfoWindow({

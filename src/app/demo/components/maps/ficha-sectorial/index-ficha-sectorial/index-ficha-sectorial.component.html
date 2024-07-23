@@ -527,26 +527,26 @@
                                     ></p-sortIcon>
                                 </th>
                             </div>
-                        </th>
-                        <th style="min-width: 10rem">
+                        </th>                       
+                        <th>Foto</th>
+                        <th style="min-width: 2rem">
                             <div class="flex align-items-center">
-                                Observación
+                                Funciones
                                 <p-columnFilter
                                     type="text"
-                                    field="observacion"
+                                    field="mostrar_en_mapa"
                                     display="menu"
                                 ></p-columnFilter>
                                 <th
-                                    pSortableColumn="observacion"
-                                    style="width: 20%"
+                                    pSortableColumn="mostrar_en_mapa"
+                                    style="width: 5%"
                                 >
                                     <p-sortIcon
-                                        field="observacion"
+                                        field="mostrar_en_mapa"
                                     ></p-sortIcon>
                                 </th>
                             </div>
                         </th>
-                        <th>Foto</th>
                         <!-- Agrega las columnas restantes según tu necesidad -->
                     </tr>
                 </ng-template>
@@ -602,10 +602,7 @@
                                 "
                             >
                             </p-tag>
-                        </td>
-                        <td>
-                            {{ incidente.observacion }}
-                        </td>
+                        </td>                        
                         <td>
                             <img
                                 *ngIf="
@@ -628,6 +625,11 @@
                                     this.displayBasic = true
                                 "
                             />
+                        </td>
+                        <td>
+                            <i class="pi pi-circle-on" [style.color]="incidente.mostrar_en_mapa?'var(--primary-color)':''"> Mapa </i>
+                            <i class="pi pi-circle-on" [style.color]="incidente.destacado?'var(--primary-color)':''"> Destacado</i>
+                            <i class="pi pi-circle-on" [style.color]="incidente.es_articulo?'var(--primary-color)':''">Artículo</i>
                         </td>
                     </tr>
                 </ng-template>

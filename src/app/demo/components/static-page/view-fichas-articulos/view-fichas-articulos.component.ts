@@ -106,7 +106,7 @@ export class ViewFichasArticulosComponent implements OnInit {
     }
 
     compartirEnTwitter(): void {
-        const url = `http://localhost:4200/ver-ficha/${this.fichaId}`;
+        const url = `https://geoapi.esmeraldas.gob.ec/ver-ficha/${this.fichaId}`;
         const text = `Mira este artículo: ${this.ficha.title_marcador}`;
         const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(
             url
@@ -116,7 +116,7 @@ export class ViewFichasArticulosComponent implements OnInit {
     }
 
     compartirEnFacebook(): void {
-        const url = `http://localhost:4200/ver-ficha/${this.fichaId}`;
+        const url = `https://geoapi.esmeraldas.gob.ec/ver-ficha/${this.fichaId}`;
         const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
             url
         )}`;
@@ -125,7 +125,7 @@ export class ViewFichasArticulosComponent implements OnInit {
     }
 
     copiarEnlace(): void {
-        const url = `http://localhost:4200/ver-ficha/${this.fichaId}`;
+        const url = `https://geoapi.esmeraldas.gob.ec/ver-ficha/${this.fichaId}`;
         navigator.clipboard.writeText(url).then(
             () => {
                 alert('Enlace copiado al portapapeles');

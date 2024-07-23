@@ -312,7 +312,7 @@ export class HomeComponent implements OnInit {
                                 ],
                             },
                             {
-                                label: 'Otras Denuncias',
+                                label: 'Denuncias',
                                 info: 'Puedes reportar los incidentes y denuncias que se presenten en la ciudad.',
                                 icon: 'https://i.postimg.cc/yNvM11Wj/NOTICIAS.png',
                                 showInfo: false,
