@@ -87,7 +87,7 @@ export class EditUsuarioComponent implements OnInit {
         this._filterservice.obtenerUsuario(this.token, id).subscribe(
             (response) => {
                 this.datauser = response.data;
-                console.log(this.datauser);
+                //console.log(this.datauser);
                 this.datauser.password = ''; // Limpiar la contraseña temporal si existe
                 if (this.datauser.password_temp) {
                     this.messages = [

@@ -229,7 +229,7 @@ export class SignupComponent {
                 this.formulario
                     .get('correo')
                     ?.setErrors({ invalido: true, type: 'duplicidad' });
-                console.log(this.formulario.get('correo'));
+                //console.log(this.formulario.get('correo'));
             }
             setTimeout(() => {
                 this.visible = false;
@@ -270,8 +270,8 @@ export class SignupComponent {
                 this.visible = false;
             }, 1000);
         } else {
-            console.log(this.formulario.valid);
-            console.log(this.formulario);
+            //console.log(this.formulario.valid);
+            //console.log(this.formulario);
             this.messageService.add({
                 severity: 'error',
                 summary: 'Invalido',

@@ -52,7 +52,7 @@ export class EditActividadProyectoComponent {
     }
 
     updateCate() {
-        console.log(this.categoria);
+        //console.log(this.categoria);
         this.update
             .actualizarTipoActividadProyecto(this.token, this.id, this.categoria)
             .subscribe(

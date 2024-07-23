@@ -19,7 +19,7 @@ export class UpdateService {
         data: FormData,
         file: File
     ): Observable<any> {
-        console.log(id, data);
+       // console.log(id, data);
 
         const headers = new HttpHeaders({
             Authorization: token,
@@ -75,7 +75,7 @@ export class UpdateService {
         const headers = new HttpHeaders({
             Authorization: token,
         });
-        console.log(data);
+      //  console.log(data);
         const params = new HttpParams().set('id', id);
 
         return new Observable((observer) => {

@@ -43,7 +43,7 @@ export class IndexPermisosComponent {
             .subscribe(
                 (response) => {
                     this.permisos = response.data;
-                    console.log(this.permisos);
+                  //  console.log(this.permisos);
                 },
                 (error) => {
                     //console.log(error);
@@ -62,7 +62,7 @@ export class IndexPermisosComponent {
                             (u: any) => u._id === user._id
                         )
                 );
-            console.log(selectedUsers, this.permisos[index].user);
+            //console.log(selectedUsers, this.permisos[index].user);
             this.permisos[index].user = [
                 ...this.permisos[index].user,
                 ...selectedUsers,
@@ -167,13 +167,13 @@ export class IndexPermisosComponent {
 
     onRowEditCancel(categoria: any, rowIndex: number) {
         // Cancelar la edición de la categoría
-        console.log('Cancelar edición de la categoría:', categoria);
+       // console.log('Cancelar edición de la categoría:', categoria);
         // Restaurar la categoría a su estado original
         this.permisos[rowIndex] = this.clonedProducts[categoria._id as string];
         delete this.clonedProducts[categoria._id as string];
-        console.log('Cancelar edición de la categoría:', categoria);
+        //console.log('Cancelar edición de la categoría:', categoria);
     }
     imprimir(dato: any) {
-        console.log(dato);
+      //  console.log(dato);
     }
 }

@@ -71,6 +71,7 @@ export class CreateService {
     formData.append('mostrar_en_mapa', data.mostrar_en_mapa);
     formData.append('icono_marcador', data.icono_marcador);
     formData.append('title_marcador', data.title_marcador);
+    formData.append('destacado', data.destacado);
     
     // Iterar sobre los valores de FormData y mostrarlos en la consola
     formData.forEach((value, key) => {

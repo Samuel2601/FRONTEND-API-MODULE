@@ -207,12 +207,12 @@ export class AuthService {
             const aux = this.calcularTiempoRestante(token);
             if (aux <= 0) {
                 this.clearSession();
-                console.log('regreso a  login');
+               // console.log('regreso a  login');
                 this.redirectToLoginIfNeeded();
                 return null;
             }
         } else {
-            console.log('regreso a  login');
+           // console.log('regreso a  login');
             this.redirectToLoginIfNeeded();
         }
         return token || null;
@@ -251,7 +251,7 @@ export class AuthService {
         const datatoken = token || this.token();
         if (this.isAuthenticated()) {
             const helper = new JwtHelperService();
-            console.log(helper.decodeToken(datatoken));
+           // console.log(helper.decodeToken(datatoken));
             return helper.decodeToken(datatoken).sub;
         }
     }
@@ -272,7 +272,7 @@ export class AuthService {
             })
             .pipe(
                 map((response: any) => {
-                    console.log('LLAMADO API PERMISOS:', response);
+                   // console.log('LLAMADO API PERMISOS:', response);
                     this.permissionsSubject.next(response.data);
                     localStorage.setItem(
                         'permissions',
@@ -314,7 +314,7 @@ export class AuthService {
             .get(`${GLOBAL.url}obtenerRole?id=${id}`, { headers })
             .pipe(
                 map((response: any) => {
-                    console.log('LLAMADO PARA OBTENER ROL', response);
+                   // console.log('LLAMADO PARA OBTENER ROL', response);
                     this.rolesSubject.next(response.data.permisos);
                     localStorage.setItem(
                         'roles',
@@ -368,7 +368,7 @@ export class AuthService {
         const hasPermissionBOL = permisos.some(
             (e) => e.name === permission && e.method === method
         );
-        console.log(permission,method,hasPermissionBOL);
+      //  console.log(permission,method,hasPermissionBOL);
         return of(hasPermissionBOL);
     }
 
@@ -425,7 +425,7 @@ export class AuthService {
             !currentUrl.startsWith('/auth/login')&&!currentUrl.startsWith('/ver-ficha'))
             ||home
         ) {
-            console.log('Redirigiendo a login');
+           // console.log('Redirigiendo a login');
             this.router.navigate(['/auth/login']);
             if (this.helpers.llamadasActivas > 0) {
                 this.helpers.cerrarspinner('auth');

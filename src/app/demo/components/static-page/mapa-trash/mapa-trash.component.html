@@ -12,7 +12,8 @@
                     [forceSelection]="true"
                     (onSelect)="imprimir(query)"
                     [inputStyle]="{
-                        width: isMobil() ? responsiveimage() : '80vh'
+                        width: isMobil() ? responsiveimage() : '300px',
+                        height: isMobil() ? '46px':'40px'
                     }"
                 ></p-autoComplete>
                 <label for="float-label"

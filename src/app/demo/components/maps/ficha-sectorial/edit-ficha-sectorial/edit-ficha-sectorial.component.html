@@ -8,14 +8,14 @@
                     <div class="flex flex-column gap-2 mx-auto">
                         <div class="field p-fluid">
                             <label htmlFor="direccion_geo">Dirección Geográfica</label>
-                            <input pInputText id="direccion_geo" type="text" formControlName="direccion_geo" />
+                            <input pInputText id="direccion_geo" type="text" formControlName="direccion_geo"  optionLabel="direccion_geo.nombre"/>
                         </div>
                         <div class="field p-fluid">
                             <label htmlFor="actividad">Actividad de Proyecto</label>
                             <p-dropdown id="actividad" name="actividad" formControlName="actividad" [options]="actividadesProyecto" optionLabel="nombre"></p-dropdown>
                         </div>
                         <div class="field p-fluid">
-                            <label htmlFor="firstname2">Fecha del Evento:</label>
+                            <label htmlFor="fecha_evento">Fecha del Evento:</label>
                             <p-calendar [touchUI]="isMobil()" [readonlyInput]="isMobil()" id="fecha_evento" name="fecha_evento" formControlName="fecha_evento" [showTime]="true" [showIcon]="true" appendTo="body" inputId="buttondisplay" hourFormat="12"></p-calendar>
                         </div>
                     </div>
@@ -31,6 +31,12 @@
                         <div style="display: flex; align-items: center; justify-content: flex-start;">
                             <p style="margin: 1rem">Es un articulo que quieras publicar?</p>
                             <p-inputSwitch formControlName="es_articulo"></p-inputSwitch>
+                        </div>
+                    </div>
+                    <div class="field p-fluid">
+                        <div style="display: flex; align-items: center; justify-content: flex-start;">
+                            <p style="margin: 1rem">Quieres que se muestre en la página principal?</p>
+                            <p-inputSwitch formControlName="destacado"></p-inputSwitch>
                         </div>
                     </div>
                     <div class="field p-fluid">

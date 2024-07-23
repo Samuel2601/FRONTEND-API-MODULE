@@ -143,7 +143,7 @@ export class PermisosDemo implements OnInit {
                 console.error('Error al listar permisos:', error);
             }
         );
-        console.log("Lista de permisos:",this.permisosAsignados, this.permisosDisponibles);
+       // console.log("Lista de permisos:",this.permisosAsignados, this.permisosDisponibles);
     }
 
     dragStart(permiso: any) {
@@ -183,9 +183,9 @@ export class PermisosDemo implements OnInit {
         if (this.role) {
             this.role.permisos = this.permisosAsignados.map(permiso => permiso._id);
         }
-        console.log(this.role);
+        //console.log(this.role);
         this.update.actualizarRolUsuario(this.token,this.role._id,this.role).subscribe(response=>{
-            console.log(response);
+          //  console.log(response);
         })
     }
 }

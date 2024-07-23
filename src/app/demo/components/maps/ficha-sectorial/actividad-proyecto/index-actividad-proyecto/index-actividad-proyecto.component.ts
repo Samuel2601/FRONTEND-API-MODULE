@@ -44,7 +44,7 @@ export class IndexActividadProyectoComponent implements OnInit {
         };
         forkJoin(checkObservables).subscribe(async (check) => {
             this.check = check;
-            console.log(check);
+           // console.log(check);
             try {
                 this.router.events.subscribe((val) => {
                     // Verificar la ruta actual y ajustar el valor de model
@@ -68,7 +68,7 @@ export class IndexActividadProyectoComponent implements OnInit {
         this.listService
             .listarTiposActividadesProyecto(this.token)
             .subscribe((response) => {
-                console.log(response);
+               // console.log(response);
                 if (response.data) {
                     this.actividadPro = response.data;
                 }

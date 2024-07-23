@@ -106,7 +106,7 @@ export class ListFichaComponent implements OnInit {
                 }
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
         } finally {
             this.load_table = true;
             this.helper.cerrarspinner('Filtro lista de fichas');

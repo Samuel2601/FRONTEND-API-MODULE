@@ -268,7 +268,7 @@ export class LayersComponent implements OnInit {
         this.list.listarCategorias(this.token).subscribe((response) => {
             if (response.data) {
                 this.categorias = response.data;
-                console.log(this.categorias);
+               // console.log(this.categorias);
             }
         });
     }
@@ -1233,7 +1233,7 @@ export class LayersComponent implements OnInit {
             });
             this.capaActiva = false;
         } else {
-            console.log(this.arr_polygon);
+           // console.log(this.arr_polygon);
             this.arr_polygon.forEach((polygon: google.maps.Polygon) => {
                 polygon.setMap(this.mapCustom);
             });
@@ -1262,7 +1262,7 @@ export class LayersComponent implements OnInit {
             // Obtener el centro y el nivel de zoom adecuado para incluir todos los polígonos
             const center = bounds.getCenter();
             const zoom = this.calculateZoomLevel(bounds);
-            console.log(center, zoom);
+           // console.log(center, zoom);
             // Ajustar el mapa para que abarque todos los polígonos
             this.mapCustom.setCenter({ lat: 0.935233, lng: -79.681929 });
             this.mapCustom.setZoom(zoom);
@@ -1480,9 +1480,6 @@ export class LayersComponent implements OnInit {
                         this.infoWindowActual,
                         'closeclick',
                         () => {
-                            console.log(
-                                'La ventana de información se ha cerrado'
-                            );
                             this.infoWindowActual = null;
                         }
                     );

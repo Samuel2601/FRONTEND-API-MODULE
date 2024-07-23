@@ -41,7 +41,7 @@ export class CreatePermisosComponent implements OnInit {
         this.createService
             .registrarPermiso(this.token, [this.newpermiso])
             .subscribe((response) => {
-                console.log(response);
+               // console.log(response);
                 this.messageService.add({
                     severity: 'success',
                     summary: 'Ingresado',

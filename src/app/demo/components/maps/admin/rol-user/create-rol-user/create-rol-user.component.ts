@@ -42,10 +42,10 @@ export class CreateRolUserComponent implements OnInit {
         this.listService.listarRolesUsuarios(this.token).subscribe(
             (response) => {
                 this.roles = response.data;
-                console.log(response.data);
+               // console.log(response.data);
             },
             (error) => {
-                //console.log(error);
+                console.error(error);
             }
         );
     }
@@ -58,7 +58,7 @@ export class CreateRolUserComponent implements OnInit {
                     .registrarRolUsuario(this.token, this.Form.value)
                     .subscribe(
                         (response) => {
-                            console.log(response);
+                            //console.log(response);
                             if (response.data) {
                                 this.messageService.add({
                                     severity: 'success',

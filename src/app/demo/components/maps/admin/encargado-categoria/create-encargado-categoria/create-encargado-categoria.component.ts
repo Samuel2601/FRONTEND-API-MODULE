@@ -52,7 +52,7 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
             .subscribe(async (response) => {
                 if (response.data) {
                     this.roles = response.data;
-                    console.log(this.roles);
+                    //console.log(this.roles);
                      const list_user= await Promise.all(
                         this.roles.map(async (user: any) => {
                             if (user.orden == 3 || user.orden > 4) {
@@ -73,7 +73,7 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
                       }
                     });
                     
-                    console.log(this.usuarios);
+                    //console.log(this.usuarios);
                 }
             });
     }

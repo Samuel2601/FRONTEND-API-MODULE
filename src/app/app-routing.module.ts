@@ -8,6 +8,7 @@ import { PermissionGuard } from './guards/permission.guard';
 import { MapaFichaComponent } from './demo/components/static-page/mapa-ficha/mapa-ficha.component';
 import { MapaComponent } from './demo/components/static-page/mapa/mapa.component';
 import { ViewFichasArticulosComponent } from './demo/components/static-page/view-fichas-articulos/view-fichas-articulos.component';
+import { MapaTrashComponent } from './demo/components/static-page/mapa-trash/mapa-trash.component';
 @NgModule({
     imports: [
         RouterModule.forRoot([
@@ -29,7 +30,8 @@ import { ViewFichasArticulosComponent } from './demo/components/static-page/view
                     { path: 'crear-ficha', component: MapaFichaComponent },
                     { path: 'ver-ficha/:id', component: ViewFichasArticulosComponent },
                     { path: 'crear-incidente', component: MapaComponent },
-                    { path: '', component: HomeComponent }
+                    { path: '', component: HomeComponent },
+                    {path:'mapa-recolectores', component:MapaTrashComponent}
                 ]
             },
             { 

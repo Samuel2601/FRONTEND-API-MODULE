@@ -299,7 +299,7 @@ export class MapaComponent implements OnInit, OnDestroy{
         if (this.mapCustom) {
             google.maps.event.clearInstanceListeners(this.mapCustom);
             this.mapCustom = null;
-            console.log("Mapa liberado");
+          //  console.log("Mapa liberado");
         }
     }
     async ngOnInit() {
@@ -978,9 +978,6 @@ export class MapaComponent implements OnInit, OnDestroy{
                         this.infoWindowActual,
                         'closeclick',
                         () => {
-                            console.log(
-                                'La ventana de información se ha cerrado'
-                            );
                             this.infoWindowActual = null;
                         }
                     );
@@ -1130,7 +1127,7 @@ export class MapaComponent implements OnInit, OnDestroy{
                     );
 
                     if (aux) {
-                        console.log(aux);
+                        //console.log(aux);
                         this.navigateToStep(1);
                         this.onCategoriaClick(aux);
                     }
@@ -1155,7 +1152,7 @@ export class MapaComponent implements OnInit, OnDestroy{
                             (element) => element.nombre == this.sub
                         );
                         if (aux) {
-                            console.log(aux);
+                           // console.log(aux);
 
                             this.onSubCategoriaClick(aux);
                         }

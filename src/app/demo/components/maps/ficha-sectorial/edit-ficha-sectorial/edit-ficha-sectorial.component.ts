@@ -70,7 +70,8 @@ export class EditFichaSectorialComponent implements OnInit {
             observacion: [''],
             mostrar_en_mapa: [false],
             title_marcador: [''],
-            icono_marcador: ['']
+            icono_marcador: [''],
+            destacado:[false],
           });
           
     }
@@ -84,7 +85,7 @@ export class EditFichaSectorialComponent implements OnInit {
   
       forkJoin(checkObservables).subscribe(async (check) => {
         this.check = check;
-        console.log(check);
+        //console.log(check);
         try {
           if (!this.check.EditFichaSectorialComponent) {
             this.router.navigate(['/notfound']);
@@ -128,12 +129,13 @@ export class EditFichaSectorialComponent implements OnInit {
         observacion: [this.ficha.observacion || ''],
         es_articulo: [this.ficha.es_articulo || false],
         view: [this.ficha.view || false],
+        destacado:[this.ficha.destacado || false],
         view_id: [this.ficha.view_id || this.auth.idUserToken()],
         mostrar_en_mapa: [this.ficha.mostrar_en_mapa || false],
         title_marcador: [this.ficha.title_marcador || ''],
         icono_marcador: [this.ficha.icono_marcador || '', Validators.pattern('https?://.+')]
       });
-      console.log(this.fichaSectorialForm.value);
+     // console.log(this.fichaSectorialForm.value);
     }
   
     async obtenerficha() {
@@ -146,7 +148,7 @@ export class EditFichaSectorialComponent implements OnInit {
             const campo = this.fichaSectorialForm.get(key);
             if (campo) {
               campo.setValue(element);
-              if (!this.check.EditFichaAll && ['descripcion', 'observacion', 'estado', 'mostrar_en_mapa', 'icono_marcador', 'es_articulo','title_marcador'].indexOf(key) === -1) {
+              if (!this.check.EditFichaAll && ['descripcion', 'observacion', 'estado', 'mostrar_en_mapa', 'icono_marcador', 'es_articulo','title_marcador','destacado'].indexOf(key) === -1) {
                 this.deshabilitarCampo(key);
               }
             }

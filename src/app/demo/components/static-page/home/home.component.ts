@@ -12,19 +12,20 @@ import { MapaTrashComponent } from '../mapa-trash/mapa-trash.component';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { forkJoin } from 'rxjs';
 import { MapaMostrarFichasComponent } from '../mapa-mostrar-fichas/mapa-mostrar-fichas.component';
-import { MostrarFichasArticulosComponent } from "../mostrar-fichas-articulos/mostrar-fichas-articulos.component";
+import { MostrarFichasArticulosComponent } from '../mostrar-fichas-articulos/mostrar-fichas-articulos.component';
+import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 @Component({
     selector: 'app-home',
     standalone: true,
     imports: [
-    ImportsModule,
-    MapaComponent,
-    MapaFichaComponent,
-    DashboardModule,
-    MapaTrashComponent,
-    MapaMostrarFichasComponent,
-    MostrarFichasArticulosComponent
-],
+        ImportsModule,
+        MapaComponent,
+        MapaFichaComponent,
+        DashboardModule,
+        MapaTrashComponent,
+        MapaMostrarFichasComponent,
+        MostrarFichasArticulosComponent,
+    ],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss',
 })
@@ -66,9 +67,50 @@ export class HomeComponent implements OnInit {
         });
     }
     check: any;
-    setbuttons:any[]=[];
+    setbuttons: any[] = [];
+    url = GLOBAL.url;
+    async listarfichasHome() {
+        this.list.listarFichaSectorialHome().subscribe(
+            (response) => {
+                if (response.data) {
+                    const ficha: any[] = response.data;
+                    ficha.forEach((element) => {
+                        this.productos.push({
+                            id: element._id,
+                            image:
+                                this.url +
+                                'obtener_imagen/ficha_sectorial/' +
+                                element.foto[0],
+                            url: '/ver-ficha/' + element._id,
+                            descripcion:element.title_marcador,
+                            mobil: true,
+                        });
+                    });
+                    this.filterProductos();
+                }
+            },
+            (error) => {
+                console.error(error);
+            }
+        );
+    }
+
     async ngOnInit(): Promise<void> {
-        
+        this.productos.push({
+            id: '1000',
+            image: 'https://i.postimg.cc/NMKRV1SJ/Esmeraldas-la-Bella.png',
+            url: 'https://play.google.com/store/apps/details?id=ec.gob.esmeraldas.labella&hl=es_CL&gl=US',
+            items: [
+                {
+                    logo: 'assets/icon/icono-ico.png',
+                    titulo: 'ESMERALDAS LA BELLA',
+                    descripcion:
+                        'Cada ves, más cerca de ti <br> Ya puedes usar nuestra APP',
+                },
+            ],
+            mobil: false,
+        });
+
         this.helperService.setHomeComponent(this);
 
         this.responsiveOptions = [
@@ -88,62 +130,7 @@ export class HomeComponent implements OnInit {
                 numScroll: 1,
             },
         ];
-        this.productos.push(
-            {
-                id: '1000',
-                image: 'https://i.postimg.cc/NMKRV1SJ/Esmeraldas-la-Bella.png',
-                url: 'https://play.google.com/store/apps/details?id=ec.gob.esmeraldas.labella&hl=es_CL&gl=US',
-                items: [
-                    {
-                        logo: 'assets/icon/icono-ico.png',
-                        titulo: 'ESMERALDAS LA BELLA',
-                        descripcion:
-                            'Cada ves, más cerca de ti <br> Ya puedes usar nuestra APP',
-                    },
-                ],
-                mobil: false,
-            },
-            /*{
-                id: '1001',
-                image: 'https://i.postimg.cc/4ydyyKYh/444943064-772994744996058-5130094033753262063-n.jpg',
-                items: [
-                    {
-                        logo: 'assets/icon/icono-ico.png',
-                        titulo: 'ESMERALDAS LA BELLA',
-                        descripcion: 'Estamos trabajando por tu bienestar',
-                    },
-                    {
-                        logo: 'assets/icon/icono-ico.png',
-                        titulo: 'ESMERALDAS LA BELLA',
-                        descripcion: 'Registra tus incumbenientes',
-                    },
-                    {
-                        logo: 'assets/icon/icono-ico.png',
-                        titulo: 'ESMERALDAS LA BELLA',
-                        descripcion: 'Mira lo que se ha realizado en tu barrio',
-                    },
-                ],
-                mobil: true,
-            },*/
-            {
-                id: '1002',
-                image: 'https://i.postimg.cc/nL4GYW0G/notice-recolector.jpg',
-                url: 'https://www.facebook.com/photo/?fbid=773092638319602&set=a.487906363504899',
-                mobil: true,
-            },
-            {
-                id: '1002',
-                image: 'https://i.postimg.cc/CxyHrcCz/alcalde-2-1.jpg',
-                url: 'https://www.facebook.com/alcaldiaciudadanadeesmeraldas/posts/pfbid037w3Up2J5CWBLeHtVYb69dJ9ZD3KKgwrUy6ga5gQxwjYa32souymP6tgbh9r2szj7l?rdid=SPHco5EmCgtnqfzb',
-                mobil: true,
-            },
-            {
-                id: '1002',
-                image: 'https://i.postimg.cc/44S1Vfmv/12-02-informr-alcalde-1.jpg',
-                url: 'https://www.facebook.com/alcaldiaciudadanadeesmeraldas/posts/pfbid0THQ1Q3s95P8VyRthucxoCDGbR94EgpV9KSdsUqeTnwXSrWEnUndLNe8epDM2qGp8l',
-                mobil: true,
-            }
-        );
+
         const check = {
             DashboardComponent: await this.auth.hasPermissionComponent(
                 'dashboard',
@@ -166,10 +153,11 @@ export class HomeComponent implements OnInit {
                 'post'
             ),
         };
+       
         forkJoin(check).subscribe(async (check) => {
             this.check = check;
             try {
-                this.filterProductos();
+                await this.listarfichasHome();
                 this.setbuttons = [
                     {
                         label: 'Más Usados',
@@ -236,7 +224,9 @@ export class HomeComponent implements OnInit {
                                         dev: true,
                                         showInfo: false,
                                         command: async () => {
-                                            this.incidente('Agua Potable y Alcantarillado');
+                                            this.incidente(
+                                                'Agua Potable y Alcantarillado'
+                                            );
                                         },
                                     },
                                     {
@@ -322,7 +312,7 @@ export class HomeComponent implements OnInit {
                                 ],
                             },
                             {
-                                label: 'Otros Incidentes',
+                                label: 'Otras Denuncias',
                                 info: 'Puedes reportar los incidentes y denuncias que se presenten en la ciudad.',
                                 icon: 'https://i.postimg.cc/yNvM11Wj/NOTICIAS.png',
                                 showInfo: false,
@@ -340,7 +330,8 @@ export class HomeComponent implements OnInit {
                                 command: async () => {
                                     if (this.auth.token()) {
                                         if (!this.check.Ficha) {
-                                            this.visible_ficha_view_table = true;
+                                            this.visible_ficha_view_table =
+                                                true;
                                             this.visible_fichas_mostrar = false;
                                         }
                                     } else {
@@ -348,37 +339,56 @@ export class HomeComponent implements OnInit {
                                         this.visible_fichas_mostrar = false;
                                         // this.auth.redirectToLoginIfNeeded(true);
                                     }
-                                    
-                                    if (this.check.ReporteFicha && !this.check.Ficha) {
+
+                                    if (
+                                        this.check.ReporteFicha &&
+                                        !this.check.Ficha
+                                    ) {
                                         this.visible_ficha = true;
-                                    }            
+                                    }
                                 },
-                                
-                                items: this.check.Ficha?[
-                                    {
-                                        label: 'Repore de Fichas',
-                                        info: 'Puedes reportar los incidentes y denuncias con respecto a BOMBEROS.',
-                                        icon: 'https://i.postimg.cc/GpFfDvfq/Imagen-de-Whats-App-2024-06-26-a-las-12-09-30-57f62e61-removebg-preview.png',
-                                        dev: true,
-                                        showInfo: false,
-                                        command: async () => {
-                                            this.isMobil()? this.router.navigate(['/dashboard/ficha']): this.visible_ficha = true;
-                                        },
-                                    },
-                                    {
-                                        label: 'Crear una Ficha',
-                                        info: 'Encuentralos, más cerca de ti',
-                                        icon: 'https://i.postimg.cc/NG4bqngb/Imagen-de-Whats-App-2024-06-26-a-las-12-07-36-c26979b6-fotor-bg-remover-20240626121035.png',
-                                        style: true,
-                                        showInfo: false,
-                                        command: async () => {
-                                            this.auth.token()?'':this.auth.redirectToLoginIfNeeded(true);
-                                            this.isMobil()? this.router.navigate(['/crear-ficha']): (this.visible_fichas_mostrar=false,this.visible_ficha_mirror = true);
-                                        },
-                                    },
-                                ]:undefined,
-            
-            
+
+                                items: this.check.Ficha
+                                    ? [
+                                          {
+                                              label: 'Repore de Fichas',
+                                              info: 'Puedes reportar los incidentes y denuncias con respecto a BOMBEROS.',
+                                              icon: 'https://i.postimg.cc/GpFfDvfq/Imagen-de-Whats-App-2024-06-26-a-las-12-09-30-57f62e61-removebg-preview.png',
+                                              dev: true,
+                                              showInfo: false,
+                                              command: async () => {
+                                                  this.isMobil()
+                                                      ? this.router.navigate([
+                                                            '/dashboard/ficha',
+                                                        ])
+                                                      : (this.visible_ficha =
+                                                            true);
+                                              },
+                                          },
+                                          {
+                                              label: 'Crear una Ficha',
+                                              info: 'Encuentralos, más cerca de ti',
+                                              icon: 'https://i.postimg.cc/NG4bqngb/Imagen-de-Whats-App-2024-06-26-a-las-12-07-36-c26979b6-fotor-bg-remover-20240626121035.png',
+                                              style: true,
+                                              showInfo: false,
+                                              command: async () => {
+                                                  this.auth.token()
+                                                      ? ''
+                                                      : this.auth.redirectToLoginIfNeeded(
+                                                            true
+                                                        );
+                                                  this.isMobil()
+                                                      ? this.router.navigate([
+                                                            '/crear-ficha',
+                                                        ])
+                                                      : ((this.visible_fichas_mostrar =
+                                                            false),
+                                                        (this.visible_ficha_mirror =
+                                                            true));
+                                              },
+                                          },
+                                      ]
+                                    : undefined,
                             },
                         ],
                     },
@@ -481,8 +491,9 @@ export class HomeComponent implements OnInit {
                             },
                         ],
                     },
-                    {
+                    /*{
                         label: 'Concejales',
+
                         items: [
                             {
                                 label: 'Lilian Orejuela',
@@ -602,25 +613,25 @@ export class HomeComponent implements OnInit {
                                 },
                             },
                         ],
-                    },
+                    },*/
                 ];
             } catch (error) {
                 console.error('Error en ngOnInit:', error);
                 this.router.navigate(['/notfound']);
             } finally {
+                
                 this.list.listarFichaSectorialMapa().subscribe((response) => {
-                    if(response.data.length>0){
+                    if (response.data.length > 0) {
                         setTimeout(() => {
-                            this.visible_fichas_mostrar=true;
-                        }, 500);                        
+                            this.visible_fichas_mostrar = true;
+                        }, 500);
                     }
                 });
-              
+
                 this.helperService.cerrarspinner('init index layer');
             }
         });
     }
-   
 
     filteredProductos: any[] = [];
     imageselecte: any;
@@ -631,12 +642,9 @@ export class HomeComponent implements OnInit {
             this.load_image = true;
         }, 500);
     }
-
     filterProductos(): void {
         if (this.isMobil()) {
-            this.filteredProductos = this.productos.filter(
-                (product) => product.mobil
-            );
+            this.filteredProductos = this.productos.filter(element => element.mobil === true);
         } else {
             this.filteredProductos = this.productos;
         }
@@ -673,10 +681,10 @@ export class HomeComponent implements OnInit {
                 this.visible_incidente_mirror = true;
             } else {
                 this.visible_fichas_mostrar = false;
-                
-                if(this.isMobil()){
+
+                if (this.isMobil()) {
                     this.router.navigate(['/crear-incidente']);
-                }else{
+                } else {
                     this.visible_incidente = true;
                 }
 
@@ -692,7 +700,7 @@ export class HomeComponent implements OnInit {
     visible_ficha: boolean = false;
     visible_ficha_mirror: boolean = false;
     visible_ficha_table: boolean = false;
-    visible_ficha_view_table:boolean=false;
+    visible_ficha_view_table: boolean = false;
     ficha() {
         if (this.auth.token()) {
             if (this.check.DashboardComponent) {
@@ -702,7 +710,6 @@ export class HomeComponent implements OnInit {
                 setTimeout(() => {
                     this.visible_ficha_mirror = true;
                 }, 5000);*/
-               
             } else {
                 this.visible_ficha_table = true;
             }
@@ -713,10 +720,14 @@ export class HomeComponent implements OnInit {
     visible_trash_mirror: boolean = false;
     recolectores() {
         if (this.auth.token()) {
-            this.visible_fichas_mostrar = false;
-            setTimeout(() => {
-                this.visible_trash_mirror = true;
-            }, 5000);
+            if (this.isMobil()) {
+                this.router.navigate(['/mapa-recolectores']);
+            } else {
+                this.visible_fichas_mostrar = false;
+                setTimeout(() => {
+                    this.visible_trash_mirror = true;
+                }, 100);
+            }
         } else {
             this.auth.redirectToLoginIfNeeded(true);
         }

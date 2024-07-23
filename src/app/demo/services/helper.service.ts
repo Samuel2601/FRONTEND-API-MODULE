@@ -113,27 +113,27 @@ export class HelperService {
 
     cerrarspinner(id:any) {
         this.llamadasActivas--;
-        console.log("CERRO",id);
-        console.log(`Llamadas activas: ${this.llamadasActivas}`);
+        //console.log("CERRO",id);
+       // console.log(`Llamadas activas: ${this.llamadasActivas}`);
     
         if (this.llamadasActivas == 0) {
             setTimeout(() => {
                 if (this.spiner !== null) {
                     try {
                         this.spiner.close();
-                        console.log('Intentando destruir el spinner');
+                       // console.log('Intentando destruir el spinner');
                         this.spiner.destroy();
                         this.spiner = null; // Asegúrate de establecerlo a null después de destruirlo
-                        console.log('Spinner destruido correctamente');
+                        //console.log('Spinner destruido correctamente');
                     } catch (error) {
                         console.error('Error closing spinner:', error);
                     }
                 } else {
-                    console.log('Spinner ya es null, no es necesario destruirlo');
+                   // console.log('Spinner ya es null, no es necesario destruirlo');
                 }
             }, 1000);
         } else {
-            console.log('Aún hay llamadas activas, no se destruye el spinner');
+           // console.log('Aún hay llamadas activas, no se destruye el spinner');
         }
     }
     

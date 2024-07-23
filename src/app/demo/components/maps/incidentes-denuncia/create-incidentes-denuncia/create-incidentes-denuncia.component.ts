@@ -102,7 +102,7 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
           if(response.data&&response.data.length>0){
             const aux=response.data.find(elemnent=>elemnent.orden==1);
             this.nuevoIncidenteDenuncia.get('estado').setValue(aux._id); 
-            console.log(this.nuevoIncidenteDenuncia.get('estado').value);
+            //console.log(this.nuevoIncidenteDenuncia.get('estado').value);
           }
         },error=>{
           console.error(error);
@@ -413,7 +413,7 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
         if (this.nuevoIncidenteDenuncia.valid) {
             this.nuevoIncidenteDenuncia.enable();
             this.load_form = false;
-            console.log(this.nuevoIncidenteDenuncia.value);
+           // console.log(this.nuevoIncidenteDenuncia.value);
             this.createService
                 .registrarIncidenteDenuncia(
                     this.token,

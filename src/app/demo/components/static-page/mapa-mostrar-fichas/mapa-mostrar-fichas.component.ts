@@ -33,7 +33,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
     async ngOnInit() {
         await this.initMap();
-        console.log('FICHA QUE RECIBE:', this.ficha);
+       // console.log('FICHA QUE RECIBE:', this.ficha);
         if (this.ficha) {
             this.fichas_sectoriales_arr = [this.ficha];
             await this.marcadoresmapa();
@@ -75,7 +75,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
         const bounds = new google.maps.LatLngBounds(); // Crear objeto para los límites de los marcadores
 
         this.fichas_sectoriales_arr.forEach((item: any) => {
-            console.log(item);
+            //console.log(item);
             const position = new google.maps.LatLng(
                 item.direccion_geo.latitud,
                 item.direccion_geo.longitud

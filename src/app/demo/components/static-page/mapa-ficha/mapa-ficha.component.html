@@ -263,6 +263,20 @@
                     <p-inputSwitch formControlName="es_articulo" />
                 </div>
 
+                <div
+                    style="
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-start;
+                    "
+                >
+                    <p style="margin: 1rem">
+                       Quieres que se muestre en la página principal?
+                    </p>
+                    <p-inputSwitch formControlName="destacado" />
+                </div>
+
+
                 <div class="mb-5" *ngIf="fichaSectorialForm.get('es_articulo').value">
                     <label htmlFor="title_marcador"> Titulo corto (Se utilizará para marcadores y articulos):</label>
                     <div

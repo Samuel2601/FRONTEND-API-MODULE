@@ -22,7 +22,7 @@ export class AdminComponent implements OnInit{
     };
     forkJoin(checkObservables).subscribe(async (check) => {
       this.check = check;
-      console.log(check);
+      //console.log(check);
       try {
         if (!this.check.IndexUsuarioComponent) {
           this.router.navigate(['/notfound']);

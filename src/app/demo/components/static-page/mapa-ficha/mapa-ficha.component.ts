@@ -257,7 +257,8 @@ export class MapaFichaComponent implements OnInit, OnDestroy{
             es_articulo:[false],
             mostrar_en_mapa:[false],
             icono_marcador: ['',Validators.pattern('https?://.+')],
-            title_marcador:['']
+            title_marcador:[''],
+            destacado:[false],
         });
         this.subscription = this.layoutService.configUpdate$
             .pipe(debounceTime(25))
@@ -307,7 +308,7 @@ export class MapaFichaComponent implements OnInit, OnDestroy{
         if (this.mapCustom) {
             google.maps.event.clearInstanceListeners(this.mapCustom);
             this.mapCustom = null;
-            console.log("Mapa liberado");
+           // console.log("Mapa liberado");
         }
     }
     async ngOnInit() {

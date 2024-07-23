@@ -196,8 +196,8 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
         private messageService: MessageService,
         private admin: AdminService,
         private appRef: ApplicationRef,
-        private auth:AuthService,
-        private googlemaps:GoogleMapsService
+        private auth: AuthService,
+        private googlemaps: GoogleMapsService
     ) {
         this.subscription = this.layoutService.configUpdate$
             .pipe(debounceTime(25))
@@ -245,22 +245,47 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
     }
 
     async ngOnInit() {
-        this.helperService.llamarspinner('init mapa basurero');
-        App.addListener('backButton', (data) => {
-            this.sidebarVisible ? (this.sidebarVisible = false) : '';
-            this.mostrarficha ? (this.mostrarficha = false) : '';
-            this.mostrarincidente ? (this.mostrarincidente = false) : '';
-        });
+        try {
+            this.helperService.llamarspinner('init mapa basurero');
+            App.addListener('backButton', (data) => {
+                this.sidebarVisible ? (this.sidebarVisible = false) : '';
+                this.mostrarficha ? (this.mostrarficha = false) : '';
+                this.mostrarincidente ? (this.mostrarincidente = false) : '';
+            });
 
-        await this.getWFSgeojson(this.urlgeoser);
-        this.recargarmapa();
-        this.cargarRecolectores();
-        this.intervalId = setInterval(() => {
+            await this.getWFSgeojson(this.urlgeoser);
+            this.recargarmapa();
             this.cargarRecolectores();
-        }, 1000);
-        setTimeout(() => {
-            this.helperService.cerrarspinner('init mapa basurero');
-        }, 1500);
+
+            this.intervalId = setInterval(() => {
+                this.cargarRecolectores();
+            }, 1000);
+            setTimeout(() => {
+                this.helperService.cerrarspinner('init mapa basurero');
+            }, 1500);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            const aux = await this.getWFSgeojson(this.urlgeoserruta2);
+            setTimeout(() => {
+                if(this.mapCustom){
+                    if (aux && aux.features) {
+                        this.rutas = aux.features;
+                        this.rutas.forEach((element) => {
+                            console.log('mostrar ruta');
+                            this.pathpush(element);
+                        });
+                    } else {
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Ocurrio Algo',
+                            detail: 'Sin conexión',
+                        });
+                    }
+                }
+            }, 1000);
+            
+        }
     }
     addtemplateBG() {
         setTimeout(() => {
@@ -398,6 +423,7 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
                     },
                 }
             );
+
             this.initFullscreenControl();
             this.mapCustom.addListener('click', (event: any) => {
                 this.onClickHandlerMap(event);
@@ -411,11 +437,15 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
         label: 'Ver Rutas',
         styleClass: 'itemcustom',
         command: async () => {
-            console.log("llamar rutas");
+            //  console.log("llamar rutas");
             if (this.rutas.length == 0) {
                 const aux = await this.getWFSgeojson(this.urlgeoserruta2);
                 if (aux && aux.features) {
                     this.rutas = aux.features;
+                    this.rutas.forEach((element) => {
+                        console.log('mostrar ruta');
+                        this.pathpush(element);
+                    });
                     this.visiblepath = true;
                 } else {
                     this.messageService.add({
@@ -429,7 +459,7 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
             }
         },
     };
-    
+
     pathselect: any[] = [];
     pathson: any[] = [];
     selectpath: any;
@@ -1074,8 +1104,7 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
         if (this.mapCustom) {
             google.maps.event.clearInstanceListeners(this.mapCustom);
             this.mapCustom = null;
-            console.log("Mapa liberado");
-
+            // console.log("Mapa liberado");
         }
     }
 }

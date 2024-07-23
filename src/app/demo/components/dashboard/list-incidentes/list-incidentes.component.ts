@@ -255,7 +255,7 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
     
             forkJoin(checkObservables).subscribe(async (check) => {
                 this.check = check;
-                console.log(check);
+                //console.log(check);
     
                 if (!this.check.DashboardComponent) {
                     this.router.navigate(['/notfound']);

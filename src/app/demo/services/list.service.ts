@@ -70,6 +70,15 @@ export class ListService {
             params: params,
         });
     }
+    listarFichaSectorialHome(): Observable<any> {
+        let params = new HttpParams()
+            .set('destacado', 'true')       
+            .set('view', 'true')
+            .set('populate', 'estado,actividad');
+        return this.http.get(this.url + 'ficha_sectorial', {
+            params: params,
+        });
+    }
     /*
     //?estado.nombre[$ne]=Finalizado para cuando sean distinto a lo que buscas
         const fullUrl = `${this.url}ficha_sectorial?${params.toString()}`;
@@ -87,7 +96,7 @@ export class ListService {
         const params = this.paramsf(campos, all);
         // Construir la URL completa manualmente
         const fullUrl = `${this.url}incidentes_denuncia?${params.toString()}`;
-        console.log('Full URL:', fullUrl);
+        //console.log('Full URL:', fullUrl);
         return this.http.get(this.url + 'incidentes_denuncia', {
             headers: headers,
             params: params,

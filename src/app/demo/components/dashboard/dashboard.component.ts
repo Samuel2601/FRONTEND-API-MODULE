@@ -58,7 +58,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
         };
         forkJoin(checkObservables).subscribe(async (check) => {
             this.check = check;
-            console.log(check);
+            //console.log(check);
             try {
                 if (!this.check.DashboardComponent) {
                     this.router.navigate(['/notfound']);

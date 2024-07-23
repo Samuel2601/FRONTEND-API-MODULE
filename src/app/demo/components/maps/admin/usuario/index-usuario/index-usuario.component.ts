@@ -38,7 +38,7 @@ export class IndexUsuarioComponent implements OnInit{
   listusers(){
     this.load_lista=true;
     this.listService.listarUsuarios(this.token).subscribe(response=>{
-      console.log(response);
+      //console.log(response);
       if(response.data){
         this.usuarios=response.data;
         this.usuariosconst=response.data;

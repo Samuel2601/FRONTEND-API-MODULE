@@ -155,7 +155,7 @@ export class EditIncidentesDenunciaComponent implements OnInit {
             )
             .subscribe(
                 (response) => {
-                    console.log(response);
+                    //console.log(response);
                     if (response.data) {
                         this.messageService.add({
                             severity: 'success',
@@ -168,7 +168,7 @@ export class EditIncidentesDenunciaComponent implements OnInit {
                     }
                 },
                 (error) => {
-                    console.log(error);
+                    console.error(error);
                     if (error.error.message == 'InvalidToken') {
                         this.router.navigate(['/auth/login']);
                     } else {

@@ -275,7 +275,7 @@ export class LoginComponent implements OnInit {
             codigo: this.codevalid,
         }).subscribe(
             async response => {
-                console.log(response);
+                //console.log(response);
                 if (response.message === 'Bienvenido.') {
                     this.messageService.add({
                         severity: 'success',

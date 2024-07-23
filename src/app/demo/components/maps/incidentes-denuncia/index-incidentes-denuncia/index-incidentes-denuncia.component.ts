@@ -152,7 +152,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
     id = this.admin.identity(this.token);
 
     async ngOnInit(): Promise<void> {
-        console.log(this.id);
+       // console.log(this.id);
         if (!this.modal)
             this.helperservice.llamarspinner('init index incidente');
         const checkObservables = {
@@ -195,7 +195,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
 
         forkJoin(checkObservables).subscribe(async (check) => {
             this.check = check;
-            console.log(check);
+            //console.log(check);
             try {
                 if (!this.check.IndexIncidentesDenunciaComponent) {
                     this.router.navigate(['/notfound']);
@@ -221,7 +221,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
         this.listService
             .listarEncargadosCategorias(this.token, { encargado: this.id })
             .subscribe((response) => {
-                console.log(response);
+                //console.log(response);
                 if (response.data) {
                     this.encargos = response.data;
                 }
@@ -237,18 +237,18 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
 
         let filtroServicio: any[] = [];
         let valorServicio: any[] = [];
-        console.log(filtroServicio, valorServicio);
+       // console.log(filtroServicio, valorServicio);
         if (this.filtro && this.valor) {
             filtroServicio.push(this.filtro);
             valorServicio.push(this.valor);
             this.itemh.push({ label: this.valor });
         }
-        console.log(filtroServicio, valorServicio);
+      //  console.log(filtroServicio, valorServicio);
         if (!this.check.TotalFilterIncidente && this.encargos.length == 0) {
             filtroServicio.push('ciudadano');
             valorServicio.push(this.id);
         }
-        console.log(filtroServicio, valorServicio, this.encargos);
+       // console.log(filtroServicio, valorServicio, this.encargos);
         this.listService
             .listarIncidentesDenuncias(
                 this.token,
@@ -259,7 +259,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
             )
             .subscribe(
                 (response) => {
-                    console.log(response);
+                    //console.log(response);
                     if (response.data) {
                         this.incidentesDenuncias = response.data;
                         if (
@@ -402,7 +402,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
             )
         ) {
             editor = true;
-            console.log(this.encargos, edit, this.option);
+          //  console.log(this.encargos, edit, this.option);
         }
         this.ref = this.dialogService.open(EditIncidentesDenunciaComponent, {
             header: 'Editar Incidente',
@@ -543,17 +543,17 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
 
     eliminarIncidente() {
         if (this.iddelete) {
-            console.log(this.check.BorrarIncidente);
+           // console.log(this.check.BorrarIncidente);
             if (
                 this.id == this.iddelete.ciudadano._id ||
                 this.check.BorrarIncidente
             ) {
-                console.log('eliminando');
+               // console.log('eliminando');
                 this.deleteser
                     .eliminarIncidenteDenuncia(this.token, this.iddelete._id)
                     .subscribe(
                         (response) => {
-                            console.log(response);
+                          //  console.log(response);
                             if (response) {
                                 this.messageService.add({
                                     severity: 'success',
@@ -579,7 +579,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                         }
                     );
             } else {
-                console.log('actualziando');
+               // console.log('actualziando');
                 this.iddelete.view = false;
                 this.iddelete.view_id = this.id;
                 this.iddelete.view_date = new Date();

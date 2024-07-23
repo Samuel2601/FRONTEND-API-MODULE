@@ -41,7 +41,7 @@ export class CreateSubcategoriaComponent implements OnInit {
         };
         forkJoin(checkObservables).subscribe(async (check) => {
             this.check = check;
-            console.log(check);
+           // console.log(check);
             try {
                 if (!this.check.CreateSubcategoriaComponent) {
                     this.router.navigate(['/notfound']);

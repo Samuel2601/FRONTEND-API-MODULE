@@ -63,7 +63,7 @@ export class ViewFichasArticulosComponent implements OnInit {
                 this.fichaId = params['id'];
             }
 
-            console.log('RECIBIO LA FICHA: ', this.fichaId);
+           // console.log('RECIBIO LA FICHA: ', this.fichaId);
             if (this.fichaId) {
                 this.obtenerFicha();
                 this.listarFichaSectorial();
