@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Esmeraldas la Bella</string>
+    <string name="title_activity_main">Esmeraldas la Bella</string>
+    <string name="package_name">ec.gob.esmeraldas.labella</string>
+    <string name="custom_url_scheme">ec.gob.esmeraldas.labella</string>
+    <string name="server_client_id">489368244321-bslt4irqup8hlc0c59tp3h52v05fbh89.apps.googleusercontent.com</string>
+</resources>
