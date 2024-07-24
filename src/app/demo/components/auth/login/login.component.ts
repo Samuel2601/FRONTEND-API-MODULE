@@ -329,11 +329,6 @@ export class LoginComponent implements OnInit {
                     detail: 'Google',
                 });
                 const googleUser = await this.authService.signInWithGoogle();
-                this.messageService.add({
-                    severity: 'success',
-                    summary: `410`,
-                    detail: googleUser,
-                });
                 const response:any = await this.authService.sendUserToBackend(googleUser);
                 if(response.token){
                     await this.guardarToken(response.token);
@@ -351,6 +346,11 @@ export class LoginComponent implements OnInit {
                 // Maneja el usuario autenticado (por ejemplo, envíalo a tu backend)
               } catch (err) {
                 console.error('Login failed', err);
+                this.messageService.add({
+                    severity: 'error',
+                    summary: `(500)`,
+                    detail: 'Algo salio mal',
+                });
               }
         }else{
             this.authService.loginWithGoogle();
