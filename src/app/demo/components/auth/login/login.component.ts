@@ -177,10 +177,12 @@ export class LoginComponent implements OnInit {
             try {
                 const response = await this.authService.login(user).toPromise();
                 if (response.data) {
+                    
                     await this.guardarToken(response.data.token);
                     this.storeUserData(this.auth.authToken(response.data.token));
                     this.navigateAfterLogin(response.data.passwordChange);
                     this.rederict();
+
                 } else if (response.message) {
                     this.messageService.add({
                         severity: 'success',
