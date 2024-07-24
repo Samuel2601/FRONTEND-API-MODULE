@@ -75,79 +75,64 @@ export class UpdateService {
         const headers = new HttpHeaders({
             Authorization: token,
         });
-      //  console.log(data);
-        const params = new HttpParams().set('id', id);
-
+    
         return new Observable((observer) => {
             const formData = new FormData();
-            if (data.categoria)
-                formData.append('categoria', data.categoria._id);
-            if (data.subcategoria)
-                formData.append('subcategoria', data.subcategoria._id);
-            if (data.ciudadano)
-                formData.append(
-                    'ciudadano',
-                    data.ciudadano._id ? data.ciudadano._id : data.ciudadano
-                );
-            if (data.descripcion)
-                formData.append('descripcion', data.descripcion);
+            if (data.categoria) formData.append('categoria', data.categoria._id);
+            if (data.subcategoria) formData.append('subcategoria', data.subcategoria._id);
+            if (data.ciudadano) formData.append('ciudadano', data.ciudadano._id ? data.ciudadano._id : data.ciudadano);
+            if (data.descripcion) formData.append('descripcion', data.descripcion);
             if (data.estado) formData.append('estado', data.estado._id);
             if (data.respuesta) formData.append('respuesta', data.respuesta);
             if (data.encargado) formData.append('encargado', data.encargado);
-            if (data.direccion_geo)
-                formData.append(
-                    'direccion_geo',
-                    JSON.stringify(data.direccion_geo)
-                );
+            if (data.direccion_geo) formData.append('direccion_geo', JSON.stringify(data.direccion_geo));
             formData.append('view', data.view);
             if (data.view_id) formData.append('view_id', data.view_id);
             if (data.view_date) formData.append('view_date', data.view_date);
-            
-            if (
-                data.evidencia instanceof File ||
-                data.evidencia instanceof Blob
-            ) {
+    
+            if (Array.isArray(data.evidencia) && data.evidencia.every(item => item instanceof File || item instanceof Blob)) {
                 const compressedFilesPromises = data.evidencia.map(
                     (foto: any) => this.compressor(foto)
                 );
+    
                 Promise.all(compressedFilesPromises)
                     .then((compressedFiles) => {
                         compressedFiles.forEach((compressedFile, index) => {
-                            formData.append(
-                                'evidencia' + index,
-                                compressedFile
-                            );
+                            formData.append(`evidencia${index}`, compressedFile);
                         });
-                        this.http
-                            .put(this.url + 'incidentes_denuncia', formData, {
-                                headers: headers,
-                                params: params,
-                            })
-                            .subscribe(
-                                (response) => {
-                                    observer.next(response);
-                                    observer.complete();
-                                },
-                                (error) => observer.error(error)
-                            );
+                        console.log("Con imagenes");
+                        formData.forEach((value, key) => {
+                            console.log(`${key}: ${value}`);
+                        });
+                        this.http.put(this.url + 'incidentes_denuncia/' + id, formData, {
+                            headers: headers,
+                        }).subscribe(
+                            (response) => {
+                                observer.next(response);
+                                observer.complete();
+                            },
+                            (error) => observer.error(error)
+                        );
                     })
                     .catch((error) => observer.error(error));
             } else {
-                this.http
-                    .put(this.url + 'incidentes_denuncia', formData, {
-                        headers: headers,
-                        params: params,
-                    })
-                    .subscribe(
-                        (response) => {
-                            observer.next(response);
-                            observer.complete();
-                        },
-                        (error) => observer.error(error)
-                    );
+                console.log("Sin imagenes");
+                formData.forEach((value, key) => {
+                    console.log(`${key}: ${value}`);
+                });
+                this.http.put(this.url + 'incidentes_denuncia/' + id, formData, {
+                    headers: headers,
+                }).subscribe(
+                    (response) => {
+                        observer.next(response);
+                        observer.complete();
+                    },
+                    (error) => observer.error(error)
+                );
             }
         });
     }
+    
 
     actualizarCategoria(token: any, id: string, data: any): Observable<any> {
         const headers = new HttpHeaders({

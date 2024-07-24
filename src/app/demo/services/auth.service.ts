@@ -37,13 +37,20 @@ export class AuthService {
         private socketService: SocketService,
         private messageService: MessageService
     ) {
+        console.log( environment.clientId);
+        GoogleAuth.initialize({
+            clientId: environment.clientId,
+            scopes: ['profile', 'email'],
+            grantOfflineAccess: true,
+        });
+        /*
         if (helpers.isMobil()) {
             GoogleAuth.initialize({
-                clientId: environment.googleClientId,
+                clientId: environment.clientId,
                 scopes: ['profile', 'email'],
                 grantOfflineAccess: true,
             });
-        }
+        }*/
 
         this.url = GLOBAL.url;
         if (this.isAuthenticated()) {
@@ -65,6 +72,7 @@ export class AuthService {
             });
         }
     }
+    
     async signInWithGoogle() {
         try {
             const googleUser = await GoogleAuth.signIn();

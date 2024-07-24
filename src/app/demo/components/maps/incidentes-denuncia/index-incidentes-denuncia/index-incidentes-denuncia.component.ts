@@ -364,6 +364,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                                 }
                             }
                         });
+                        console.log(this.incidentesDenuncias);
                     }
                 },
                 (error) => {
