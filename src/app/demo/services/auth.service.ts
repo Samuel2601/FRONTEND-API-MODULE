@@ -10,6 +10,11 @@ import { SocketService } from './socket.io.service';
 
 import { MessageService } from 'primeng/api';
 
+import { Plugins } from '@capacitor/core';
+import { environment } from 'src/environments/environment';
+
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+
 @Injectable({
     providedIn: 'root',
 })
@@ -32,6 +37,14 @@ export class AuthService {
         private socketService: SocketService,
         private messageService: MessageService
     ) {
+        if (helpers.isMobil()) {
+            GoogleAuth.initialize({
+                clientId: environment.googleClientId,
+                scopes: ['profile', 'email'],
+                grantOfflineAccess: true,
+            });
+        }
+
         this.url = GLOBAL.url;
         if (this.isAuthenticated()) {
             this.inicialityPermiss();
@@ -52,6 +65,39 @@ export class AuthService {
             });
         }
     }
+    async signInWithGoogle() {
+        try {
+            const googleUser = await GoogleAuth.signIn();
+            return googleUser;
+        } catch (err) {
+            console.error('Google sign-in failed:', err);
+            return err;
+        }
+    }
+    async sendUserToBackend(googleUser) {
+        try {
+            const response = await this.http
+                .post(`${this.url}/auth/mobile/google`, {
+                    token: googleUser.authentication.idToken,
+                    name: googleUser.givenName,
+                    lastName: googleUser.familyName,
+                    email: googleUser.email,
+                    googleId: googleUser.id,
+                    photo: googleUser.imageUrl,
+                })
+                .toPromise();
+
+            return response;
+        } catch (err) {
+            console.error('Backend authentication failed:', err);
+            throw err;
+        }
+    }
+
+    async signOut() {
+        await GoogleAuth['signOut']();
+    }
+
     init: number = 0;
     public async inicialityPermiss() {
         if (this.init == 0) {
@@ -207,12 +253,12 @@ export class AuthService {
             const aux = this.calcularTiempoRestante(token);
             if (aux <= 0) {
                 this.clearSession();
-               // console.log('regreso a  login');
+                // console.log('regreso a  login');
                 this.redirectToLoginIfNeeded();
                 return null;
             }
         } else {
-           // console.log('regreso a  login');
+            // console.log('regreso a  login');
             this.redirectToLoginIfNeeded();
         }
         return token || null;
@@ -251,7 +297,7 @@ export class AuthService {
         const datatoken = token || this.token();
         if (this.isAuthenticated()) {
             const helper = new JwtHelperService();
-           // console.log(helper.decodeToken(datatoken));
+            // console.log(helper.decodeToken(datatoken));
             return helper.decodeToken(datatoken).sub;
         }
     }
@@ -272,7 +318,7 @@ export class AuthService {
             })
             .pipe(
                 map((response: any) => {
-                   // console.log('LLAMADO API PERMISOS:', response);
+                    // console.log('LLAMADO API PERMISOS:', response);
                     this.permissionsSubject.next(response.data);
                     localStorage.setItem(
                         'permissions',
@@ -314,7 +360,7 @@ export class AuthService {
             .get(`${GLOBAL.url}obtenerRole?id=${id}`, { headers })
             .pipe(
                 map((response: any) => {
-                   // console.log('LLAMADO PARA OBTENER ROL', response);
+                    // console.log('LLAMADO PARA OBTENER ROL', response);
                     this.rolesSubject.next(response.data.permisos);
                     localStorage.setItem(
                         'roles',
@@ -368,7 +414,7 @@ export class AuthService {
         const hasPermissionBOL = permisos.some(
             (e) => e.name === permission && e.method === method
         );
-      //  console.log(permission,method,hasPermissionBOL);
+        //  console.log(permission,method,hasPermissionBOL);
         return of(hasPermissionBOL);
     }
 
@@ -416,16 +462,17 @@ export class AuthService {
         if (pass) localStorage.setItem('pass', pass);
     }
 
-    public redirectToLoginIfNeeded(home:boolean=false) {
+    public redirectToLoginIfNeeded(home: boolean = false) {
         const currentUrl = this.router.url;
 
         // Verifica si la URL actual contiene '/auth/login' independientemente de los parámetros adicionales
         if (
             (!['/home', '/'].includes(currentUrl) &&
-            !currentUrl.startsWith('/auth/login')&&!currentUrl.startsWith('/ver-ficha'))
-            ||home
+                !currentUrl.startsWith('/auth/login') &&
+                !currentUrl.startsWith('/ver-ficha')) ||
+            home
         ) {
-           // console.log('Redirigiendo a login');
+            // console.log('Redirigiendo a login');
             this.router.navigate(['/auth/login']);
             if (this.helpers.llamadasActivas > 0) {
                 this.helpers.cerrarspinner('auth');

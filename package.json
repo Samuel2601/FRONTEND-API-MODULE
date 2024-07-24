@@ -31,6 +31,7 @@
     "@capacitor/filesystem": "^6.0.0",
     "@capacitor/geolocation": "^6.0.0",
     "@capacitor/ios": "^6.0.0",
+    "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
     "@fullcalendar/angular": "^6.1.13",
     "@fullcalendar/core": "^6.1.13",
     "@fullcalendar/daygrid": "^6.1.13",

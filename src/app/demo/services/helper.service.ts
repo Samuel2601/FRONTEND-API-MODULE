@@ -10,6 +10,7 @@ import { StackBarriosComponent } from '../components/dashboard/stack-barrios/sta
 import { StackFichasComponent } from '../components/dashboard/stack-fichas/stack-fichas.component';
 import { StackIncidentesComponent } from '../components/dashboard/stack-incidentes/stack-incidentes.component';
 import { StackbarriofichaComponent } from '../components/dashboard/stackbarrioficha/stackbarrioficha.component';
+import { Capacitor } from '@capacitor/core';
 
 @Injectable({
     providedIn: 'root',
@@ -28,7 +29,10 @@ export class HelperService {
     constructor(private dialogService: DialogService, private router: Router) {}
 
     isMobil(): boolean {
-        return window.innerWidth <= 575;
+        return  Capacitor.isNativePlatform() //window.innerWidth <= 575;
+    }
+    isAndroit(){
+      
     }
 
     deshabilitarMapa() {

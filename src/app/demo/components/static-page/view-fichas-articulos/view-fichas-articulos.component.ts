@@ -21,7 +21,7 @@ export class ViewFichasArticulosComponent implements OnInit {
     currentImage: string = '';
     imageIndex: number = 0;
     liked: boolean = false;
-    displayFoto: boolean = false;
+    displayFoto: boolean = true;
     responsiveOptions = [
         {
             breakpoint: '1199px',

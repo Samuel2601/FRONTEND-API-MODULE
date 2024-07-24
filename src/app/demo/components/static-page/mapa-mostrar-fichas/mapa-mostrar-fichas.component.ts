@@ -87,7 +87,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
                 title: item.direccion_geo.nombre,
                 icon: {
                     url: item.icono_marcador, // URL de la imagen del icono del marcador
-                    scaledSize: new google.maps.Size(80, 80), // Tamaño personalizado del icono
+                    scaledSize: new google.maps.Size(120, 120), // Tamaño personalizado del icono
                 },
             });
         

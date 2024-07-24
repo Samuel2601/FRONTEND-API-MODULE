@@ -320,7 +320,41 @@ export class LoginComponent implements OnInit {
         }
     }
 
-    loginWithGoogle() {
-        this.authService.loginWithGoogle();
+    async loginWithGoogle() {
+        if(this.IsMobil()){
+            try {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Inicio Seccion',
+                    detail: 'Google',
+                });
+                const googleUser = await this.authService.signInWithGoogle();
+                this.messageService.add({
+                    severity: 'success',
+                    summary: `410`,
+                    detail: googleUser,
+                });
+                const response:any = await this.authService.sendUserToBackend(googleUser);
+                if(response.token){
+                    await this.guardarToken(response.token);
+                    this.storeUserData(this.auth.authToken(response.token));
+                    this.rederict();
+                }else{
+                    console.error(response);
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: `(500)`,
+                        detail: response.message || 'Sin conexión',
+                    });
+                }
+                
+                // Maneja el usuario autenticado (por ejemplo, envíalo a tu backend)
+              } catch (err) {
+                console.error('Login failed', err);
+              }
+        }else{
+            this.authService.loginWithGoogle();
+        }
+        
     }
 }
