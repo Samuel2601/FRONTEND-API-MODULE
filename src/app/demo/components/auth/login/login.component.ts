@@ -10,7 +10,8 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { Howl } from 'howler';
 import { NativeBiometric } from 'capacitor-native-biometric';
 import { AuthService } from 'src/app/demo/services/auth.service';
-
+import { Plugins } from '@capacitor/core';
+const { App } = Plugins;
 @Component({
     selector: 'app-login',
     templateUrl: './login.component.html',
@@ -97,18 +98,20 @@ export class LoginComponent implements OnInit {
     private handleQueryParams() {
         this.route.queryParams.subscribe(async params => {
             const token = params['token'];
-            if (token) {
-                await this.guardarToken(token);
-                this.storeUserData(this.auth.authToken(token));
-                this.rederict();
-                console.log("envio home");
-            }
+            await this.verificToken(token);
             if (params['correo'] && params['password']) {
                 this.loginForm.setValue({ correo: params['correo'], pass: params['password'] });
             }
         });
     }
-
+    private async verificToken(token:any){
+        if (token) {
+            await this.guardarToken(token);
+            this.storeUserData(this.auth.authToken(token));
+            this.rederict();
+            console.log("envio home");
+        }        
+    }
     private setHeight(): void {
         this.height = window.innerHeight;
     }
@@ -360,11 +363,6 @@ export class LoginComponent implements OnInit {
     async loginWithGoogle() {
         if(this.IsMobil()){
             try {
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Inicio Seccion',
-                    detail: 'Google',
-                });
                 const googleUser = await this.authService.signInWithGoogle();
                 const response:any = await this.authService.sendUserToBackend(googleUser);
                 if(response.token){
@@ -372,7 +370,7 @@ export class LoginComponent implements OnInit {
                     this.storeUserData(this.auth.authToken(response.token));
                     this.rederict();
                 }else{
-                    console.error(response);
+                    console.warn('Login failed', JSON.stringify(response,null,4));
                     this.messageService.add({
                         severity: 'error',
                         summary: `(500)`,
@@ -382,7 +380,7 @@ export class LoginComponent implements OnInit {
                 
                 // Maneja el usuario autenticado (por ejemplo, envíalo a tu backend)
               } catch (err) {
-                console.error('Login failed', err);
+                console.error('Login failed', JSON.stringify(err,null,4));
                 this.messageService.add({
                     severity: 'error',
                     summary: `(500)`,

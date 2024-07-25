@@ -82,7 +82,7 @@ export class HomeComponent implements OnInit {
                                 'obtener_imagen/ficha_sectorial/' +
                                 element.foto[0],
                             url: '/ver-ficha/' + element._id,
-                            descripcion:element.title_marcador,
+                            descripcion: element.title_marcador,
                             mobil: true,
                         });
                     });
@@ -153,7 +153,7 @@ export class HomeComponent implements OnInit {
                 'post'
             ),
         };
-       
+
         forkJoin(check).subscribe(async (check) => {
             this.check = check;
             try {
@@ -619,9 +619,9 @@ export class HomeComponent implements OnInit {
                 console.error('Error en ngOnInit:', error);
                 this.router.navigate(['/notfound']);
             } finally {
-                
                 this.list.listarFichaSectorialMapa().subscribe((response) => {
                     if (response.data.length > 0) {
+                        this.eventos = response.data;
                         setTimeout(() => {
                             this.visible_fichas_mostrar = true;
                         }, 500);
@@ -631,6 +631,55 @@ export class HomeComponent implements OnInit {
                 this.helperService.cerrarspinner('init index layer');
             }
         });
+    }
+    eventos: any[] = [];
+    addAllEventsToCalendar() {
+        const icsContent = this.generateICS(this.eventos);
+        this.downloadICS(icsContent);
+    }
+    generateICS(events: any[]): string {
+        let icsData =
+            'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Your Company//NONSGML v1.0//EN\n';
+
+        events.forEach((event) => {
+            const startDate = this.formatDate(event.fecha_evento);
+            const endDate = this.formatDate(
+                new Date(
+                    new Date(event.fecha_evento).getTime() + 60 * 60 * 1000
+                )
+            ); // Duración de 1 hora
+
+            const googleMapsLink = `https://www.google.com/maps/dir/?api=1&destination=${event.direccion_geo.latitud},${event.direccion_geo.longitud}`;
+
+            icsData += `BEGIN:VEVENT\n`;
+            icsData += `SUMMARY:${event.title_marcador}\n`;
+            icsData += `DTSTART:${startDate}\n`;
+            icsData += `DTEND:${endDate}\n`;
+            icsData += `DESCRIPTION:${event.descripcion}\\n\\nPara direcciones, visita: ${googleMapsLink}\n`;
+            icsData += `LOCATION:${event.direccion_geo.nombre}\n`;
+            icsData += `END:VEVENT\n`;
+        });
+
+        icsData += 'END:VCALENDAR';
+
+        return icsData;
+    }
+
+    formatDate(dateString: any): string {
+        const date = new Date(dateString);
+        return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'; // Formato YYYYMMDDTHHMMSSZ
+    }
+
+    downloadICS(content: string) {
+        const blob = new Blob([content], {
+            type: 'text/calendar;charset=utf-8',
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'events.ics';
+        a.click();
+        URL.revokeObjectURL(url);
     }
 
     filteredProductos: any[] = [];
@@ -644,7 +693,9 @@ export class HomeComponent implements OnInit {
     }
     filterProductos(): void {
         if (this.isMobil()) {
-            this.filteredProductos = this.productos.filter(element => element.mobil === true);
+            this.filteredProductos = this.productos.filter(
+                (element) => element.mobil === true
+            );
         } else {
             this.filteredProductos = this.productos;
         }

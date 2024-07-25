@@ -63,7 +63,7 @@ export class ViewFichasArticulosComponent implements OnInit {
                 this.fichaId = params['id'];
             }
 
-           // console.log('RECIBIO LA FICHA: ', this.fichaId);
+            // console.log('RECIBIO LA FICHA: ', this.fichaId);
             if (this.fichaId) {
                 this.obtenerFicha();
                 this.listarFichaSectorial();
@@ -219,5 +219,23 @@ export class ViewFichasArticulosComponent implements OnInit {
         } else {
             return null;
         }
+    }
+    addAllEventsToCalendar() {
+        const title = encodeURIComponent(this.ficha.title_marcador);
+            const startDate = this.formatGoogleCalendarDate(this.ficha.fecha_evento);
+            const endDate = this.formatGoogleCalendarDate(new Date(new Date(this.ficha.fecha_evento).getTime() + 60 * 60 * 1000)); // Duración de 1 hora
+            const details = encodeURIComponent(this.ficha.descripcion);
+            const latitude = this.ficha.direccion_geo.latitud;
+                const longitude = this.ficha.direccion_geo.longitud;
+                const location = `${latitude},${longitude}`;
+                
+            
+            const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${details}&location=${location}`;
+            window.open(url, '_blank');
+    }
+    formatGoogleCalendarDate(dateString:any): string {
+        const date = new Date(dateString);
+        // Formato requerido: YYYYMMDDTHHMMSSZ
+        return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
     }
 }

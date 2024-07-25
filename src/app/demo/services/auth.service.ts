@@ -10,8 +10,9 @@ import { SocketService } from './socket.io.service';
 
 import { MessageService } from 'primeng/api';
 
-import { Plugins } from '@capacitor/core';
 import { environment } from 'src/environments/environment';
+
+//import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 
@@ -37,19 +38,9 @@ export class AuthService {
         private socketService: SocketService,
         private messageService: MessageService
     ) {
-        GoogleAuth.initialize({
-            clientId: environment.clientId,
-            scopes: ['profile', 'email'],
-            grantOfflineAccess: true,
-        });
-        /*
-        if (helpers.isMobil()) {
-            GoogleAuth.initialize({
-                clientId: environment.clientId,
-                scopes: ['profile', 'email'],
-                grantOfflineAccess: true,
-            });
-        }*/
+        this.initializeGoogleOneTap();
+        
+        
 
         this.url = GLOBAL.url;
         if (this.isAuthenticated()) {
@@ -71,17 +62,35 @@ export class AuthService {
             });
         }
     }
-    
+
+    private async initializeGoogleOneTap() {
+        try {
+            if (this.helpers.isMobil()) {
+                GoogleAuth.initialize({
+                    clientId: environment.clientId,
+                    scopes: ['profile', 'email'],
+                    grantOfflineAccess: true,
+                });
+            }
+        } catch (error) {
+            console.error('Google One Tap initialization failed:', error);
+        }
+    }
+
     async signInWithGoogle() {
         try {
             const googleUser = await GoogleAuth.signIn();
             return googleUser;
         } catch (err) {
             console.error('Google sign-in failed:', err);
-            return err;
+            return null;
         }
     }
-    async sendUserToBackend(googleUser) {
+
+    async signOut() {
+        await GoogleAuth.signOut();
+    }
+    async sendUserToBackend(googleUser:{authentication:any,givenName:string,familyName:string,email:string,id:string,imageUrl:string}) {
         try {
             const response = await this.http
                 .post(`${this.url}/auth/mobile/google`, {
@@ -99,10 +108,6 @@ export class AuthService {
             console.error('Backend authentication failed:', err);
             throw err;
         }
-    }
-
-    async signOut() {
-        await GoogleAuth['signOut']();
     }
 
     init: number = 0;

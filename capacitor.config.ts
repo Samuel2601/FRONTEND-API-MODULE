@@ -4,13 +4,18 @@ const config: CapacitorConfig = {
     appId: 'ec.gob.esmeraldas.labella',
     appName: 'Esmeraldas la Bella',
     webDir: 'dist/esmeraldas-labella',
+    bundledWebRuntime: false,
     plugins: {
         GoogleAuth: {
             scopes: ['profile', 'email'],
-            serverClientId:
-                '700625404417-apcets2tvdf368bquike6ip6hcckgthb.apps.googleusercontent.com',
+            serverClientId:'489368244321-bslt4irqup8hlc0c59tp3h52v05fbh89.apps.googleusercontent.com',
             forceCodeForRefreshToken: true,
         },
+        CapacitorNativeGoogleOneTapSignin: {
+            androidClientId: "489368244321-bslt4irqup8hlc0c59tp3h52v05fbh89.apps.googleusercontent.com",
+            iosClientId: "489368244321-bslt4irqup8hlc0c59tp3h52v05fbh89.apps.googleusercontent.com",
+            webClientId: "489368244321-bslt4irqup8hlc0c59tp3h52v05fbh89.apps.googleusercontent.com"
+          }
     },
 };
 
