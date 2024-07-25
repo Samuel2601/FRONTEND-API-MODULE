@@ -29,7 +29,7 @@ export class HelperService {
     constructor(private dialogService: DialogService, private router: Router) {}
 
     isMobil(): boolean {
-        return  Capacitor.isNativePlatform() //window.innerWidth <= 575;
+        return  Capacitor.isNativePlatform() //window.innerWidth <= 575; 
     }
     isAndroit(){
       

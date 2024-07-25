@@ -125,6 +125,19 @@ export class LoginComponent implements OnInit {
         this.callBiometrico();
     }
 
+    statusbiometrico(): boolean {
+        const correoCookieuser = this.helper.isMobil()
+            ? localStorage.getItem('correo')
+            : this.cookieService.get('correo');
+        const correoCookiepass = this.helper.isMobil()
+            ? localStorage.getItem('pass')
+            : this.cookieService.get('pass');
+        if (correoCookieuser && correoCookiepass) {
+            return true;
+        }
+        return false;
+    }
+
     async callBiometrico(): Promise<void> {
         const correoCookieuser = this.getCookieOrLocalStorage('correo');
         const correoCookiepass = this.getCookieOrLocalStorage('pass');
@@ -134,7 +147,7 @@ export class LoginComponent implements OnInit {
                 const correoDesencriptado = this.helper.decryptDataLogin(correoCookieuser);
                 this.loginForm.get('correo').setValue(correoDesencriptado);
 
-                if (this.helper.isMobil() && correoCookiepass) {
+                if (this.IsMobil() && correoCookiepass) {
                     const result = await NativeBiometric.isAvailable();
                     if (result.isAvailable) {
                         const verified = await NativeBiometric.verifyIdentity({
@@ -158,7 +171,7 @@ export class LoginComponent implements OnInit {
     }
 
     private getCookieOrLocalStorage(key: string): string {
-        return this.helper.isMobil() ? localStorage.getItem(key) : this.cookieService.get(key);
+        return this.IsMobil() ? localStorage.getItem(key) : this.cookieService.get(key);
     }
 
     get formControls() {
@@ -176,11 +189,12 @@ export class LoginComponent implements OnInit {
 
             try {
                 const response = await this.authService.login(user).toPromise();
+                console.log(response);
                 if (response.data) {
                     
                     await this.guardarToken(response.data.token);
                     this.storeUserData(this.auth.authToken(response.data.token));
-                    this.navigateAfterLogin(response.data.passwordChange);
+                    //await this.navigateAfterLogin(response.data.passwordChange?true:false);
                     this.rederict();
 
                 } else if (response.message) {
@@ -215,52 +229,72 @@ export class LoginComponent implements OnInit {
 
     private storeEncryptedData(key: string, value: string): void {
         const encryptedValue = this.helper.encryptDataLogin(value, 'labella');
-        if (this.helper.isMobil()) {
+        if (this.IsMobil()) {
             localStorage.setItem(key, encryptedValue);
         } else {
             this.cookieService.set(key, encryptedValue);
         }
     }
 
-    private async navigateAfterLogin(hasPassword: boolean): Promise<void> {
+    async navigateAfterLogin(hasPassword: boolean): Promise<void> {
         this.messageService.add({
             severity: 'success',
             summary: 'Ingreso',
             detail: 'Bienvenido',
         });
-
+    
         const pass = this.loginForm.get('pass').value;
-        const storedPass = this.helper.decryptDataLogin(this.getCookieOrLocalStorage('pass'));
-        
-        if (this.helper.isMobil() && pass !== storedPass) {
-            const result = await NativeBiometric.isAvailable();
-            if (result.isAvailable) {
-                const verified = await NativeBiometric.verifyIdentity({
-                    reason: 'Para un fácil inicio de sesión',
-                    title: 'Inicio de Sesión',
-                    subtitle: 'Coloque su dedo en el sensor.',
-                    description: 'Se requiere Touch ID o Face ID',
-                }).catch(() => false);
-
-                if (verified) {
-                    localStorage.setItem('pass', this.helper.encryptDataLogin(pass, 'buzon'));
+        const storedPass = this.helper.decryptDataLogin(this.getCookieOrLocalStorage('pass')) || undefined;
+    
+        console.log('IsMobil:', this.IsMobil());
+        console.log('storedPass:', storedPass);
+        console.log('pass:', pass);
+    
+        if (this.IsMobil() && (storedPass == undefined || pass !== storedPass)) {
+            try {
+                const result = await NativeBiometric.isAvailable();
+                console.log('NativeBiometric.isAvailable result:', result);
+    
+                if (result.isAvailable) {
+                    const verified = await NativeBiometric.verifyIdentity({
+                        reason: 'Para un fácil inicio de sesión',
+                        title: 'Inicio de Sesión',
+                        subtitle: 'Coloque su dedo en el sensor.',
+                        description: 'Se requiere Touch ID o Face ID',
+                    }).then(() => true)
+                      .catch((error) => {
+                          console.error('Biometric verification error:', error);
+                          return false;
+                      });
+    
+                    console.log('Biometric verified:', verified);
+    
+                    if (verified) {
+                        localStorage.setItem('pass', this.helper.encryptDataLogin(pass, 'labella'));
+                    } else {
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Falló',
+                            detail: 'Sin biometría',
+                        });
+                    }
                 } else {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Falló',
-                        detail: 'Sin biometría',
-                    });
+                    console.log('Biometric not available');
                 }
+            } catch (error) {
+                console.error('Error checking biometric availability:', error);
             }
-        }  
-        this.rederict(hasPassword);     
+        }
+    
+        this.rederict(hasPassword);
     }
-    private rederict(hasPassword?:boolean){
-        this.auth.inicialityPermiss();
+    
+    private async rederict(hasPassword?:boolean){
+        await this.auth.inicialityPermiss();
 
         setTimeout(() => {
             this.router.navigate([hasPassword ? '/maps/edit-user' : '/home']);
-        }, 3000);
+        }, 1000);
     }
 
     private handleLoginError(error: any): void {
