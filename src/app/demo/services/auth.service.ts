@@ -37,7 +37,6 @@ export class AuthService {
         private socketService: SocketService,
         private messageService: MessageService
     ) {
-        console.log( environment.clientId);
         GoogleAuth.initialize({
             clientId: environment.clientId,
             scopes: ['profile', 'email'],

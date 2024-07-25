@@ -237,11 +237,7 @@ export class LoginComponent implements OnInit {
     }
 
     async navigateAfterLogin(hasPassword: boolean): Promise<void> {
-        this.messageService.add({
-            severity: 'success',
-            summary: 'Ingreso',
-            detail: 'Bienvenido',
-        });
+       
     
         const pass = this.loginForm.get('pass').value;
         const storedPass = this.helper.decryptDataLogin(this.getCookieOrLocalStorage('pass')) || undefined;
@@ -290,6 +286,11 @@ export class LoginComponent implements OnInit {
     }
     
     private async rederict(hasPassword?:boolean){
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Ingreso',
+            detail: 'Bienvenido',
+        });
         await this.auth.inicialityPermiss();
 
         setTimeout(() => {
