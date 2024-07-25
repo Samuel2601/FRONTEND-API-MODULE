@@ -86,7 +86,7 @@ export class ListFichaComponent implements OnInit {
                         direccionesNombres.includes(
                             this.isJSONString(elemento.direccion_geo)
                                 ? this.parseJSON(elemento.direccion_geo).nombre
-                                : elemento.direccion_geo
+                                : elemento.direccion_geo.nombre? elemento.direccion_geo.nombre:elemento.direccion_geo
                         )) &&
                     (view == null || elemento.view == view)
                 );
@@ -143,7 +143,7 @@ export class ListFichaComponent implements OnInit {
                 // Direcciones
                 const direccion = this.isJSONString(elemento.direccion_geo)
                     ? this.parseJSON(elemento.direccion_geo).nombre
-                    : elemento.direccion_geo;
+                    : elemento.direccion_geo.nombre? elemento.direccion_geo.nombre:elemento.direccion_geo;
                 acc.direcciones[direccion] =
                     (acc.direcciones[direccion] || 0) + 1;
 
@@ -260,7 +260,7 @@ export class ListFichaComponent implements OnInit {
             this.constFicha.map((elemento) =>
                 this.isJSONString(elemento.direccion_geo)
                     ? this.parseJSON(elemento.direccion_geo).nombre
-                    : elemento.direccion_geo
+                    : elemento.direccion_geo.nombre? elemento.direccion_geo.nombre:elemento.direccion_geo
             )
         );
         this.direcciones = Array.from(valoresUnicos).map((nombre) => ({

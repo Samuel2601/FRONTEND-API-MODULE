@@ -104,7 +104,7 @@
                         </ng-template>
                         <ng-template let-encargado pTemplate="item">
                             <div class="flex align-items-center gap-2">
-                                <div>{{ encargado.nombres }}</div>
+                                <div>{{ encargado.name }}</div>
                             </div>
                         </ng-template>
                         <ng-template let-encargado pTemplate="footer">
@@ -292,7 +292,8 @@
         [globalFilterFields]="[
             'direccion_geo',
             'actividad.nombre',
-            'encargado.nombres',
+            'encargado.name',
+            'encargado.last_name',
             'fecha_evento',
             'estado.nombre'
         ]"
@@ -367,14 +368,14 @@
                         Encargado
                         <p-columnFilter
                             type="text"
-                            field="encargado.nombres"
+                            field="encargado.last_name"
                             display="Encargado"
                         ></p-columnFilter>
                         <th
-                            pSortableColumn="encargado.nombres"
+                            pSortableColumn="encargado.last_name"
                             style="width: 20%"
                         >
-                            <p-sortIcon field="encargado.nombres"></p-sortIcon>
+                            <p-sortIcon field="encargado.last_name"></p-sortIcon>
                         </th>
                     </div>
                 </th>
@@ -414,15 +415,18 @@
                     <ng-container *ngIf="isJSONString(ficha.direccion_geo)">{{
                         parseJSON(ficha.direccion_geo).nombre
                     }}</ng-container>
-                    <ng-container *ngIf="!isJSONString(ficha.direccion_geo)">{{
+                    <ng-container *ngIf="!isJSONString(ficha.direccion_geo)&&!ficha.direccion_geo.nombre">{{
                         ficha.direccion_geo
+                    }}</ng-container>
+                    <ng-container *ngIf="ficha.direccion_geo.nombre">{{
+                        ficha.direccion_geo.nombre
                     }}</ng-container>
                 </td>
                 <td>
                     {{ ficha.actividad.nombre }}
                 </td>
                 <td>
-                    {{ ficha.encargado.nombres }}
+                    {{ ficha.encargado.name }} {{ ficha.encargado.last_name }}
                 </td>
                 <td>
                     {{ ficha.fecha_evento | date : "medium" : "es" }}
@@ -572,7 +576,7 @@
         </p>
         <p>
             <strong>Encargado:</strong>
-            {{ optionview.encargado.nombres }}
+            {{ optionview.encargado.name }} {{ optionview.encargado.last_name }}
         </p>
         <p>
             <strong>Estado:</strong>
