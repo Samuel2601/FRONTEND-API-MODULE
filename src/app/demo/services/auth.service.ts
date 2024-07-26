@@ -39,9 +39,6 @@ export class AuthService {
         private messageService: MessageService
     ) {
         this.initializeGoogleOneTap();
-        
-        
-
         this.url = GLOBAL.url;
         if (this.isAuthenticated()) {
             this.inicialityPermiss();
@@ -67,7 +64,7 @@ export class AuthService {
         try {
             if (this.helpers.isMobil()) {
                 GoogleAuth.initialize({
-                    clientId: environment.clientId,
+                    clientId: '489368244321-6teu4bgvf9rvqbosn01df840nf83ffmc.apps.googleusercontent.com',
                     scopes: ['profile', 'email'],
                     grantOfflineAccess: true,
                 });
