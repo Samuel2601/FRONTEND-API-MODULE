@@ -1,0 +1,35 @@
+<!-- agregar-ubicacion-recolectores.component.html -->
+
+<div class="map-container">
+    <!-- Mapa de Google -->
+    <div
+        class="card"
+        id="map2"
+        style="
+            min-height: 70vh;
+            margin-left: -18px;
+            margin-right: -18px;
+            margin-bottom: 0 !important;
+        "
+    ></div>
+    <!-- Botón para agregar ubicación manualmente -->
+    <button (click)="addManualLocation()">Agregar Ubicación Manual</button>
+</div>
+
+<p-table [value]="table" [tableStyle]="{ 'min-width': '50rem' }">
+    <ng-template pTemplate="header">
+        <tr>
+            <th>Latitud</th>
+            <th>Longitud</th>
+            <th>Fecha</th>
+        </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-location let-i="rowIndex">
+        <tr>
+            <td>{{i+1}}</td>
+            <td>{{ location.lat }}</td>
+            <td>{{ location.lng }}</td>
+            <td>{{ location.timestamp | date : "short" }}</td>
+        </tr>
+    </ng-template>
+</p-table>

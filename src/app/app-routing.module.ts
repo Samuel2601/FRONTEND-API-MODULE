@@ -14,7 +14,7 @@ import { MapaTrashComponent } from './demo/components/static-page/mapa-trash/map
         RouterModule.forRoot([
             {
                 path: '', component: AppLayoutComponent,
-                children: [
+                children: [        
                     { 
                         path: 'dashboard', 
                         loadChildren: () => import('./demo/components/dashboard/dashboard.module').then(m => m.DashboardModule), 
@@ -33,6 +33,10 @@ import { MapaTrashComponent } from './demo/components/static-page/mapa-trash/map
                     { path: '', component: HomeComponent },
                     {path:'mapa-recolectores', component:MapaTrashComponent}
                 ]
+            },
+            { 
+                path: 'recolectores', 
+                loadChildren: () => import('./recolectores-municipales/recolectores-municipales.module').then(m => m.RecolectoresMunicipalesModule),
             },
             { 
                 path: 'auth', 

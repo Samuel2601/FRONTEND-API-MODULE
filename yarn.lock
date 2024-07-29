@@ -1313,6 +1313,11 @@
     "@babel/helper-validator-identifier" "^7.24.6"
     to-fast-properties "^2.0.0"
 
+"@capacitor-community/background-geolocation@^1.2.18":
+  version "1.2.18"
+  resolved "https://registry.yarnpkg.com/@capacitor-community/background-geolocation/-/background-geolocation-1.2.18.tgz#c01a2b049bd414c1d453cacb3d1ecd80daa44712"
+  integrity sha512-biJ4JZHIa68Xs3eX45k5fMPbMPzt+bmie8GQZlgKL+mARJD2siD+l0WN91AKkcj2Chq4TzQ2d5Lc8dUpu21E3A==
+
 "@capacitor/android@^6.1.1":
   version "6.1.1"
   resolved "https://registry.npmjs.org/@capacitor/android/-/android-6.1.1.tgz#a0843ddea92cc9739739a82a8fcd2ed6b1eaab8a"
@@ -1392,6 +1397,11 @@
   version "6.1.1"
   resolved "https://registry.npmjs.org/@capacitor/ios/-/ios-6.1.1.tgz#4f82544957ecc2b945ec456a22f4cca3b2a06f30"
   integrity sha512-he6+Fhj6x1dSnOzM98xaPvioOU8MNO+qpodCJwnHE3mIRonTpFutXJK8DP8fnNhjDPk2km9VafLSfOeiZXNv3Q==
+
+"@capacitor/storage@^1.2.5":
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/@capacitor/storage/-/storage-1.2.5.tgz#48206869cbbf1404fcdbb5c440a882140bd3abd8"
+  integrity sha512-pWhnw4U7wN/zFV4lA4BLMypSufTktCbk548Yk4whSb0KAq3R0mLfSubRIHkGdcPqQWCsM6g/zUuszurhz6ncWQ==
 
 "@codetrix-studio/capacitor-google-auth@^3.4.0-rc.4":
   version "3.4.0-rc.4"

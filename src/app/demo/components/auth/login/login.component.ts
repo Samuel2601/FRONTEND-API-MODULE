@@ -297,7 +297,7 @@ export class LoginComponent implements OnInit {
         await this.auth.inicialityPermiss();
 
         setTimeout(() => {
-            this.router.navigate([hasPassword ? '/maps/edit-user' : '/home']);
+            this.router.navigate([hasPassword ? '/maps/edit-user' : '/recolectores/map']);
         }, 1000);
     }
 
