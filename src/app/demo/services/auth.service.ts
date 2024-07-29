@@ -11,9 +11,6 @@ import { SocketService } from './socket.io.service';
 import { MessageService } from 'primeng/api';
 
 import { environment } from 'src/environments/environment';
-
-//import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
-
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 
 @Injectable({
@@ -60,11 +57,11 @@ export class AuthService {
         }
     }
 
-    private async initializeGoogleOneTap() {
+    async initializeGoogleOneTap() {
         try {
             if (this.helpers.isMobil()) {
                 GoogleAuth.initialize({
-                    clientId: '489368244321-6teu4bgvf9rvqbosn01df840nf83ffmc.apps.googleusercontent.com',
+                    clientId: environment.clientId,
                     scopes: ['profile', 'email'],
                     grantOfflineAccess: true,
                 });

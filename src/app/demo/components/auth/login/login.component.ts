@@ -363,6 +363,7 @@ export class LoginComponent implements OnInit {
     async loginWithGoogle() {
         if(this.IsMobil()){
             try {
+                await this.authService.initializeGoogleOneTap();
                 const googleUser = await this.authService.signInWithGoogle();
                 const response:any = await this.authService.sendUserToBackend(googleUser);
                 if(response.token){

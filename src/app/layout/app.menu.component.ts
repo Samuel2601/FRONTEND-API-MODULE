@@ -25,6 +25,7 @@ export class AppMenuComponent implements OnInit {
 
     async loadPermissions() {
         const permissionsObservables = {
+            
             canViewMapa: (await this.auth.hasPermissionComponent('/incidentes_denuncia', 'get')).pipe(catchError(() => of(false))),
             canViewCategoria: (await this.auth.hasPermissionComponent('/categoria', 'get')).pipe(catchError(() => of(false))),
             canViewCategoriaCrear: (await this.auth.hasPermissionComponent('/categoria', 'post')).pipe(catchError(() => of(false))),
@@ -42,7 +43,19 @@ export class AppMenuComponent implements OnInit {
                 this.permissions = permissions;
                 console.log(permissions);
 
-                this.model = [
+                this.model = [                    
+                    {
+                        label: 'Recolectores',
+                        visible: true,
+                        items: [
+                            {
+                                label: 'Recolectores',
+                                icon: 'pi pi-fw pi-map',
+                                routerLink: ['/recolectores/map'],
+                                visible: true,
+                            },
+                        ],
+                    },
                     {
                         label: 'Inicio',
                         visible: true,

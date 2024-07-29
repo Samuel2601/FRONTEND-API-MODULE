@@ -4,6 +4,27 @@
     <string name="title_activity_main">Esmeraldas la Bella</string>
     <string name="package_name">ec.gob.esmeraldas.labella</string>
     <string name="custom_url_scheme">ec.gob.esmeraldas.labella</string>
-    <string name="server_client_id">489368244321-6teu4bgvf9rvqbosn01df840nf83ffmc.apps.googleusercontent.com</string>
-    <string name="default_web_client_id">489368244321-6teu4bgvf9rvqbosn01df840nf83ffmc.apps.googleusercontent.com</string>
+    <string name="server_client_id">489368244321-bslt4irqup8hlc0c59tp3h52v05fbh89.apps.googleusercontent.com</string>
+    <string name="default_web_client_id">489368244321-bslt4irqup8hlc0c59tp3h52v05fbh89.apps.googleusercontent.com</string>
+    <!--
+        The channel name for the background notification. This will be visible
+        when the user presses & holds the notification. It defaults to
+        "Background Tracking".
+    -->
+    <string name="capacitor_background_geolocation_notification_channel_name">
+        Background Tracking
+    </string>
+
+    <!--
+        The icon to use for the background notification. Note the absence of a
+        leading "@". It defaults to "mipmap/ic_launcher", the app's launch icon.
+
+        If a raster image is used to generate the icon (as opposed to a vector
+        image), it must have a transparent background. To make sure your image
+        is compatible, select "Notification Icons" as the Icon Type when
+        creating the image asset in Android Studio.
+    -->
+    <string name="capacitor_background_geolocation_notification_icon">
+        drawable/ic_tracking
+    </string>
 </resources>

@@ -16,6 +16,10 @@ import { MapaTrashComponent } from './demo/components/static-page/mapa-trash/map
                 path: '', component: AppLayoutComponent,
                 children: [
                     { 
+                        path: 'recolectores', 
+                        loadChildren: () => import('./recolectores-municipales/recolectores-municipales.module').then(m => m.RecolectoresMunicipalesModule),
+                    },
+                    { 
                         path: 'dashboard', 
                         loadChildren: () => import('./demo/components/dashboard/dashboard.module').then(m => m.DashboardModule), 
                         canActivate: [AuthGuard,PermissionGuard],
@@ -34,6 +38,7 @@ import { MapaTrashComponent } from './demo/components/static-page/mapa-trash/map
                     {path:'mapa-recolectores', component:MapaTrashComponent}
                 ]
             },
+            
             { 
                 path: 'auth', 
                 loadChildren: () => import('./demo/components/auth/auth.module').then(m => m.AuthModule) 
