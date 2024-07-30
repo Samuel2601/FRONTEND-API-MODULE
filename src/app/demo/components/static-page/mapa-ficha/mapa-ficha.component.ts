@@ -1258,7 +1258,7 @@ export class MapaFichaComponent implements OnInit, OnDestroy{
         ////console.log(this.nuevoIncidenteDenuncia.value);
         this.fichaSectorialForm
             .get('encargado')
-            ?.setValue(this.adminservice.identity(this.token));
+            ?.setValue(this.auth.idUserToken(this.token));
         if (this.fichaSectorialForm.valid) {
             this.createService
                 .registrarActividadProyecto(

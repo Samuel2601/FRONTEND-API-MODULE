@@ -62,10 +62,10 @@ export class EditUsuarioComponent implements OnInit {
 
         // Si no se ha definido un ID, obtenerlo del servicio adminservice
         if (!this.id) {
-            this.id = this.adminservice.identity(this.token);
+            this.id = this.auth.idUserToken(this.token);
             this.editing = true;
         } else {
-            this.editing = this.id == this.adminservice.identity(this.token);
+            this.editing = this.id == this.auth.idUserToken(this.token);
         }
 
         // Obtener la lista de roles disponibles

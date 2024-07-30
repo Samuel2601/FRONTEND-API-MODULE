@@ -408,7 +408,7 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
         //console.log(this.nuevoIncidenteDenuncia.value);
         this.nuevoIncidenteDenuncia
             .get('ciudadano')
-            ?.setValue(this.adminservice.identity(this.token));
+            ?.setValue(this.auth.idUserToken(this.token));
 
         if (this.nuevoIncidenteDenuncia.valid) {
             this.nuevoIncidenteDenuncia.enable();

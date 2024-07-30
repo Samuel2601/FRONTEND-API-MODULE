@@ -32,7 +32,7 @@ export class EditIncidentesDenunciaComponent implements OnInit {
 
     categorias: any = [];
     subcategorias: any = [];
-    id_user: any = this.admin.identity(this.token);
+    id_user: any = this.auth.idUserToken(this.token);
     imagenesSeleccionadas: any = [];
     imagenModal: any = [];
     url = GLOBAL.url;

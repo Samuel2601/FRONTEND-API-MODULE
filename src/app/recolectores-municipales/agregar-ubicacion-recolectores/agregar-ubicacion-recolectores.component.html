@@ -12,8 +12,17 @@
             margin-bottom: 0 !important;
         "
     ></div>
-    <!-- Botón para agregar ubicación manualmente -->
-    <button (click)="addManualLocation()">Agregar Ubicación Manual</button>
+    <!-- velocidad.component.html -->
+    <div class="velocidad-container">
+        <h3>Velocidad Actual</h3>
+        <p class="velocidad-value">{{ velocidad | number : "1.0-2" }} km/h</p>
+        <!-- Botón para agregar ubicación manualmente -->
+        <p-button
+            icon="pi pi-plus"
+            label="Agregar Ubicación Manual"
+            (onClick)="addManualLocation()"
+        ></p-button>
+    </div>
 </div>
 
 <p-table [value]="table" [tableStyle]="{ 'min-width': '50rem' }">
@@ -26,7 +35,7 @@
     </ng-template>
     <ng-template pTemplate="body" let-location let-i="rowIndex">
         <tr>
-            <td>{{i+1}}</td>
+            <td>{{ i + 1 }}</td>
             <td>{{ location.lat }}</td>
             <td>{{ location.lng }}</td>
             <td>{{ location.timestamp | date : "short" }}</td>

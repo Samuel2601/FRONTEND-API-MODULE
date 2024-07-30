@@ -96,7 +96,7 @@ export class EditFichaSectorialComponent implements OnInit {
             await this.obtenerficha();
           }
   
-          const ident = this.adminservice.identity(this.token);
+          const ident = this.auth.idUserToken(this.token);
           if (ident) {
             this.fichaSectorialForm.get('encargado')?.setValue(ident);
           } else {
@@ -153,7 +153,7 @@ export class EditFichaSectorialComponent implements OnInit {
               }
             }
           });
-          if (this.adminservice.roluser(this.token)?.nombre === 'Administrador') {
+          if (this.auth.roleUserToken(this.token)?.nombre === 'Administrador') {
             this.habilitarCampo('direccion_geo');
           }
         }

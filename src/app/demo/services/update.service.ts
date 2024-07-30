@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { catchError, Observable, of, throwError } from 'rxjs';
 import { GLOBAL } from './GLOBAL';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { JwtHelperService } from '@auth0/angular-jwt';
 import imageCompression from 'browser-image-compression';
 @Injectable({
     providedIn: 'root',

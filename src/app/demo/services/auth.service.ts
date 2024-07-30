@@ -27,6 +27,7 @@ export class AuthService {
         this.permissionsSubject.asObservable();
     public roles$: Observable<any[]> = this.rolesSubject.asObservable();
     private url: string;
+    private secret = 'labella';
 
     constructor(
         private http: HttpClient,
@@ -84,7 +85,14 @@ export class AuthService {
     async signOut() {
         await GoogleAuth.signOut();
     }
-    async sendUserToBackend(googleUser:{authentication:any,givenName:string,familyName:string,email:string,id:string,imageUrl:string}) {
+    async sendUserToBackend(googleUser: {
+        authentication: any;
+        givenName: string;
+        familyName: string;
+        email: string;
+        id: string;
+        imageUrl: string;
+    }) {
         try {
             const response = await this.http
                 .post(`${this.url}/auth/mobile/google`, {
@@ -271,40 +279,60 @@ export class AuthService {
     }
 
     calcularTiempoRestante(token: string): number {
-        const helper = new JwtHelperService();
-        const decodedToken = helper.decodeToken(token);
-        const expiracion = decodedToken.exp * 1000;
-        const ahora = Date.now();
-        const diferencia = expiracion - ahora;
-        if (expiracion <= ahora) {
-            this.clearSession();
+        try {
+            const helper = new JwtHelperService();
+            const decodedToken = helper.decodeToken(token);
+            const expiracion = decodedToken.exp * 1000;
+            const ahora = Date.now();
+            const diferencia = expiracion - ahora;
+            if (expiracion <= ahora) {
+                this.clearSession();
+                return 0;
+            }
+            return diferencia;
+        } catch (error) {
+            console.error(error);
             return 0;
         }
-        return diferencia;
     }
 
     authToken(token?: string) {
-        const datatoken = token || this.token();
-        if (this.isAuthenticated()) {
-            const helper = new JwtHelperService();
-            return helper.decodeToken(datatoken);
+        try {
+            const datatoken = token || this.token();
+            if (this.isAuthenticated()) {
+                const helper = new JwtHelperService();
+                return helper.decodeToken(datatoken);
+            }
+        } catch (error) {
+            console.error(error);
+            return '';
         }
     }
 
     roleUserToken(token?: string) {
-        const datatoken = token || this.token();
-        if (this.isAuthenticated()) {
-            const helper = new JwtHelperService();
-            return helper.decodeToken(datatoken).role;
+        try {
+            const datatoken = token || this.token();
+            if (this.isAuthenticated()) {
+                const helper = new JwtHelperService();
+                return helper.decodeToken(datatoken).role;
+            }
+        } catch (error) {
+            console.error(error);
+            return '';
         }
     }
 
     idUserToken(token?: string) {
-        const datatoken = token || this.token();
-        if (this.isAuthenticated()) {
-            const helper = new JwtHelperService();
-            // console.log(helper.decodeToken(datatoken));
-            return helper.decodeToken(datatoken).sub;
+        try {
+            const datatoken = token || this.token();
+            if (this.isAuthenticated()) {
+                const helper = new JwtHelperService();
+                // console.log(helper.decodeToken(datatoken));
+                return helper.decodeToken(datatoken).sub;
+            }
+        } catch (error) {
+            console.error(error);
+            return '';
         }
     }
 
@@ -438,6 +466,7 @@ export class AuthService {
                 return false;
             }
         } catch (error) {
+            console.error(error);
             this.clearSession();
             return false;
         }

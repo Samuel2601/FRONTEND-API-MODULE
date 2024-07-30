@@ -2,12 +2,11 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { GLOBAL } from './GLOBAL';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { JwtHelperService } from '@auth0/angular-jwt';
 @Injectable({
     providedIn: 'root',
 })
 export class AdminService {
-    public url;
+    public url:string;
 
     constructor(private _http: HttpClient) {
         this.url = GLOBAL.url;
@@ -71,17 +70,6 @@ export class AdminService {
         return this._http.get(this.url + 'verificar_token', {
             headers: headers,
         });
-    }
-    identity(token: string) {
-        const helper = new JwtHelperService();
-        var decodedToken = helper.decodeToken(token);
-        return decodedToken.sub;
-    }
-    
-    roluser(token: any) {
-        const helper = new JwtHelperService();
-        var decodedToken = helper.decodeToken(token);
-        return decodedToken.rol_user;
     }
     
     getCiudadano(id: string): Observable<any> {
