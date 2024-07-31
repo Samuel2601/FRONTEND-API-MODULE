@@ -8,7 +8,6 @@ import {
 } from '@capacitor-community/background-geolocation';
 import { registerPlugin } from '@capacitor/core';
 import { BehaviorSubject } from 'rxjs';
-import { Geolocation } from '@capacitor/geolocation';
 
 const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>(
     'BackgroundGeolocation'

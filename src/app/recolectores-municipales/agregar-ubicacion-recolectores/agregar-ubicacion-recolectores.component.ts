@@ -10,9 +10,9 @@ import { HelperService } from 'src/app/demo/services/helper.service';
     templateUrl: './agregar-ubicacion-recolectores.component.html',
     styleUrls: ['./agregar-ubicacion-recolectores.component.scss'],
 })
+
 export class AgregarUbicacionRecolectoresComponent implements OnInit {
     mapCustom: google.maps.Map;
-    private currentLocationMarker: google.maps.Marker;
     public locationSubscription: Subscription;
 
     constructor(
@@ -35,16 +35,16 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         setInterval(() => {
             this.addManualLocation(false);
         }, 5000);
+    }
 
-        /*this.datos.forEach((element, index) => {
+    /*this.datos.forEach((element, index) => {
             this.addMarker(
                 { lat: element.lat, lng: element.lng },
                 '',
                 'Posición: ' + element.timestamp
             );
         });*/
-        //this.updateMap(this.datos);
-    }
+    //this.updateMap(this.datos);
 
     ngOnDestroy(): void {
         if (this.locationSubscription) {
@@ -146,8 +146,8 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             );
 
             // Llama a la función para obtener la ubicación (si es necesaria)
-           // await this.marquerLocation();
-           //await this.addManualLocation();
+            // await this.marquerLocation();
+            //await this.addManualLocation();
         });
     }
 
@@ -351,18 +351,18 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         }
     }
 
-    async addManualLocation(status_destacado:boolean) {
+    async addManualLocation(status_destacado: boolean) {
         const currentLocation = await Geolocation.getCurrentPosition();
         const aux = {
             lat: currentLocation.coords.latitude,
             lng: currentLocation.coords.longitude,
             timestamp: new Date().toISOString(),
-            speed:0,
-            destacado:status_destacado
-        }
-        const valid=this.ubicacionService.isValidLocation(aux);
-        if(valid){
-            if(status_destacado){
+            speed: 0,
+            destacado: status_destacado,
+        };
+        const valid = this.ubicacionService.isValidLocation(aux);
+        if (valid) {
+            if (status_destacado) {
                 const destacado = new google.maps.Marker({
                     position: { lat: aux.lat, lng: aux.lng },
                     map: this.mapCustom,
@@ -372,16 +372,18 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 const finalInfoWindow = new google.maps.InfoWindow({
                     content: `<div><strong>Marcador destacado</strong><br>Lat: ${
                         aux.lat
-                    }, Lng: ${aux.lng}<br>Time: ${new Date().toISOString()}</div>`,
+                    }, Lng: ${
+                        aux.lng
+                    }<br>Time: ${new Date().toISOString()}</div>`,
                 });
                 // Asocia la ventana de información con el marcador de fin
                 destacado.addListener('click', () => {
                     finalInfoWindow.open(this.mapCustom, destacado);
                 });
-            }       
-    
+            }
+
             if (currentLocation) {
-                await this.ubicacionService.saveLocation(aux,valid);
+                await this.ubicacionService.saveLocation(aux, valid);
             } else {
                 alert('No se pudo obtener la ubicación actual');
             }
