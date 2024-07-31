@@ -8,6 +8,7 @@ import {
 } from '@capacitor-community/background-geolocation';
 import { registerPlugin } from '@capacitor/core';
 import { BehaviorSubject } from 'rxjs';
+import { Geolocation } from '@capacitor/geolocation';
 
 const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>(
     'BackgroundGeolocation'
@@ -23,10 +24,11 @@ export class UbicacionService {
     private velocidadActual = new BehaviorSubject<number>(0);
 
     constructor() {
-        this.iniciarWatcher();
+        //this.iniciarWatcher();
     }
     private lastUpdateTimestamp: number | null = null;
-    private minUpdateInterval = 60000; // 60 segundos en milisegundos
+    private readonly MAX_DISTANCE_KM = 0.001; // Distancia máxima permitida entre puntos consecutivos en kilómetros
+    private readonly MIN_SPEED_KMH = 120; // Velocidad mínima en km/h para considerar la ubicación como válida
 
     iniciarWatcher() {
         const options: WatcherOptions = {
@@ -34,7 +36,7 @@ export class UbicacionService {
             backgroundTitle: 'Aviso de rastreo',
             requestPermissions: true,
             stale: true,
-            distanceFilter: 1, // Ajusta este valor según tus necesidades
+            distanceFilter: 40, // Ajusta este valor según tus necesidades
         };
 
         BackgroundGeolocation.addWatcher(
@@ -63,28 +65,19 @@ export class UbicacionService {
                 const nuevaUbicacion = {
                     lat: location.latitude,
                     lng: location.longitude,
-                    timestamp: new Date(location.time).toISOString(),
+                    timestamp: new Date().toISOString(),
+                    speed: location.speed ? location.speed * 3.6 : 0, // Convertir m/s a km/h si `speed` está disponible
+                    destacado: false,
                 };
-
-                if (
-                    this.lastUpdateTimestamp === null ||
-                    now - this.lastUpdateTimestamp >= this.minUpdateInterval
-                ) {
-                    const lastUbicacion = this.ubicaciones
-                        .getValue()
-                        .slice(-1)[0];
-                    if (
-                        !lastUbicacion ||
-                        this.calculateDistance(lastUbicacion, nuevaUbicacion) >
-                            options.distanceFilter
-                    ) {
-                        await this.saveLocation(nuevaUbicacion);
-                        this.ubicaciones.next([
-                            ...this.ubicaciones.getValue(),
-                            nuevaUbicacion,
-                        ]);
-                        this.lastUpdateTimestamp = now;
-                    }
+                // Solo guarda y emite si la nueva ubicación es válida
+                const valid = this.isValidLocation(nuevaUbicacion, now);
+                if (valid) {
+                    await this.saveLocation(nuevaUbicacion, valid);
+                    this.ubicaciones.next([
+                        ...this.ubicaciones.getValue(),
+                        nuevaUbicacion,
+                    ]);
+                    this.lastUpdateTimestamp = now;
                 }
             }
         )
@@ -95,6 +88,35 @@ export class UbicacionService {
                 console.error('Error al iniciar el watcher', err);
             });
     }
+    isValidLocation(
+        nuevaUbicacion: {
+            lat: number;
+            lng: number;
+            timestamp: string;
+            speed?: number;
+        },
+        now?: number
+    ): boolean {
+        now = now ? now : Date.now();
+        const lastUbicacion = this.ubicaciones.getValue().slice(-1)[0];
+
+        // Verifica si es la primera ubicación o si la distancia y la velocidad son razonables
+        if (!lastUbicacion) return true;
+
+        const distancia = this.calculateDistance(lastUbicacion, nuevaUbicacion);
+        console.log("La distancia al último punto: ", distancia);
+        const tiempo = (now - this.lastUpdateTimestamp!) / 1000 / 3600; // Convertir tiempo a horas
+
+        // Verifica que la distancia no sea demasiado grande en relación con la velocidad
+        const maxPossibleDistance = this.MIN_SPEED_KMH * tiempo;
+
+        return (
+            distancia > 0 &&
+            distancia <= maxPossibleDistance &&
+            distancia <= this.MAX_DISTANCE_KM * 1000
+        ); // Distancia en metros
+    }
+
     calculateDistance(
         loc1: { lat: number; lng: number },
         loc2: { lat: number; lng: number }
@@ -109,30 +131,41 @@ export class UbicacionService {
             Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
             Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        console.log(R * c);
+
         return R * c; // en metros
     }
 
-    async saveLocation(location: {
-        lat: number;
-        lng: number;
-        timestamp: string;
-    }) {
-        const locations = await Preferences.get({ key: 'locations' });
-        const parsedLocations = locations.value
-            ? JSON.parse(locations.value)
-            : [];
-        parsedLocations.push(location);
-        await Preferences.set({
-            key: 'locations',
-            value: JSON.stringify(parsedLocations),
-        });
+    async saveLocation(
+        location: {
+            lat: number;
+            lng: number;
+            timestamp: string;
+            speed: number;
+            destacado: boolean;
+        },
+        valid?: boolean
+    ) {
+        valid = valid ? valid : this.isValidLocation(location);
+        if (valid) {
+            const locations = await Preferences.get({ key: 'locations' });
+            const parsedLocations = locations.value
+                ? JSON.parse(locations.value)
+                : [];
+            parsedLocations.push(location);
+            await Preferences.set({
+                key: 'locations',
+                value: JSON.stringify(parsedLocations),
+            });
+
+            this.ubicaciones.next([...this.ubicaciones.getValue(), location]);
+        }
     }
 
     getUbicaciones() {
         return this.ubicaciones.asObservable();
     }
+
     getVelocidadActual() {
-      return this.velocidadActual.asObservable();
+        return this.velocidadActual.asObservable();
     }
 }

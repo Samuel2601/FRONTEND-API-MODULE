@@ -21,9 +21,9 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         private helper: HelperService
     ) {}
     velocidad: number = 0;
-    ngOnInit(): void {
-        this.initMap();
-
+    async ngOnInit(): Promise<void> {
+        await this.initMap();
+        //this.ubicacionService.iniciarWatcher();
         this.locationSubscription = this.ubicacionService
             .getUbicaciones()
             .subscribe((locations) => {
@@ -32,6 +32,18 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         this.ubicacionService.getVelocidadActual().subscribe((velocidad) => {
             this.velocidad = velocidad * 3.6; // Convertir m/s a km/h
         });
+        setInterval(() => {
+            this.addManualLocation(false);
+        }, 5000);
+
+        /*this.datos.forEach((element, index) => {
+            this.addMarker(
+                { lat: element.lat, lng: element.lng },
+                '',
+                'Posición: ' + element.timestamp
+            );
+        });*/
+        //this.updateMap(this.datos);
     }
 
     ngOnDestroy(): void {
@@ -114,11 +126,6 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         const haightAshbury = await this.getLocation(); //{ lat: 0.977035, lng: -79.655415 };
 
         this.googlemaps.getLoader().then(async () => {
-            // Inicializa los servicios de autocomplete y geocodificación
-            this.helper.autocompleteService =
-                new google.maps.places.AutocompleteService();
-            this.helper.geocoderService = new google.maps.Geocoder();
-
             // Crea una nueva instancia de Google Map con las opciones configuradas
             this.mapCustom = new google.maps.Map(
                 document.getElementById('map2') as HTMLElement,
@@ -139,7 +146,8 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             );
 
             // Llama a la función para obtener la ubicación (si es necesaria)
-            await this.marquerLocation();
+           // await this.marquerLocation();
+           //await this.addManualLocation();
         });
     }
 
@@ -343,36 +351,40 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         }
     }
 
-    async addManualLocation() {
+    async addManualLocation(status_destacado:boolean) {
         const currentLocation = await Geolocation.getCurrentPosition();
         const aux = {
             lat: currentLocation.coords.latitude,
             lng: currentLocation.coords.longitude,
-        };
-        const destacado = new google.maps.Marker({
-            position: { lat: aux.lat, lng: aux.lng },
-            map: this.mapCustom,
-            title: `DESTACADO, Time: ${new Date().toISOString()}`,
-        });
-        // Crea la ventana de información para el marcador de fin
-        const finalInfoWindow = new google.maps.InfoWindow({
-            content: `<div><strong>Marcador destacado</strong><br>Lat: ${
-                aux.lat
-            }, Lng: ${aux.lng}<br>Time: ${new Date().toISOString()}</div>`,
-        });
-        // Asocia la ventana de información con el marcador de fin
-        destacado.addListener('click', () => {
-            finalInfoWindow.open(this.mapCustom, destacado);
-        });
-
-        if (currentLocation) {
-            await this.ubicacionService.saveLocation({
-                lat: currentLocation.coords.latitude,
-                lng: currentLocation.coords.longitude,
-                timestamp: new Date().toISOString(),
-            });
-        } else {
-            alert('No se pudo obtener la ubicación actual');
+            timestamp: new Date().toISOString(),
+            speed:0,
+            destacado:status_destacado
+        }
+        const valid=this.ubicacionService.isValidLocation(aux);
+        if(valid){
+            if(status_destacado){
+                const destacado = new google.maps.Marker({
+                    position: { lat: aux.lat, lng: aux.lng },
+                    map: this.mapCustom,
+                    title: `DESTACADO, Time: ${new Date().toISOString()}`,
+                });
+                // Crea la ventana de información para el marcador de fin
+                const finalInfoWindow = new google.maps.InfoWindow({
+                    content: `<div><strong>Marcador destacado</strong><br>Lat: ${
+                        aux.lat
+                    }, Lng: ${aux.lng}<br>Time: ${new Date().toISOString()}</div>`,
+                });
+                // Asocia la ventana de información con el marcador de fin
+                destacado.addListener('click', () => {
+                    finalInfoWindow.open(this.mapCustom, destacado);
+                });
+            }       
+    
+            if (currentLocation) {
+                await this.ubicacionService.saveLocation(aux,valid);
+            } else {
+                alert('No se pudo obtener la ubicación actual');
+            }
         }
     }
 }
