@@ -1,0 +1,253 @@
+<p-card
+    header="Formulario Socio Económico"
+    subheader="Rellena la siguiente información: "
+>
+    <ng-template pTemplate="header">
+        <img
+            alt="Card"
+            src="https://primefaces.org/cdn/primeng/images/card-ng.jpg"
+        />
+    </ng-template>
+    <form [formGroup]="surveyForm" class="p-fluid">
+        <div class="p-grid">
+            <div class="p-md-col-12 p-4">
+                <p-floatLabel>
+                    <p-calendar
+                        id="date"
+                        formControlName="date"
+                        [showIcon]="true"
+                        styleClass="full-width"
+                    ></p-calendar>
+                    <label for="date">Fecha:</label>
+                </p-floatLabel>
+
+                <p-floatLabel>
+                    <input
+                        id="possessionTime"
+                        formControlName="possessionTime"
+                        pInputText
+                        type="text"
+                        class="full-width"
+                    />
+                    <label for="possessionTime">Tiempo de posesión:</label>
+                </p-floatLabel>
+
+                <p-floatLabel>
+                    <input
+                        id="phone"
+                        formControlName="phone"
+                        pInputText
+                        type="text"
+                        class="full-width"
+                    />
+                    <label for="phone">Teléfono:</label>
+                </p-floatLabel>
+
+                <p-floatLabel>
+                    <input
+                        id="nationality"
+                        formControlName="nationality"
+                        pInputText
+                        type="text"
+                        class="full-width"
+                    />
+                    <label for="nationality">Nacionalidad:</label>
+                </p-floatLabel>
+
+                <p-floatLabel>
+                    <input
+                        id="surveyorName"
+                        formControlName="surveyorName"
+                        pInputText
+                        type="text"
+                        class="full-width"
+                    />
+                    <label for="surveyorName">Nombre del Encuestador:</label>
+                </p-floatLabel>
+
+                <p-floatLabel>
+                    <input
+                        id="intervieweeName"
+                        formControlName="intervieweeName"
+                        pInputText
+                        type="text"
+                        class="full-width"
+                    />
+                    <label for="intervieweeName">Nombre del(a) Entrevistado(a):</label>
+                </p-floatLabel>
+            </div>
+
+            <div class="p-md-col-12 p-4">
+                <p-floatLabel>
+                    <p-inputNumber
+                        id="age"
+                        formControlName="age"
+                        [useGrouping]="false"
+                        class="full-width"
+                    ></p-inputNumber>
+                    <label for="age">Edad:</label>
+                </p-floatLabel>
+
+                <p-floatLabel>
+                    <input
+                        id="ethnicity"
+                        formControlName="ethnicity"
+                        pInputText
+                        type="text"
+                        class="full-width"
+                    />
+                    <label for="ethnicity">Etnia:</label>
+                </p-floatLabel>
+
+                <p-floatLabel>
+                    <input
+                        id="civilStatus"
+                        formControlName="civilStatus"
+                        pInputText
+                        type="text"
+                        class="full-width"
+                    />
+                    <label for="civilStatus">Estado Civil:</label>
+                </p-floatLabel>
+
+                <p-floatLabel>
+                    <input
+                        id="educationLevel"
+                        formControlName="educationLevel"
+                        pInputText
+                        type="text"
+                        class="full-width"
+                    />
+                    <label for="educationLevel">Niv. Educ:</label>
+                </p-floatLabel>
+
+                <p-floatLabel>
+                    <input
+                        id="idNumber"
+                        formControlName="idNumber"
+                        pInputText
+                        type="text"
+                        class="full-width"
+                    />
+                    <label for="idNumber">Nº Cédula:</label>
+                </p-floatLabel>
+
+                <p-floatLabel>
+                    <input
+                        id="disability"
+                        formControlName="disability"
+                        pInputText
+                        type="text"
+                        class="full-width"
+                    />
+                    <label for="disability">Discapacidad/En:</label>
+                </p-floatLabel>
+            </div>
+
+            <div class="p-md-col-12 p-4">
+                <p-floatLabel>
+                    <input
+                        id="address"
+                        formControlName="address"
+                        pInputText
+                        type="text"
+                        class="full-width"
+                    />
+                    <label for="address">Dirección:</label>
+                </p-floatLabel>
+
+                <p-floatLabel>
+                    <input
+                        id="sector"
+                        formControlName="sector"
+                        pInputText
+                        type="text"
+                        class="full-width"
+                    />
+                    <label for="sector">Sector:</label>
+                </p-floatLabel>
+
+                <p-floatLabel>
+                    <input
+                        id="neighborhood"
+                        formControlName="neighborhood"
+                        pInputText
+                        type="text"
+                        class="full-width"
+                    />
+                    <label for="neighborhood">Barrio:</label>
+                </p-floatLabel>
+
+                <p-floatLabel>
+                    <input
+                        id="blockNumber"
+                        formControlName="blockNumber"
+                        pInputText
+                        type="text"
+                        class="full-width"
+                    />
+                    <label for="blockNumber">Manzana:</label>
+                </p-floatLabel>
+
+                <p-floatLabel>
+                    <input
+                        id="lotNumber"
+                        formControlName="lotNumber"
+                        pInputText
+                        type="text"
+                        class="full-width"
+                    />
+                    <label for="lotNumber">Número de lote:</label>
+                </p-floatLabel>
+
+                <p-floatLabel>
+                    <p-inputNumber
+                        id="familyCount"
+                        formControlName="familyCount"
+                        [useGrouping]="false"
+                        class="full-width"
+                    ></p-inputNumber>
+                    <label for="familyCount">¿Cuántas familias viven en el hogar?</label>
+                </p-floatLabel>
+
+                <p-floatLabel>
+                    <p-inputNumber
+                        id="peopleCount"
+                        formControlName="peopleCount"
+                        [useGrouping]="false"
+                        class="full-width"
+                    ></p-inputNumber>
+                    <label for="peopleCount">¿Cuántas personas viven en el hogar?</label>
+                </p-floatLabel>
+
+                <div class="p-field">
+                    <label>ESTADO DE LA CASA:</label>
+                    <div class="field-checkbox">
+                        <ng-container *ngFor="let category of houseStates">
+                            <p-radioButton
+                                [inputId]="category.name"
+                                [value]="category.name"
+                                formControlName="houseState"
+                            />
+                            <label [for]="category.name" class="ml-2">{{ category.name }}</label>
+                        </ng-container>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p-footer>
+            <div class="p-d-flex p-ai-center p-jc-between p-mt-2">
+                <p-button
+                    label="Cancelar"
+                    severity="secondary"
+                    class="p-mr-2"
+                />
+                <p-button
+                    label="Enviar"
+                    [disabled]="!surveyForm.valid"
+                />
+            </div>
+        </p-footer>
+    </form>
+</p-card>

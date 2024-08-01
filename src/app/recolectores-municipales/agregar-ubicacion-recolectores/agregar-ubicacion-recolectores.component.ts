@@ -10,7 +10,6 @@ import { HelperService } from 'src/app/demo/services/helper.service';
     templateUrl: './agregar-ubicacion-recolectores.component.html',
     styleUrls: ['./agregar-ubicacion-recolectores.component.scss'],
 })
-
 export class AgregarUbicacionRecolectoresComponent implements OnInit {
     mapCustom: google.maps.Map;
     public locationSubscription: Subscription;
@@ -21,9 +20,10 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         private helper: HelperService
     ) {}
     velocidad: number = 0;
+    distancia: number = 0;
     async ngOnInit(): Promise<void> {
         await this.initMap();
-        //this.ubicacionService.iniciarWatcher();
+        this.ubicacionService.iniciarWatcher();
         this.locationSubscription = this.ubicacionService
             .getUbicaciones()
             .subscribe((locations) => {
@@ -32,9 +32,9 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         this.ubicacionService.getVelocidadActual().subscribe((velocidad) => {
             this.velocidad = velocidad * 3.6; // Convertir m/s a km/h
         });
-        setInterval(() => {
-            this.addManualLocation(false);
-        }, 5000);
+        this.ubicacionService.getDistanciaRecorrida().subscribe((distancia) => {
+            this.distancia = distancia;
+        });
     }
 
     /*this.datos.forEach((element, index) => {

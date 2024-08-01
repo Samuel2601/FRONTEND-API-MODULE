@@ -1,4 +1,8 @@
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { GLOBAL } from 'src/app/demo/services/GLOBAL';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+
 import { Preferences } from '@capacitor/preferences';
 import {
     BackgroundGeolocationPlugin,
@@ -8,6 +12,7 @@ import {
 } from '@capacitor-community/background-geolocation';
 import { registerPlugin } from '@capacitor/core';
 import { BehaviorSubject } from 'rxjs';
+import { Geolocation } from '@capacitor/geolocation';
 
 const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>(
     'BackgroundGeolocation'
@@ -21,8 +26,11 @@ export class UbicacionService {
         { lat: number; lng: number; timestamp: string }[]
     >([]);
     private velocidadActual = new BehaviorSubject<number>(0);
+    private DistanciaRecorrida = new BehaviorSubject<number>(0);
 
-    constructor() {
+    public url:string;
+    constructor(private _http: HttpClient) {
+        this.url = GLOBAL.url;
         //this.iniciarWatcher();
     }
     private lastUpdateTimestamp: number | null = null;
@@ -61,13 +69,21 @@ export class UbicacionService {
                 this.velocidadActual.next(velocidad || 0);
 
                 const now = Date.now();
+                const currentLocation = await Geolocation.getCurrentPosition();
                 const nuevaUbicacion = {
+                    lat: currentLocation.coords.latitude,
+                    lng: currentLocation.coords.longitude,
+                    timestamp: new Date().toISOString(),
+                    speed: location.speed ? location.speed * 3.6 : 0,
+                    destacado: false,
+                };
+                /*const nuevaUbicacion = {
                     lat: location.latitude,
                     lng: location.longitude,
                     timestamp: new Date().toISOString(),
                     speed: location.speed ? location.speed * 3.6 : 0, // Convertir m/s a km/h si `speed` está disponible
                     destacado: false,
-                };
+                };*/
                 // Solo guarda y emite si la nueva ubicación es válida
                 const valid = this.isValidLocation(nuevaUbicacion, now);
                 if (valid) {
@@ -103,7 +119,8 @@ export class UbicacionService {
         if (!lastUbicacion) return true;
 
         const distancia = this.calculateDistance(lastUbicacion, nuevaUbicacion);
-        console.log("La distancia al último punto: ", distancia);
+        this.DistanciaRecorrida.next(this.DistanciaRecorrida.value + distancia);
+        console.log('La distancia al último punto: ', distancia);
         const tiempo = (now - this.lastUpdateTimestamp!) / 1000 / 3600; // Convertir tiempo a horas
 
         // Verifica que la distancia no sea demasiado grande en relación con la velocidad
@@ -166,5 +183,18 @@ export class UbicacionService {
 
     getVelocidadActual() {
         return this.velocidadActual.asObservable();
+    }
+    getDistanciaRecorrida() {
+        return this.DistanciaRecorrida.asObservable();
+    }
+
+    obtenerDeviceGPS(): Observable<any> {
+        let headers = new HttpHeaders()
+            .set('Content-Type', 'application/json')
+            .set('Authorization', 'Basic ' + btoa('CIUDADANIA:123456789'));
+        return this._http.get(
+            'https://inteligenciavehicular.com/api/devices',
+            { headers: headers }
+        );
     }
 }

@@ -1,1 +1,38 @@
-<p>agregar-recolector works!</p>
+<div class="card">
+    <div class="card-header">
+        <h3>
+            Asignación de Recolectores
+        </h3>
+    </div>
+    <div class="p-fluid">
+        <form [formGroup]="formulario" (ngSubmit)="onSubmit()">
+            <div class="p-field p-5">
+                <label for="funcionario">Funcionario</label>
+                <p-dropdown
+                    id="funcionario"
+                    [options]="funcionarios"
+                    formControlName="funcionario"
+                    optionLabel="fullName"
+                    placeholder="Seleccione un funcionario"
+                ></p-dropdown>
+            </div>
+    
+            <div class="p-field p-5">
+                <label for="deviceId">Device ID</label>
+                <p-dropdown
+                    id="deviceId"
+                    [options]="devices"
+                    formControlName="deviceId"
+                    optionLabel="name"
+                    placeholder="Seleccione un dispositivo"
+                ></p-dropdown>
+            </div>
+    
+            <div class="p-field">
+                <button pButton type="submit" label="Registrar"></button>
+            </div>
+        </form>
+    </div>
+    
+</div>
+
