@@ -31,6 +31,7 @@ export class UbicacionService {
     public url:string;
     constructor(private _http: HttpClient) {
         this.url = GLOBAL.url;
+        this.loadInitialLocations();
         //this.iniciarWatcher();
     }
     private lastUpdateTimestamp: number | null = null;
@@ -150,6 +151,17 @@ export class UbicacionService {
 
         return R * c; // en metros
     }
+
+    async loadInitialLocations() {
+        try {
+          const locations = await Preferences.get({ key: 'locations' });
+          console.log("Se ah encontrado: ",locations);
+          const parsedLocations = locations.value ? JSON.parse(locations.value) : [];
+          this.ubicaciones.next(parsedLocations);
+        } catch (error) {
+          console.error('Error loading locations:', error);
+        }
+      }
 
     async saveLocation(
         location: {

@@ -1,41 +1,57 @@
 <!-- agregar-ubicacion-recolectores.component.html -->
 
-<div class="map-container">
+<div class="map-container mb-5">
     <!-- Mapa de Google -->
     <div
         class="card"
         id="map2"
-        style="
-            min-height: 70vh;
-            margin-left: -18px;
-            margin-right: -18px;
-            margin-bottom: 0 !important;
-        "
+        style="min-height: 20vh; margin-left: -18px; margin-right: -18px"
     ></div>
     <!-- velocidad.component.html -->
     <div class="velocidad-container">
-        <h3>Velocidad Actual</h3>
-        <p class="velocidad-value">{{ velocidad | number : "1.0-2" }} km/h</p>
-        <p class="velocidad-value">{{ distancia | number : "1.0-2" }} m</p>
-        <!-- Botón para agregar ubicación manualmente -->
         <p-button
             icon="pi pi-plus"
-            label="Agregar Ubicación Manual"
-            (onClick)="addManualLocation(true)"
+            label="Punto de Recolección"
+            [style]="{ padding: '20px' }"
+            (onClick)="addManualLocation(true, false)"
         ></p-button>
+    </div>
+    <div class="velocidad-container m-5">
+        <p-button
+            label="Retorno a la Estación"
+            (click)="confirmReturnToStation()"
+            [disabled]="isReturnButtonDisabled"
+        ></p-button>
+
+        <!-- Muestra el temporizador si el botón está deshabilitado -->
+        <div *ngIf="isReturnButtonDisabled">
+            <p>
+                Tiempo restante para habilitar el botón:
+                {{ formatTime(returnTimeLeft) }}
+            </p>
+        </div>
     </div>
 </div>
 
-<p-table [value]="table" [tableStyle]="{ 'min-width': '50rem' }">
+<p-table
+    [value]="table"
+    [scrollable]="true"
+    scrollHeight="300px"
+    [tableStyle]="{ 'min-width': 'auto' }"
+>
     <ng-template pTemplate="header">
         <tr>
+            <th>N°</th>
             <th>Latitud</th>
             <th>Longitud</th>
             <th>Fecha</th>
         </tr>
     </ng-template>
     <ng-template pTemplate="body" let-location let-i="rowIndex">
-        <tr>
+        <tr
+            (click)="getMarker(i)"
+            [ngClass]="{ 'highlight-row': location.retorno }"
+        >
             <td>{{ i + 1 }}</td>
             <td>{{ location.lat }}</td>
             <td>{{ location.lng }}</td>
@@ -43,3 +59,26 @@
         </tr>
     </ng-template>
 </p-table>
+
+<p-dialog
+    header="Confirmación"
+    [(visible)]="displayDialog"
+    [modal]="true"
+    [closable]="false"
+    [draggable]="false"
+>
+    <p>¿Nesecitas retornar a estáción?</p>
+    <p-tag
+        icon="pi pi-info-circle"
+        severity="info"
+        [value]="
+            'Tiempo de espera después de usar Retorno a estación: ' +
+            formatTime(returnDelay)
+        "
+    ></p-tag>
+
+    <p-footer>
+        <p-button label="Sí" (click)="addManualLocation(true, true)"></p-button>
+        <p-button label="No" (click)="displayDialog = false"></p-button>
+    </p-footer>
+</p-dialog>

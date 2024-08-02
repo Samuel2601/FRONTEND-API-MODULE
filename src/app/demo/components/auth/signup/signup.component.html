@@ -10,117 +10,149 @@
         <div class="w-full lg:w-6 p-4 lg:p-7 surface-card">
             <form (ngSubmit)="registrarse()" [formGroup]="formulario">
                 <div
-                class="flex flex-column gap-2 mx-auto"
-                style="min-height: 20rem; max-width: 30rem"
-            >
-                <div
-                    class="text-center mt-3 mb-3 text-xl font-semibold"
+                    class="flex flex-column gap-2 mx-auto"
+                    style="min-height: 20rem; max-width: 30rem"
                 >
-                    Información de contacto
-                </div>
-                <div class="field p-fluid">
-                    <p-iconField>
-                        <p-inputIcon>
-                            <i class="pi pi-user"></i>
-                        </p-inputIcon>
-                        <input
-                            formControlName="nombres"
-                            pInputText
-                            id="nombres"
-                            type="text"
-                            placeholder="Nombres"
+                    <div class="text-center mt-3 mb-3 text-xl font-semibold">
+                        Información de contacto
+                    </div>
+                    <div class="field p-fluid">
+                        <p-iconField>
+                            <p-inputIcon>
+                                <i class="pi pi-user"></i>
+                            </p-inputIcon>
+                            <input
+                                formControlName="name"
+                                pInputText
+                                id="name"
+                                type="text"
+                                placeholder="Nombres"
+                                required
+                            />
+                        </p-iconField>
+                    </div>
+                    <div class="field p-fluid">
+                        <p-iconField>
+                            <p-inputIcon>
+                                <i class="pi pi-user"></i>
+                            </p-inputIcon>
+                            <input
+                                formControlName="last_name"
+                                pInputText
+                                id="last_name"
+                                type="text"
+                                placeholder="Nombres"
+                                required
+                            />
+                        </p-iconField>
+                    </div>
+                    <div class="field p-fluid">
+                        <p-iconField>
+                            <p-inputIcon>
+                                <i class="pi pi-phone"></i>
+                            </p-inputIcon>
+                            <input
+                                formControlName="telf"
+                                pInputText
+                                id="telf"
+                                type="text"
+                                placeholder="Teléfono"
+                                required
+                            />
+                        </p-iconField>
+                    </div>
+                    <div class="field p-fluid">
+                        <p-iconField>
+                            <p-inputIcon>
+                                <i class="pi pi-envelope"></i>
+                            </p-inputIcon>
+                            <input
+                                formControlName="email"
+                                pInputText
+                                id="email"
+                                type="email"
+                                placeholder="Correo"
+                                required
+                            />
+                        </p-iconField>
+                    </div>
+
+                    <div class="field p-fluid">
+                        <p-password
+                            styleClass=" mb-5"
+                            inputStyleClass="w-full p-3 md:w-30rem"
+                            formControlName="password"
+                            [toggleMask]="true"
+                            placeholder="Contraseña"
                             required
                         />
-                    </p-iconField>
-                </div>
-                <div class="field p-fluid">
-                    <p-iconField>
-                        <p-inputIcon>
-                            <i class="pi pi-phone"></i>
-                        </p-inputIcon>
-                        <input
-                            formControlName="telefono"
-                            pInputText
-                            id="telefono"
-                            type="text"
-                            placeholder="Teléfono"
+                        <p-password
+                            styleClass=" mb-5"
+                            inputStyleClass="w-full p-3 md:w-30rem"
+                            formControlName="passwordConfirmation"
+                            [toggleMask]="true"
+                            placeholder="Confirmación de Contraseña"
                             required
                         />
-                    </p-iconField>
+                    </div>
+                    <div class="flex pt-4 justify-content-between">
+                        <p-inputSwitch
+                            formControlName="checked"
+                            (onChange)="ver()"
+                        ></p-inputSwitch>
+                        <label for="">
+                            Estas de acuerdo con nuestras politicas de
+                            seguridad?
+                        </label>
+                        <p-button
+                            icon="pi pi-external-link"
+                            label="ver"
+                            (click)="llamarmodal()"
+                            type="button"
+                            [text]="true"
+                            [raised]="true"
+                        ></p-button>
+                    </div>
+                    <div class="flex pt-4 justify-content-between">
+                        <p-button
+                            [disabled]="!formulario.get('checked').value"
+                            label="Enviar"
+                            icon="pi pi-check"
+                            iconPos="right"
+                            type="submit"
+                        ></p-button>
+                    </div>
                 </div>
-                <div class="field p-fluid">
-                    <p-iconField>
-                        <p-inputIcon>
-                            <i class="pi pi-envelope"></i>
-                        </p-inputIcon>
-                        <input
-                            formControlName="correo"
-                            pInputText
-                            id="correo"
-                            type="email"
-                            placeholder="Correo"
-                            required
-                        />
-                    </p-iconField>
-                </div>
-
-                <div class="field p-fluid">
-                    <p-password
-                        styleClass="w-full md:w-30rem mb-5"
-                        inputStyleClass="w-full p-3 md:w-30rem"
-                        formControlName="password"
-                        [toggleMask]="true"
-                        placeholder="Password"
-                        required
-                    />
-                </div>
-                <div class="flex pt-4 justify-content-between">
-                    <p-inputSwitch
-                        formControlName="checked"
-                        (onChange)="ver()"
-                    ></p-inputSwitch>
-                    <label for="">
-                        Estas de acuerdo con nuestras politicas
-                        de seguridad?
-                    </label>
-                    <p-button
-                        icon="pi pi-external-link"
-                        label="ver"
-                        (click)="llamarmodal()"
-                        type="button"
-                        [text]="true"
-                        [raised]="true"
-                    ></p-button>
-                </div>
-                <div class="flex pt-4 justify-content-between">
-
-
-                    <p-button
-                        [disabled]="
-                            !formulario.get('checked').value
-                        "
-                        label="Enviar"
-                        icon="pi pi-check"
-                        iconPos="right"
-                        type="submit"
-                    ></p-button>
-                </div>
-            </div>
-                
             </form>
             <div class="mt-6 text-center text-600">
                 <div
                     *ngIf="
-                        formulario.get('cedula').invalid &&
-                        (formulario.get('cedula').dirty ||
-                            formulario.get('cedula').touched)
+                        formulario.get('name').invalid &&
+                        (formulario.get('name').dirty ||
+                            formulario.get('name').touched)
                     "
                 >
                     <p-tag severity="danger">
                         <div class="flex align-items-center gap-2">
                             <i class="pi pi-times text-xs"></i>
                             <span class="text-base">{{
-                                getErrorMessage("cedula")
+                                getErrorMessage("name")
+                            }}</span>
+                        </div>
+                    </p-tag>
+                </div>
+                <div
+                    *ngIf="
+                        formulario.get('last_name').invalid &&
+                        (formulario.get('last_name').dirty ||
+                            formulario.get('last_name').touched)
+                    "
+                >
+                    <p-tag severity="danger">
+                        <div class="flex align-items-center gap-2">
+                            <i class="pi pi-times text-xs"></i>
+                            <span class="text-base">{{
+                                getErrorMessage("last_name")
                             }}</span>
                         </div>
                     </p-tag>
@@ -128,16 +160,16 @@
 
                 <div
                     *ngIf="
-                        formulario.get('nombres').invalid &&
-                        (formulario.get('nombres').dirty ||
-                            formulario.get('nombres').touched)
+                        formulario.get('telf').invalid &&
+                        (formulario.get('telf').dirty ||
+                            formulario.get('telf').touched)
                     "
                 >
                     <p-tag severity="danger">
                         <div class="flex align-items-center gap-2">
                             <i class="pi pi-times text-xs"></i>
                             <span class="text-base">{{
-                                getErrorMessage("nombres")
+                                getErrorMessage("telf")
                             }}</span>
                         </div>
                     </p-tag>
@@ -145,33 +177,16 @@
 
                 <div
                     *ngIf="
-                        formulario.get('telefono').invalid &&
-                        (formulario.get('telefono').dirty ||
-                            formulario.get('telefono').touched)
+                        formulario.get('email').invalid &&
+                        (formulario.get('email').dirty ||
+                            formulario.get('email').touched)
                     "
                 >
                     <p-tag severity="danger">
                         <div class="flex align-items-center gap-2">
                             <i class="pi pi-times text-xs"></i>
                             <span class="text-base">{{
-                                getErrorMessage("telefono")
-                            }}</span>
-                        </div>
-                    </p-tag>
-                </div>
-
-                <div
-                    *ngIf="
-                        formulario.get('correo').invalid &&
-                        (formulario.get('correo').dirty ||
-                            formulario.get('correo').touched)
-                    "
-                >
-                    <p-tag severity="danger">
-                        <div class="flex align-items-center gap-2">
-                            <i class="pi pi-times text-xs"></i>
-                            <span class="text-base">{{
-                                getErrorMessage("correo")
+                                getErrorMessage("email")
                             }}</span>
                         </div>
                     </p-tag>
@@ -189,6 +204,22 @@
                             <i class="pi pi-times text-xs"></i>
                             <span class="text-base">{{
                                 getErrorMessage("password")
+                            }}</span>
+                        </div>
+                    </p-tag>
+                </div>
+                <div
+                    *ngIf="
+                        formulario.get('passwordConfirmation').invalid &&
+                        (formulario.get('passwordConfirmation').dirty ||
+                            formulario.get('passwordConfirmation').touched)
+                    "
+                >
+                    <p-tag severity="danger">
+                        <div class="flex align-items-center gap-2">
+                            <i class="pi pi-times text-xs"></i>
+                            <span class="text-base">{{
+                                getErrorMessage("passwordConfirmation")
                             }}</span>
                         </div>
                     </p-tag>
@@ -304,7 +335,9 @@
     [(visible)]="visible"
     [style]="{ width: '50vw' }"
 >
-    <p-progressSpinner ariaLabel="loading"></p-progressSpinner>
+    <div style="display: flex; justify-content: center">
+        <p-progressSpinner ariaLabel="loading"></p-progressSpinner>
+    </div>
 </p-dialog>
 
 <!--

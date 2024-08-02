@@ -59,7 +59,7 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
                                 const listusuarios = await this.listService
                                     .listarUsuarios(
                                         this.token,
-                                        'rol_user.orden',
+                                        'role.orden',
                                         user.orden
                                     )
                                     .toPromise();

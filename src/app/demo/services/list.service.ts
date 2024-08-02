@@ -27,6 +27,41 @@ export class ListService {
             params: params,
         });
     }
+    diaEntero(): { start: string; end: string } {
+        const now = new Date();
+    
+        // Establecer la fecha para la medianoche de hoy
+        const end = new Date(now);
+        end.setHours(0, 0, 0, 0);
+    
+        // Establecer la fecha para la medianoche del día anterior
+        const start = new Date(now);
+        start.setDate(now.getDate() - 1);
+        start.setHours(0, 0, 0, 0);
+    
+        return {
+            start: start.toISOString(),
+            end: end.toISOString(),
+        };
+    }
+
+    listarAsignacionRecolectores(
+        token: any,
+        campos: any = {},
+        all: boolean = true
+    ): Observable<any> {
+        let headers = new HttpHeaders({
+            'Content-Type': 'application/json',
+            Authorization: token,
+        });
+        //const { start, end } = this.diaEntero();
+                
+        const params = this.paramsf(campos, all);
+        return this.http.get(this.url + 'recolector', {
+            headers: headers,
+            params: params,
+        });
+    }
 
     listarFichaSectorial(
         token: any,

@@ -18,22 +18,24 @@ import { MapaTrashComponent } from './demo/components/static-page/mapa-trash/map
                     { 
                         path: 'recolectores', 
                         loadChildren: () => import('./recolectores-municipales/recolectores-municipales.module').then(m => m.RecolectoresMunicipalesModule),
+                        canActivate: [AuthGuard,PermissionGuard],
+                        data: { expectedPermission: '/recolector' }
                     },
                     { 
                         path: 'dashboard', 
                         loadChildren: () => import('./demo/components/dashboard/dashboard.module').then(m => m.DashboardModule), 
                         canActivate: [AuthGuard,PermissionGuard],
-                        data: { expectedPermission: '/permiso' }
+                        data: { expectedPermission: 'dashboard' }
                     },
                     { 
                         path: 'maps', 
-                        loadChildren: () => import('./demo/components/maps/maps.module').then(m => m.MapsModule), 
+                        loadChildren: () => import('./demo/components/maps/maps.module').then(m => m.MapsModule),
                         //canActivate: [AuthGuard] // Aplica el guard aquí
                     },
                     { path: 'home', component: HomeComponent },
-                    { path: 'crear-ficha', component: MapaFichaComponent },
-                    { path: 'ver-ficha/:id', component: ViewFichasArticulosComponent },
-                    { path: 'crear-incidente', component: MapaComponent },
+                    { path: 'crear-ficha', component: MapaFichaComponent,canActivate: [AuthGuard] },                    
+                    { path: 'crear-incidente', component: MapaComponent,canActivate: [AuthGuard] },
+                    { path: 'ver-ficha/:id', component: ViewFichasArticulosComponent,canActivate: [AuthGuard] },
                     { path: '', component: HomeComponent },
                     {path:'mapa-recolectores', component:MapaTrashComponent}
                 ]

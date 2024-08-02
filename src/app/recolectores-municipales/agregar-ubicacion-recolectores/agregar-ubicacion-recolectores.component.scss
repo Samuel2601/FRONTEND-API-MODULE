@@ -1,20 +1,21 @@
 /* velocidad.component.css */
 .velocidad-container {
-    padding: 20px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #f9f9f9;
     text-align: center;
-  }
-  
-  .velocidad-container h3 {
+}
+
+.velocidad-container h3 {
     margin-bottom: 10px;
     font-size: 1.2em;
     color: #333;
-  }
-  
-  .velocidad-value {
+}
+
+.velocidad-value {
     font-size: 2em;
     color: #1e90ff;
-  }
-  
+}
+
+.highlight-row {
+    background-color: var(--yellow-400); /* Amarillo claro, puedes cambiar el color */
+    color: var(--text-color); /* Texto negro */
+    font-weight: bold;
+}

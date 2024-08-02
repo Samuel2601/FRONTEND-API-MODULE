@@ -14,6 +14,11 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     mapCustom: google.maps.Map;
     public locationSubscription: Subscription;
 
+    isReturnButtonDisabled = false;
+    returnTimeLeft: number;
+    returnInterval: any;
+    returnDelay = 15 * 60 * 1000; // 10 minutes in milliseconds
+
     constructor(
         private ubicacionService: UbicacionService,
         private googlemaps: GoogleMapsService,
@@ -23,18 +28,62 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     distancia: number = 0;
     async ngOnInit(): Promise<void> {
         await this.initMap();
-        this.ubicacionService.iniciarWatcher();
+        //this.ubicacionService.iniciarWatcher();
         this.locationSubscription = this.ubicacionService
             .getUbicaciones()
             .subscribe((locations) => {
-                this.updateMap(locations);
+                this.table = locations;
+                this.table.forEach((element) => {
+                    this.addMarker(element, false);
+                });
+                const last_retorno = this.table.filter(
+                    (element) => element.retorno === true
+                );
+                if (last_retorno.length > 0) {
+                    // Ordenar por timestamp en orden descendente
+                    last_retorno.sort(
+                        (a, b) =>
+                            new Date(b.timestamp).getTime() -
+                            new Date(a.timestamp).getTime()
+                    );
+                    const lastReturnDate = new Date(
+                        last_retorno[0].timestamp
+                    ).getTime();
+                    this.checkReturnButtonStatus(lastReturnDate);
+                }
             });
-        this.ubicacionService.getVelocidadActual().subscribe((velocidad) => {
-            this.velocidad = velocidad * 3.6; // Convertir m/s a km/h
-        });
-        this.ubicacionService.getDistanciaRecorrida().subscribe((distancia) => {
-            this.distancia = distancia;
-        });
+    }
+
+    async checkReturnButtonStatus(time: any) {
+        if (time) {
+            const lastReturnDate = new Date(time).getTime();
+            const now = new Date().getTime();
+            const timeElapsed = now - lastReturnDate;
+            console.log(
+                'tiempo desde el ultimo retorno: ',
+                now,
+                lastReturnDate,
+                this.formatTime(timeElapsed),
+                this.formatTime(this.returnDelay)
+            );
+            if (timeElapsed < this.returnDelay) {
+                this.isReturnButtonDisabled = true;
+                this.returnTimeLeft =this.returnDelay - timeElapsed;
+                this.startReturnTimer();
+            } else {
+                this.isReturnButtonDisabled = false;
+            }
+        }
+    }
+    startReturnTimer() {
+        this.returnInterval = setInterval(() => {
+            if (this.returnTimeLeft > 0) {
+                this.returnTimeLeft -= 1000;
+            } else {
+                clearInterval(this.returnInterval);
+                this.isReturnButtonDisabled = false;
+            }
+        }, 1000);
     }
 
     /*this.datos.forEach((element, index) => {
@@ -176,6 +225,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             return { lat: 0.977035, lng: -79.655415 };
         }
     }
+    /*
     async marquerLocation() {
         if (this.isMobil()) {
             const permission = await Geolocation.requestPermissions();
@@ -214,30 +264,35 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 throw new Error('No se puede ubicater');
             }
         }
-    }
-    addMarker(
-        position: google.maps.LatLng | google.maps.LatLngLiteral,
-        tipo: 'Wifi' | 'Poligono' | 'Ubicación' | string,
-        message?: string
-    ) {
-        const map = this.mapCustom;
-        const marker = new google.maps.Marker({
-            position,
-            map,
-            title: tipo,
+    }*/
+    addMarker(location: any, center: boolean) {
+        const marcador = new google.maps.Marker({
+            position: { lat: location.lat, lng: location.lng },
+            map: this.mapCustom,
+            title: `Marcado, Time: ${new Date().toISOString()}`,
         });
-        // Abrir un nuevo popup con el nombre del barrio
+
         const infoWindow = new google.maps.InfoWindow({
-            ariaLabel: tipo,
-            content: message ? message : 'Marcador',
+            headerContent: location.retorno
+                ? 'Retorno a Estación'
+                : 'Punto de recolección',
+            content: `<div style="margin: 5px;"><strong> Lat:</strong> ${
+                location.lat
+            }, <strong> Lng:</strong> ${
+                location.lng
+            }<br><strong>Fecha:</strong> ${new Date().getDay()}/${new Date().getMonth()}/${new Date().getFullYear()}   ${new Date().getHours()}:${new Date().getMinutes()}</div>`,
         });
-        infoWindow.setPosition(position);
-        infoWindow.open(this.mapCustom);
-        // Añade un listener para el evento 'click' en el marcador
-        marker.addListener('click', () => {
-            //this.mapCustom.setZoom(18);
-            infoWindow.open(this.mapCustom, marker);
+
+        marcador.addListener('click', () => {
+            this.closeAllInfoWindows();
+            infoWindow.open(this.mapCustom, marcador);
         });
+
+        this.markers.push(marcador);
+        this.infoWindows.push(infoWindow);
+        if (center) {
+            this.mapCustom.setCenter({ lat: location.lat, lng: location.lng });
+        }
     }
     table: any[] = [];
     polyline = new google.maps.Polyline();
@@ -350,43 +405,61 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             this.polyline = null;
         }
     }
+    private markers: google.maps.Marker[] = [];
+    private infoWindows: google.maps.InfoWindow[] = [];
 
-    async addManualLocation(status_destacado: boolean) {
+    async addManualLocation(status_destacado: boolean, retorno: boolean) {
         const currentLocation = await Geolocation.getCurrentPosition();
-        const aux = {
-            lat: currentLocation.coords.latitude,
-            lng: currentLocation.coords.longitude,
-            timestamp: new Date().toISOString(),
-            speed: 0,
-            destacado: status_destacado,
-        };
-        const valid = this.ubicacionService.isValidLocation(aux);
-        if (valid) {
-            if (status_destacado) {
-                const destacado = new google.maps.Marker({
-                    position: { lat: aux.lat, lng: aux.lng },
-                    map: this.mapCustom,
-                    title: `DESTACADO, Time: ${new Date().toISOString()}`,
-                });
-                // Crea la ventana de información para el marcador de fin
-                const finalInfoWindow = new google.maps.InfoWindow({
-                    content: `<div><strong>Marcador destacado</strong><br>Lat: ${
-                        aux.lat
-                    }, Lng: ${
-                        aux.lng
-                    }<br>Time: ${new Date().toISOString()}</div>`,
-                });
-                // Asocia la ventana de información con el marcador de fin
-                destacado.addListener('click', () => {
-                    finalInfoWindow.open(this.mapCustom, destacado);
-                });
+        if (currentLocation) {
+            const aux = {
+                lat: currentLocation.coords.latitude,
+                lng: currentLocation.coords.longitude,
+                timestamp: new Date().toISOString(),
+                speed: 0,
+                destacado: status_destacado,
+                retorno: retorno,
+            };
+            const valid = this.ubicacionService.isValidLocation(aux);
+            if (valid || retorno) {
+                if (status_destacado) {
+                    this.addMarker(aux, false);
+                }
+                await this.ubicacionService.saveLocation(aux, true);
+                if (retorno) {
+                    this.displayDialog = false;
+                    this.returnTimeLeft = this.returnDelay;
+                    this.isReturnButtonDisabled = true;
+                    this.startReturnTimer();
+                }
             }
-
-            if (currentLocation) {
-                await this.ubicacionService.saveLocation(aux, valid);
-            } else {
-                alert('No se pudo obtener la ubicación actual');
-            }
+        } else {
+            alert('No se pudo obtener la ubicación actual');
         }
     }
+
+    displayDialog: boolean = false;
+    confirmReturnToStation() {
+        this.displayDialog = true;
+    }
+
+    closeAllInfoWindows() {
+        this.infoWindows.forEach((infoWindow) => infoWindow.close());
+    }
+
+    getMarker(locationIndex: number) {
+        this.closeAllInfoWindows();
+        const marker = this.markers[locationIndex];
+        const infoWindow = this.infoWindows[locationIndex];
+        if (marker && infoWindow) {
+            this.mapCustom.setCenter(marker.getPosition());
+            infoWindow.open(this.mapCustom, marker);
+        }
+    }
+    formatTime(returnTimeLeft: number): string {
+        const seconds = returnTimeLeft / 1000;
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        return `${minutes}m ${remainingSeconds}s`;
+    }
+    
 }
