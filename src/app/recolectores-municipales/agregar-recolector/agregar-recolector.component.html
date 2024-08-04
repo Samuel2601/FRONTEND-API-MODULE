@@ -1,8 +1,6 @@
-<div class="card">
+<div class="card" *ngIf="isMobil()">
     <div class="card-header">
-        <h3>
-            Asignación de Recolectores
-        </h3>
+        <h3>Asignación de Recolectores</h3>
     </div>
     <div class="p-fluid">
         <form [formGroup]="formulario" (ngSubmit)="onSubmit()">
@@ -16,7 +14,7 @@
                     placeholder="Seleccione un funcionario"
                 ></p-dropdown>
             </div>
-    
+
             <div class="p-field p-5">
                 <label for="deviceId">Recolectores</label>
                 <p-dropdown
@@ -27,12 +25,42 @@
                     placeholder="Seleccione un dispositivo"
                 ></p-dropdown>
             </div>
-    
+
             <div class="p-field">
                 <button pButton type="submit" label="Registrar"></button>
             </div>
         </form>
     </div>
-    
 </div>
 
+<div class="p-fluid" *ngIf="!isMobil()">
+    <form [formGroup]="formulario" (ngSubmit)="onSubmit()">
+        <div class="p-field p-5">
+            <label for="funcionario">Funcionario</label>
+            <p-dropdown
+                appendTo="body"
+                id="funcionario"
+                [options]="funcionarios"
+                formControlName="funcionario"
+                optionLabel="fullName"
+                placeholder="Seleccione un funcionario"
+            ></p-dropdown>
+        </div>
+
+        <div class="p-field p-5">
+            <label for="deviceId">Recolectores</label>
+            <p-dropdown
+                appendTo="body"
+                id="deviceId"
+                [options]="devices"
+                formControlName="deviceId"
+                optionLabel="name"
+                placeholder="Seleccione un dispositivo"
+            ></p-dropdown>
+        </div>
+
+        <div class="p-field">
+            <button pButton type="submit" label="Registrar"></button>
+        </div>
+    </form>
+</div>

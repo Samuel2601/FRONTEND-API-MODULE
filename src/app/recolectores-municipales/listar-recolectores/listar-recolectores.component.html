@@ -1,1 +1,21 @@
-<p>listar-recolectores works!</p>
+<p-card header="Lista de Asignaciones de Recolectores a Funcionarios">
+    <p-button icon="pi pi-plus-circle" label="Añadir" (onClick)="llamar_asignacion_Form()"></p-button>
+    <p-table [value]="arr_asignacion" [tableStyle]="{ 'min-width': '50rem' }">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Fecha de Registro</th>
+                <th>Recolector</th>
+                <th>Funcionario</th>
+                <th>Ruta</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-product>
+            <tr>
+                <td>{{ product.dateOnly }}</td>
+                <td>{{ product.deviceId }}</td>
+                <td>{{ product.funcionario }}</td>
+                <td><p-button icon="pi pi-map" label="Ver"></p-button></td>
+            </tr>
+        </ng-template>
+    </p-table>
+</p-card>

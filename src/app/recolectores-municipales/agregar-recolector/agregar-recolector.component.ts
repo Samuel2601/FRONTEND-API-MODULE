@@ -4,6 +4,7 @@ import { MessageService } from 'primeng/api';
 import { UbicacionService } from '../service/ubicacion.service';
 import { ListService } from 'src/app/demo/services/list.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { HelperService } from 'src/app/demo/services/helper.service';
 
 @Component({
     selector: 'app-agregar-recolector',
@@ -22,12 +23,16 @@ export class AgregarRecolectorComponent {
         private messageService: MessageService,
         private ubicar: UbicacionService,
         private list: ListService,
-        private auth: AuthService
+        private auth: AuthService,
+        private helper: HelperService
     ) {
         this.formulario = this.fb.group({
             funcionario: [null, Validators.required],
             deviceId: [null, Validators.required],
         });
+    }
+    isMobil(){
+        return this.helper.isMobil();
     }
     token = this.auth.token();
     ngOnInit(): void {

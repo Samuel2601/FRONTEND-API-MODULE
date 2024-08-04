@@ -68,7 +68,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             );
             if (timeElapsed < this.returnDelay) {
                 this.isReturnButtonDisabled = true;
-                this.returnTimeLeft =this.returnDelay - timeElapsed;
+                this.returnTimeLeft = this.returnDelay - timeElapsed;
                 this.startReturnTimer();
             } else {
                 this.isReturnButtonDisabled = false;
@@ -274,8 +274,9 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
 
         const infoWindow = new google.maps.InfoWindow({
             headerContent: location.retorno
-                ? 'Retorno a Estación'
-                : 'Punto de recolección',
+                ? `Retorno a Estación`
+                : `Punto de recolección`,
+            headerDisabled: this.isMobil(),
             content: `<div style="margin: 5px;"><strong> Lat:</strong> ${
                 location.lat
             }, <strong> Lng:</strong> ${
@@ -461,5 +462,4 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         const remainingSeconds = Math.floor(seconds % 60);
         return `${minutes}m ${remainingSeconds}s`;
     }
-    
 }

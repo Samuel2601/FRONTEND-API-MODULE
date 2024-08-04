@@ -25,17 +25,43 @@ export class AppMenuComponent implements OnInit {
 
     async loadPermissions() {
         const permissionsObservables = {
-            
-            canViewMapa: (await this.auth.hasPermissionComponent('/incidentes_denuncia', 'get')).pipe(catchError(() => of(false))),
-            canViewCategoria: (await this.auth.hasPermissionComponent('/categoria', 'get')).pipe(catchError(() => of(false))),
-            canViewCategoriaCrear: (await this.auth.hasPermissionComponent('/categoria', 'post')).pipe(catchError(() => of(false))),
-            canViewSubCategoriaCrear: (await this.auth.hasPermissionComponent('/subcategoria', 'post')).pipe(catchError(() => of(false))),
-            canViewIncidente: (await this.auth.hasPermissionComponent('/incidentes_denuncia', 'get')).pipe(catchError(() => of(false))),
-            canViewIncidenteReporte: (await this.auth.hasPermissionComponent('reporteincidente', 'get')).pipe(catchError(() => of(false))),
+            canViewMapa: (
+                await this.auth.hasPermissionComponent(
+                    '/incidentes_denuncia',
+                    'get'
+                )
+            ).pipe(catchError(() => of(false))),
+            canViewCategoria: (
+                await this.auth.hasPermissionComponent('/categoria', 'get')
+            ).pipe(catchError(() => of(false))),
+            canViewCategoriaCrear: (
+                await this.auth.hasPermissionComponent('/categoria', 'post')
+            ).pipe(catchError(() => of(false))),
+            canViewSubCategoriaCrear: (
+                await this.auth.hasPermissionComponent('/subcategoria', 'post')
+            ).pipe(catchError(() => of(false))),
+            canViewIncidente: (
+                await this.auth.hasPermissionComponent(
+                    '/incidentes_denuncia',
+                    'get'
+                )
+            ).pipe(catchError(() => of(false))),
+            canViewIncidenteReporte: (
+                await this.auth.hasPermissionComponent(
+                    'reporteincidente',
+                    'get'
+                )
+            ).pipe(catchError(() => of(false))),
             //canViewFicha: (await this.auth.hasPermissionComponent('/ficha_sectorial', 'get')).pipe(catchError(() => of(false))),
-            canViewFichaReporte: (await this.auth.hasPermissionComponent('reporteficha', 'get')).pipe(catchError(() => of(false))),
-            canViewAdministracion: (await this.auth.hasPermissionComponent('/categoria', 'post')).pipe(catchError(() => of(false))),
-            canViewPanelControl: (await this.auth.hasPermissionComponent('dashboard', 'get')).pipe(catchError(() => of(false))),
+            canViewFichaReporte: (
+                await this.auth.hasPermissionComponent('reporteficha', 'get')
+            ).pipe(catchError(() => of(false))),
+            canViewAdministracion: (
+                await this.auth.hasPermissionComponent('/categoria', 'post')
+            ).pipe(catchError(() => of(false))),
+            canViewPanelControl: (
+                await this.auth.hasPermissionComponent('dashboard', 'get')
+            ).pipe(catchError(() => of(false))),
         };
 
         forkJoin(permissionsObservables).subscribe(
@@ -43,14 +69,20 @@ export class AppMenuComponent implements OnInit {
                 this.permissions = permissions;
                 console.log(permissions);
 
-                this.model = [                    
+                this.model = [
                     {
                         label: 'Recolectores',
                         visible: true,
                         items: [
                             {
                                 label: 'Recolectores',
-                                icon: 'pi pi-fw pi-map',
+                                icon: 'pi pi-fw pi-slack',
+                                routerLink: ['/recolectores/listar'],
+                                visible: true,
+                            },
+                            {
+                                label: 'Recolectores Mapa',
+                                icon: 'pi pi-fw pi-map-marker',
                                 routerLink: ['/recolectores/map'],
                                 visible: true,
                             },
@@ -62,7 +94,7 @@ export class AppMenuComponent implements OnInit {
                         items: [
                             {
                                 label: 'Inicio',
-                                icon: 'pi pi-fw pi-map',
+                                icon: 'pi pi-fw pi-home',
                                 routerLink: ['/home'],
                                 visible: true,
                             },
@@ -93,13 +125,17 @@ export class AppMenuComponent implements OnInit {
                             {
                                 label: 'Nuevo',
                                 icon: 'pi pi-fw pi-folder-open',
-                                routerLink: ['/maps/categoria/create-categoria'],
+                                routerLink: [
+                                    '/maps/categoria/create-categoria',
+                                ],
                                 visible: permissions.canViewCategoriaCrear,
                             },
                             {
                                 label: 'Subcategoría',
                                 icon: 'pi pi-fw pi-folder-open',
-                                routerLink: ['/maps/subcategoria/create-subcategoria'],
+                                routerLink: [
+                                    '/maps/subcategoria/create-subcategoria',
+                                ],
                                 visible: permissions.canViewSubCategoriaCrear,
                             },
                         ].filter((item) => item.visible !== false),
@@ -156,7 +192,7 @@ export class AppMenuComponent implements OnInit {
                         items: [
                             {
                                 label: 'Estadísticas',
-                                icon: 'pi pi-fw pi-home',
+                                icon: 'pi pi-fw pi-objects-column',
                                 routerLink: ['/dashboard'],
                                 badge: 'NEW',
                                 visible: permissions.canViewPanelControl,
@@ -164,7 +200,6 @@ export class AppMenuComponent implements OnInit {
                         ],
                     },
                 ].filter((item) => item.visible !== false);
-                
 
                 this.viewmenu = true;
             },
