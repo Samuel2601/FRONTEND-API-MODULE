@@ -28,7 +28,7 @@ export class UbicacionService {
     private velocidadActual = new BehaviorSubject<number>(0);
     private DistanciaRecorrida = new BehaviorSubject<number>(0);
 
-    public url:string;
+    public url: string;
     constructor(private _http: HttpClient) {
         this.url = GLOBAL.url;
         this.loadInitialLocations();
@@ -154,14 +154,16 @@ export class UbicacionService {
 
     async loadInitialLocations() {
         try {
-          const locations = await Preferences.get({ key: 'locations' });
-          console.log("Se ah encontrado: ",locations);
-          const parsedLocations = locations.value ? JSON.parse(locations.value) : [];
-          this.ubicaciones.next(parsedLocations);
+            const locations = await Preferences.get({ key: 'locations' });
+            console.log('Se ah encontrado: ', locations);
+            const parsedLocations = locations.value
+                ? JSON.parse(locations.value)
+                : [];
+            this.ubicaciones.next(parsedLocations);
         } catch (error) {
-          console.error('Error loading locations:', error);
+            console.error('Error loading locations:', error);
         }
-      }
+    }
 
     async saveLocation(
         location: {
@@ -204,9 +206,23 @@ export class UbicacionService {
         let headers = new HttpHeaders()
             .set('Content-Type', 'application/json')
             .set('Authorization', 'Basic ' + btoa('CIUDADANIA:123456789'));
-        return this._http.get(
-            'https://inteligenciavehicular.com/api/devices',
-            { headers: headers }
-        );
+        return this._http.get('https://inteligenciavehicular.com/api/devices', {
+            headers: headers,
+        });
+    }
+
+    async fetchRouteData(deviceId: string, from: string, to: string) {
+        const url = `https://inteligenciavehicular.com/api/reports/route?deviceId=${deviceId}&type=allEvents&from=${from}&to=${to}`;
+        console.log('LLAMADO: ', url);
+        let headers = new HttpHeaders()
+            .set('Content-Type', 'application/json')
+            .set('Authorization', 'Basic ' + btoa('CIUDADANIA:123456789'));
+
+        try {
+            return this._http.get(url, { headers });
+        } catch (error) {
+            console.error('Error fetching route data:', error);
+            throw error;
+        }
     }
 }

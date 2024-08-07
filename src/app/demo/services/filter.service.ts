@@ -143,7 +143,7 @@ export class FilterService {
         });
     }
 
-    ActualizarRutaRecolector(token: any, id: string): Observable<any> {
+    async ActualizarRutaRecolector(token: any, id: string): Promise<Observable<any>> {
         const headers = this.getHeaders(token);
         let params = new HttpParams();
         params = params.append('populate', 'all');

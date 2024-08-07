@@ -8,12 +8,14 @@ import { ActivatedRoute } from '@angular/router';
 import { FilterService } from 'src/app/demo/services/filter.service';
 import { MessageService } from 'primeng/api';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { ListService } from 'src/app/demo/services/list.service';
 
 @Component({
     selector: 'app-agregar-ubicacion-recolectores',
     templateUrl: './agregar-ubicacion-recolectores.component.html',
     styleUrls: ['./agregar-ubicacion-recolectores.component.scss'],
-    providers: [MessageService],
+    providers: [MessageService, DynamicDialogConfig],
 })
 export class AgregarUbicacionRecolectoresComponent implements OnInit {
     mapCustom: google.maps.Map;
@@ -44,20 +46,29 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         private route: ActivatedRoute,
         private messageService: MessageService,
         private filter: FilterService,
-        private auth: AuthService
-    ) {}
+        private auth: AuthService,
+        public config: DynamicDialogConfig,
+        private list: ListService
+    ) {
+        if (config.data && config.data.id) {
+            this.id = config.data.id;
+            this.getRuta();
+        }
+    }
     velocidad: number = 0;
     distancia: number = 0;
     //----------------------------------------Funciones Standar---------------------------------------
     ruta: any;
+    id: any;
     async ngOnInit(): Promise<void> {
         await this.initMap();
         this.route.paramMap.subscribe(async (params) => {
-            const id = params.get('id');
-            if (id) {
-                await this.getRuta(id);
+            this.id = params.get('id') ? params.get('id') : this.id;
+            if (this.id) {
+                await this.getRuta();
             } else {
                 await this.seguimientoLocations();
+                this.consultaAsig();
             }
         });
     }
@@ -69,15 +80,60 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     isMobil(): boolean {
         return this.helper.isMobil();
     }
+
+    //------------------------------------------CONSULTA DE ASIGNACION-------------------------------
+    consultaAsig() {
+        const date = new Date();
+        const dateOnly = `${date.getFullYear()}-${
+            date.getMonth() + 1
+        }-${date.getDate()}`;
+        const funcionario = this.auth.idUserToken();
+        this.list
+            .listarAsignacionRecolectores(
+                this.token,
+                { dateOnly, funcionario },
+                true
+            )
+            .subscribe((response) => {
+                console.log(response);
+            });
+    }
     //------------------------------------------ObtenerRuta------------------------
-    async getRuta(id: any) {
-        const token = this.auth.token();
-        this.filter.obtenerRutaRecolector(token, id).subscribe(
+    token = this.auth.token();
+    /*const startOfDay = new Date(this.ruta.createdAt);
+        startOfDay.setHours(0, 0, 0, 0);
+    
+        const endOfDay = new Date(this.ruta.createdAt);
+        endOfDay.setHours(23, 59, 59, 999);
+    
+        const startOfDayISO = startOfDay.toISOString();
+        const endOfDayISO = endOfDay.toISOString();
+    
+        (await this.ubicacionService.fetchRouteData(this.ruta.deviceId, startOfDayISO, endOfDayISO)).subscribe(response => {
+            console.log(response);
+        });*/
+    async updateRuta() {
+        (
+            await this.filter.ActualizarRutaRecolector(this.token, this.id)
+        ).subscribe(
+            (response) => {
+                console.log(response);
+            },
+            (error) => {
+                console.error(error);
+            }
+        );
+    }
+    async getRuta() {
+        this.filter.obtenerRutaRecolector(this.token, this.id).subscribe(
             async (response) => {
                 console.log(response);
                 if (response.data) {
                     this.ruta = response.data;
-                    await this.DrawRuta(this.ruta.ruta);
+                    if (this.ruta.ruta.length > 0) {
+                        await this.DrawRuta(this.ruta.ruta);
+                    }
+
                     this.ruta.puntos_recoleccion.forEach((element: any) => {
                         this.addMarker(element, false);
                     });
@@ -283,15 +339,18 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
 
             // Crea la ventana de información para el marcador de inicio
             const initialInfoWindow = new google.maps.InfoWindow({
-                content: `<div><strong>Inicio</strong><br>Lat: ${
-                    auxinicial.latitude
-                }, Lng: ${auxinicial.longitude}<br>Time: ${new Date(
+                headerContent: 'Inicio',
+                content: `<div>Lat: ${auxinicial.latitude}, Lng: ${
+                    auxinicial.longitude
+                }<br>Time: ${new Date(auxinicial.fixTime).getDay()}/${new Date(
                     auxinicial.fixTime
-                ).getDay()}/${new Date(auxinicial.fixTime).getMonth()}/${new Date(
+                ).getMonth()}/${new Date(
                     auxinicial.fixTime
                 ).getFullYear()}   ${new Date(
                     auxinicial.fixTime
-                ).getHours()}:${new Date(auxinicial.fixTime).getMinutes()}</div>`,
+                ).getHours()}:${new Date(
+                    auxinicial.fixTime
+                ).getMinutes()}</div>`,
             });
 
             // Asocia la ventana de información con el marcador de inicio
@@ -320,9 +379,10 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
 
                 // Crea la ventana de información para el marcador de fin
                 const finalInfoWindow = new google.maps.InfoWindow({
-                    content: `<div><strong>Fin</strong><br>Lat: ${
-                        auxfinal.latitude
-                    }, Lng: ${auxfinal.longitude}<br>Time: ${new Date(
+                    headerContent: 'Fin',
+                    content: `<div>Lat: ${auxfinal.latitude}, Lng: ${
+                        auxfinal.longitude
+                    }<br>Time: ${new Date(
                         auxfinal.fixTime
                     ).getDay()}/${new Date(
                         auxfinal.fixTime

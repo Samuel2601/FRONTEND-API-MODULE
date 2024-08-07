@@ -73,13 +73,14 @@ export class ListarRecolectoresComponent implements OnInit {
             });
         }
     }
-    verRuta(id:any){
+    verRuta(register:any){
         if (this.helper.isMobil()) {
-            this.router.navigate(['/recolectores/register'+id]);
+            this.router.navigate(['/recolectores/register'+register._id]);
         } else {
             this.ref = this.dialogService.open(AgregarUbicacionRecolectoresComponent, {
-                header: 'Seguimiento de ruta',
-                width: '50%',
+                header: 'Seguimiento de ruta del vehiculo: ' + this.getDeviceGPS(register.deviceId) +' a cargo de: ' + register.funcionario.name + ' '+ register.funcionario.last_name,
+                width: '90vw',
+                data: { id:register._id }
             });
             App.addListener('backButton', (data) => {
                 this.ref.close();
