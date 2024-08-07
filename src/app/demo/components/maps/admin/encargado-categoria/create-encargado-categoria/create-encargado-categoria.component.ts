@@ -27,7 +27,7 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
         private helper: HelperService,
         private messageService: MessageService,
         private ref: DynamicDialogRef,
-        private auth:AuthService
+        private auth: AuthService
     ) {
         this.subcategoriaForm = this.fb.group({
             categoria: ['', Validators.required],
@@ -45,7 +45,10 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
         });
     }
     roles: any[] = [];
+    /*
 
+                                        'role.orden',
+                                        user.orden */
     async listarUsuarios(): Promise<void> {
         this.listService
             .listarRolesUsuarios(this.token)
@@ -53,26 +56,27 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
                 if (response.data) {
                     this.roles = response.data;
                     //console.log(this.roles);
-                     const list_user= await Promise.all(
+                    const list_user = await Promise.all(
                         this.roles.map(async (user: any) => {
                             if (user.orden == 3 || user.orden > 4) {
                                 const listusuarios = await this.listService
-                                    .listarUsuarios(
-                                        this.token,
-                                        'role.orden',
-                                        user.orden
-                                    )
+                                    .listarUsuarios(this.token, {
+                                        role: '65c505bc9c664a1238b47f1a',
+                                    })
                                     .toPromise();
                                 return listusuarios;
                             }
                         })
                     );
-                    list_user.forEach(element => {
-                      if(element){
-                        this.usuarios.push(...element.data);
-                      }
+                    list_user.forEach((element) => {
+                        if (element) {
+                            this.usuarios.push(...element.data);
+                            this.usuarios = this.usuarios.map(usuarios => ({
+                                ...usuarios,
+                                fullName: `${usuarios.name} ${usuarios.last_name}`}));
+                        }
                     });
-                    
+
                     //console.log(this.usuarios);
                 }
             });
@@ -92,6 +96,8 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
     }
     registrarEncargo() {
         if (this.encargadosSeleccionados.length > 0 && this.categoriaselect) {
+            console.log(this.encargadosSeleccionados,this.categoriaselect);
+            /*
             this.createService
                 .registrarEncargadoCategoria(this.token, {
                     encargado: this.encargadosSeleccionados,
@@ -115,6 +121,7 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
                         });
                     }
                 );
+                */
         }
     }
 }

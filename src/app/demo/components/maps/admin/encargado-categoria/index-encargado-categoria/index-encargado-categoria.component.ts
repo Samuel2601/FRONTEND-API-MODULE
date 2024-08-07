@@ -33,6 +33,11 @@ export class IndexEncargadoCategoriaComponent {
             (response) => {
                 this.encargadosCategoria = response.data;
                 console.log(response.data);
+                this.encargadosCategoria.forEach(element => {
+                    element.encargado = element.encargado.map(usuarios => ({
+                        ...usuarios,
+                        fullName: `${usuarios.name} ${usuarios.last_name}`}));
+                });
             },
             (error) => {
                 console.error(error);

@@ -245,5 +245,13 @@ export class CreateService {
       throw error;
     }
   }
+
+  registrarAsignacionReolectores(token: any, data: any[]): Observable<any> {
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: token,
+    });
+    return this.http.post(this.url + 'recolector', data, { headers: headers });
+  }
   
 }

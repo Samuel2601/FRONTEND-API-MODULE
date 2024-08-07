@@ -142,4 +142,25 @@ export class FilterService {
             params,
         });
     }
+
+    ActualizarRutaRecolector(token: any, id: string): Observable<any> {
+        const headers = this.getHeaders(token);
+        let params = new HttpParams();
+        params = params.append('populate', 'all');
+        return this.http.get(this.url + 'recolector_ruta/' + id, {
+            headers,
+            params,
+        });
+    }
+
+    obtenerRutaRecolector(token: any, id: string): Observable<any> {
+        const headers = this.getHeaders(token);
+        let params = new HttpParams();
+        params = params.append('populate', 'all');
+        return this.http.get(this.url + 'recolector/' + id, {
+            headers,
+            params,
+        });
+    }
+
 }

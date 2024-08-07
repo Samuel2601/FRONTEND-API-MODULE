@@ -25,6 +25,12 @@ export class AppMenuComponent implements OnInit {
 
     async loadPermissions() {
         const permissionsObservables = {
+            canViewRecolector: (
+                await this.auth.hasPermissionComponent(
+                    '/recolector',
+                    'get'
+                )
+            ).pipe(catchError(() => of(false))),
             canViewMapa: (
                 await this.auth.hasPermissionComponent(
                     '/incidentes_denuncia',
@@ -72,19 +78,19 @@ export class AppMenuComponent implements OnInit {
                 this.model = [
                     {
                         label: 'Recolectores',
-                        visible: true,
+                        visible: permissions.canViewRecolector,
                         items: [
                             {
                                 label: 'Recolectores',
                                 icon: 'pi pi-fw pi-slack',
                                 routerLink: ['/recolectores/listar'],
-                                visible: true,
+                                visible: permissions.canViewRecolector,
                             },
                             {
                                 label: 'Recolectores Mapa',
                                 icon: 'pi pi-fw pi-map-marker',
                                 routerLink: ['/recolectores/map'],
-                                visible: true,
+                                visible: permissions.canViewRecolector,
                             },
                         ],
                     },

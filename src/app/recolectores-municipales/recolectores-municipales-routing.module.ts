@@ -9,6 +9,7 @@ import { FormularioSocioeconomicoComponent } from './formulario-socioeconomico/f
         RouterModule.forChild([
             { path: 'listar', component: ListarRecolectoresComponent },
             { path: 'map', component: AgregarUbicacionRecolectoresComponent },
+            { path: 'map/:id', component: AgregarUbicacionRecolectoresComponent },
             { path: 'register', component: AgregarRecolectorComponent },
             {
                 path: 'formulario',

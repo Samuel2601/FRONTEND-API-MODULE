@@ -73,22 +73,22 @@
                                 >
                                     <ng-template pTemplate="header">
                                         <tr>
-                                            <th pSortableColumn="nombres">
+                                            <th pSortableColumn="fullName">
                                                 Nombres
                                                 <p-sortIcon
-                                                    field="nombres"
+                                                    field="fullName"
                                                 ></p-sortIcon>
                                             </th>
-                                            <th pSortableColumn="correo">
+                                            <th pSortableColumn="email">
                                                 Correo
                                                 <p-sortIcon
-                                                    field="correo"
+                                                    field="email"
                                                 ></p-sortIcon>
                                             </th>
-                                            <th pSortableColumn="estado">
+                                            <th pSortableColumn="status">
                                                 Estado
                                                 <p-sortIcon
-                                                    field="estado"
+                                                    field="status"
                                                 ></p-sortIcon>
                                             </th>
                                             <th style="width: 4rem"></th>
@@ -96,9 +96,9 @@
                                     </ng-template>
                                     <ng-template pTemplate="body" let-order>
                                         <tr>
-                                            <td>{{ order.nombres }}</td>
-                                            <td>{{ order.correo }}</td>
-                                            <td>{{ order.estado }}</td>
+                                            <td>{{ order.fullName }}</td>
+                                            <td>{{ order.email }}</td>
+                                            <td>{{ order.status }}</td>
                                         </tr>
                                     </ng-template>
                                     <ng-template pTemplate="emptymessage">

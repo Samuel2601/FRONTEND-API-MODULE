@@ -1,11 +1,11 @@
 <!-- agregar-ubicacion-recolectores.component.html -->
-
+<p-toast></p-toast>
 <div class="map-container mb-5">
     <!-- Mapa de Google -->
     <div
         class="card"
         id="map2"
-        style="min-height: 20vh; margin-left: -18px; margin-right: -18px"
+        style="min-height: 50vh; margin-left: -18px; margin-right: -18px"
     ></div>
     <!-- velocidad.component.html -->
     <div class="velocidad-container">
@@ -56,6 +56,39 @@
             <td>{{ location.lat }}</td>
             <td>{{ location.lng }}</td>
             <td>{{ location.timestamp | date : "short" }}</td>
+        </tr>
+    </ng-template>
+</p-table>
+
+<p-table
+    [value]="ruta.ruta"
+    [scrollable]="true"
+    scrollHeight="300px"
+    [tableStyle]="{ 'min-width': 'auto' }"
+>
+    <ng-template pTemplate="header">
+        <tr>
+            <th>N°</th>
+            <th>Valida</th>
+            <th>Latitud</th>
+            <th>Longitud</th>
+            <th>Altitud</th>
+            <th>Velocidad</th>
+            <th>Fecha</th>
+        </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-location let-i="rowIndex">
+        <tr
+            (click)="getMarker(i)"
+            [ngClass]="{ 'highlight-row': location.retorno }"
+        >
+            <td>{{ i + 1 }}</td>
+            <td>{{ location.valid }}</td>
+            <td>{{ location.latitude }}</td>
+            <td>{{ location.longitude }}</td>
+            <td>{{ location.altitude }}</td>
+            <td> {{location.speed}} km/h </td>
+            <td>{{ location.fixTime | date : "short" }}</td>
         </tr>
     </ng-template>
 </p-table>
