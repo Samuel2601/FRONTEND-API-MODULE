@@ -14,7 +14,7 @@ import { AgregarUbicacionRecolectoresComponent } from '../agregar-ubicacion-reco
     selector: 'app-listar-recolectores',
     templateUrl: './listar-recolectores.component.html',
     styleUrl: './listar-recolectores.component.scss',
-    providers: [MessageService, DynamicDialogRef],
+    providers: [MessageService, DynamicDialogRef,DialogService],
 })
 export class ListarRecolectoresComponent implements OnInit {
     token = this.auth.token();
@@ -41,8 +41,10 @@ export class ListarRecolectoresComponent implements OnInit {
     getDeviceGPS(id: string) {
         let nameDevice = '';
         if (this.devices.length > 0) {
-            let aux = this.devices.find((element) => element.id === parseInt(id) );
-            nameDevice = aux?aux.name:'No encontrado';
+            let aux = this.devices.find(
+                (element) => element.id === parseInt(id)
+            );
+            nameDevice = aux ? aux.name : 'No encontrado';
         }
         return nameDevice;
     }
@@ -73,15 +75,24 @@ export class ListarRecolectoresComponent implements OnInit {
             });
         }
     }
-    verRuta(register:any){
+    verRuta(register: any) {
         if (this.helper.isMobil()) {
-            this.router.navigate(['/recolectores/register'+register._id]);
+            this.router.navigate(['/recolectores/register' + register._id]);
         } else {
-            this.ref = this.dialogService.open(AgregarUbicacionRecolectoresComponent, {
-                header: 'Seguimiento de ruta del vehiculo: ' + this.getDeviceGPS(register.deviceId) +' a cargo de: ' + register.funcionario.name + ' '+ register.funcionario.last_name,
-                width: '90vw',
-                data: { id:register._id }
-            });
+            this.ref = this.dialogService.open(
+                AgregarUbicacionRecolectoresComponent,
+                {
+                    header:
+                        'Seguimiento de ruta del vehiculo: ' +
+                        this.getDeviceGPS(register.deviceId) +
+                        ' a cargo de: ' +
+                        register.funcionario.name +
+                        ' ' +
+                        register.funcionario.last_name,
+                    width: '90vw',
+                    data: { id: register._id },
+                }
+            );
             App.addListener('backButton', (data) => {
                 this.ref.close();
             });

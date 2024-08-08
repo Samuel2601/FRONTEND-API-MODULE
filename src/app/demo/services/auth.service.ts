@@ -38,8 +38,12 @@ export class AuthService {
     ) {
         this.initializeGoogleOneTap();
         this.url = GLOBAL.url;
+        this.inicializadorSocket();
+    }
+    async inicializadorSocket() {
         if (this.isAuthenticated()) {
             this.inicialityPermiss();
+            this.socketService.inicializador();
             this.socketService
                 .onPermissionChange()
                 .subscribe((permissionChange) => {
@@ -145,6 +149,9 @@ export class AuthService {
                 summary: 'Permisos removidos',
             });
         }
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
     }
 
     private updateRoles(currentRoles: any[], roleChange: any) {
@@ -178,6 +185,9 @@ export class AuthService {
                 }
             );
         }
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
     }
 
     // Método para refrescar el token
@@ -213,6 +223,7 @@ export class AuthService {
         localStorage.setItem('token', token);
         const idUser = this.idUserToken(token);
         localStorage.setItem('idUser', idUser);
+        this.inicializadorSocket();
     }
 
     obtenerGPS(): Observable<any> {

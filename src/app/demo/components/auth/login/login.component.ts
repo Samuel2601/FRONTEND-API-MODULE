@@ -39,32 +39,40 @@ export class LoginComponent implements OnInit {
         private messageService: MessageService,
         private layoutService: LayoutService,
         private cookieService: CookieService,
-        private auth:AuthService
+        private auth: AuthService
     ) {
         this.loginForm = this.formBuilder.group({
-            correo: ['', [
-                Validators.required,
-                Validators.pattern('[a-z0-9._%+-]+@[a-z0-9.-]+.[a-z]{2,3}$'),
-                Validators.maxLength(50),
-            ]],
-            pass: ['', [
-                Validators.required,
-                Validators.minLength(8),
-                Validators.maxLength(30),
-            ]],
+            correo: [
+                '',
+                [
+                    Validators.required,
+                    Validators.pattern(
+                        '[a-z0-9._%+-]+@[a-z0-9.-]+.[a-z]{2,3}$'
+                    ),
+                    Validators.maxLength(50),
+                ],
+            ],
+            pass: [
+                '',
+                [
+                    Validators.required,
+                    Validators.minLength(8),
+                    Validators.maxLength(30),
+                ],
+            ],
             save: [true],
         });
 
         this.removeWhitespaceFromEmail();
     }
-    IsMobil(){
+    IsMobil() {
         return this.helper.isMobil();
     }
 
     ngOnInit(): void {
         this.helper.llamarspinner('login');
         this.handleQueryParams();
-        this.playIntroAudio();        
+        this.playIntroAudio();
         this.setHeight();
         window.addEventListener('resize', this.setHeight.bind(this));
 
@@ -72,7 +80,6 @@ export class LoginComponent implements OnInit {
             setTimeout(() => {
                 this.router.navigate(['/home']);
             }, 2000);
-            
         } else {
             this.loadUserData();
         }
@@ -80,9 +87,12 @@ export class LoginComponent implements OnInit {
     }
 
     private removeWhitespaceFromEmail(): void {
-        this.loginForm.get('correo').valueChanges.subscribe(value => {
+        this.loginForm.get('correo').valueChanges.subscribe((value) => {
             const correoSinEspacios = value.replace(/\s/g, '').toLowerCase();
-            this.loginForm.patchValue({ correo: correoSinEspacios }, { emitEvent: false });
+            this.loginForm.patchValue(
+                { correo: correoSinEspacios },
+                { emitEvent: false }
+            );
         });
     }
 
@@ -96,34 +106,39 @@ export class LoginComponent implements OnInit {
     }
 
     private handleQueryParams() {
-        this.route.queryParams.subscribe(async params => {
+        this.route.queryParams.subscribe(async (params) => {
             const token = params['token'];
             await this.verificToken(token);
             if (params['correo'] && params['password']) {
-                this.loginForm.setValue({ correo: params['correo'], pass: params['password'] });
+                this.loginForm.setValue({
+                    correo: params['correo'],
+                    pass: params['password'],
+                });
             }
         });
     }
-    private async verificToken(token:any){
+    private async verificToken(token: any) {
         if (token) {
             await this.guardarToken(token);
             this.storeUserData(this.auth.authToken(token));
             this.rederict();
-            console.log("envio home");
-        }        
+            console.log('envio home');
+        }
     }
     private setHeight(): void {
         this.height = window.innerHeight;
     }
 
     private loadUserData(): void {
-        this.nombreUsuario = this.helper.decryptDataLogin(this.helper.isMobil()
-            ? localStorage.getItem('nombreUsuario')
-            : this.cookieService.get('nombreUsuario')
+        this.nombreUsuario = this.helper.decryptDataLogin(
+            this.helper.isMobil()
+                ? localStorage.getItem('nombreUsuario')
+                : this.cookieService.get('nombreUsuario')
         );
-        this.fotoUsuario = this.helper.decryptDataLogin(this.helper.isMobil()
-            ? localStorage.getItem('fotoUsuario')
-            : this.cookieService.get('fotoUsuario')
+        this.fotoUsuario = this.helper.decryptDataLogin(
+            this.helper.isMobil()
+                ? localStorage.getItem('fotoUsuario')
+                : this.cookieService.get('fotoUsuario')
         );
         this.callBiometrico();
     }
@@ -147,7 +162,8 @@ export class LoginComponent implements OnInit {
 
         if (correoCookieuser) {
             try {
-                const correoDesencriptado = this.helper.decryptDataLogin(correoCookieuser);
+                const correoDesencriptado =
+                    this.helper.decryptDataLogin(correoCookieuser);
                 this.loginForm.get('correo').setValue(correoDesencriptado);
 
                 if (this.IsMobil() && correoCookiepass) {
@@ -161,8 +177,11 @@ export class LoginComponent implements OnInit {
                         }).catch(() => false);
 
                         if (verified) {
-                            const passDesencriptado = this.helper.decryptDataLogin(correoCookiepass);
-                            this.loginForm.get('pass').setValue(passDesencriptado);
+                            const passDesencriptado =
+                                this.helper.decryptDataLogin(correoCookiepass);
+                            this.loginForm
+                                .get('pass')
+                                .setValue(passDesencriptado);
                             this.postLogin();
                         }
                     }
@@ -174,7 +193,9 @@ export class LoginComponent implements OnInit {
     }
 
     private getCookieOrLocalStorage(key: string): string {
-        return this.IsMobil() ? localStorage.getItem(key) : this.cookieService.get(key);
+        return this.IsMobil()
+            ? localStorage.getItem(key)
+            : this.cookieService.get(key);
     }
 
     get formControls() {
@@ -194,19 +215,19 @@ export class LoginComponent implements OnInit {
                 const response = await this.authService.login(user).toPromise();
                 console.log(response);
                 if (response.data) {
-                    
                     await this.guardarToken(response.data.token);
-                    this.storeUserData(this.auth.authToken(response.data.token));
+                    this.storeUserData(
+                        this.auth.authToken(response.data.token)
+                    );
                     //await this.navigateAfterLogin(response.data.passwordChange?true:false);
                     this.rederict();
-
                 } else if (response.message) {
                     this.messageService.add({
                         severity: 'success',
                         summary: 'Verificación',
                         detail: response.message,
                     });
-                    setTimeout(() => this.visible = true, 500);
+                    setTimeout(() => (this.visible = true), 500);
                 }
             } catch (error) {
                 this.handleLoginError(error);
@@ -222,11 +243,19 @@ export class LoginComponent implements OnInit {
 
     private storeUserData(data: any): void {
         if (data) {
-            this.storeEncryptedData('nombreUsuario', data.nombres?data.nombres:data.name+' '+data.last_name);
-            this.storeEncryptedData('fotoUsuario', data.foto?data.foto:data.photo);
+            this.storeEncryptedData(
+                'nombreUsuario',
+                data.nombres ? data.nombres : data.name + ' ' + data.last_name
+            );
+            this.storeEncryptedData(
+                'fotoUsuario',
+                data.foto ? data.foto : data.photo
+            );
             this.storeEncryptedData('correo', data.email);
-            this.guardarNombreUsuario(data.nombres?data.nombres:data.name+' '+data.last_name);
-            this.guardarFoto( data.foto?data.foto:data.photo)
+            this.guardarNombreUsuario(
+                data.nombres ? data.nombres : data.name + ' ' + data.last_name
+            );
+            this.guardarFoto(data.foto ? data.foto : data.photo);
         }
     }
 
@@ -240,36 +269,47 @@ export class LoginComponent implements OnInit {
     }
 
     async navigateAfterLogin(hasPassword: boolean): Promise<void> {
-       
-    
         const pass = this.loginForm.get('pass').value;
-        const storedPass = this.helper.decryptDataLogin(this.getCookieOrLocalStorage('pass')) || undefined;
-    
+        const storedPass =
+            this.helper.decryptDataLogin(
+                this.getCookieOrLocalStorage('pass')
+            ) || undefined;
+
         console.log('IsMobil:', this.IsMobil());
         console.log('storedPass:', storedPass);
         console.log('pass:', pass);
-    
-        if (this.IsMobil() && (storedPass == undefined || pass !== storedPass)) {
+
+        if (
+            this.IsMobil() &&
+            (storedPass == undefined || pass !== storedPass)
+        ) {
             try {
                 const result = await NativeBiometric.isAvailable();
                 console.log('NativeBiometric.isAvailable result:', result);
-    
+
                 if (result.isAvailable) {
                     const verified = await NativeBiometric.verifyIdentity({
                         reason: 'Para un fácil inicio de sesión',
                         title: 'Inicio de Sesión',
                         subtitle: 'Coloque su dedo en el sensor.',
                         description: 'Se requiere Touch ID o Face ID',
-                    }).then(() => true)
-                      .catch((error) => {
-                          console.error('Biometric verification error:', error);
-                          return false;
-                      });
-    
+                    })
+                        .then(() => true)
+                        .catch((error) => {
+                            console.error(
+                                'Biometric verification error:',
+                                error
+                            );
+                            return false;
+                        });
+
                     console.log('Biometric verified:', verified);
-    
+
                     if (verified) {
-                        localStorage.setItem('pass', this.helper.encryptDataLogin(pass, 'labella'));
+                        localStorage.setItem(
+                            'pass',
+                            this.helper.encryptDataLogin(pass, 'labella')
+                        );
                     } else {
                         this.messageService.add({
                             severity: 'error',
@@ -284,16 +324,17 @@ export class LoginComponent implements OnInit {
                 console.error('Error checking biometric availability:', error);
             }
         }
-    
+
         this.rederict(hasPassword);
     }
-    
-    private async rederict(hasPassword?:boolean){
+
+    private async rederict(hasPassword?: boolean) {
         this.messageService.add({
             severity: 'success',
             summary: 'Ingreso',
             detail: 'Bienvenido',
         });
+        await this.auth.inicializadorSocket();
         await this.auth.inicialityPermiss();
 
         setTimeout(() => {
@@ -310,87 +351,101 @@ export class LoginComponent implements OnInit {
     }
 
     verifiCode(): void {
-        this.authService.validcode({
-            email: this.loginForm.get('correo').value,
-            codigo: this.codevalid,
-        }).subscribe(
-            async response => {
-                //console.log(response);
-                if (response.message === 'Bienvenido.') {
+        this.authService
+            .validcode({
+                email: this.loginForm.get('correo').value,
+                codigo: this.codevalid,
+            })
+            .subscribe(
+                async (response) => {
+                    //console.log(response);
+                    if (response.message === 'Bienvenido.') {
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Verificación',
+                            detail: response.message,
+                        });
+                        await this.guardarToken(response.data.token);
+                        this.storeUserData(
+                            this.auth.authToken(response.data.token)
+                        );
+                        setTimeout(() => (this.visible = false), 500);
+                        this.rederict();
+                    }
+                },
+                (error) => {
                     this.messageService.add({
-                        severity: 'success',
-                        summary: 'Verificación',
-                        detail: response.message,
+                        severity: 'error',
+                        summary: `(${error.status})`,
+                        detail: error.error.message || 'Sin conexión',
                     });
-                    await this.guardarToken(response.data.token);
-                    this.storeUserData(this.auth.authToken(response.data.token));
-                    setTimeout(() => this.visible = false, 500);
-                    this.rederict();
                 }
-            },
-            error => {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: `(${error.status})`,
-                    detail: error.error.message || 'Sin conexión',
-                });
-            }
-        );
+            );
     }
 
     async guardarToken(token: string) {
-        const storage = this.loginForm.get('save').value ? localStorage : sessionStorage;        
+        const storage = this.loginForm.get('save').value
+            ? localStorage
+            : sessionStorage;
         storage.setItem('token', token);
 
-        const idUser=this.auth.idUserToken(token);
+        const idUser = this.auth.idUserToken(token);
         storage.setItem('idUser', idUser);
     }
 
     guardarFoto(foto: string): void {
         if (foto) {
-            const storage = this.loginForm.get('save').value ? localStorage : sessionStorage;
+            const storage = this.loginForm.get('save').value
+                ? localStorage
+                : sessionStorage;
             storage.setItem('fotoUsuario', foto);
         }
     }
 
     guardarNombreUsuario(nombre: string): void {
         if (nombre) {
-            const storage = this.loginForm.get('save').value ? localStorage : sessionStorage;
+            const storage = this.loginForm.get('save').value
+                ? localStorage
+                : sessionStorage;
             storage.setItem('nombreUsuario', nombre);
         }
     }
 
     async loginWithGoogle() {
-        if(this.IsMobil()){
+        if (this.IsMobil()) {
             try {
                 await this.authService.initializeGoogleOneTap();
                 const googleUser = await this.authService.signInWithGoogle();
-                const response:any = await this.authService.sendUserToBackend(googleUser);
-                if(response.token){
+                const response: any = await this.authService.sendUserToBackend(
+                    googleUser
+                );
+                if (response.token) {
                     await this.guardarToken(response.token);
                     this.storeUserData(this.auth.authToken(response.token));
                     this.rederict();
-                }else{
-                    console.warn('Login failed', JSON.stringify(response,null,4));
+                } else {
+                    console.warn(
+                        'Login failed',
+                        JSON.stringify(response, null, 4)
+                    );
                     this.messageService.add({
                         severity: 'error',
                         summary: `(500)`,
                         detail: response.message || 'Sin conexión',
                     });
                 }
-                
+
                 // Maneja el usuario autenticado (por ejemplo, envíalo a tu backend)
-              } catch (err) {
-                console.error('Login failed', JSON.stringify(err,null,4));
+            } catch (err) {
+                console.error('Login failed', JSON.stringify(err, null, 4));
                 this.messageService.add({
                     severity: 'error',
                     summary: `(500)`,
                     detail: 'Algo salio mal',
                 });
-              }
-        }else{
+            }
+        } else {
             this.authService.loginWithGoogle();
         }
-        
     }
 }

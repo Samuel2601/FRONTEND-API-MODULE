@@ -8,7 +8,7 @@
         style="min-height: 50vh; margin-left: -18px; margin-right: -18px"
     ></div>
     <!-- velocidad.component.html -->
-    <div class="velocidad-container" *ngIf="!ruta">
+    <div class="velocidad-container" *ngIf="!ruta&&asignacion">
         <p-button
             icon="pi pi-plus"
             label="Punto de Recolección"
@@ -16,7 +16,7 @@
             (onClick)="addManualLocation(true, false)"
         ></p-button>
     </div>
-    <div class="velocidad-container m-5" *ngIf="!ruta">
+    <div class="velocidad-container m-5" *ngIf="!ruta&&asignacion">
         <p-button
             label="Retorno a la Estación"
             (click)="confirmReturnToStation()"
@@ -31,7 +31,7 @@
             </p>
         </div>
     </div>
-    <div class="velocidad-container" *ngIf="ruta">
+    <div class="velocidad-container" *ngIf="ruta&&!asignacion">
         <p-button
             icon="pi pi-plus"
             label="Actualizar Ruta"

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Optional } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 import { UbicacionService } from '../service/ubicacion.service';
@@ -15,7 +15,7 @@ import { ListService } from 'src/app/demo/services/list.service';
     selector: 'app-agregar-ubicacion-recolectores',
     templateUrl: './agregar-ubicacion-recolectores.component.html',
     styleUrls: ['./agregar-ubicacion-recolectores.component.scss'],
-    providers: [MessageService, DynamicDialogConfig],
+    providers: [MessageService],
 })
 export class AgregarUbicacionRecolectoresComponent implements OnInit {
     mapCustom: google.maps.Map;
@@ -38,7 +38,8 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
 
     private markers: google.maps.Marker[] = [];
     private infoWindows: google.maps.InfoWindow[] = [];
-
+    velocidad: number = 0;
+    distancia: number = 0;
     constructor(
         private ubicacionService: UbicacionService,
         private googlemaps: GoogleMapsService,
@@ -47,30 +48,31 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         private messageService: MessageService,
         private filter: FilterService,
         private auth: AuthService,
-        public config: DynamicDialogConfig,
-        private list: ListService
-    ) {
-        if (config.data && config.data.id) {
-            this.id = config.data.id;
-            this.getRuta();
-        }
-    }
-    velocidad: number = 0;
-    distancia: number = 0;
+        private list: ListService,
+        @Optional() public config?: DynamicDialogConfig
+    ) {}
+
     //----------------------------------------Funciones Standar---------------------------------------
     ruta: any;
     id: any;
     async ngOnInit(): Promise<void> {
         await this.initMap();
-        this.route.paramMap.subscribe(async (params) => {
-            this.id = params.get('id') ? params.get('id') : this.id;
-            if (this.id) {
-                await this.getRuta();
-            } else {
-                await this.seguimientoLocations();
-                this.consultaAsig();
-            }
-        });
+
+        if (this.config?.data?.id) {
+            this.id = this.config.data.id;
+        }
+
+        if (!this.id) {
+            this.route.paramMap.subscribe(async (params) => {
+                this.id = params.get('id') ?? params.get('id');
+            });
+        }
+
+        if (this.id) {
+            await this.getRuta();
+        } else {
+            this.consultaAsig();
+        }
     }
     ngOnDestroy(): void {
         if (this.locationSubscription) {
@@ -82,6 +84,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     }
 
     //------------------------------------------CONSULTA DE ASIGNACION-------------------------------
+    asignacion: any;
     consultaAsig() {
         const date = new Date();
         const dateOnly = `${date.getFullYear()}-${
@@ -92,10 +95,13 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             .listarAsignacionRecolectores(
                 this.token,
                 { dateOnly, funcionario },
-                true
+                false
             )
-            .subscribe((response) => {
-                console.log(response);
+            .subscribe(async (response) => {
+                if (response.data.length > 0) {
+                    this.asignacion = response.data[0];
+                    await this.seguimientoLocations();
+                }
             });
     }
     //------------------------------------------ObtenerRuta------------------------
@@ -113,6 +119,11 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             console.log(response);
         });*/
     async updateRuta() {
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Consula a api',
+            detail: 'Esto puede tardar un rato',
+        });
         (
             await this.filter.ActualizarRutaRecolector(this.token, this.id)
         ).subscribe(
@@ -130,6 +141,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 console.log(response);
                 if (response.data) {
                     this.ruta = response.data;
+                    console.log(response);
                     if (this.ruta.ruta.length > 0) {
                         await this.DrawRuta(this.ruta.ruta);
                     }
@@ -296,36 +308,46 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             '#ff4032',
             '#4caf50',
         ];
+
+        // Limpiar rutas previas del mapa
         if (this.pathson.length > 0) {
             this.pathson.forEach((element: any) => {
                 element.setMap(null);
             });
         }
         this.pathson = [];
-        const path = [];
-        locations.forEach((element) => {
-            path.push({ lat: element.latitude, lng: element.longitude });
-        });
-        const route = new google.maps.Polyline({
-            path: path,
-            geodesic: true,
-            strokeColor: colors[path.length % colors.length],
-            strokeOpacity: 1.0,
-            strokeWeight: 6, // Ajusta este valor para hacer la línea más ancha
-        });
 
-        route.addListener('click', (event: any) => {
-            const infoWindow = new google.maps.InfoWindow({
-                content: 'Tu recorrido',
+        // Divide la ruta en segmentos y dibuja cada uno con un color diferente
+        let segment = [];
+        let currentColorIndex = 0;
+
+        for (let i = 0; i < locations.length - 1; i++) {
+            const currentPoint = locations[i];
+            const nextPoint = locations[i + 1];
+
+            segment.push({
+                lat: currentPoint.latitude,
+                lng: currentPoint.longitude,
             });
 
-            infoWindow.setPosition(event.latLng);
-            infoWindow.open(this.mapCustom);
-        });
-        route.setMap(this.mapCustom);
-        this.pathson.push(route);
+            // Chequea si el siguiente punto es el mismo que el actual o si es el final del array
+            if (
+                currentPoint.latitude === nextPoint.latitude &&
+                currentPoint.longitude === nextPoint.longitude
+            ) {
+                // Termina el segmento actual y dibuja la línea
+                this.drawSegment(segment, colors[currentColorIndex]);
+                currentColorIndex = (currentColorIndex + 1) % colors.length;
+                segment = [];
+            }
+        }
 
-        // Crea el marcador de inicio si no existe
+        // Dibuja el último segmento si hay puntos restantes
+        if (segment.length > 0) {
+            this.drawSegment(segment, colors[currentColorIndex]);
+        }
+
+        // Marca de inicio
         const auxinicial = locations[0];
         if (!this.inicial) {
             this.inicial = new google.maps.Marker({
@@ -337,34 +359,26 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 title: `Lat: ${auxinicial.latitude}, Lng: ${auxinicial.longitude}, Time: ${auxinicial.fixTime}`,
             });
 
-            // Crea la ventana de información para el marcador de inicio
             const initialInfoWindow = new google.maps.InfoWindow({
-                headerContent: 'Inicio',
+                headerContent:'INICIO',
                 content: `<div>Lat: ${auxinicial.latitude}, Lng: ${
                     auxinicial.longitude
-                }<br>Time: ${new Date(auxinicial.fixTime).getDay()}/${new Date(
+                }<br>Time: ${new Date(
                     auxinicial.fixTime
-                ).getMonth()}/${new Date(
-                    auxinicial.fixTime
-                ).getFullYear()}   ${new Date(
-                    auxinicial.fixTime
-                ).getHours()}:${new Date(
-                    auxinicial.fixTime
-                ).getMinutes()}</div>`,
+                ).toLocaleString()}</div>`,
             });
 
-            // Asocia la ventana de información con el marcador de inicio
             this.inicial.addListener('click', () => {
                 initialInfoWindow.open(this.mapCustom, this.inicial);
             });
         } else {
-            // Actualiza la posición del marcador de inicio si ya existe
             this.inicial.setPosition({
                 lat: auxinicial.latitude,
                 lng: auxinicial.longitude,
             });
         }
-        // Mueve el marcador de fin si ya existe, de lo contrario lo crea
+
+        // Marca de fin
         if (locations.length > 3) {
             const auxfinal = locations[locations.length - 1];
             if (!this.final) {
@@ -377,37 +391,146 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                     title: `Lat: ${auxfinal.latitude}, Lng: ${auxfinal.longitude}, Time: ${auxfinal.fixTime}`,
                 });
 
-                // Crea la ventana de información para el marcador de fin
                 const finalInfoWindow = new google.maps.InfoWindow({
-                    headerContent: 'Fin',
+                    headerContent:'FIN',
                     content: `<div>Lat: ${auxfinal.latitude}, Lng: ${
                         auxfinal.longitude
                     }<br>Time: ${new Date(
                         auxfinal.fixTime
-                    ).getDay()}/${new Date(
-                        auxfinal.fixTime
-                    ).getMonth()}/${new Date(
-                        auxfinal.fixTime
-                    ).getFullYear()}   ${new Date(
-                        auxfinal.fixTime
-                    ).getHours()}:${new Date(
-                        auxfinal.fixTime
-                    ).getMinutes()}</div>`,
+                    ).toLocaleString()}</div>`,
                 });
 
-                // Asocia la ventana de información con el marcador de fin
                 this.final.addListener('click', () => {
                     finalInfoWindow.open(this.mapCustom, this.final);
                 });
             } else {
-                // Actualiza la posición del marcador de fin si ya existe
                 this.final.setPosition({
                     lat: auxfinal.latitude,
                     lng: auxfinal.longitude,
                 });
             }
         }
+        this.playRoute(locations);
     }
+
+    // Función auxiliar para dibujar un segmento
+    drawSegment(segment, color) {
+        const route = new google.maps.Polyline({
+            path: segment,
+            geodesic: true,
+            strokeColor: color,
+            strokeOpacity: 0.6, // Opacidad por defecto para las líneas
+            strokeWeight: 6,
+        });
+
+        // Resalta la línea al pasar el mouse por encima
+        route.addListener('mouseover', () => {
+            route.setOptions({ strokeOpacity: 1.0, strokeWeight: 8 });
+            this.pathson.forEach((otherRoute) => {
+                if (otherRoute !== route) {
+                    otherRoute.setOptions({
+                        strokeOpacity: 0.2,
+                        strokeWeight: 4,
+                    });
+                }
+            });
+        });
+
+        // Restaura las líneas cuando el mouse sale de la línea
+        route.addListener('mouseout', () => {
+            route.setOptions({ strokeOpacity: 0.6, strokeWeight: 6 });
+            this.pathson.forEach((otherRoute) => {
+                if (otherRoute !== route) {
+                    otherRoute.setOptions({
+                        strokeOpacity: 0.6,
+                        strokeWeight: 6,
+                    });
+                }
+            });
+        });
+
+        // Resalta la línea al hacer clic
+        route.addListener('click', (event: any) => {
+            route.setOptions({ strokeOpacity: 1.0, strokeWeight: 10 });
+            const infoWindow = new google.maps.InfoWindow({
+                content: 'Tu recorrido',
+            });
+
+            infoWindow.setPosition(event.latLng);
+            infoWindow.open(this.mapCustom);
+
+            this.pathson.forEach((otherRoute) => {
+                if (otherRoute !== route) {
+                    otherRoute.setOptions({
+                        strokeOpacity: 0.2,
+                        strokeWeight: 4,
+                    });
+                }
+            });
+        });
+
+        route.setMap(this.mapCustom);
+        this.pathson.push(route);
+    }
+    vehicleMarker:google.maps.Marker;
+
+    async playRoute(locations, speedMultiplier = 10) {
+        // Si ya hay un marcador en movimiento, detenerlo
+        if (this.vehicleMarker) {
+            this.vehicleMarker.setMap(null);
+        }
+    
+        // Crear un nuevo marcador para representar el vehículo
+        this.vehicleMarker = new google.maps.Marker({
+            position: { lat: locations[0].latitude, lng: locations[0].longitude },
+            map: this.mapCustom,
+            icon: {
+                url: 'https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png', // Ruta al icono del vehículo
+                scaledSize: new google.maps.Size(50, 50), // Tamaño del icono
+            },
+            title: 'Vehículo en movimiento',
+        });
+    
+        // Centrar el mapa en la ubicación inicial del vehículo
+        this.mapCustom.setCenter({
+            lat: locations[0].latitude,
+            lng: locations[0].longitude
+        });
+    
+        // Inicializar variables para la animación
+        let index = 0;
+        const totalLocations = locations.length;
+    
+        // Función que mueve el marcador y centra el mapa
+        const moveVehicle = () => {
+            if (index < totalLocations - 1) {
+                index++;
+                const nextLocation = locations[index];
+                this.vehicleMarker.setPosition({
+                    lat: nextLocation.latitude,
+                    lng: nextLocation.longitude,
+                });
+    
+                // Centrar el mapa en la ubicación actual del vehículo
+                this.mapCustom.setCenter({
+                    lat: nextLocation.latitude,
+                    lng: nextLocation.longitude
+                });
+    
+                // Calcular el tiempo de espera entre movimientos basado en la velocidad seleccionada
+                const delay = 1000 / speedMultiplier;
+    
+                setTimeout(moveVehicle, delay); // Mueve el vehículo a la siguiente ubicación
+            } else {
+                console.log('Ruta completada');
+            }
+        };
+    
+        // Comenzar a mover el vehículo
+        moveVehicle();
+    }
+    
+    
 
     //------------------------------------ACCIONES DEL USUARIO---------------------------------------
     async addManualLocation(status_destacado: boolean, retorno: boolean) {

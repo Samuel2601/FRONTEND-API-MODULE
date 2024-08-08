@@ -11,6 +11,9 @@ export class SocketService {
     private socket: Socket;
 
     constructor() {
+        this.inicializador();
+    }
+    inicializador() {
         try {
             const userId =
                 localStorage.getItem('idUser') ||
@@ -51,7 +54,7 @@ export class SocketService {
     onRoleChange(): Observable<any> {
         return new Observable((observer) => {
             this.socket.on('role-updated', (data) => {
-              //  console.log("SE ACTUALIZO EL ROL");
+                //  console.log("SE ACTUALIZO EL ROL");
                 observer.next(data);
             });
         });
