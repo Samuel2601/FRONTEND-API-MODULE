@@ -355,6 +355,8 @@ export class LoginComponent implements OnInit {
             .validcode({
                 email: this.loginForm.get('correo').value,
                 codigo: this.codevalid,
+                time: this.loginForm.get('save').value ? 60 : 3,
+                tipo: this.loginForm.get('save').value ? 'days' : 'hours',
             })
             .subscribe(
                 async (response) => {

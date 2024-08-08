@@ -190,6 +190,23 @@ export class UbicacionService {
             this.ubicaciones.next([...this.ubicaciones.getValue(), location]);
         }
     }
+    async saveAsignacion(asign: string): Promise<boolean> {
+        try {
+            await Preferences.set({
+                key: 'asign',
+                value: asign,
+            });
+            console.log('Asignación guardada correctamente');
+            return true;
+        } catch (error) {
+            console.error('Error al guardar la asignación:', error);
+            return false;
+        }
+    }
+    getAsignacion = async () => {
+        const { value } = await Preferences.get({ key: 'asign' });
+        return value;
+    };
 
     getUbicaciones() {
         return this.ubicaciones.asObservable();

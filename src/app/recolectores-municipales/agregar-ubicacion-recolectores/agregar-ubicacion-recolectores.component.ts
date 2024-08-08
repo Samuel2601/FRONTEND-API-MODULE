@@ -84,25 +84,41 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     }
 
     //------------------------------------------CONSULTA DE ASIGNACION-------------------------------
-    asignacion: any;
+    asignacionID: any;
     consultaAsig() {
-        const date = new Date();
-        const dateOnly = `${date.getFullYear()}-${
-            date.getMonth() + 1
-        }-${date.getDate()}`;
-        const funcionario = this.auth.idUserToken();
-        this.list
-            .listarAsignacionRecolectores(
-                this.token,
-                { dateOnly, funcionario },
-                false
-            )
-            .subscribe(async (response) => {
-                if (response.data.length > 0) {
-                    this.asignacion = response.data[0];
-                    await this.seguimientoLocations();
-                }
-            });
+        this.asignacionID = this.ubicacionService.getAsignacion();
+        if (!this.asignacionID) {
+            const date = new Date();
+            const dateOnly = `${date.getFullYear()}-${
+                date.getMonth() + 1
+            }-${date.getDate()}`;
+            const funcionario = this.auth.idUserToken();
+            this.list
+                .listarAsignacionRecolectores(
+                    this.token,
+                    { dateOnly, funcionario },
+                    false
+                )
+                .subscribe({
+                    next: async (response) => {
+                        if (response.data.length > 0) {
+                            this.asignacionID = response.data[0]._id;
+                            this.ubicacionService.saveAsignacion(
+                                this.asignacionID
+                            );
+                            await this.seguimientoLocations();
+                        }
+                    },
+                    error: (error) => {
+                        console.error('Error al listar asignaciones:', error);
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'ERROR',
+                            detail: error.message,
+                        });
+                    },
+                });
+        }
     }
     //------------------------------------------ObtenerRuta------------------------
     token = this.auth.token();
@@ -156,7 +172,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 this.messageService.add({
                     severity: 'error',
                     summary: 'ERROR',
-                    detail: error,
+                    detail: error.message,
                 });
             }
         );
@@ -298,6 +314,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     async DrawRuta(
         locations: { latitude: number; longitude: number; fixTime: string }[]
     ) {
+        this.locations = locations;
         const colors = [
             '#2196f3',
             '#f57c00',
@@ -360,7 +377,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             });
 
             const initialInfoWindow = new google.maps.InfoWindow({
-                headerContent:'INICIO',
+                headerContent: 'INICIO',
                 content: `<div>Lat: ${auxinicial.latitude}, Lng: ${
                     auxinicial.longitude
                 }<br>Time: ${new Date(
@@ -392,7 +409,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 });
 
                 const finalInfoWindow = new google.maps.InfoWindow({
-                    headerContent:'FIN',
+                    headerContent: 'FIN',
                     content: `<div>Lat: ${auxfinal.latitude}, Lng: ${
                         auxfinal.longitude
                     }<br>Time: ${new Date(
@@ -410,7 +427,8 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 });
             }
         }
-        this.playRoute(locations);
+
+        //this.playRoute(locations);
     }
 
     // Función auxiliar para dibujar un segmento
@@ -472,65 +490,123 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         route.setMap(this.mapCustom);
         this.pathson.push(route);
     }
-    vehicleMarker:google.maps.Marker;
+    vehicleMarker: google.maps.Marker;
+    isPlaying: boolean = false;
+    speedMultiplier: number = 1;
+    isPaused: boolean = false;
+    locations: any;
+    currentIndex: number = 0;
+    timeoutId: any;
+    shouldCenter: boolean = true;
+    toggleRoutePlayback() {
+        if (this.isPlaying) {
+            this.playRoute(this.locations);
+        } else {
+            if (this.vehicleMarker) {
+                clearTimeout(this.timeoutId); // Detén el recorrido si se desmarca
+                this.vehicleMarker.setMap(null);
+            }
+        }
+    }
 
-    async playRoute(locations, speedMultiplier = 10) {
+    setSpeed(speed: number) {
+        this.speedMultiplier = speed;
+        /*if (this.isPlaying && !this.isPaused) {
+            this.playRoute(
+                this.locations,
+                this.currentIndex
+            ); // Reanuda el recorrido con la nueva velocidad
+        }*/
+    }
+
+    togglePause() {
+        this.isPaused = !this.isPaused;
+        if (!this.isPaused) {
+            this.playRoute(
+                this.locations,
+                this.currentIndex
+            ); // Reanudar desde la posición actual
+        } else {
+            clearTimeout(this.timeoutId); // Pausar la animación
+        }
+    }
+
+    async playRoute(locations, startIndex = 0) {
         // Si ya hay un marcador en movimiento, detenerlo
-        if (this.vehicleMarker) {
+        if (this.vehicleMarker && startIndex === 0) {
             this.vehicleMarker.setMap(null);
         }
-    
-        // Crear un nuevo marcador para representar el vehículo
-        this.vehicleMarker = new google.maps.Marker({
-            position: { lat: locations[0].latitude, lng: locations[0].longitude },
-            map: this.mapCustom,
-            icon: {
-                url: 'https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png', // Ruta al icono del vehículo
-                scaledSize: new google.maps.Size(50, 50), // Tamaño del icono
-            },
-            title: 'Vehículo en movimiento',
-        });
-    
-        // Centrar el mapa en la ubicación inicial del vehículo
-        this.mapCustom.setCenter({
-            lat: locations[0].latitude,
-            lng: locations[0].longitude
-        });
-    
+
+        // Crear un nuevo marcador para representar el vehículo si es la primera vez
+        if (!this.vehicleMarker || startIndex === 0) {
+            this.vehicleMarker = new google.maps.Marker({
+                position: {
+                    lat: locations[0].latitude,
+                    lng: locations[0].longitude,
+                },
+                map: this.mapCustom,
+                icon: {
+                    url: 'https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png',
+                    scaledSize: new google.maps.Size(50, 50),
+                },
+                title: 'Vehículo en movimiento',
+            });
+
+            if (this.shouldCenter) {
+                // Centrar el mapa en la ubicación inicial del vehículo
+                this.mapCustom.setCenter({
+                    lat: locations[0].latitude,
+                    lng: locations[0].longitude,
+                });
+            }
+        }
+
         // Inicializar variables para la animación
-        let index = 0;
+        this.currentIndex = startIndex;
         const totalLocations = locations.length;
-    
+
         // Función que mueve el marcador y centra el mapa
         const moveVehicle = () => {
-            if (index < totalLocations - 1) {
-                index++;
-                const nextLocation = locations[index];
+            // Buscar la siguiente ubicación diferente
+            let nextIndex = this.currentIndex + 1;
+            while (
+                nextIndex < totalLocations &&
+                locations[nextIndex].latitude ===
+                    locations[this.currentIndex].latitude &&
+                locations[nextIndex].longitude ===
+                    locations[this.currentIndex].longitude
+            ) {
+                nextIndex++;
+            }
+
+            if (nextIndex < totalLocations && !this.isPaused) {
+                this.currentIndex = nextIndex;
+                const nextLocation = locations[this.currentIndex];
                 this.vehicleMarker.setPosition({
                     lat: nextLocation.latitude,
                     lng: nextLocation.longitude,
                 });
-    
-                // Centrar el mapa en la ubicación actual del vehículo
-                this.mapCustom.setCenter({
-                    lat: nextLocation.latitude,
-                    lng: nextLocation.longitude
-                });
-    
+
+                if (this.shouldCenter) {
+                    // Centrar el mapa en la ubicación actual del vehículo si la opción está habilitada
+                    this.mapCustom.setCenter({
+                        lat: nextLocation.latitude,
+                        lng: nextLocation.longitude,
+                    });
+                }
+
                 // Calcular el tiempo de espera entre movimientos basado en la velocidad seleccionada
-                const delay = 1000 / speedMultiplier;
-    
-                setTimeout(moveVehicle, delay); // Mueve el vehículo a la siguiente ubicación
-            } else {
+                const delay = 1000 / this.speedMultiplier;
+                console.log("delay",delay,"VELOCIDAD: ",this.speedMultiplier);
+                this.timeoutId = setTimeout(moveVehicle, delay); // Mueve el vehículo a la siguiente ubicación
+            } else if (this.currentIndex >= totalLocations - 1) {
                 console.log('Ruta completada');
             }
         };
-    
+
         // Comenzar a mover el vehículo
         moveVehicle();
     }
-    
-    
 
     //------------------------------------ACCIONES DEL USUARIO---------------------------------------
     async addManualLocation(status_destacado: boolean, retorno: boolean) {

@@ -8,7 +8,7 @@
         style="min-height: 50vh; margin-left: -18px; margin-right: -18px"
     ></div>
     <!-- velocidad.component.html -->
-    <div class="velocidad-container" *ngIf="!ruta&&asignacion">
+    <div class="velocidad-container" *ngIf="!ruta && asignacionID">
         <p-button
             icon="pi pi-plus"
             label="Punto de Recolección"
@@ -16,7 +16,7 @@
             (onClick)="addManualLocation(true, false)"
         ></p-button>
     </div>
-    <div class="velocidad-container m-5" *ngIf="!ruta&&asignacion">
+    <div class="velocidad-container m-5" *ngIf="!ruta && asignacionID">
         <p-button
             label="Retorno a la Estación"
             (click)="confirmReturnToStation()"
@@ -31,7 +31,7 @@
             </p>
         </div>
     </div>
-    <div class="velocidad-container" *ngIf="ruta&&!asignacion">
+    <div class="velocidad-container" *ngIf="ruta && !asignacionID">
         <p-button
             icon="pi pi-plus"
             label="Actualizar Ruta"
@@ -40,6 +40,86 @@
         ></p-button>
     </div>
 </div>
+<p-card header="Control del Recorrido">
+    <!-- Fila 1: Checkbox que ocupa todo el ancho -->
+    <div class="p-fluid">
+        <p-checkbox
+            [(ngModel)]="isPlaying"
+            binary="true"
+            inputId="playing"
+            (onChange)="toggleRoutePlayback()"
+            label="Mostrar Recorrido"
+        ></p-checkbox>
+    </div>
+
+    <!-- Fila 2: Slider y botones de velocidad -->
+    <div class="p-grid" *ngIf="isPlaying">
+        <!-- Slider -->
+        <div class="p-col-12 p-md-6">
+            <span class="font-bold block mb-2">Velocidad:</span>
+            <p>{{ speedMultiplier }}x</p>
+            <p-slider
+                [(ngModel)]="speedMultiplier"
+                [min]="1"
+                [max]="20"
+                [step]="1"
+                [style]="{ width: '100%' }"
+            ></p-slider>
+        </div>
+
+        <!-- Botones de velocidad rápida -->
+        <div class="p-col-12 p-md-6">
+            <span class="font-bold block mb-2">Velocidades rápidas:</span>
+            <p-inputGroup class="w-full md:w-30rem">
+                <button
+                    pButton
+                    label="X2"
+                    class="p-button-secondary"
+                    (click)="setSpeed(2)"
+                ></button>
+                <button
+                    pButton
+                    label="X5"
+                    class="p-button-secondary"
+                    (click)="setSpeed(5)"
+                ></button>
+                <button
+                    pButton
+                    label="X10"
+                    class="p-button-secondary"
+                    (click)="setSpeed(10)"
+                ></button>
+                <button
+                    pButton
+                    label="X20"
+                    class="p-button-secondary"
+                    (click)="setSpeed(20)"
+                ></button>
+            </p-inputGroup>
+        </div>
+    </div>
+
+    <!-- Fila 3: Checkbox para centrar el mapa -->
+    <div class="p-fluid" *ngIf="isPlaying">
+        <p-checkbox
+            [(ngModel)]="shouldCenter"
+            binary="true"
+            inputId="centerMap"
+            label="Centrar mapa en el ícono del vehículo"
+        ></p-checkbox>
+    </div>
+
+    <!-- Fila 4: Botón de pausa/reanudación -->
+    <div class="p-fluid" *ngIf="isPlaying">
+        <button
+            pButton
+            label="{{ isPaused ? 'Reanudar' : 'Pausar' }}"
+            class="p-button-primary"
+            (click)="togglePause()"
+        ></button>
+    </div>
+
+</p-card>
 
 <p-table
     *ngIf="table.length > 0"
