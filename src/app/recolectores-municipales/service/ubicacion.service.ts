@@ -31,7 +31,7 @@ export class UbicacionService {
     public url: string;
     constructor(private _http: HttpClient) {
         this.url = GLOBAL.url;
-        this.loadInitialLocations();
+        //this.loadInitialLocations();
         //this.iniciarWatcher();
     }
     private lastUpdateTimestamp: number | null = null;
@@ -72,6 +72,7 @@ export class UbicacionService {
                 const now = Date.now();
                 const currentLocation = await Geolocation.getCurrentPosition();
                 const nuevaUbicacion = {
+                    _id:'1515',
                     lat: currentLocation.coords.latitude,
                     lng: currentLocation.coords.longitude,
                     timestamp: new Date().toISOString(),
@@ -86,7 +87,7 @@ export class UbicacionService {
                     destacado: false,
                 };*/
                 // Solo guarda y emite si la nueva ubicación es válida
-                const valid = this.isValidLocation(nuevaUbicacion, now);
+                const valid = this.isValidLocation(nuevaUbicacion, now).resp;
                 if (valid) {
                     await this.saveLocation(nuevaUbicacion, valid);
                     this.ubicaciones.next([
@@ -112,26 +113,51 @@ export class UbicacionService {
             speed?: number;
         },
         now?: number
-    ): boolean {
+    ): { resp: boolean; message: string } {
+        const respuesta = {
+            resp: false,
+            message: '',
+        };
+
         now = now ? now : Date.now();
         const lastUbicacion = this.ubicaciones.getValue().slice(-1)[0];
 
-        // Verifica si es la primera ubicación o si la distancia y la velocidad son razonables
-        if (!lastUbicacion) return true;
+        // Verifica si es la primera ubicación
+        if (!lastUbicacion) {
+            respuesta.resp = true;
+            respuesta.message = 'Primera ubicación registrada';
+            return respuesta;
+        }
 
         const distancia = this.calculateDistance(lastUbicacion, nuevaUbicacion);
         this.DistanciaRecorrida.next(this.DistanciaRecorrida.value + distancia);
-        console.log('La distancia al último punto: ', distancia);
+
         const tiempo = (now - this.lastUpdateTimestamp!) / 1000 / 3600; // Convertir tiempo a horas
 
         // Verifica que la distancia no sea demasiado grande en relación con la velocidad
         const maxPossibleDistance = this.MIN_SPEED_KMH * tiempo;
 
-        return (
-            distancia > 0 &&
-            distancia <= maxPossibleDistance &&
-            distancia <= this.MAX_DISTANCE_KM * 1000
-        ); // Distancia en metros
+        if (distancia <= 0) {
+            respuesta.message = 'Parece que no se ha detectado movimiento. Intenta moverte un poco y vuelve a intentarlo.';
+            return respuesta;
+        }
+        
+        if (distancia > maxPossibleDistance) {
+            respuesta.message = 'El movimiento parece ser un poco rápido. Asegúrate de que la ubicación es correcta y vuelve a intentarlo.';
+            return respuesta;
+        }
+        
+        if (distancia > this.MAX_DISTANCE_KM * 1000) {
+            respuesta.message = 'La ubicación parece estar más lejos de lo esperado. Verifica tu posición e inténtalo nuevamente.';
+            return respuesta;
+        }
+        
+
+        // Si todas las condiciones se cumplen, la ubicación es válida
+        respuesta.resp = true;
+        respuesta.message = 'Ubicación válida';
+
+        return respuesta;
     }
 
     calculateDistance(
@@ -154,19 +180,47 @@ export class UbicacionService {
 
     async loadInitialLocations() {
         try {
+            // Obtener las ubicaciones guardadas
             const locations = await Preferences.get({ key: 'locations' });
-            console.log('Se ah encontrado: ', JSON.stringify(locations));
-            const parsedLocations = locations.value
-                ? JSON.parse(locations.value)
-                : [];
-            this.ubicaciones.next(parsedLocations);
+            // Obtener el ID de asignación
+            const asignID = await this.getAsignacion();
+
+            // Verificar si se encontró alguna ubicación
+            if (locations.value) {
+                const parsedLocations = JSON.parse(locations.value);
+
+                // Verificar si alguna ubicación contiene el ID de asignación
+                const containsAsignID = parsedLocations.some(
+                    (location: any) => location._id === asignID._id
+                );
+                if (containsAsignID) {
+                    console.log(
+                        'Se ha encontrado una ubicación con el ID de asignación:',
+                        asignID._id
+                    );
+                    this.ubicaciones.next(parsedLocations);
+                } else {
+                    // Si no contiene el ID de asignación, borrar todas las ubicaciones
+                    console.log(
+                        'No se ha encontrado ninguna ubicación con el ID de asignación. Borrando ubicaciones.'
+                    );
+                    await Preferences.remove({ key: 'locations' });
+                    this.ubicaciones.next([]);
+                }
+            } else {
+                // Si no hay ubicaciones, establecer la lista como vacía
+                console.log('No se encontraron ubicaciones guardadas.');
+                this.ubicaciones.next([]);
+            }
         } catch (error) {
             console.error('Error loading locations:', error);
+            this.ubicaciones.next([]); // Asegurar que la lista esté vacía en caso de error
         }
     }
 
     async saveLocation(
         location: {
+            _id:string;
             lat: number;
             lng: number;
             timestamp: string;
@@ -175,7 +229,7 @@ export class UbicacionService {
         },
         valid?: boolean
     ) {
-        valid = valid ? valid : this.isValidLocation(location);
+        valid = valid ? valid : this.isValidLocation(location).resp;
         if (valid) {
             const locations = await Preferences.get({ key: 'locations' });
             const parsedLocations = locations.value
@@ -190,13 +244,12 @@ export class UbicacionService {
             this.ubicaciones.next([...this.ubicaciones.getValue(), location]);
         }
     }
-    async saveAsignacion(asign: string): Promise<boolean> {
+    async saveAsignacion(asign: any): Promise<boolean> {
         try {
             await Preferences.set({
                 key: 'asign',
-                value: asign,
+                value: JSON.stringify(asign),
             });
-            console.log('Asignación guardada correctamente');
             return true;
         } catch (error) {
             console.error('Error al guardar la asignación:', error);
@@ -205,7 +258,7 @@ export class UbicacionService {
     }
     getAsignacion = async () => {
         const { value } = await Preferences.get({ key: 'asign' });
-        return value;
+        return JSON.parse(value);
     };
 
     getUbicaciones() {

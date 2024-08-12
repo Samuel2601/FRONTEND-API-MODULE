@@ -57,7 +57,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     id: any;
     async ngOnInit(): Promise<void> {
         await this.initMap();
-
+        await this.fetchDevices();
         if (this.config?.data?.id) {
             this.id = this.config.data.id;
         }
@@ -71,7 +71,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         if (this.id) {
             await this.getRuta();
         } else {
-            this.consultaAsig();
+            await this.consultaAsig();
         }
     }
     ngOnDestroy(): void {
@@ -84,15 +84,33 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     }
 
     //------------------------------------------CONSULTA DE ASIGNACION-------------------------------
-    asignacionID: any;
-    consultaAsig() {
-        this.asignacionID = this.ubicacionService.getAsignacion();
-        if (!this.asignacionID) {
+    devices: any[] = [];
+    async fetchDevices() {
+        this.ubicacionService.obtenerDeviceGPS().subscribe((response) => {
+            this.devices = response;
+        });
+    }
+    getDeviceGPS(id: string) {
+        let nameDevice = '';
+        if (this.devices.length > 0) {
+            let aux = this.devices.find(
+                (element) => element.id === parseInt(id)
+            );
+            nameDevice = aux ? aux.name : 'No encontrado';
+        }
+        return nameDevice;
+    }
+    asignacion: any | null = null;
+
+    async consultaAsig() {
+        this.asignacion = await this.ubicacionService.getAsignacion();
+        if (!this.asignacion) {
             const date = new Date();
             const dateOnly = `${date.getFullYear()}-${
                 date.getMonth() + 1
             }-${date.getDate()}`;
             const funcionario = this.auth.idUserToken();
+
             this.list
                 .listarAsignacionRecolectores(
                     this.token,
@@ -102,10 +120,11 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 .subscribe({
                     next: async (response) => {
                         if (response.data.length > 0) {
-                            this.asignacionID = response.data[0]._id;
-                            this.ubicacionService.saveAsignacion(
-                                this.asignacionID
+                            this.asignacion = response.data[0];
+                            await this.ubicacionService.saveAsignacion(
+                                this.asignacion
                             );
+                            await this.ubicacionService.loadInitialLocations();
                             await this.seguimientoLocations();
                         }
                     },
@@ -118,8 +137,12 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                         });
                     },
                 });
+        } else {
+            await this.ubicacionService.loadInitialLocations();
+            await this.seguimientoLocations();
         }
     }
+
     //------------------------------------------ObtenerRuta------------------------
     token = this.auth.token();
     /*const startOfDay = new Date(this.ruta.createdAt);
@@ -275,19 +298,26 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         const marcador = new google.maps.Marker({
             position: { lat: location.lat, lng: location.lng },
             map: this.mapCustom,
-            title: `Marcado, Time: ${new Date().toISOString()}`,
+            title: `Marcado, Time: ${new Date(
+                location.timestamp
+            ).toISOString()}`,
         });
 
         const infoWindow = new google.maps.InfoWindow({
             headerContent: location.retorno
                 ? `Retorno a Estación`
                 : `Punto de recolección`,
-            headerDisabled: this.isMobil(),
             content: `<div style="margin: 5px;"><strong> Lat:</strong> ${
                 location.lat
             }, <strong> Lng:</strong> ${
                 location.lng
-            }<br><strong>Fecha:</strong> ${new Date().getDay()}/${new Date().getMonth()}/${new Date().getFullYear()}   ${new Date().getHours()}:${new Date().getMinutes()}</div>`,
+            }<br><strong>Fecha:</strong> ${new Date(
+                location.timestamp
+            ).getDay()}/${new Date(location.timestamp).getMonth()}/${new Date(
+                location.timestamp
+            ).getFullYear()}   ${new Date(
+                location.timestamp
+            ).getHours()}:${new Date(location.timestamp).getMinutes()}</div>`,
         });
 
         marcador.addListener('click', () => {
@@ -312,7 +342,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     ) {
         this.locations = locations;
         const colors = [
-            '#2196f3',            
+            '#2196f3',
             '#4caf50',
             '#fbc02d',
             '#00bcd4',
@@ -322,7 +352,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             '#f57c00',
             '#607d8b',
             '#9c27b0',
-            '#ff4032',            
+            '#ff4032',
         ];
 
         // Limpiar rutas previas del mapa
@@ -394,6 +424,10 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 lng: auxinicial.longitude,
             });
         }
+        this.mapCustom.setCenter({
+            lat: auxinicial.latitude,
+            lng: auxinicial.longitude,
+        });
 
         // Marca de fin
         if (locations.length > 3) {
@@ -599,13 +633,13 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 }
 
                 // Activar eventos en el segmento correspondiente
-                this.segmentos.forEach((segment: any[],indexsegment) => {
+                this.segmentos.forEach((segment: any[], indexsegment) => {
                     const bolpath = segment.find(
                         (path) => path.id == nextLocation.id
                     );
                     if (bolpath) {
                         this.pathson.forEach((route, index) => {
-                            if (indexsegment==index) {
+                            if (indexsegment == index) {
                                 route.setOptions({
                                     strokeOpacity: 1.0,
                                     strokeWeight: 10,
@@ -651,7 +685,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         const currentLocation = await Geolocation.getCurrentPosition();
         if (currentLocation) {
             const aux = {
-                _id:this.id,
+                _id: this.asignacion._id,
                 lat: currentLocation.coords.latitude,
                 lng: currentLocation.coords.longitude,
                 timestamp: new Date().toISOString(),
@@ -660,7 +694,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 retorno: retorno,
             };
             const valid = this.ubicacionService.isValidLocation(aux);
-            if (valid || retorno) {
+            if (valid.resp || retorno) {
                 if (status_destacado) {
                     this.addMarker(aux, false);
                 }
@@ -671,6 +705,12 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                     this.isReturnButtonDisabled = true;
                     this.startReturnTimer();
                 }
+            } else {
+                this.messageService.add({
+                    severity: 'info',
+                    summary: 'Recorrido',
+                    detail: valid.message,
+                });
             }
         } else {
             alert('No se pudo obtener la ubicación actual');
