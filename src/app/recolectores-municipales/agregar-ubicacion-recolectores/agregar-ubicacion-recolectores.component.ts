@@ -312,9 +312,15 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     }
 
     async DrawRuta(
-        locations: { latitude: number; longitude: number; fixTime: string }[]
+        locations: {
+            latitude: number;
+            longitude: number;
+            fixTime: string;
+            id: string;
+        }[]
     ) {
         this.locations = locations;
+        console.log(locations);
         const colors = [
             '#2196f3',
             '#f57c00',
@@ -343,6 +349,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             const nextPoint = locations[i + 1];
 
             segment.push({
+                id: currentPoint.id,
                 lat: currentPoint.latitude,
                 lng: currentPoint.longitude,
             });
@@ -366,6 +373,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
 
         // Marca de inicio
         const auxinicial = locations[0];
+        console.log('MARCADOR INICIAL:', auxinicial);
         if (!this.inicial) {
             this.inicial = new google.maps.Marker({
                 position: {
@@ -398,6 +406,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         // Marca de fin
         if (locations.length > 3) {
             const auxfinal = locations[locations.length - 1];
+            console.log('MARCADOR Final:', auxfinal);
             if (!this.final) {
                 this.final = new google.maps.Marker({
                     position: {
@@ -432,9 +441,15 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     }
 
     // Función auxiliar para dibujar un segmento
-    drawSegment(segment, color) {
+    segmentos: any[] = [];
+    drawSegment(segment: any, color: any) {
+        this.segmentos.push(segment);
+        const path = segment.map((segment) => ({
+            lat: segment.lat,
+            lng: segment.lng,
+        }));
         const route = new google.maps.Polyline({
-            path: segment,
+            path: path,
             geodesic: true,
             strokeColor: color,
             strokeOpacity: 0.6, // Opacidad por defecto para las líneas
@@ -447,8 +462,8 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             this.pathson.forEach((otherRoute) => {
                 if (otherRoute !== route) {
                     otherRoute.setOptions({
-                        strokeOpacity: 0.2,
-                        strokeWeight: 4,
+                        strokeOpacity: 0.6,
+                        strokeWeight: 6,
                     });
                 }
             });
@@ -480,8 +495,8 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             this.pathson.forEach((otherRoute) => {
                 if (otherRoute !== route) {
                     otherRoute.setOptions({
-                        strokeOpacity: 0.2,
-                        strokeWeight: 4,
+                        strokeOpacity: 0.6,
+                        strokeWeight: 6,
                     });
                 }
             });
@@ -489,6 +504,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
 
         route.setMap(this.mapCustom);
         this.pathson.push(route);
+        console.log(this.segmentos);
     }
     vehicleMarker: google.maps.Marker;
     isPlaying: boolean = false;
@@ -522,16 +538,14 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     togglePause() {
         this.isPaused = !this.isPaused;
         if (!this.isPaused) {
-            this.playRoute(
-                this.locations,
-                this.currentIndex
-            ); // Reanudar desde la posición actual
+            this.playRoute(this.locations, this.currentIndex); // Reanudar desde la posición actual
         } else {
             clearTimeout(this.timeoutId); // Pausar la animación
         }
     }
 
-    async playRoute(locations, startIndex = 0) {
+    async playRoute(locations: any, startIndex = 0) {
+        console.log('MARCADOR INICIAL VEHICULO:', locations[0]);
         // Si ya hay un marcador en movimiento, detenerlo
         if (this.vehicleMarker && startIndex === 0) {
             this.vehicleMarker.setMap(null);
@@ -595,9 +609,39 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                     });
                 }
 
+                // Activar eventos en el segmento correspondiente
+                this.segmentos.forEach((segment: any[],indexsegment) => {
+                    const bolpath = segment.find(
+                        (path) => path.id == nextLocation.id
+                    );
+                    if (bolpath) {
+                        this.pathson.forEach((route, index) => {
+                            if (indexsegment==index) {
+                                route.setOptions({
+                                    strokeOpacity: 1.0,
+                                    strokeWeight: 10,
+                                });
+                                this.pathson.forEach((otherRoute) => {
+                                    if (otherRoute !== route) {
+                                        otherRoute.setOptions({
+                                            strokeOpacity: 0.2,
+                                            strokeWeight: 3,
+                                        });
+                                    }
+                                });
+                            } else {
+                                // Restaurar la línea si el marcador ya no está en ella
+                                route.setOptions({
+                                    strokeOpacity: 0.2,
+                                    strokeWeight: 3,
+                                });
+                            }
+                        });
+                    }
+                });
+
                 // Calcular el tiempo de espera entre movimientos basado en la velocidad seleccionada
                 const delay = 1000 / this.speedMultiplier;
-                console.log("delay",delay,"VELOCIDAD: ",this.speedMultiplier);
                 this.timeoutId = setTimeout(moveVehicle, delay); // Mueve el vehículo a la siguiente ubicación
             } else if (this.currentIndex >= totalLocations - 1) {
                 console.log('Ruta completada');
@@ -608,6 +652,16 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         moveVehicle();
     }
 
+    arePathsEqual = (path1, path2) => {
+        if (path1.length !== path2.length) { console.log("No cohinciden longitud");return false};
+        for (let i = 0; i < path1.length; i++) {
+            if (path1[i].lat !== path2[i].lat || path1[i].lng !== path2[i].lng) {
+                console.log("No cohinciden coordenadas",path1[i].lat !== path2[i].lat || path1[i].lng !== path2[i].lng );
+                return false;
+            }
+        }
+        return true;
+    };
     //------------------------------------ACCIONES DEL USUARIO---------------------------------------
     async addManualLocation(status_destacado: boolean, retorno: boolean) {
         const currentLocation = await Geolocation.getCurrentPosition();
