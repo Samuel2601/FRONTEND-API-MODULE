@@ -154,10 +154,8 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     async getRuta() {
         this.filter.obtenerRutaRecolector(this.token, this.id).subscribe(
             async (response) => {
-                console.log(response);
                 if (response.data) {
                     this.ruta = response.data;
-                    console.log(response);
                     if (this.ruta.ruta.length > 0) {
                         await this.DrawRuta(this.ruta.ruta);
                     }
@@ -209,13 +207,6 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             const lastReturnDate = new Date(time).getTime();
             const now = new Date().getTime();
             const timeElapsed = now - lastReturnDate;
-            console.log(
-                'tiempo desde el ultimo retorno: ',
-                now,
-                lastReturnDate,
-                this.formatTime(timeElapsed),
-                this.formatTime(this.returnDelay)
-            );
             if (timeElapsed < this.returnDelay) {
                 this.isReturnButtonDisabled = true;
                 this.returnTimeLeft = this.returnDelay - timeElapsed;
@@ -320,16 +311,18 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         }[]
     ) {
         this.locations = locations;
-        console.log(locations);
         const colors = [
-            '#2196f3',
-            '#f57c00',
+            '#2196f3',            
+            '#4caf50',
+            '#fbc02d',
+            '#00bcd4',
+            '#e91e63',
             '#3f51b5',
             '#009688',
             '#f57c00',
+            '#607d8b',
             '#9c27b0',
-            '#ff4032',
-            '#4caf50',
+            '#ff4032',            
         ];
 
         // Limpiar rutas previas del mapa
@@ -373,7 +366,6 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
 
         // Marca de inicio
         const auxinicial = locations[0];
-        console.log('MARCADOR INICIAL:', auxinicial);
         if (!this.inicial) {
             this.inicial = new google.maps.Marker({
                 position: {
@@ -406,7 +398,6 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         // Marca de fin
         if (locations.length > 3) {
             const auxfinal = locations[locations.length - 1];
-            console.log('MARCADOR Final:', auxfinal);
             if (!this.final) {
                 this.final = new google.maps.Marker({
                     position: {
@@ -504,7 +495,6 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
 
         route.setMap(this.mapCustom);
         this.pathson.push(route);
-        console.log(this.segmentos);
     }
     vehicleMarker: google.maps.Marker;
     isPlaying: boolean = false;
@@ -545,7 +535,6 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     }
 
     async playRoute(locations: any, startIndex = 0) {
-        console.log('MARCADOR INICIAL VEHICULO:', locations[0]);
         // Si ya hay un marcador en movimiento, detenerlo
         if (this.vehicleMarker && startIndex === 0) {
             this.vehicleMarker.setMap(null);
@@ -560,7 +549,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 },
                 map: this.mapCustom,
                 icon: {
-                    url: 'https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png',
+                    url: 'https://i.postimg.cc/gJLP7FtQ/png-transparent-green-and-environmentally-friendly-garbage-truck-green-green-car-rubbish-truck-thumb.png',
                     scaledSize: new google.maps.Size(50, 50),
                 },
                 title: 'Vehículo en movimiento',
@@ -645,6 +634,11 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 this.timeoutId = setTimeout(moveVehicle, delay); // Mueve el vehículo a la siguiente ubicación
             } else if (this.currentIndex >= totalLocations - 1) {
                 console.log('Ruta completada');
+                this.messageService.add({
+                    severity: 'info',
+                    summary: 'Recorrido',
+                    detail: 'Ruta Concluida',
+                });
             }
         };
 
@@ -652,21 +646,12 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         moveVehicle();
     }
 
-    arePathsEqual = (path1, path2) => {
-        if (path1.length !== path2.length) { console.log("No cohinciden longitud");return false};
-        for (let i = 0; i < path1.length; i++) {
-            if (path1[i].lat !== path2[i].lat || path1[i].lng !== path2[i].lng) {
-                console.log("No cohinciden coordenadas",path1[i].lat !== path2[i].lat || path1[i].lng !== path2[i].lng );
-                return false;
-            }
-        }
-        return true;
-    };
     //------------------------------------ACCIONES DEL USUARIO---------------------------------------
     async addManualLocation(status_destacado: boolean, retorno: boolean) {
         const currentLocation = await Geolocation.getCurrentPosition();
         if (currentLocation) {
             const aux = {
+                _id:this.id,
                 lat: currentLocation.coords.latitude,
                 lng: currentLocation.coords.longitude,
                 timestamp: new Date().toISOString(),

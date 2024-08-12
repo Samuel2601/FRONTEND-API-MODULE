@@ -155,7 +155,7 @@ export class UbicacionService {
     async loadInitialLocations() {
         try {
             const locations = await Preferences.get({ key: 'locations' });
-            console.log('Se ah encontrado: ', locations);
+            console.log('Se ah encontrado: ', JSON.stringify(locations));
             const parsedLocations = locations.value
                 ? JSON.parse(locations.value)
                 : [];

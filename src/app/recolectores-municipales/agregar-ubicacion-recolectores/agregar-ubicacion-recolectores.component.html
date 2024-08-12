@@ -40,7 +40,7 @@
         ></p-button>
     </div>
 </div>
-<p-card header="Control del Recorrido">
+<p-card header="Control del Recorrido" *ngIf="ruta && !asignacionID">
     <!-- Fila 1: Checkbox que ocupa todo el ancho -->
     <div class="p-fluid">
         <p-checkbox
