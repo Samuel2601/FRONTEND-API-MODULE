@@ -29,7 +29,7 @@ export class CreateRolUserComponent implements OnInit {
         private auth:AuthService
     ) {
         this.Form = this.fb.group({
-            nombre: ['', Validators.required],
+            name: ['', Validators.required],
             orden:[0]
         });
     }
@@ -55,7 +55,7 @@ export class CreateRolUserComponent implements OnInit {
             this.Form.get('orden').setValue(this.roles.length+1);
             if (this.Form.value) {
                 this.createService
-                    .registrarRolUsuario(this.token, this.Form.value)
+                    .registrarRolUsuario(this.token, [this.Form.value])
                     .subscribe(
                         (response) => {
                             //console.log(response);

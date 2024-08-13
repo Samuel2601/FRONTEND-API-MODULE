@@ -27,8 +27,8 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     returnDelay = 15 * 60 * 1000; // 10 minutes in milliseconds
 
     table: any[] = [];
-    inicial: google.maps.Marker;
-    final: google.maps.Marker;
+    inicial: google.maps.marker.AdvancedMarkerElement;
+    final: google.maps.marker.AdvancedMarkerElement;
     pathson: any[] = [];
 
     latitud: any;
@@ -36,7 +36,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
 
     displayDialog: boolean = false;
 
-    private markers: google.maps.Marker[] = [];
+    private markers: google.maps.marker.AdvancedMarkerElement[] = [];
     private infoWindows: google.maps.InfoWindow[] = [];
     velocidad: number = 0;
     distancia: number = 0;
@@ -103,8 +103,8 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     asignacion: any | null = null;
 
     async consultaAsig() {
-        this.asignacion = await this.ubicacionService.getAsignacion();
-        if (!this.asignacion) {
+        try {
+            const asignacionaux = await this.ubicacionService.getAsignacion();
             const date = new Date();
             const dateOnly = `${date.getFullYear()}-${
                 date.getMonth() + 1
@@ -121,9 +121,14 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                     next: async (response) => {
                         if (response.data.length > 0) {
                             this.asignacion = response.data[0];
-                            await this.ubicacionService.saveAsignacion(
-                                this.asignacion
-                            );
+
+                            // Compara solo los _id
+                            if (this.asignacion._id !== asignacionaux._id) {
+                                await this.ubicacionService.saveAsignacion(
+                                    this.asignacion
+                                );
+                            }
+
                             await this.ubicacionService.loadInitialLocations();
                             await this.seguimientoLocations();
                         }
@@ -137,9 +142,13 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                         });
                     },
                 });
-        } else {
-            await this.ubicacionService.loadInitialLocations();
-            await this.seguimientoLocations();
+        } catch (error) {
+            console.error('Error en consultaAsig:', error);
+            this.messageService.add({
+                severity: 'error',
+                summary: 'ERROR',
+                detail: 'Hubo un problema al realizar la consulta de asignación.',
+            });
         }
     }
 
@@ -277,6 +286,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             this.mapCustom = new google.maps.Map(
                 document.getElementById('map2') as HTMLElement,
                 {
+                    mapId: '7756f5f6c6f997f1',
                     zoom: 15, // Nivel de zoom inicial
                     center: haightAshbury, // Coordenadas del centro del mapa
                     mapTypeId: 'terrain', // Tipo de mapa
@@ -295,7 +305,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     }
 
     addMarker(location: any, center: boolean) {
-        const marcador = new google.maps.Marker({
+        const marcador = new google.maps.marker.AdvancedMarkerElement({
             position: { lat: location.lat, lng: location.lng },
             map: this.mapCustom,
             title: `Marcado, Time: ${new Date(
@@ -307,17 +317,11 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             headerContent: location.retorno
                 ? `Retorno a Estación`
                 : `Punto de recolección`,
-            content: `<div style="margin: 5px;"><strong> Lat:</strong> ${
-                location.lat
-            }, <strong> Lng:</strong> ${
-                location.lng
-            }<br><strong>Fecha:</strong> ${new Date(
-                location.timestamp
-            ).getDay()}/${new Date(location.timestamp).getMonth()}/${new Date(
-                location.timestamp
-            ).getFullYear()}   ${new Date(
-                location.timestamp
-            ).getHours()}:${new Date(location.timestamp).getMinutes()}</div>`,
+                content: `<div style="margin: 5px;">
+                <strong>Lat:</strong> ${location.lat}, 
+                <strong>Lng:</strong> ${location.lng}<br>
+                <strong>Fecha:</strong> ${this.formatDateFull(new Date(location.timestamp))}
+              </div>`,
         });
 
         marcador.addListener('click', () => {
@@ -331,6 +335,15 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             this.mapCustom.setCenter({ lat: location.lat, lng: location.lng });
         }
     }
+    formatDateFull(date: Date): string {
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // getMonth() returns 0-based month
+        const year = date.getFullYear();
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+      
+        return `${day}/${month}/${year} ${hours}:${minutes}`;
+      }
 
     async DrawRuta(
         locations: {
@@ -397,7 +410,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         // Marca de inicio
         const auxinicial = locations[0];
         if (!this.inicial) {
-            this.inicial = new google.maps.Marker({
+            this.inicial = new google.maps.marker.AdvancedMarkerElement({
                 position: {
                     lat: auxinicial.latitude,
                     lng: auxinicial.longitude,
@@ -419,10 +432,10 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 initialInfoWindow.open(this.mapCustom, this.inicial);
             });
         } else {
-            this.inicial.setPosition({
+            this.inicial.position = {
                 lat: auxinicial.latitude,
                 lng: auxinicial.longitude,
-            });
+            };
         }
         this.mapCustom.setCenter({
             lat: auxinicial.latitude,
@@ -433,7 +446,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         if (locations.length > 3) {
             const auxfinal = locations[locations.length - 1];
             if (!this.final) {
-                this.final = new google.maps.Marker({
+                this.final = new google.maps.marker.AdvancedMarkerElement({
                     position: {
                         lat: auxfinal.latitude,
                         lng: auxfinal.longitude,
@@ -455,10 +468,10 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                     finalInfoWindow.open(this.mapCustom, this.final);
                 });
             } else {
-                this.final.setPosition({
+                this.final.position = {
                     lat: auxfinal.latitude,
                     lng: auxfinal.longitude,
-                });
+                };
             }
         }
 
@@ -530,7 +543,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         route.setMap(this.mapCustom);
         this.pathson.push(route);
     }
-    vehicleMarker: google.maps.Marker;
+    vehicleMarker: google.maps.marker.AdvancedMarkerElement;
     isPlaying: boolean = false;
     speedMultiplier: number = 1;
     isPaused: boolean = false;
@@ -544,7 +557,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         } else {
             if (this.vehicleMarker) {
                 clearTimeout(this.timeoutId); // Detén el recorrido si se desmarca
-                this.vehicleMarker.setMap(null);
+                this.vehicleMarker.map = null;
             }
         }
     }
@@ -568,116 +581,129 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         }
     }
 
-    async playRoute(locations: any, startIndex = 0) {
-        // Si ya hay un marcador en movimiento, detenerlo
-        if (this.vehicleMarker && startIndex === 0) {
-            this.vehicleMarker.setMap(null);
-        }
+    async playRoute(locations: any[], startIndex = 0) {
+        if (locations.length > 0) {
+            // Si ya hay un marcador en movimiento, detenerlo
+            if (this.vehicleMarker && startIndex === 0) {
+                this.vehicleMarker.map = null;
+            }
+            // Crear un elemento DOM para el ícono
+            const iconElement = document.createElement('div');
+            iconElement.style.width = '50px';
+            iconElement.style.height = '50px';
+            iconElement.style.backgroundImage =
+                'url(https://i.postimg.cc/gJLP7FtQ/png-transparent-green-and-environmentally-friendly-garbage-truck-green-green-car-rubbish-truck-thumb.png)';
+            iconElement.style.backgroundSize = 'cover';
+            iconElement.style.backgroundPosition = 'center';
+            iconElement.style.borderRadius = '50%'; // Opcional: para hacerlo circular
 
-        // Crear un nuevo marcador para representar el vehículo si es la primera vez
-        if (!this.vehicleMarker || startIndex === 0) {
-            this.vehicleMarker = new google.maps.Marker({
-                position: {
-                    lat: locations[0].latitude,
-                    lng: locations[0].longitude,
-                },
-                map: this.mapCustom,
-                icon: {
+            // Crear un nuevo marcador para representar el vehículo si es la primera vez
+            if (!this.vehicleMarker || startIndex === 0) {
+                this.vehicleMarker =
+                    new google.maps.marker.AdvancedMarkerElement({
+                        position: {
+                            lat: locations[0].latitude,
+                            lng: locations[0].longitude,
+                        },
+                        map: this.mapCustom,
+                        content: iconElement,
+                        /*icon: {
                     url: 'https://i.postimg.cc/gJLP7FtQ/png-transparent-green-and-environmentally-friendly-garbage-truck-green-green-car-rubbish-truck-thumb.png',
                     scaledSize: new google.maps.Size(50, 50),
-                },
-                title: 'Vehículo en movimiento',
-            });
-
-            if (this.shouldCenter) {
-                // Centrar el mapa en la ubicación inicial del vehículo
-                this.mapCustom.setCenter({
-                    lat: locations[0].latitude,
-                    lng: locations[0].longitude,
-                });
-            }
-        }
-
-        // Inicializar variables para la animación
-        this.currentIndex = startIndex;
-        const totalLocations = locations.length;
-
-        // Función que mueve el marcador y centra el mapa
-        const moveVehicle = () => {
-            // Buscar la siguiente ubicación diferente
-            let nextIndex = this.currentIndex + 1;
-            while (
-                nextIndex < totalLocations &&
-                locations[nextIndex].latitude ===
-                    locations[this.currentIndex].latitude &&
-                locations[nextIndex].longitude ===
-                    locations[this.currentIndex].longitude
-            ) {
-                nextIndex++;
-            }
-
-            if (nextIndex < totalLocations && !this.isPaused) {
-                this.currentIndex = nextIndex;
-                const nextLocation = locations[this.currentIndex];
-                this.vehicleMarker.setPosition({
-                    lat: nextLocation.latitude,
-                    lng: nextLocation.longitude,
-                });
+                },*/
+                        title: 'Vehículo en movimiento',
+                    });
 
                 if (this.shouldCenter) {
-                    // Centrar el mapa en la ubicación actual del vehículo si la opción está habilitada
+                    // Centrar el mapa en la ubicación inicial del vehículo
                     this.mapCustom.setCenter({
-                        lat: nextLocation.latitude,
-                        lng: nextLocation.longitude,
+                        lat: locations[0].latitude,
+                        lng: locations[0].longitude,
                     });
                 }
+            }
 
-                // Activar eventos en el segmento correspondiente
-                this.segmentos.forEach((segment: any[], indexsegment) => {
-                    const bolpath = segment.find(
-                        (path) => path.id == nextLocation.id
-                    );
-                    if (bolpath) {
-                        this.pathson.forEach((route, index) => {
-                            if (indexsegment == index) {
-                                route.setOptions({
-                                    strokeOpacity: 1.0,
-                                    strokeWeight: 10,
-                                });
-                                this.pathson.forEach((otherRoute) => {
-                                    if (otherRoute !== route) {
-                                        otherRoute.setOptions({
-                                            strokeOpacity: 0.2,
-                                            strokeWeight: 3,
-                                        });
-                                    }
-                                });
-                            } else {
-                                // Restaurar la línea si el marcador ya no está en ella
-                                route.setOptions({
-                                    strokeOpacity: 0.2,
-                                    strokeWeight: 3,
-                                });
-                            }
+            // Inicializar variables para la animación
+            this.currentIndex = startIndex;
+            const totalLocations = locations.length;
+
+            // Función que mueve el marcador y centra el mapa
+            const moveVehicle = () => {
+                // Buscar la siguiente ubicación diferente
+                let nextIndex = this.currentIndex + 1;
+                while (
+                    nextIndex < totalLocations &&
+                    locations[nextIndex].latitude ===
+                        locations[this.currentIndex].latitude &&
+                    locations[nextIndex].longitude ===
+                        locations[this.currentIndex].longitude
+                ) {
+                    nextIndex++;
+                }
+
+                if (nextIndex < totalLocations && !this.isPaused) {
+                    this.currentIndex = nextIndex;
+                    const nextLocation = locations[this.currentIndex];
+                    this.vehicleMarker.position = {
+                        lat: nextLocation.latitude,
+                        lng: nextLocation.longitude,
+                    };
+
+                    if (this.shouldCenter) {
+                        // Centrar el mapa en la ubicación actual del vehículo si la opción está habilitada
+                        this.mapCustom.setCenter({
+                            lat: nextLocation.latitude,
+                            lng: nextLocation.longitude,
                         });
                     }
-                });
 
-                // Calcular el tiempo de espera entre movimientos basado en la velocidad seleccionada
-                const delay = 1000 / this.speedMultiplier;
-                this.timeoutId = setTimeout(moveVehicle, delay); // Mueve el vehículo a la siguiente ubicación
-            } else if (this.currentIndex >= totalLocations - 1) {
-                console.log('Ruta completada');
-                this.messageService.add({
-                    severity: 'info',
-                    summary: 'Recorrido',
-                    detail: 'Ruta Concluida',
-                });
-            }
-        };
+                    // Activar eventos en el segmento correspondiente
+                    this.segmentos.forEach((segment: any[], indexsegment) => {
+                        const bolpath = segment.find(
+                            (path) => path.id == nextLocation.id
+                        );
+                        if (bolpath) {
+                            this.pathson.forEach((route, index) => {
+                                if (indexsegment == index) {
+                                    route.setOptions({
+                                        strokeOpacity: 1.0,
+                                        strokeWeight: 10,
+                                    });
+                                    this.pathson.forEach((otherRoute) => {
+                                        if (otherRoute !== route) {
+                                            otherRoute.setOptions({
+                                                strokeOpacity: 0.2,
+                                                strokeWeight: 3,
+                                            });
+                                        }
+                                    });
+                                } else {
+                                    // Restaurar la línea si el marcador ya no está en ella
+                                    route.setOptions({
+                                        strokeOpacity: 0.2,
+                                        strokeWeight: 3,
+                                    });
+                                }
+                            });
+                        }
+                    });
 
-        // Comenzar a mover el vehículo
-        moveVehicle();
+                    // Calcular el tiempo de espera entre movimientos basado en la velocidad seleccionada
+                    const delay = 1000 / this.speedMultiplier;
+                    this.timeoutId = setTimeout(moveVehicle, delay); // Mueve el vehículo a la siguiente ubicación
+                } else if (this.currentIndex >= totalLocations - 1) {
+                    console.log('Ruta completada');
+                    this.messageService.add({
+                        severity: 'info',
+                        summary: 'Recorrido',
+                        detail: 'Ruta Concluida',
+                    });
+                }
+            };
+
+            // Comenzar a mover el vehículo
+            moveVehicle();
+        }
     }
 
     //------------------------------------ACCIONES DEL USUARIO---------------------------------------
@@ -730,7 +756,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         const marker = this.markers[locationIndex];
         const infoWindow = this.infoWindows[locationIndex];
         if (marker && infoWindow) {
-            this.mapCustom.setCenter(marker.getPosition());
+            this.mapCustom.setCenter(marker.position);
             infoWindow.open(this.mapCustom, marker);
         }
     }

@@ -27,7 +27,7 @@ export class AppMenuComponent implements OnInit {
         const permissionsObservables = {
             canViewRecolector: (
                 await this.auth.hasPermissionComponent(
-                    '/recolector',
+                    '/recolector_ruta/:id',
                     'get'
                 )
             ).pipe(catchError(() => of(false))),
@@ -73,7 +73,7 @@ export class AppMenuComponent implements OnInit {
         forkJoin(permissionsObservables).subscribe(
             (permissions) => {
                 this.permissions = permissions;
-                console.log(permissions);
+                console.log(JSON.stringify(permissions));
 
                 this.model = [
                     {

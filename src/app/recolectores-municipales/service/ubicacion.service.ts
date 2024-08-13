@@ -13,6 +13,7 @@ import {
 import { registerPlugin } from '@capacitor/core';
 import { BehaviorSubject } from 'rxjs';
 import { Geolocation } from '@capacitor/geolocation';
+import { Network } from '@capacitor/network';
 
 const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>(
     'BackgroundGeolocation'
@@ -112,32 +113,34 @@ export class UbicacionService {
             timestamp: string;
             speed?: number;
         },
-        now?: number
+        now1?: number
     ): { resp: boolean; message: string } {
         const respuesta = {
             resp: false,
             message: '',
         };
 
-        now = now ? now : Date.now();
+        const now = now1 ? now1 : Date.now();
         const lastUbicacion = this.ubicaciones.getValue().slice(-1)[0];
 
         // Verifica si es la primera ubicación
         if (!lastUbicacion) {
+            this.lastUpdateTimestamp = now;
             respuesta.resp = true;
             respuesta.message = 'Primera ubicación registrada';
             return respuesta;
+           
         }
 
         const distancia = this.calculateDistance(lastUbicacion, nuevaUbicacion);
         this.DistanciaRecorrida.next(this.DistanciaRecorrida.value + distancia);
 
-        const tiempo = (now - this.lastUpdateTimestamp!) / 1000 / 3600; // Convertir tiempo a horas
+        const tiempo = (now - new Date(lastUbicacion.timestamp).getTime()) / 1000 / 3600; // Convertir tiempo a horas
 
         // Verifica que la distancia no sea demasiado grande en relación con la velocidad
         const maxPossibleDistance = this.MIN_SPEED_KMH * tiempo;
 
-        if (distancia <= 0) {
+        if (distancia <= 20) {
             respuesta.message = 'Parece que no se ha detectado movimiento. Intenta moverte un poco y vuelve a intentarlo.';
             return respuesta;
         }
@@ -146,12 +149,12 @@ export class UbicacionService {
             respuesta.message = 'El movimiento parece ser un poco rápido. Asegúrate de que la ubicación es correcta y vuelve a intentarlo.';
             return respuesta;
         }
-        
+        /*
         if (distancia > this.MAX_DISTANCE_KM * 1000) {
             respuesta.message = 'La ubicación parece estar más lejos de lo esperado. Verifica tu posición e inténtalo nuevamente.';
             return respuesta;
         }
-        
+        */
 
         // Si todas las condiciones se cumplen, la ubicación es válida
         respuesta.resp = true;

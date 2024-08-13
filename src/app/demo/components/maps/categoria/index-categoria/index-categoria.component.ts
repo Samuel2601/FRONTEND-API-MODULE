@@ -72,7 +72,7 @@ export class IndexCategoriaComponent implements OnInit {
                 // Verificar permiso de vista de categoría
                 if (!this.check.IndexCategoriaComponent) {
                     // this.router.navigate(['/notfound']);
-                    return console.log('ERROR');
+                    return console.log('ERROR algo salio mal');
                 }
 
                 // Cargar categorías y subcategorías

@@ -26,7 +26,7 @@ export class PermissionGuard implements CanActivate {
             switchMap((hasPermissionObservable) => hasPermissionObservable),
             tap((hasPermission) => {
                 if (!hasPermission) {
-                    console.log('ERROR');
+                    console.log('ERROR algo esta aqui');
                     this.router.navigate(['/access-denied']);
                 }
             })

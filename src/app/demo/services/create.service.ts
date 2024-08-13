@@ -165,6 +165,7 @@ export class CreateService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
+    console.log(data);
     return this.http.post(this.url + 'registrarrolesmasivo', data, { headers: headers });
   }
 

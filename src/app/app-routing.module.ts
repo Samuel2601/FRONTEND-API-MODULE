@@ -19,7 +19,7 @@ import { MapaTrashComponent } from './demo/components/static-page/mapa-trash/map
                         path: 'recolectores', 
                         loadChildren: () => import('./recolectores-municipales/recolectores-municipales.module').then(m => m.RecolectoresMunicipalesModule),
                         canActivate: [AuthGuard,PermissionGuard],
-                        data: { expectedPermission: '/recolector' }
+                        data: { expectedPermission: '/recolector_ruta/:id' }
                     },
                     { 
                         path: 'dashboard', 
