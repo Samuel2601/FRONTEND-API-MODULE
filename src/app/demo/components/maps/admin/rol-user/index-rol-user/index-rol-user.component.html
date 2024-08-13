@@ -1,6 +1,13 @@
 <div class="card">
     <div class="card-header">
       <h2>Listado de Roles de Usuario</h2>
+      <div class="col-6">
+        <p-button
+            icon="pi pi-briefcase"
+            label="Nuevo rol"
+            (click)="newRol()"
+        ></p-button>
+    </div>
     </div>
     <div class="card-body">
       <p-table [value]="roles">
