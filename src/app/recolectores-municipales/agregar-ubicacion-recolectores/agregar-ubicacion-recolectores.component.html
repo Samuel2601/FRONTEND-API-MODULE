@@ -32,6 +32,12 @@
             </p>
         </div>
     </div>
+    <div class="velocidad-container m-5" *ngIf="!ruta && asignacion">
+        <p-button
+            label="Enviar Información"
+            (click)="envioupdate()"
+        ></p-button>
+    </div>
     <div class="velocidad-container" *ngIf="ruta && !asignacion">
         <p-button
             icon="pi pi-plus"

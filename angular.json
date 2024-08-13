@@ -29,6 +29,8 @@
                         ],
                         "scripts": [],
                         "allowedCommonJsDependencies": [
+                            "@turf/jsts",
+                            "fast-deep-equal",
                             "geojson-equality",
                             "turf-jsts",
                             "density-clustering",

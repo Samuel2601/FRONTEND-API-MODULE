@@ -314,17 +314,5 @@ export class UpdateService {
             throw error;
         }
     }
-    private getHeaders(token: string): HttpHeaders {
-        return new HttpHeaders({
-            'Content-Type': 'application/json',
-            Authorization: token,
-        });
-    }
-
-    updateRutaRecolector(token: any, id: string, data: any): Observable<any> {
-        const headers = this.getHeaders(token);
-        return this.http.put(this.url + 'recolector/' + id, data, {
-            headers,
-        });
-    }
+    
 }

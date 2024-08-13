@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { catchError, map, Observable, throwError } from 'rxjs';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
@@ -14,6 +14,7 @@ import { registerPlugin } from '@capacitor/core';
 import { BehaviorSubject } from 'rxjs';
 import { Geolocation } from '@capacitor/geolocation';
 import { Network } from '@capacitor/network';
+import { AuthService } from 'src/app/demo/services/auth.service';
 
 const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>(
     'BackgroundGeolocation'
@@ -30,14 +31,15 @@ export class UbicacionService {
     private DistanciaRecorrida = new BehaviorSubject<number>(0);
 
     public url: string;
-    constructor(private _http: HttpClient) {
+    constructor(private _http: HttpClient, private auth: AuthService) {
         this.url = GLOBAL.url;
+        this.initializeNetworkListener();
         //this.loadInitialLocations();
         //this.iniciarWatcher();
     }
     private lastUpdateTimestamp: number | null = null;
     private readonly MAX_DISTANCE_KM = 0.001; // Distancia máxima permitida entre puntos consecutivos en kilómetros
-    private readonly MIN_SPEED_KMH = 120; // Velocidad mínima en km/h para considerar la ubicación como válida
+    private readonly MIN_SPEED_KMH = 120 * 1000; // Velocidad mínima en km/h para considerar la ubicación como válida
 
     iniciarWatcher() {
         const options: WatcherOptions = {
@@ -73,7 +75,7 @@ export class UbicacionService {
                 const now = Date.now();
                 const currentLocation = await Geolocation.getCurrentPosition();
                 const nuevaUbicacion = {
-                    _id:'1515',
+                    _id: '1515',
                     lat: currentLocation.coords.latitude,
                     lng: currentLocation.coords.longitude,
                     timestamp: new Date().toISOString(),
@@ -129,24 +131,26 @@ export class UbicacionService {
             respuesta.resp = true;
             respuesta.message = 'Primera ubicación registrada';
             return respuesta;
-           
         }
 
         const distancia = this.calculateDistance(lastUbicacion, nuevaUbicacion);
         this.DistanciaRecorrida.next(this.DistanciaRecorrida.value + distancia);
 
-        const tiempo = (now - new Date(lastUbicacion.timestamp).getTime()) / 1000 / 3600; // Convertir tiempo a horas
+        const tiempo =
+            (now - new Date(lastUbicacion.timestamp).getTime()) / 1000 / 3600; // Convertir tiempo a horas
 
         // Verifica que la distancia no sea demasiado grande en relación con la velocidad
         const maxPossibleDistance = this.MIN_SPEED_KMH * tiempo;
 
         if (distancia <= 20) {
-            respuesta.message = 'Parece que no se ha detectado movimiento. Intenta moverte un poco y vuelve a intentarlo.';
+            respuesta.message =
+                'Parece que no se ha detectado movimiento. Intenta moverte un poco y vuelve a intentarlo.';
             return respuesta;
         }
-        
+
         if (distancia > maxPossibleDistance) {
-            respuesta.message = 'El movimiento parece ser un poco rápido. Asegúrate de que la ubicación es correcta y vuelve a intentarlo.';
+            respuesta.message =
+                'El movimiento parece ser un poco rápido. Asegúrate de que la ubicación es correcta y vuelve a intentarlo.';
             return respuesta;
         }
         /*
@@ -180,6 +184,62 @@ export class UbicacionService {
 
         return R * c; // en metros
     }
+    private async initializeNetworkListener() {
+        const status = await Network.getStatus();
+        console.log('Initial Network Status:', JSON.stringify(status));
+
+        Network.addListener('networkStatusChange', (status) => {
+            console.log('Network status changed:', JSON.stringify(status));
+            if (status.connected==true) {
+               // this.syncData();
+            }
+        });
+    }
+    async syncData() {
+        try {
+          const locations = await Preferences.get({ key: 'locations' });
+          const asign = await Preferences.get({ key: 'asign' });
+    
+          console.log("locations:",JSON.stringify(locations));
+          console.log("asign:", JSON.stringify(asign));
+    
+          if (locations.value && asign.value) {
+            const parsedLocations = JSON.parse(locations.value);
+            const parsedAsign = JSON.parse(asign.value);
+    
+            const result = await this.updateRutaRecolector(
+              this.auth.token(),
+              parsedAsign._id,
+              { puntos_recoleccion: parsedLocations }
+            ).toPromise();
+    
+            console.log(JSON.stringify(result));
+            await Preferences.remove({ key: 'locations' });
+            await Preferences.remove({ key: 'asign' });
+            console.log('BORRADO asignacion');
+          }
+        } catch (error) {
+          console.error('Error al sincronizar datos:', JSON.stringify(error));
+        }
+      }
+    private getHeaders(token: string): HttpHeaders {
+        return new HttpHeaders({
+            'Content-Type': 'application/json',
+            Authorization: token,
+        });
+    }
+
+    updateRutaRecolector(token: string, id: string, data: any): Observable<any> {
+        const headers = this.getHeaders(token);
+        return this._http.put(`${this.url}recolector/${id}`, data, { headers })
+          .pipe(
+            map(response => response),
+            catchError(error => {
+              console.error('Error en updateRutaRecolector:', error);
+              return throwError(error);
+            })
+          );
+      }
 
     async loadInitialLocations() {
         try {
@@ -223,7 +283,7 @@ export class UbicacionService {
 
     async saveLocation(
         location: {
-            _id:string;
+            _id: string;
             lat: number;
             lng: number;
             timestamp: string;

@@ -123,7 +123,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                             this.asignacion = response.data[0];
 
                             // Compara solo los _id
-                            if (this.asignacion._id !== asignacionaux._id) {
+                            if (!asignacionaux||this.asignacion._id !== asignacionaux._id) {
                                 await this.ubicacionService.saveAsignacion(
                                     this.asignacion
                                 );
@@ -187,7 +187,9 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         this.filter.obtenerRutaRecolector(this.token, this.id).subscribe(
             async (response) => {
                 if (response.data) {
+                    console.log(response);
                     this.ruta = response.data;
+                    this.table=this.ruta.puntos_recoleccion;
                     if (this.ruta.ruta.length > 0) {
                         await this.DrawRuta(this.ruta.ruta);
                     }
@@ -290,23 +292,34 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                     zoom: 15, // Nivel de zoom inicial
                     center: haightAshbury, // Coordenadas del centro del mapa
                     mapTypeId: 'terrain', // Tipo de mapa
-                    fullscreenControl: false, // Desactiva el control de pantalla completa
+                    fullscreenControl: true, // Desactiva el control de pantalla completa
                     mapTypeControlOptions: {
                         style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR, // Estilo del control de tipo de mapa
                         position: google.maps.ControlPosition.LEFT_BOTTOM, // Posición del control de tipo de mapa
                     },
                     draggable: true, // Permite arrastrar el mapa
-                    scrollwheel: false, // Desactiva el zoom con la rueda del ratón
-                    disableDoubleClickZoom: true, // Desactiva el zoom con doble clic
-                    gestureHandling: 'cooperative', // Control de gestos
+                    //scrollwheel: false, // Desactiva el zoom con la rueda del ratón
+                    //disableDoubleClickZoom: true, // Desactiva el zoom con doble clic
+                    gestureHandling: 'greedy'//'cooperative', // Control de gestos
                 }
             );
         });
     }
 
     addMarker(location: any, center: boolean) {
+        // Crear un elemento DOM para el ícono
+        const iconElement = document.createElement('div');
+        iconElement.style.width = '80px';
+        iconElement.style.height = '80px';
+        iconElement.style.backgroundImage =
+        location.retorno?'url(https://i.postimg.cc/wM5tfphk/flag.png)':'url(https://i.postimg.cc/5NqvpwgM/trash3.png)';
+        iconElement.style.backgroundSize = 'cover';
+        iconElement.style.backgroundPosition = 'center';
+        iconElement.style.borderRadius = '50%'; // Opcional: para hacerlo circular
+
         const marcador = new google.maps.marker.AdvancedMarkerElement({
             position: { lat: location.lat, lng: location.lng },
+            content: iconElement,
             map: this.mapCustom,
             title: `Marcado, Time: ${new Date(
                 location.timestamp
@@ -752,20 +765,34 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     }
 
     getMarker(locationIndex: number) {
-        this.closeAllInfoWindows();
+        this.closeAllInfoWindows(); // Cierra todas las ventanas de información abiertas
+    
         const marker = this.markers[locationIndex];
         const infoWindow = this.infoWindows[locationIndex];
+    
         if (marker && infoWindow) {
+            // Asigna un zIndex alto al marcador activo
+            // Puedes definir un valor base o incrementarlo dinámicamente
+            const highestZIndex = Math.max(...this.markers.map(m => m.zIndex || 0), 0);
+            const newZIndex = highestZIndex + 1;
+            marker.zIndex=newZIndex;
+    
+            // Centra el mapa en el marcador activo
             this.mapCustom.setCenter(marker.position);
+    
+            // Abre la ventana de información del marcador activo
             infoWindow.open(this.mapCustom, marker);
         }
     }
-
     //-----------------------------------------------------------------FORMATEADORES DE VALORES -----------------------------------------
     formatTime(returnTimeLeft: number): string {
         const seconds = returnTimeLeft / 1000;
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = Math.floor(seconds % 60);
         return `${minutes}m ${remainingSeconds}s`;
+    }
+
+    async envioupdate(){
+        await this.ubicacionService.syncData();
     }
 }
