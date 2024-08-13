@@ -521,8 +521,235 @@
                         </ng-container>
                     </div>
                 </div>
-            </div>
+                <h1>MEDIOS DE VIDA</h1>
+            <div class="p-d-col-12 p-4">
+                <div class="p-field">
+                    <label>¿Ha participado en algún tipo de capacitación?</label>
+                    <div class="field-checkbox">
+                        <p-radioButton
+                            inputId="participacionCapacitacionSi"
+                            value="Sí"
+                            formControlName="participacionCapacitacion"
+                        />
+                        <label for="participacionCapacitacionSi" class="ml-2">Sí</label>
+                        <p-radioButton
+                            inputId="participacionCapacitacionNo"
+                            value="No"
+                            formControlName="participacionCapacitacion"
+                        />
+                        <label for="participacionCapacitacionNo" class="ml-2">No</label>
+                    </div>
+                </div>
+                <p-floatLabel>
+                    <input
+                        id="cuantosTrabajos"
+                        formControlName="cuantosTrabajos"
+                        pInputText
+                        type="number"
+                        class="full-width"
+                    />
+                    <label for="cuantosTrabajos">¿Cuántos trabajos desempeña?</label>
+                </p-floatLabel>
+                <div class="p-field">
+                    <label>En los últimos 12 meses, ha tenido una actividad laboral:</label>
+                    <div class="field-checkbox">
+                        <ng-container *ngFor="let category of actividadLaboralStates">
+                            <p-radioButton
+                                [inputId]="category.name"
+                                [value]="category.name"
+                                formControlName="actividadLaboral"
+                            />
+                            <label [for]="category.name" class="ml-2">{{ category.name }}</label>
+                        </ng-container>
+                    </div>
+                </div>
+            
+                <p-floatLabel>
+                    <input
+                        id="actividadEconomica"
+                        formControlName="actividadEconomica"
+                        pInputText
+                        type="text"
+                        class="full-width"
+                    />
+                    <label for="actividadEconomica">¿Qué actividad económica desempeñada?</label>
+                </p-floatLabel>
+                <div class="p-field">
+                    <label>¿Trabaja en relación de dependencia?</label>
+                    <div class="field-checkbox">
+                        <ng-container *ngFor="let category of relacionDependenciaStates">
+                            <p-radioButton
+                                [inputId]="category.name"
+                                [value]="category.name"
+                                formControlName="relacionDependencia"
+                            />
+                            <label [for]="category.name" class="ml-2">{{ category.name }}</label>
+                        </ng-container>
+                    </div>
+                </div>
+            
+                <div class="p-field">
+                    <label>¿Trabaja por cuenta propia?</label>
+                    <div class="field-checkbox">
+                        <ng-container *ngFor="let category of cuentaPropiaStates">
+                            <p-radioButton
+                                [inputId]="category.name"
+                                [value]="category.name"
+                                formControlName="cuentaPropia"
+                            />
+                            <label [for]="category.name" class="ml-2">{{ category.name }}</label>
+                        </ng-container>
+                    </div>
+                </div>
+            
+                <div class="p-field">
+                    <label>Ingresos mensuales promedios del hogar (sumando los ingresos de todos los individuos activos):</label>
+                    <div class="field-checkbox">
+                        <ng-container *ngFor="let category of ingresosMensualesStates">
+                            <p-radioButton
+                                [inputId]="category.name"
+                                [value]="category.name"
+                                formControlName="ingresosMensuales"
+                            />
+                            <label [for]="category.name" class="ml-2">{{ category.name }}</label>
+                        </ng-container>
+                    </div>
+                </div>
+
+<div class="p-d-col-12 p-4">
+    <div class="p-field">
+        <label>Los ingresos mensuales provienen de (respuesta múltiple):</label>
+        <div class="field-checkbox">
+            <ng-container *ngFor="let category of fuentesIngresosStates">
+                <p-checkbox
+                    [inputId]="category.name"
+                    [value]="category.name"
+                    formControlName="fuentesIngresos"
+                />
+                <label [for]="category.name" class="ml-2">{{ category.name }}</label>
+            </ng-container>
+
+            <p-floatLabel>
+                <input
+                    id="otrosIngresos"
+                    formControlName="otrosIngresos"
+                    pInputText
+                    type="text"
+                    class="full-width"
+                />
+                <label for="otrosIngresos">Otros: ___</label>
+            </p-floatLabel>
         </div>
+    </div>
+</div>
+<h1>REDES DE APOYO (TODAS RESPUESTAS MÚLTIPLES)</h1>
+<div class="p-d-col-12 p-4">
+    <div class="p-field">
+        <label>Participa en actividades en el barrio:</label>
+        <div class="field-checkbox">
+            <ng-container *ngFor="let category of actividadesBarrioStates">
+                <p-checkbox
+                    [inputId]="category.name"
+                    [value]="category.name"
+                    formControlName="actividadesBarrio"
+                />
+                <label [for]="category.name" class="ml-2">{{ category.name }}</label>
+            </ng-container>
+            
+        </div>
+        </div>
+        
+<div class="p-field">
+    <label>En su tiempo libre, ¿qué actividades realizan (dentro del cantón)?</label>
+
+    <div class="field-checkbox">
+        <ng-container *ngFor="let activity of actividadesDentroCantonStates">
+            <p-checkbox
+                [inputId]="activity.name"
+                [value]="activity.name"
+                formControlName="actividadesDentroCantón"
+            />
+            <label [for]="activity.name" class="ml-2">{{ activity.name }}</label>
+        </ng-container>
+    </div>
+</div>
+
+<!-- Actividades en tiempo libre fuera del cantón -->
+
+<div class="p-field">
+    <label>En su tiempo libre, ¿qué actividades realizan (fuera del cantón)?</label>
+    <div class="field-checkbox">
+        <ng-container *ngFor="let activity of actividadesFueraCantonStates">
+            <p-checkbox
+                [inputId]="activity.name"
+                [value]="activity.name"
+                formControlName="actividadesFueraCantón"
+            />
+            <label [for]="activity.name" class="ml-2">{{ activity.name }}</label>
+        </ng-container>
+    </div>
+</div>
+
+<!-- Sugerencias para mejorar el barrio -->
+
+<div class="p-field">
+    <label>¿Qué sugiere usted para mejorar su barrio? (Seleccionar 3)</label>
+    <div class="field-checkbox">
+        <ng-container *ngFor="let suggestion of sugerenciasBarrioStates">
+            <p-checkbox
+                [inputId]="suggestion.name"
+                [value]="suggestion.name"
+                formControlName="sugerenciasBarrio"
+            />
+            <label [for]="suggestion.name" class="ml-2">{{ suggestion.name }}</label>
+        </ng-container>
+    </div>
+</div>
+
+<!-- Propuestas adicionales -->
+<p-floatLabel>
+    <textarea
+        id="propuestasAdicionales"
+        formControlName="propuestasAdicionales"
+        pInputTextarea
+        rows="3"
+        class="full-width"
+    ></textarea>
+    <label for="propuestasAdicionales">Propuestas adicionales para la mejora del barrio:</label>
+</p-floatLabel>
+<div class="p-d-col-12 p-4">
+    <div class="p-field">
+        <label>Recibe algún tipo de ayuda humanitaria?</label>
+        <div class="field-checkbox">
+            <ng-container *ngFor="let source of ayudaHumanitariaStates">
+                <p-checkbox
+                    [inputId]="source.name"
+                    [value]="source.name"
+                    formControlName="ayudaHumanitaria"
+                />
+                <label [for]="source.name" class="ml-2">{{ source.name }}</label>
+            </ng-container>
+
+            <p-floatLabel>
+                <input
+                    id="otros"
+                    formControlName="otros"
+                    pInputText
+                    type="text"
+                    class="full-width"
+                />
+                <label for="otros">Otros:</label>
+            </p-floatLabel>
+        </div>
+    </div>
+</div>
+</div>
+
+
+
+            </div>
+            </div>
+        </div>  
 
         <p-footer>
             <div class="p-d-flex p-ai-center p-jc-between p-mt-2">

@@ -128,6 +128,108 @@ export class FormularioSocioeconomicoComponent {
         { name: 'Otros' },
         { name: 'No' },
     ];
+    actividadLaboralStates = [
+        { name: 'A tiempo completo' },
+        { name: 'Parcial' },
+        { name: 'Esporádica' },
+        { name: 'Por temporada' },
+        { name: 'Pensionista' },
+        { name: 'Cesante' },
+        { name: 'Ninguna' },
+    ];
+    relacionDependenciaStates = [
+        { name: 'Sí - formal' },
+        { name: 'informal' },
+        { name: 'No quiso responder' },
+
+    ];
+    cuentaPropiaStates = [
+        { name: 'Sí - con RUC' },
+        { name: 'Sí - con RISE' },
+        { name: 'Sin RUC' },
+        { name: 'No con RISE' },
+        { name: 'No quiso responder' },
+      ];
+    
+      ingresosMensualesStates = [
+        { name: 'Menos que salario básico' },
+        { name: 'USD 460 - USD 500' },
+        { name: 'USD 500 - USD 750' },
+        { name: 'USD 750 - USD 999' },
+        { name: 'USD 1,000+' },
+        { name: 'No quiere responder' },
+      ];
+    
+      fuentesIngresosStates = [
+        { name: 'Trabajo' },
+        { name: 'Bono por discapacidad' },
+        { name: 'Bono Madres Solteras' },
+        { name: 'Bono de Desarrollo Humano' },
+        { name: 'Bono de la Tercera Edad' },
+        { name: 'Apoyo de ONG’s' },
+        { name: 'Pensión de Alimentos' },
+        { name: 'Otros' },
+        { name: 'Pensión por Jubilación' },
+      ];
+       // Definición de actividades en el barrio
+  actividadesBarrioStates = [
+    { name: 'Iglesia' },
+    { name: 'Grupos LGBTI' },
+    { name: 'Comité barrial' },
+    { name: 'Clubes deportivos' },
+    { name: 'Asociación de mujeres' },
+    { name: 'Ninguna' },
+    { name: 'Asociación juvenil' },
+    { name: 'Otros' },
+  ];
+
+  // Actividades dentro del cantón
+  actividadesDentroCantonStates = [
+    { name: 'Playa' },
+    { name: 'Domicilio' },
+    { name: 'Río' },
+    { name: 'Deporte' },
+    { name: 'Campo' },
+    { name: 'Parques' },
+    { name: 'Otros' },
+  ];
+
+  // Actividades fuera del cantón
+  actividadesFueraCantonStates = [
+    { name: 'Playa' },
+    { name: 'Domicilio' },
+    { name: 'Río' },
+    { name: 'Deporte' },
+    { name: 'Campo' },
+    { name: 'Viajes' },
+    { name: 'Parque' },
+    { name: 'Otros' },
+  ];
+
+  // Sugerencias para mejorar el barrio
+  sugerenciasBarrioStates = [
+    { name: 'Calles pavimentadas' },
+    { name: 'Presencia Policial' },
+    { name: 'Áreas verdes' },
+    { name: 'Agua potable' },
+    { name: 'Alcantarillado' },
+    { name: 'Actividades recreativas' },
+    { name: 'Alumbrado público' },
+    { name: 'Recolección de basura' },
+    { name: 'Sub-centro de salud' },
+  ];
+  ayudaHumanitariaStates = [
+    { name: 'Iglesia' },
+    { name: 'Vecinos/as' },
+    { name: 'Amigos/as' },
+    { name: 'Familia' },
+    { name: 'ONG’s' },
+    { name: 'Institución pública' },
+    { name: 'Ninguna' },
+    { name: 'Otros' },
+  ];
+
+      
     constructor(private fb: FormBuilder) {
         this.surveyForm = this.fb.group({
             date: ['', Validators.required],
@@ -166,6 +268,23 @@ export class FormularioSocioeconomicoComponent {
             numPisos: [''],
             numHabitaciones: [''],
             estructuraVivienda: [''],
+            participacionCapacitacion: [''], 
+            cuantosTrabajos: [''], 
+            actividadLaboral: [''],  // 
+            actividadEconomica: [''], // 
+            relacionDependencia: [''],
+            cuentaPropia: [''],
+            ingresosMensuales: [''],
+            reparticionGastos: [''],
+            fuentesIngresos: [[]],
+            otrosIngresos: [''],
+            actividadesBarrio: [[]], // Actividades en el barrio
+            actividadesDentroCantón: [[]], // Actividades dentro del cantón
+            actividadesFueraCantón: [[]], // Actividades fuera del cantón
+            sugerenciasBarrio: [[], Validators.maxLength(3)], // Sugerencias para mejorar el barrio
+            propuestasAdicionales: [''], // Propuestas adicionales
+            ayudaHumanitaria: [[]], // Para las fuentes de ayuda humanitaria
+            otros: [''], // Otros tipos de ayuda
         });
     }
     onSubmit() {
