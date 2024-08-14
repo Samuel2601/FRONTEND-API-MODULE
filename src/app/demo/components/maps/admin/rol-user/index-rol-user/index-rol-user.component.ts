@@ -40,7 +40,7 @@ export class IndexRolUserComponent implements OnInit {
             .subscribe(
                 (response) => {
                     this.roles = response.data;
-                    //console.log(response.data);
+                    console.log(response.data);
                 },
                 (error) => {
                     console.error(error);

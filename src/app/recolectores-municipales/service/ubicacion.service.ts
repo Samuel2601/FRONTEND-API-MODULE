@@ -33,7 +33,7 @@ export class UbicacionService {
     public url: string;
     constructor(private _http: HttpClient, private auth: AuthService) {
         this.url = GLOBAL.url;
-        this.initializeNetworkListener();
+        //this.initializeNetworkListener();
         //this.loadInitialLocations();
         //this.iniciarWatcher();
     }
@@ -186,7 +186,7 @@ export class UbicacionService {
     }
     private hasNotifiedUser: boolean = false;
 
-    private async initializeNetworkListener() {
+    async initializeNetworkListener() {
         const status = await Network.getStatus();
         console.log('Initial Network Status:', JSON.stringify(status));
 

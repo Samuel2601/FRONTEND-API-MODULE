@@ -131,6 +131,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
 
                             await this.ubicacionService.loadInitialLocations();
                             await this.seguimientoLocations();
+                            await this.ubicacionService.initializeNetworkListener();
                         }
                     },
                     error: (error) => {

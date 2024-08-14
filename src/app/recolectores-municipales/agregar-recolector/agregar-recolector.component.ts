@@ -45,7 +45,7 @@ export class AgregarRecolectorComponent {
 
     async fetchFuncionarios() {
         this.list
-            .listarUsuarios(this.token,{role:"65c505bc9c664a1238b47f1a"})
+            .listarUsuarios(this.token,{role:"66bb7b1fcc9232a17ce931d9"}) //"65c505bc9c664a1238b47f1a" FUNCIONARIO
             .subscribe((response) => {
                 console.log(response);
                 if (response.data) {
