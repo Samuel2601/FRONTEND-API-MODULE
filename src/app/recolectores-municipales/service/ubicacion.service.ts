@@ -39,7 +39,7 @@ export class UbicacionService {
     }
     private lastUpdateTimestamp: number | null = null;
     private readonly MAX_DISTANCE_KM = 0.001; // Distancia máxima permitida entre puntos consecutivos en kilómetros
-    private readonly MIN_SPEED_KMH = 120 * 1000; // Velocidad mínima en km/h para considerar la ubicación como válida
+    private readonly MIN_SPEED_KMH = 90 * 1000; // Velocidad mínima en km/h para considerar la ubicación como válida
 
     iniciarWatcher() {
         const options: WatcherOptions = {
