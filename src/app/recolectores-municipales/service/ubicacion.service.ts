@@ -184,44 +184,60 @@ export class UbicacionService {
 
         return R * c; // en metros
     }
+    private hasNotifiedUser: boolean = false;
+
     private async initializeNetworkListener() {
         const status = await Network.getStatus();
         console.log('Initial Network Status:', JSON.stringify(status));
 
-        Network.addListener('networkStatusChange', (status) => {
+        Network.addListener('networkStatusChange', async (status) => {
             console.log('Network status changed:', JSON.stringify(status));
-            if (status.connected==true) {
-               // this.syncData();
+
+            if (!status.connected && !this.hasNotifiedUser) {
+                // Mostrar el mensaje al usuario la primera vez que se desconecta
+                alert(
+                    'Estás desconectado. La próxima vez que te conectes, enviaremos tu información.'
+                );
+                this.hasNotifiedUser = true;
+            } else if (status.connected && this.hasNotifiedUser) {
+                // Si se vuelve a conectar y ya se notificó la desconexión, intenta sincronizar
+                await this.syncData();
             }
         });
     }
+
     async syncData() {
         try {
-          const locations = await Preferences.get({ key: 'locations' });
-          const asign = await Preferences.get({ key: 'asign' });
-    
-          console.log("locations:",JSON.stringify(locations));
-          console.log("asign:", JSON.stringify(asign));
-    
-          if (locations.value && asign.value) {
-            const parsedLocations = JSON.parse(locations.value);
-            const parsedAsign = JSON.parse(asign.value);
-    
-            const result = await this.updateRutaRecolector(
-              this.auth.token(),
-              parsedAsign._id,
-              { puntos_recoleccion: parsedLocations }
-            ).toPromise();
-    
-            console.log(JSON.stringify(result));
-            await Preferences.remove({ key: 'locations' });
-            await Preferences.remove({ key: 'asign' });
-            console.log('BORRADO asignacion');
-          }
+            const locations = await Preferences.get({ key: 'locations' });
+            const asign = await Preferences.get({ key: 'asign' });
+
+            console.log('locations:', JSON.stringify(locations));
+            console.log('asign:', JSON.stringify(asign));
+
+            if (locations.value && asign.value) {
+                const parsedLocations = JSON.parse(locations.value);
+                const parsedAsign = JSON.parse(asign.value);
+
+                const result = await this.updateRutaRecolector(
+                    this.auth.token(),
+                    parsedAsign._id,
+                    { puntos_recoleccion: parsedLocations }
+                ).toPromise();
+
+                console.log(JSON.stringify(result));
+                // No eliminamos las preferencias locales
+                console.log(
+                    'Sincronización exitosa. La información se ha enviado.'
+                );
+
+                // Si deseas, puedes notificar al usuario sobre la sincronización exitosa
+                alert('Tu información ha sido enviada exitosamente.');
+            }
         } catch (error) {
-          console.error('Error al sincronizar datos:', JSON.stringify(error));
+            console.error('Error al sincronizar datos:', JSON.stringify(error));
         }
-      }
+    }
+
     private getHeaders(token: string): HttpHeaders {
         return new HttpHeaders({
             'Content-Type': 'application/json',
@@ -229,17 +245,22 @@ export class UbicacionService {
         });
     }
 
-    updateRutaRecolector(token: string, id: string, data: any): Observable<any> {
+    updateRutaRecolector(
+        token: string,
+        id: string,
+        data: any
+    ): Observable<any> {
         const headers = this.getHeaders(token);
-        return this._http.put(`${this.url}recolector/${id}`, data, { headers })
-          .pipe(
-            map(response => response),
-            catchError(error => {
-              console.error('Error en updateRutaRecolector:', error);
-              return throwError(error);
-            })
-          );
-      }
+        return this._http
+            .put(`${this.url}recolector/${id}`, data, { headers })
+            .pipe(
+                map((response) => response),
+                catchError((error) => {
+                    console.error('Error en updateRutaRecolector:', error);
+                    return throwError(error);
+                })
+            );
+    }
 
     async loadInitialLocations() {
         try {
