@@ -615,6 +615,66 @@
                         </ng-container>
                     </div>
                 </div>
+                <div class="p-d-col-12 p-4">
+                    <div class="p-field">
+                        <label>Repartición de los gastos del hogar:</label>
+                        <div class="field-checkbox">
+                            <ng-container *ngFor="let gasto of gastosHogar">
+                                <p-checkbox
+                                    [inputId]="gasto.name"
+                                    [value]="gasto.name"
+                                    formControlName="gastosHogar"
+                                />
+                                <label [for]="gasto.name" class="ml-2">{{ gasto.name }}</label>
+                            </ng-container>
+                
+                            <p-floatLabel>
+                                <input
+                                    id="otrosGastos"
+                                    formControlName="otrosGastos"
+                                    pInputText
+                                    type="text"
+                                    class="full-width"
+                                />
+                                <label for="otrosGastos">Otros Gastos:</label>
+                            </p-floatLabel>
+                
+                            <p-floatLabel>
+                                <input
+                                    id="especifique"
+                                    formControlName="especifique"
+                                    pInputText
+                                    type="text"
+                                    class="full-width"
+                                />
+                                <label for="especifique">Especifique:</label>
+                            </p-floatLabel>
+                
+                            <p-floatLabel>
+                                <input
+                                    id="ahorroFormal"
+                                    formControlName="ahorroFormal"
+                                    pInputText
+                                    type="text"
+                                    class="full-width"
+                                />
+                                <label for="ahorroFormal">Ahorro Formal:</label>
+                            </p-floatLabel>
+                
+                            <p-floatLabel>
+                                <input
+                                    id="ahorroInformal"
+                                    formControlName="ahorroInformal"
+                                    pInputText
+                                    type="text"
+                                    class="full-width"
+                                />
+                                <label for="ahorroInformal">Ahorro Informal:</label>
+                            </p-floatLabel>
+                        </div>
+                    </div>
+                </div>
+                
 
 <div class="p-d-col-12 p-4">
     <div class="p-field">
@@ -740,9 +800,17 @@
                 />
                 <label for="otros">Otros:</label>
             </p-floatLabel>
+            
+            
+            
+            
         </div>
     </div>
+    
 </div>
+
+
+
 </div>
 
 

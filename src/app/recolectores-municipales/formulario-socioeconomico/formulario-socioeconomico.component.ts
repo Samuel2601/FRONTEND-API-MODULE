@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+
 import {
     FormBuilder,
     FormControl,
@@ -228,6 +229,19 @@ export class FormularioSocioeconomicoComponent {
     { name: 'Ninguna' },
     { name: 'Otros' },
   ];
+  gastosHogar = [
+    { name: 'Pago alquiler de vivienda' },
+    { name: 'Pago de préstamo de vivienda' },
+    { name: 'Arreglo de la vivienda' },
+    { name: 'Vestimenta' },
+    { name: 'Alimentación' },
+    { name: 'Salud' },
+    { name: 'Educación' },
+    { name: 'Serv. Básicos' },
+    { name: 'Movilidad' },
+    { name: 'Otros Gastos' }
+  ];
+  
 
       
     constructor(private fb: FormBuilder) {
@@ -285,8 +299,24 @@ export class FormularioSocioeconomicoComponent {
             propuestasAdicionales: [''], // Propuestas adicionales
             ayudaHumanitaria: [[]], // Para las fuentes de ayuda humanitaria
             otros: [''], // Otros tipos de ayuda
+            parentesco: [''],
+            
+            gastosHogar: this.fb.array([]), // Para los gastos del hogar
+      nombre: [''],
+      genero: [''],
+      edad: [''],
+      estadoCivil: [''],
+      etnia: [''],
+      nacionalidad: [''],
+      cedula: [''],
+      nivelEducativo: [''],
+      ocupacion: [''],
+      discapacidad: [''],
+      enfermedadCronica: ['']
         });
+        
     }
+    
     onSubmit() {
         console.log(this.surveyForm.value);
         if (this.surveyForm.valid) {
