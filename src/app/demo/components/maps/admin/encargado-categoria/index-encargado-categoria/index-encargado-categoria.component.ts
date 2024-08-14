@@ -32,7 +32,7 @@ export class IndexEncargadoCategoriaComponent {
         this.listService.listarEncargadosCategorias(this.token,{populate:'encargado,categoria'},false).subscribe(
             (response) => {
                 this.encargadosCategoria = response.data;
-                console.log(response.data);
+                //console.log(response.data);
                 this.encargadosCategoria.forEach(element => {
                     element.encargado = element.encargado.map(usuarios => ({
                         ...usuarios,

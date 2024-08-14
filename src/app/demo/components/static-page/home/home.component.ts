@@ -14,6 +14,7 @@ import { forkJoin } from 'rxjs';
 import { MapaMostrarFichasComponent } from '../mapa-mostrar-fichas/mapa-mostrar-fichas.component';
 import { MostrarFichasArticulosComponent } from '../mostrar-fichas-articulos/mostrar-fichas-articulos.component';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
+import { SocketService } from 'src/app/demo/services/socket.io.service';
 @Component({
     selector: 'app-home',
     standalone: true,
@@ -51,8 +52,10 @@ export class HomeComponent implements OnInit {
         private fb: FormBuilder,
         public dialogService: DialogService,
         private router: Router,
-        private auth: AuthService
+        private auth: AuthService,
+        private socket:SocketService
     ) {
+        socket.inicializador();
         this.incidencia = this.fb.group({
             direccion_geo: [{ value: '', disabled: true }],
             ciudadano: [{ value: '', disabled: true }, Validators.required],

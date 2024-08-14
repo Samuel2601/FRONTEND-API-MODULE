@@ -185,24 +185,31 @@ export class UbicacionService {
         return R * c; // en metros
     }
     private hasNotifiedUser: boolean = false;
+    private lastStatus: boolean = false; // Estado anterior de la red
 
     async initializeNetworkListener() {
         const status = await Network.getStatus();
         console.log('Initial Network Status:', JSON.stringify(status));
+        this.lastStatus = status.connected;
 
         Network.addListener('networkStatusChange', async (status) => {
             console.log('Network status changed:', JSON.stringify(status));
 
-            if (!status.connected && !this.hasNotifiedUser) {
-                // Mostrar el mensaje al usuario la primera vez que se desconecta
+            // Verifica si el estado de la red ha cambiado de desconectado a conectado
+            if (!this.lastStatus && status.connected) {
+                // Si estaba desconectado y ahora está conectado, intenta sincronizar
+                await this.syncData();
+                this.hasNotifiedUser = false; // Resetear la notificación
+            } else if (!status.connected && !this.hasNotifiedUser) {
+                // Si está desconectado y aún no se ha notificado al usuario
                 alert(
                     'Estás desconectado. La próxima vez que te conectes, enviaremos tu información.'
                 );
-                this.hasNotifiedUser = true;
-            } else if (status.connected && this.hasNotifiedUser) {
-                // Si se vuelve a conectar y ya se notificó la desconexión, intenta sincronizar
-                await this.syncData();
+                this.hasNotifiedUser = true; // Marca como notificado
             }
+
+            // Actualiza el estado de la red
+            this.lastStatus = status.connected;
         });
     }
 
@@ -223,12 +230,6 @@ export class UbicacionService {
                     parsedAsign._id,
                     { puntos_recoleccion: parsedLocations }
                 ).toPromise();
-
-                console.log(JSON.stringify(result));
-                // No eliminamos las preferencias locales
-                console.log(
-                    'Sincronización exitosa. La información se ha enviado.'
-                );
 
                 // Si deseas, puedes notificar al usuario sobre la sincronización exitosa
                 alert('Tu información ha sido enviada exitosamente.');

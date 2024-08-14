@@ -7,15 +7,15 @@ import { ListarRecolectoresComponent } from './listar-recolectores/listar-recole
 import { AgregarRecolectorComponent } from './agregar-recolector/agregar-recolector.component';
 import { AgregarUbicacionRecolectoresComponent } from './agregar-ubicacion-recolectores/agregar-ubicacion-recolectores.component';
 import { FormularioSocioeconomicoComponent } from './formulario-socioeconomico/formulario-socioeconomico.component';
-
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
     declarations: [
         ListarRecolectoresComponent,
         AgregarRecolectorComponent,
         AgregarUbicacionRecolectoresComponent,
-        FormularioSocioeconomicoComponent
+        FormularioSocioeconomicoComponent,
     ],
-    imports: [RecolectoresMunicipioRoutingModule,CommonModule, ImportsModule],
+    imports: [RecolectoresMunicipioRoutingModule, CommonModule, ImportsModule,FormsModule,ReactiveFormsModule],
 })
 export class RecolectoresMunicipalesModule {}

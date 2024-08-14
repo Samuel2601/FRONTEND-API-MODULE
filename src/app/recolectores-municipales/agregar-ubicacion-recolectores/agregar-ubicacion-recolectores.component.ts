@@ -57,22 +57,24 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     id: any;
     async ngOnInit(): Promise<void> {
         await this.initMap();
-        await this.fetchDevices();
-        if (this.config?.data?.id) {
-            this.id = this.config.data.id;
-        }
+        setTimeout(async () => {
+            await this.fetchDevices();
+            if (this.config?.data?.id) {
+                this.id = this.config.data.id;
+            }
 
-        if (!this.id) {
-            this.route.paramMap.subscribe(async (params) => {
-                this.id = params.get('id') ?? params.get('id');
-            });
-        }
+            if (!this.id) {
+                this.route.paramMap.subscribe(async (params) => {
+                    this.id = params.get('id') ?? params.get('id');
+                });
+            }
 
-        if (this.id) {
-            await this.getRuta();
-        } else {
-            await this.consultaAsig();
-        }
+            if (this.id) {
+                await this.getRuta();
+            } else {
+                await this.consultaAsig();
+            }
+        }, 500);
     }
     ngOnDestroy(): void {
         if (this.locationSubscription) {
@@ -123,7 +125,10 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                             this.asignacion = response.data[0];
 
                             // Compara solo los _id
-                            if (!asignacionaux||this.asignacion._id !== asignacionaux._id) {
+                            if (
+                                !asignacionaux ||
+                                this.asignacion._id !== asignacionaux._id
+                            ) {
                                 await this.ubicacionService.saveAsignacion(
                                     this.asignacion
                                 );
@@ -190,7 +195,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 if (response.data) {
                     console.log(response);
                     this.ruta = response.data;
-                    this.table=this.ruta.puntos_recoleccion;
+                    this.table = this.ruta.puntos_recoleccion;
                     if (this.ruta.ruta.length > 0) {
                         await this.DrawRuta(this.ruta.ruta);
                     }
@@ -301,7 +306,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                     draggable: true, // Permite arrastrar el mapa
                     //scrollwheel: false, // Desactiva el zoom con la rueda del ratón
                     //disableDoubleClickZoom: true, // Desactiva el zoom con doble clic
-                    gestureHandling: 'greedy'//'cooperative', // Control de gestos
+                    gestureHandling: 'greedy', //'cooperative', // Control de gestos
                 }
             );
         });
@@ -312,8 +317,9 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         const iconElement = document.createElement('div');
         iconElement.style.width = '80px';
         iconElement.style.height = '80px';
-        iconElement.style.backgroundImage =
-        location.retorno?'url(https://i.postimg.cc/wM5tfphk/flag.png)':'url(https://i.postimg.cc/5NqvpwgM/trash3.png)';
+        iconElement.style.backgroundImage = location.retorno
+            ? 'url(https://i.postimg.cc/wM5tfphk/flag.png)'
+            : 'url(https://i.postimg.cc/5NqvpwgM/trash3.png)';
         iconElement.style.backgroundSize = 'cover';
         iconElement.style.backgroundPosition = 'center';
         iconElement.style.borderRadius = '50%'; // Opcional: para hacerlo circular
@@ -331,10 +337,12 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             headerContent: location.retorno
                 ? `Retorno a Estación`
                 : `Punto de recolección`,
-                content: `<div style="margin: 5px;">
+            content: `<div style="margin: 5px;">
                 <strong>Lat:</strong> ${location.lat}, 
                 <strong>Lng:</strong> ${location.lng}<br>
-                <strong>Fecha:</strong> ${this.formatDateFull(new Date(location.timestamp))}
+                <strong>Fecha:</strong> ${this.formatDateFull(
+                    new Date(location.timestamp)
+                )}
               </div>`,
         });
 
@@ -355,9 +363,9 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         const year = date.getFullYear();
         const hours = String(date.getHours()).padStart(2, '0');
         const minutes = String(date.getMinutes()).padStart(2, '0');
-      
+
         return `${day}/${month}/${year} ${hours}:${minutes}`;
-      }
+    }
 
     async DrawRuta(
         locations: {
@@ -767,20 +775,23 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
 
     getMarker(locationIndex: number) {
         this.closeAllInfoWindows(); // Cierra todas las ventanas de información abiertas
-    
+
         const marker = this.markers[locationIndex];
         const infoWindow = this.infoWindows[locationIndex];
-    
+
         if (marker && infoWindow) {
             // Asigna un zIndex alto al marcador activo
             // Puedes definir un valor base o incrementarlo dinámicamente
-            const highestZIndex = Math.max(...this.markers.map(m => m.zIndex || 0), 0);
+            const highestZIndex = Math.max(
+                ...this.markers.map((m) => m.zIndex || 0),
+                0
+            );
             const newZIndex = highestZIndex + 1;
-            marker.zIndex=newZIndex;
-    
+            marker.zIndex = newZIndex;
+
             // Centra el mapa en el marcador activo
             this.mapCustom.setCenter(marker.position);
-    
+
             // Abre la ventana de información del marcador activo
             infoWindow.open(this.mapCustom, marker);
         }
@@ -793,7 +804,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         return `${minutes}m ${remainingSeconds}s`;
     }
 
-    async envioupdate(){
+    async envioupdate() {
         await this.ubicacionService.syncData();
     }
 }

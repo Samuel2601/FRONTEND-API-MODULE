@@ -11,7 +11,16 @@ export class SocketService {
     private socket: Socket;
 
     constructor() {
-        this.inicializador();
+        this.initializeStorageListener();
+    }
+    private initializeStorageListener() {
+        console.log("INICIALIZADOR DE ESCUCHA SOCKET");
+        // Escucha cambios en localStorage y sessionStorage
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'idUser') {
+                this.inicializador();
+            }
+        });
     }
     inicializador() {
         try {

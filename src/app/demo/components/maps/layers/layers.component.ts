@@ -49,6 +49,7 @@ import { CreateDireccionGeoComponent } from '../direccion-geo/create-direccion-g
 import { AdminService } from 'src/app/demo/services/admin.service';
 import { ListService } from 'src/app/demo/services/list.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 
 interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
     id?: string;
@@ -62,11 +63,6 @@ interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
 export class LayersComponent implements OnInit {
     @ViewChildren(SpeedDial) speedDials: QueryList<SpeedDial> | undefined;
     @ViewChild('formulariomap', { static: true }) formularioMapRef!: ElementRef;
-    loader = new Loader({
-        apiKey: 'AIzaSyAnO4FEgIlMcRRB0NY5bn_h_EQzdyNUoPo',
-        version: 'weekly',
-        libraries: ['places'],
-    });
     mapOptions = {
         center: {
             lat: 0,
@@ -169,7 +165,8 @@ export class LayersComponent implements OnInit {
         private admin: AdminService,
         private list: ListService,
         private appRef: ApplicationRef,
-        private auth: AuthService
+        private auth: AuthService,
+        private googlemaps: GoogleMapsService,
     ) {
         this.subscription = this.layoutService.configUpdate$
             .pipe(debounceTime(25))
@@ -942,7 +939,7 @@ export class LayersComponent implements OnInit {
     }
     //INICIALIZADOR DEL MAPA
     initmap() {
-        this.loader.load().then(() => {
+        this.googlemaps.getLoader().then(() => {
             this.helperService.autocompleteService =
                 new google.maps.places.AutocompleteService();
             this.helperService.geocoderService = new google.maps.Geocoder();

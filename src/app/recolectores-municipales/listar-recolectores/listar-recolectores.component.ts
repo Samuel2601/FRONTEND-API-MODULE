@@ -33,7 +33,7 @@ export class ListarRecolectoresComponent implements OnInit {
     devices: any[] = [];
     async fetchDevices() {
         this.ubicar.obtenerDeviceGPS().subscribe((response) => {
-            console.log(response);
+            //console.log(response);
             this.devices = response;
             this.listar_asignacion();
         });
@@ -55,7 +55,7 @@ export class ListarRecolectoresComponent implements OnInit {
             .subscribe((response) => {
                 if (response.data) {
                     this.arr_asignacion = response.data;
-                    console.log(this.arr_asignacion);
+                    //console.log(this.arr_asignacion);
                 }
             });
     }

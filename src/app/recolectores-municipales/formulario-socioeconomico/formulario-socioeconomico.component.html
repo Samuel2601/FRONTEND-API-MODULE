@@ -8,826 +8,224 @@
             src="https://primefaces.org/cdn/primeng/images/card-ng.jpg"
         />
     </ng-template>
-    <form [formGroup]="surveyForm" class="p-fluid" (submit)="onSubmit()">
-        <div class="p-grid">
-            <div class="p-md-col-12 p-4">
-                <p-floatLabel>
+    <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
+        <!-- Información de Registro -->
+        <p-card header="Información de Registro">
+            <div
+                class="flex flex-wrap gap-3 p-fluid"
+                formGroupName="informacionRegistro"
+            >
+                <div class="flex-auto">
+                    <label for="date">Fecha</label>
                     <p-calendar
-                        id="date"
                         formControlName="date"
-                        [showIcon]="true"
-                        styleClass="full-width"
-                    ></p-calendar>
-                    <label for="date">Fecha:</label>
-                </p-floatLabel>
-
-                <p-floatLabel>
+                        [showTime]="true"
+                        [required]="true"
+                    >
+                    </p-calendar>
+                </div>
+                <div class="flex-auto">
+                    <label for="encuestador">Encuestador</label>
                     <input
-                        id="possessionTime"
-                        formControlName="possessionTime"
-                        pInputText
                         type="text"
-                        class="full-width"
+                        pInputText
+                        formControlName="encuestador"
+                        [required]="true"
                     />
-                    <label for="possessionTime">Tiempo de posesión:</label>
-                </p-floatLabel>
+                </div>
+            </div>
+        </p-card>
 
-                <p-floatLabel>
+        <!-- Información Personal -->
+        <p-card header="Información Personal">
+            <div
+                class="flex flex-wrap gap-3 p-fluid"
+                formGroupName="informacionPersonal"
+            >
+                <div class="flex-auto">
+                    <label for="entrevistado">Entrevistado</label>
                     <input
-                        id="phone"
+                        type="text"
+                        pInputText
+                        formControlName="entrevistado"
+                        [required]="true"
+                    />
+                </div>
+                <div class="flex-auto">
+                    <label for="dni">Cédula</label>
+                    <input
+                        type="text"
+                        pInputText
+                        formControlName="dni"
+                        [required]="true"
+                    />
+                </div>
+                <div class="flex-auto">
+                    <label for="edad">Edad</label>
+                    <p-inputNumber
+                        formControlName="edad"
+                        placeholder="Edad"
+                        [required]="true"
+                    >
+                    </p-inputNumber>
+                </div>
+                <div class="flex-auto">
+                    <label for="nacionalidad">Nacionalidad</label>
+                    <input
+                        type="text"
+                        pInputText
+                        formControlName="nacionalidad"
+                        [required]="true"
+                    />
+                </div>
+                <div class="flex-auto">
+                    <label for="phone">Teléfono</label>
+                    <input
+                        type="text"
+                        pInputText
                         formControlName="phone"
-                        pInputText
-                        type="text"
-                        class="full-width"
+                        [required]="true"
                     />
-                    <label for="phone">Teléfono:</label>
-                </p-floatLabel>
-
-                <p-floatLabel>
-                    <input
-                        id="nationality"
-                        formControlName="nationality"
-                        pInputText
-                        type="text"
-                        class="full-width"
-                    />
-                    <label for="nationality">Nacionalidad:</label>
-                </p-floatLabel>
-
-                <p-floatLabel>
-                    <input
-                        id="surveyorName"
-                        formControlName="surveyorName"
-                        pInputText
-                        type="text"
-                        class="full-width"
-                    />
-                    <label for="surveyorName">Nombre del Encuestador:</label>
-                </p-floatLabel>
-
-                <p-floatLabel>
-                    <input
-                        id="intervieweeName"
-                        formControlName="intervieweeName"
-                        pInputText
-                        type="text"
-                        class="full-width"
-                    />
-                    <label for="intervieweeName"
-                        >Nombre del(a) Entrevistado(a):</label
-                    >
-                </p-floatLabel>
+                </div>
             </div>
+        </p-card>
 
-            <div class="p-md-col-12 p-4">
-                <p-floatLabel>
-                    <p-inputNumber
-                        id="age"
-                        formControlName="age"
-                        [useGrouping]="false"
-                        class="full-width"
-                    ></p-inputNumber>
-                    <label for="age">Edad:</label>
-                </p-floatLabel>
-
-                <p-floatLabel>
+        <!-- Información de Ubicación -->
+        <p-card header="Información de Ubicación">
+            <div
+                class="flex flex-wrap gap-3 p-fluid"
+                formGroupName="informacionUbicacion"
+            >
+                <div class="flex-auto">
+                    <label for="posesionTime">Tiempo de Posesión</label>
                     <input
-                        id="ethnicity"
-                        formControlName="ethnicity"
-                        pInputText
                         type="text"
-                        class="full-width"
-                    />
-                    <label for="ethnicity">Etnia:</label>
-                </p-floatLabel>
-
-                <p-floatLabel>
-                    <input
-                        id="civilStatus"
-                        formControlName="civilStatus"
                         pInputText
-                        type="text"
-                        class="full-width"
+                        formControlName="posesionTime"
+                        [required]="true"
                     />
-                    <label for="civilStatus">Estado Civil:</label>
-                </p-floatLabel>
-
-                <p-floatLabel>
+                </div>
+                <div class="flex-auto">
+                    <label for="sector">Sector</label>
                     <input
-                        id="educationLevel"
-                        formControlName="educationLevel"
+                        type="text"
                         pInputText
-                        type="text"
-                        class="full-width"
-                    />
-                    <label for="educationLevel">Niv. Educ:</label>
-                </p-floatLabel>
-
-                <p-floatLabel>
-                    <input
-                        id="idNumber"
-                        formControlName="idNumber"
-                        pInputText
-                        type="text"
-                        class="full-width"
-                    />
-                    <label for="idNumber">Nº Cédula:</label>
-                </p-floatLabel>
-
-                <p-floatLabel>
-                    <input
-                        id="disability"
-                        formControlName="disability"
-                        pInputText
-                        type="text"
-                        class="full-width"
-                    />
-                    <label for="disability">Discapacidad/En:</label>
-                </p-floatLabel>
-            </div>
-
-            <div class="p-md-col-12 p-4">
-                <p-floatLabel>
-                    <input
-                        id="address"
-                        formControlName="address"
-                        pInputText
-                        type="text"
-                        class="full-width"
-                    />
-                    <label for="address">Dirección:</label>
-                </p-floatLabel>
-
-                <p-floatLabel>
-                    <input
-                        id="sector"
                         formControlName="sector"
-                        pInputText
-                        type="text"
-                        class="full-width"
+                        [required]="true"
                     />
-                    <label for="sector">Sector:</label>
-                </p-floatLabel>
-
-                <p-floatLabel>
+                </div>
+                <div class="flex-auto">
+                    <label for="barrio">Barrio</label>
                     <input
-                        id="neighborhood"
-                        formControlName="neighborhood"
-                        pInputText
                         type="text"
-                        class="full-width"
+                        pInputText
+                        formControlName="barrio"
+                        [required]="true"
                     />
-                    <label for="neighborhood">Barrio:</label>
-                </p-floatLabel>
-
-                <p-floatLabel>
+                </div>
+                <div class="flex-auto">
+                    <label for="manzana">Manzana</label>
                     <input
-                        id="blockNumber"
-                        formControlName="blockNumber"
-                        pInputText
                         type="text"
-                        class="full-width"
+                        pInputText
+                        formControlName="manzana"
+                        placeholder="Manzana"
+                        [required]="true"
                     />
-                    <label for="blockNumber">Manzana:</label>
-                </p-floatLabel>
-
-                <p-floatLabel>
+                </div>
+                <div class="flex-auto">
+                    <label for="lotenumero">Número de Lote</label>
                     <input
-                        id="lotNumber"
-                        formControlName="lotNumber"
-                        pInputText
                         type="text"
-                        class="full-width"
+                        pInputText
+                        formControlName="lotenumero"
+                        [required]="true"
                     />
-                    <label for="lotNumber">Número de lote:</label>
-                </p-floatLabel>
-
-                <p-floatLabel>
+                </div>
+                <div class="flex-auto">
+                    <label for="familyCount">Número de Familias</label>
                     <p-inputNumber
-                        id="familyCount"
                         formControlName="familyCount"
-                        [useGrouping]="false"
-                        class="full-width"
-                    ></p-inputNumber>
-                    <label for="familyCount"
-                        >¿Cuántas familias viven en el hogar?</label
+                        [required]="true"
                     >
-                </p-floatLabel>
-
-                <p-floatLabel>
+                    </p-inputNumber>
+                </div>
+                <div class="flex-auto">
+                    <label for="peopleCount">Número de Personas</label>
                     <p-inputNumber
-                        id="peopleCount"
                         formControlName="peopleCount"
-                        [useGrouping]="false"
-                        class="full-width"
-                    ></p-inputNumber>
-                    <label for="peopleCount"
-                        >¿Cuántas personas viven en el hogar?</label
+                        [required]="true"
                     >
-                </p-floatLabel>
-
-                <div class="p-field">
-                    <label>ESTADO DE LA CASA:</label>
-                    <div class="field-checkbox">
-                        <ng-container *ngFor="let category of houseStates">
-                            <p-radioButton
-                                [inputId]="category.name"
-                                [value]="category.name"
-                                formControlName="houseState"
-                            />
-                            <label [for]="category.name" class="ml-2">{{
-                                category.name
-                            }}</label>
-                        </ng-container>
-                    </div>
+                    </p-inputNumber>
+                </div>
+                <div class="flex-auto">
+                    <label for="houseState">Estado de la Casa</label>
+                    <p-dropdown
+                        formControlName="houseState"
+                        [options]="houseStateOptions"
+                        [required]="true"
+                    >
+                    </p-dropdown>
                 </div>
             </div>
-            <h1>SALUD</h1>
-            <div class="p-d-col-12 p-4">
-                <div class="p-field">
-                    <label>¿Cómo usted evalúa su estado de salud?</label>
-                    <div class="field-checkbox">
-                        <ng-container
-                            *ngFor="let category of estadoSaludStates"
-                        >
-                            <p-radioButton
-                                [inputId]="category.name"
-                                [value]="category.name"
-                                formControlName="estadoSalud"
-                            />
-                            <label [for]="category.name" class="ml-2">{{
-                                category.name
-                            }}</label>
-                        </ng-container>
-                    </div>
-                </div>
-                <div class="p-field">
-                    <label
-                        >En su opinión, ¿cuáles son las causas de su problema de
-                        salud?</label
-                    >
-                    <div class="field-checkbox">
-                        <ng-container
-                            *ngFor="let category of causasSaludStates"
-                        >
-                            <p-radioButton
-                                [inputId]="category.name"
-                                [value]="category.name"
-                                formControlName="causasSalud"
-                            />
-                            <label [for]="category.name" class="ml-2">{{
-                                category.name
-                            }}</label>
-                        </ng-container>
-                    </div>
-                </div>
+        </p-card>
 
-                <p-floatLabel>
-                    <input
-                        id="ultimaVisita"
-                        formControlName="ultimaVisita"
-                        pInputText
-                        type="text"
-                        class="full-width"
-                    />
-                    <label for="ultimaVisita"
-                        >Última vez que acudió al sub-centro de
-                        salud/médico:</label
+        <!-- Salud -->
+        <p-card header="Salud">
+            <div class="flex flex-wrap gap-3 p-fluid" formGroupName="salud">
+                <div class="flex-auto">
+                    <label for="estadoSalud">Estado de Salud</label>
+                    <p-dropdown
+                        formControlName="estadoSalud"
+                        [options]="estadoSaludOptions"
+                        [required]="true"
                     >
-                </p-floatLabel>
-
-                <p-floatLabel>
-                    <input
-                        id="otrosMetodosSanacion"
-                        formControlName="otrosMetodosSanacion"
-                        pInputText
-                        type="text"
-                        class="full-width"
-                    />
-                    <label for="ultimaVisita">
-                        ¿Utiliza otros métodos de sanación? Si fuese el caso,
-                        precisar cuáles:</label
+                    </p-dropdown>
+                </div>
+                <div class="flex-auto">
+                    <label for="causasSalud">Causas de Salud</label>
+                    <p-multiSelect
+                        formControlName="causasSalud"
+                        [options]="causasSaludOptions"
+                        [required]="true"
                     >
-                </p-floatLabel>
-                <div class="p-field">
-                    <label>
-                        El servicio higiénico que tiene en su vivienda está
-                        conectado a:</label
+                    </p-multiSelect>
+                </div>
+                <div class="flex-auto">
+                    <label for="customCausaControl"
+                        >Otra causa (especificar)</label
                     >
-                    <div class="field-checkbox">
-                        <ng-container
-                            *ngFor="let category of conexionHigienicoStates"
-                        >
-                            <p-radioButton
-                                [inputId]="category.name"
-                                [value]="category.name"
-                                formControlName="conexionHigienico"
-                            />
-                            <label [for]="category.name" class="ml-2">{{
-                                category.name
-                            }}</label>
-                        </ng-container>
-                    </div>
-                </div>
-            </div>
-            <h1>VIVIENDA</h1>
-            <div class="p-d-col-12 p-4">
-                <div class="p-field">
-                    <label>Estructura de la vivienda:</label>
-                    <div class="field-checkbox">
-                        <ng-container
-                            *ngFor="let structure of viviendaStructureStates"
-                        >
-                            <p-radioButton
-                                [inputId]="structure.name"
-                                [value]="structure.name"
-                                formControlName="estructuraVivienda"
-                            />
-                            <label [for]="structure.name" class="ml-2">{{
-                                structure.name
-                            }}</label>
-                        </ng-container>
-                    </div>
-                </div>
-                <div class="p-field">
-                    <label
-                        >¿Cuáles de los siguientes servicios básicos Ud.
-                        Dispone?</label
-                    >
-                    <div class="field-checkbox">
-                        <ng-container
-                            *ngFor="let service of serviciosBasicosStates"
-                        >
-                            <p-checkbox
-                                [inputId]="service.name"
-                                [value]="service.name"
-                                formControlName="serviciosBasicos"
-                            ></p-checkbox>
-                            <label [for]="service.name" class="ml-2">{{
-                                service.name
-                            }}</label>
-                        </ng-container>
-                    </div>
-                </div>
-                <div class="p-field">
-                    <label>Qué tipo de pérdida tuvo en su domicilio:</label>
-                    <div class="field-checkbox">
-                        <ng-container
-                            *ngFor="let lossType of tipoPerdidaStates"
-                        >
-                            <p-radioButton
-                                [inputId]="lossType.name"
-                                [value]="lossType.name"
-                                formControlName="tipoPerdida"
-                            />
-                            <label [for]="lossType.name" class="ml-2">{{
-                                lossType.name
-                            }}</label>
-                        </ng-container>
-                    </div>
-                </div>
-                <div class="p-field">
-                    <label>La tenencia de la vivienda es:</label>
-                    <div class="field-checkbox">
-                        <ng-container
-                            *ngFor="let ownership of tenenciaViviendaStates"
-                        >
-                            <p-radioButton
-                                [inputId]="ownership.name"
-                                [value]="ownership.name"
-                                formControlName="tenenciaVivienda"
-                            />
-                            <label [for]="ownership.name" class="ml-2">{{
-                                ownership.name
-                            }}</label>
-                        </ng-container>
-                    </div>
-                </div>
-                <div class="p-field">
-                    <label
-                        >¿Qué documentos relativos a la propiedad usted
-                        tiene?</label
-                    >
-                    <div class="field-checkbox">
-                        <ng-container
-                            *ngFor="let document of documentosPropiedadStates"
-                        >
-                            <p-checkbox
-                                [inputId]="document.name"
-                                [value]="document.name"
-                                formControlName="documentosPropiedad"
-                            ></p-checkbox>
-                            <label [for]="document.name" class="ml-2">{{
-                                document.name
-                            }}</label>
-                        </ng-container>
-                    </div>
-                </div>
-                <p-floatLabel>
-                    <input
-                        id="numPisos"
-                        formControlName="numPisos"
-                        pInputText
-                        type="text"
-                        class="full-width"
-                    />
-                    <label for="numPisos"
-                        >¿Cuántos pisos posee la vivienda?</label
-                    >
-                </p-floatLabel>
-
-                <p-floatLabel>
-                    <input
-                        id="numHabitaciones"
-                        formControlName="numHabitaciones"
-                        pInputText
-                        type="text"
-                        class="full-width"
-                    />
-                    <label for="numHabitaciones"
-                        >¿Cuántas habitaciones posee la vivienda?</label
-                    >
-                </p-floatLabel>
-                <div class="p-field">
-                    <label>Tipo de alumbrado de la vivienda:</label>
-                    <div class="field-checkbox">
-                        <ng-container
-                            *ngFor="let lighting of tipoAlumbradoStates"
-                        >
-                            <p-radioButton
-                                [inputId]="lighting.name"
-                                [value]="lighting.name"
-                                formControlName="tipoAlumbrado"
-                            />
-                            <label [for]="lighting.name" class="ml-2">{{
-                                lighting.name
-                            }}</label>
-                        </ng-container>
-                    </div>
-                </div>
-                <div class="p-field">
-                    <label>¿Cómo se abastece con el agua?</label>
-                    <div class="field-checkbox">
-                        <ng-container
-                            *ngFor="let waterSource of abastecimientoAguaStates"
-                        >
-                            <p-checkbox
-                                [inputId]="waterSource.name"
-                                [value]="waterSource.name"
-                                formControlName="abastecimientoAgua"
-                            ></p-checkbox>
-                            <label [for]="waterSource.name" class="ml-2">{{
-                                waterSource.name
-                            }}</label>
-                        </ng-container>
-                    </div>
-                </div>
-                <div class="p-field">
-                    <label
-                        >¿Cuáles de los siguientes bienes y servicios
-                        electrodomésticos Ud. posee?</label
-                    >
-                    <div class="field-checkbox">
-                        <ng-container
-                            *ngFor="
-                                let appliance of bienesServiciosElectrodomesticosStates
-                            "
-                        >
-                            <p-checkbox
-                                [inputId]="appliance.name"
-                                [value]="appliance.name"
-                                formControlName="bienesServiciosElectrodomesticos"
-                            ></p-checkbox>
-                            <label [for]="appliance.name" class="ml-2">{{
-                                appliance.name
-                            }}</label>
-                        </ng-container>
-                    </div>
-                </div>
-                <div class="p-field">
-                    <label
-                        >Su vivienda se encuentra en una zona de riesgo:</label
-                    >
-                    <div class="field-checkbox">
-                        <ng-container *ngFor="let risk of zonaRiesgoStates">
-                            <p-radioButton
-                                [inputId]="risk.name"
-                                [value]="risk.name"
-                                formControlName="zonaRiesgo"
-                            />
-                            <label [for]="risk.name" class="ml-2">{{
-                                risk.name
-                            }}</label>
-                        </ng-container>
-                    </div>
-                </div>
-                <h1>MEDIOS DE VIDA</h1>
-            <div class="p-d-col-12 p-4">
-                <div class="p-field">
-                    <label>¿Ha participado en algún tipo de capacitación?</label>
-                    <div class="field-checkbox">
-                        <p-radioButton
-                            inputId="participacionCapacitacionSi"
-                            value="Sí"
-                            formControlName="participacionCapacitacion"
+                    <p-inputGroup>
+                        <input
+                            type="text"
+                            pInputText
+                            [formControl]="customCausaControl"
+                            (keyup.enter)="addCausa()"
                         />
-                        <label for="participacionCapacitacionSi" class="ml-2">Sí</label>
-                        <p-radioButton
-                            inputId="participacionCapacitacionNo"
-                            value="No"
-                            formControlName="participacionCapacitacion"
-                        />
-                        <label for="participacionCapacitacionNo" class="ml-2">No</label>
-                    </div>
+                        <button type="button" pButton icon="pi pi-plus" label="Agregar Causa" class="p-button-success" (click)="addCausa()"></button>
+                    </p-inputGroup>
                 </div>
-                <p-floatLabel>
-                    <input
-                        id="cuantosTrabajos"
-                        formControlName="cuantosTrabajos"
-                        pInputText
-                        type="number"
-                        class="full-width"
-                    />
-                    <label for="cuantosTrabajos">¿Cuántos trabajos desempeña?</label>
-                </p-floatLabel>
-                <div class="p-field">
-                    <label>En los últimos 12 meses, ha tenido una actividad laboral:</label>
-                    <div class="field-checkbox">
-                        <ng-container *ngFor="let category of actividadLaboralStates">
-                            <p-radioButton
-                                [inputId]="category.name"
-                                [value]="category.name"
-                                formControlName="actividadLaboral"
-                            />
-                            <label [for]="category.name" class="ml-2">{{ category.name }}</label>
-                        </ng-container>
-                    </div>
+                <div class="flex-auto">
+                    <label for="conexionHigienico">Conexión Higiénica</label>
+                    <p-dropdown
+                        formControlName="conexionHigienico"
+                        [options]="conexionHigienicoOptions"
+                        placeholder="Conexión Higiénica"
+                        [required]="true"
+                    >
+                    </p-dropdown>
                 </div>
-            
-                <p-floatLabel>
-                    <input
-                        id="actividadEconomica"
-                        formControlName="actividadEconomica"
-                        pInputText
-                        type="text"
-                        class="full-width"
-                    />
-                    <label for="actividadEconomica">¿Qué actividad económica desempeñada?</label>
-                </p-floatLabel>
-                <div class="p-field">
-                    <label>¿Trabaja en relación de dependencia?</label>
-                    <div class="field-checkbox">
-                        <ng-container *ngFor="let category of relacionDependenciaStates">
-                            <p-radioButton
-                                [inputId]="category.name"
-                                [value]="category.name"
-                                formControlName="relacionDependencia"
-                            />
-                            <label [for]="category.name" class="ml-2">{{ category.name }}</label>
-                        </ng-container>
-                    </div>
-                </div>
-            
-                <div class="p-field">
-                    <label>¿Trabaja por cuenta propia?</label>
-                    <div class="field-checkbox">
-                        <ng-container *ngFor="let category of cuentaPropiaStates">
-                            <p-radioButton
-                                [inputId]="category.name"
-                                [value]="category.name"
-                                formControlName="cuentaPropia"
-                            />
-                            <label [for]="category.name" class="ml-2">{{ category.name }}</label>
-                        </ng-container>
-                    </div>
-                </div>
-            
-                <div class="p-field">
-                    <label>Ingresos mensuales promedios del hogar (sumando los ingresos de todos los individuos activos):</label>
-                    <div class="field-checkbox">
-                        <ng-container *ngFor="let category of ingresosMensualesStates">
-                            <p-radioButton
-                                [inputId]="category.name"
-                                [value]="category.name"
-                                formControlName="ingresosMensuales"
-                            />
-                            <label [for]="category.name" class="ml-2">{{ category.name }}</label>
-                        </ng-container>
-                    </div>
-                </div>
-                <div class="p-d-col-12 p-4">
-                    <div class="p-field">
-                        <label>Repartición de los gastos del hogar:</label>
-                        <div class="field-checkbox">
-                            <ng-container *ngFor="let gasto of gastosHogar">
-                                <p-checkbox
-                                    [inputId]="gasto.name"
-                                    [value]="gasto.name"
-                                    formControlName="gastosHogar"
-                                />
-                                <label [for]="gasto.name" class="ml-2">{{ gasto.name }}</label>
-                            </ng-container>
-                
-                            <p-floatLabel>
-                                <input
-                                    id="otrosGastos"
-                                    formControlName="otrosGastos"
-                                    pInputText
-                                    type="text"
-                                    class="full-width"
-                                />
-                                <label for="otrosGastos">Otros Gastos:</label>
-                            </p-floatLabel>
-                
-                            <p-floatLabel>
-                                <input
-                                    id="especifique"
-                                    formControlName="especifique"
-                                    pInputText
-                                    type="text"
-                                    class="full-width"
-                                />
-                                <label for="especifique">Especifique:</label>
-                            </p-floatLabel>
-                
-                            <p-floatLabel>
-                                <input
-                                    id="ahorroFormal"
-                                    formControlName="ahorroFormal"
-                                    pInputText
-                                    type="text"
-                                    class="full-width"
-                                />
-                                <label for="ahorroFormal">Ahorro Formal:</label>
-                            </p-floatLabel>
-                
-                            <p-floatLabel>
-                                <input
-                                    id="ahorroInformal"
-                                    formControlName="ahorroInformal"
-                                    pInputText
-                                    type="text"
-                                    class="full-width"
-                                />
-                                <label for="ahorroInformal">Ahorro Informal:</label>
-                            </p-floatLabel>
-                        </div>
-                    </div>
-                </div>
-                
-
-<div class="p-d-col-12 p-4">
-    <div class="p-field">
-        <label>Los ingresos mensuales provienen de (respuesta múltiple):</label>
-        <div class="field-checkbox">
-            <ng-container *ngFor="let category of fuentesIngresosStates">
-                <p-checkbox
-                    [inputId]="category.name"
-                    [value]="category.name"
-                    formControlName="fuentesIngresos"
-                />
-                <label [for]="category.name" class="ml-2">{{ category.name }}</label>
-            </ng-container>
-
-            <p-floatLabel>
-                <input
-                    id="otrosIngresos"
-                    formControlName="otrosIngresos"
-                    pInputText
-                    type="text"
-                    class="full-width"
-                />
-                <label for="otrosIngresos">Otros: ___</label>
-            </p-floatLabel>
-        </div>
-    </div>
-</div>
-<h1>REDES DE APOYO (TODAS RESPUESTAS MÚLTIPLES)</h1>
-<div class="p-d-col-12 p-4">
-    <div class="p-field">
-        <label>Participa en actividades en el barrio:</label>
-        <div class="field-checkbox">
-            <ng-container *ngFor="let category of actividadesBarrioStates">
-                <p-checkbox
-                    [inputId]="category.name"
-                    [value]="category.name"
-                    formControlName="actividadesBarrio"
-                />
-                <label [for]="category.name" class="ml-2">{{ category.name }}</label>
-            </ng-container>
-            
-        </div>
-        </div>
-        
-<div class="p-field">
-    <label>En su tiempo libre, ¿qué actividades realizan (dentro del cantón)?</label>
-
-    <div class="field-checkbox">
-        <ng-container *ngFor="let activity of actividadesDentroCantonStates">
-            <p-checkbox
-                [inputId]="activity.name"
-                [value]="activity.name"
-                formControlName="actividadesDentroCantón"
-            />
-            <label [for]="activity.name" class="ml-2">{{ activity.name }}</label>
-        </ng-container>
-    </div>
-</div>
-
-<!-- Actividades en tiempo libre fuera del cantón -->
-
-<div class="p-field">
-    <label>En su tiempo libre, ¿qué actividades realizan (fuera del cantón)?</label>
-    <div class="field-checkbox">
-        <ng-container *ngFor="let activity of actividadesFueraCantonStates">
-            <p-checkbox
-                [inputId]="activity.name"
-                [value]="activity.name"
-                formControlName="actividadesFueraCantón"
-            />
-            <label [for]="activity.name" class="ml-2">{{ activity.name }}</label>
-        </ng-container>
-    </div>
-</div>
-
-<!-- Sugerencias para mejorar el barrio -->
-
-<div class="p-field">
-    <label>¿Qué sugiere usted para mejorar su barrio? (Seleccionar 3)</label>
-    <div class="field-checkbox">
-        <ng-container *ngFor="let suggestion of sugerenciasBarrioStates">
-            <p-checkbox
-                [inputId]="suggestion.name"
-                [value]="suggestion.name"
-                formControlName="sugerenciasBarrio"
-            />
-            <label [for]="suggestion.name" class="ml-2">{{ suggestion.name }}</label>
-        </ng-container>
-    </div>
-</div>
-
-<!-- Propuestas adicionales -->
-<p-floatLabel>
-    <textarea
-        id="propuestasAdicionales"
-        formControlName="propuestasAdicionales"
-        pInputTextarea
-        rows="3"
-        class="full-width"
-    ></textarea>
-    <label for="propuestasAdicionales">Propuestas adicionales para la mejora del barrio:</label>
-</p-floatLabel>
-<div class="p-d-col-12 p-4">
-    <div class="p-field">
-        <label>Recibe algún tipo de ayuda humanitaria?</label>
-        <div class="field-checkbox">
-            <ng-container *ngFor="let source of ayudaHumanitariaStates">
-                <p-checkbox
-                    [inputId]="source.name"
-                    [value]="source.name"
-                    formControlName="ayudaHumanitaria"
-                />
-                <label [for]="source.name" class="ml-2">{{ source.name }}</label>
-            </ng-container>
-
-            <p-floatLabel>
-                <input
-                    id="otros"
-                    formControlName="otros"
-                    pInputText
-                    type="text"
-                    class="full-width"
-                />
-                <label for="otros">Otros:</label>
-            </p-floatLabel>
-            
-            
-            
-            
-        </div>
-    </div>
-    
-</div>
-
-
-
-</div>
-
-
-
             </div>
-            </div>
-        </div>  
+        </p-card>
 
-        <p-footer>
-            <div class="p-d-flex p-ai-center p-jc-between p-mt-2">
-                <p-button
-                    label="Cancelar"
-                    severity="secondary"
-                    class="p-mr-2"
-                />
-                <p-button label="Enviar" type="submit" [disabled]="!surveyForm.valid" />
-            </div>
-        </p-footer>
+        <!-- Botón de Envío -->
+        <div class="p-mt-3">
+            <p-button
+                type="submit"
+                label="Enviar"
+                [disabled]="registrationForm.invalid"
+            >
+            </p-button>
+        </div>
     </form>
 </p-card>

@@ -97,7 +97,7 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
     registrarEncargo() {
         if (this.encargadosSeleccionados.length > 0 && this.categoriaselect) {
             console.log(this.encargadosSeleccionados,this.categoriaselect);
-            /*
+            
             this.createService
                 .registrarEncargadoCategoria(this.token, {
                     encargado: this.encargadosSeleccionados,
@@ -121,7 +121,7 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
                         });
                     }
                 );
-                */
+                
         }
     }
 }

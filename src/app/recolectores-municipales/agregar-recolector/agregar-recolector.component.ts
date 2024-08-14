@@ -47,7 +47,7 @@ export class AgregarRecolectorComponent {
         this.list
             .listarUsuarios(this.token,{role:"66bb7b1fcc9232a17ce931d9"}) //"65c505bc9c664a1238b47f1a" FUNCIONARIO
             .subscribe((response) => {
-                console.log(response);
+                //console.log(response);
                 if (response.data) {
                     this.funcionarios = response.data.map(funcionario => ({
                       ...funcionario,
@@ -59,7 +59,7 @@ export class AgregarRecolectorComponent {
 
     async fetchDevices() {
         this.ubicar.obtenerDeviceGPS().subscribe(async (response) => {
-            console.log(response);
+           // console.log(response);
             this.devices = response;
             await this.checkExistingRegistrations();
         });
@@ -73,7 +73,7 @@ export class AgregarRecolectorComponent {
         this.list
             .listarAsignacionRecolectores(this.token, { dateOnly }, false)
             .subscribe((response) => {
-                console.log(response);
+               // console.log(response);
                 const data: any[] = response.data || [];
                 if (data.length > 0) {
                     data.forEach((element_data) => {
@@ -84,9 +84,9 @@ export class AgregarRecolectorComponent {
                         this.devices = this.devices.filter(
                             (element) => element.id != element_data.deviceId
                         );
-                        console.log(this.devices.filter(
+                       /* console.log(this.devices.filter(
                             (element) => element.id != element_data.deviceId
-                        ));
+                        ));*/
                     });
                 }
             });
@@ -96,9 +96,9 @@ export class AgregarRecolectorComponent {
         if (this.formulario.valid) {
             this.formulario.get('funcionario').setValue( this.formulario.get('funcionario').value._id);
             this.formulario.get('deviceId').setValue( this.formulario.get('deviceId').value.id);
-            console.log(this.formulario.value);
+            //console.log(this.formulario.value);
             this.create.registrarAsignacionReolectores(this.token,this.formulario.value).subscribe(response=>{
-                console.log(response);
+                //console.log(response);
                 this.messageService.add({
                     severity: 'success',
                     summary: 'Registro',

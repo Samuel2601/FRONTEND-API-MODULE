@@ -496,7 +496,7 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
         this.pathselect.forEach((element: any, index: number) => {
             const path = [];
             if (element.geometry.coordinates) {
-                console.log(element.geometry.coordinates);
+                //console.log(element.geometry.coordinates);
                 element.geometry.coordinates.forEach((paths: any) => {
                     for (const coord of paths) {
                         path.push({ lat: coord[1], lng: coord[0] });

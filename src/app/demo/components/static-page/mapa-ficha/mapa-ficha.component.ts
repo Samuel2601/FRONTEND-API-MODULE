@@ -256,7 +256,7 @@ export class MapaFichaComponent implements OnInit, OnDestroy{
             foto: [],
             es_articulo:[false],
             mostrar_en_mapa:[false],
-            icono_marcador: ['',Validators.pattern('https?://.+')],
+            icono_marcador: ['https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png',Validators.pattern('https?://.+')],
             title_marcador:[''],
             destacado:[false],
         });

@@ -14,11 +14,11 @@ import { ListService } from 'src/app/demo/services/list.service';
     imports: [ImportsModule],
     templateUrl: './mapa-mostrar-fichas.component.html',
     styleUrl: './mapa-mostrar-fichas.component.scss',
-    providers: [DatePipe]
+    providers: [DatePipe],
 })
 export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
     @Input() ficha!: any;
-    url:string=GLOBAL.url;
+    url: string = GLOBAL.url;
     mapCustom: google.maps.Map;
     load_fullscreen: boolean = false;
     fichas_sectoriales_arr: any[];
@@ -33,13 +33,15 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
     async ngOnInit() {
         await this.initMap();
-       // console.log('FICHA QUE RECIBE:', this.ficha);
-        if (this.ficha) {
-            this.fichas_sectoriales_arr = [this.ficha];
-            await this.marcadoresmapa();
-        } else {
-            await this.listarFichaSectorialMapa();
-        }
+        setTimeout(async () => {
+            // console.log('FICHA QUE RECIBE:', this.ficha);
+            if (this.ficha) {
+                this.fichas_sectoriales_arr = [this.ficha];
+                await this.marcadoresmapa();
+            } else {
+                await this.listarFichaSectorialMapa();
+            }
+        }, 1000);
     }
 
     async initMap() {
@@ -64,12 +66,14 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
     }
 
     async listarFichaSectorialMapa() {
-        this.list.listarFichaSectorialMapa().subscribe(async (response: any) => {
-            if (response.data && response.data.length > 0) {
-                this.fichas_sectoriales_arr = response.data;
-                await this.marcadoresmapa();
-            }
-        });
+        this.list
+            .listarFichaSectorialMapa()
+            .subscribe(async (response: any) => {
+                if (response.data && response.data.length > 0) {
+                    this.fichas_sectoriales_arr = response.data;
+                    await this.marcadoresmapa();
+                }
+            });
     }
     async marcadoresmapa() {
         const bounds = new google.maps.LatLngBounds(); // Crear objeto para los límites de los marcadores
@@ -80,7 +84,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
                 item.direccion_geo.latitud,
                 item.direccion_geo.longitud
             );
-        
+
             const marker = new google.maps.Marker({
                 position: position,
                 map: this.mapCustom,
@@ -90,51 +94,53 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
                     scaledSize: new google.maps.Size(120, 120), // Tamaño personalizado del icono
                 },
             });
-        
+
             // Añadir la posición del marcador a los límites
             bounds.extend(position);
-        
+
             // Contenido del InfoWindow
             let infoContent = `
                 <div>
                     <h5>${item.title_marcador}</h5>                          
             `;
-            
+
             // Añadir imagen si está disponible
-           /* if (item.foto && item.foto[0]) {
+            /* if (item.foto && item.foto[0]) {
                 const url_foto=this.url + 'obtener_imagen/ficha_sectorial/' + item.foto[0];
                 infoContent += `<img src="${url_foto}" style="max-width: 200px; max-height: 150px;" />`;
             }*/
-        
+
             // Añadir botón si es un artículo
-            const formattedDate = this.datePipe.transform(item.fecha_evento, 'short');
+            const formattedDate = this.datePipe.transform(
+                item.fecha_evento,
+                'short'
+            );
             if (
                 item.es_articulo &&
                 this.router.url !== `/ver-ficha/${item._id}`
             ) {
-                
                 infoContent += `
                 <a href="/ver-ficha/${item._id}" class="btn-ver-articulo">Ver Artículo</a> <br> Fecha del evento: ${formattedDate}
                 `;
-            }else{
+            } else {
                 infoContent += `
                 Fecha del evento: ${formattedDate}
                 `;
             }
             // Añadir botón para abrir Google Maps
-                infoContent += `
+            infoContent += `
                 <br>
                 <a href="https://www.google.com/maps/dir/?api=1&destination=${item.direccion_geo.latitud},${item.direccion_geo.longitud}" target="_blank" class="btn-direcciones">Cómo llegar</a>
             `;
-                
+
             infoContent += `</div>`;
-        
+
             const infoWindow = new google.maps.InfoWindow({
                 headerContent: item.direccion_geo.nombre,
                 content: infoContent,
                 maxWidth: 400,
             });
-        
+
             marker.addListener('click', () => {
                 infoWindow.open(this.mapCustom, marker);
                 //this.mapCustom.setZoom(15); // Ajusta el nivel de zoom según tus necesidades
@@ -143,8 +149,8 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
             infoWindow.addListener('closeclick', () => {
                 //this.mapCustom.setZoom(15); // Ajusta el nivel de zoom según tus necesidades
                 //this.mapCustom.setCenter(marker.getPosition());
-              });
-        
+            });
+
             // Verificar si la URL actual coincide con el marcador
             if (this.router.url === `/ver-ficha/${item._id}`) {
                 infoWindow.open(this.mapCustom, marker);
@@ -152,7 +158,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
                 this.mapCustom.setCenter(marker.getPosition());
             }
         });
-        
+
         if (this.mapCustom) {
             // Ajustar el centro y zoom del mapa para mostrar todos los marcadores
             this.mapCustom.fitBounds(bounds);

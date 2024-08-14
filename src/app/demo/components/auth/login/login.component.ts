@@ -122,7 +122,6 @@ export class LoginComponent implements OnInit {
             await this.guardarToken(token);
             this.storeUserData(this.auth.authToken(token));
             this.rederict();
-            console.log('envio home');
         }
     }
     private setHeight(): void {
@@ -213,7 +212,6 @@ export class LoginComponent implements OnInit {
 
             try {
                 const response = await this.authService.login(user).toPromise();
-                console.log(response);
                 if (response.data) {
                     await this.guardarToken(response.data.token);
                     this.storeUserData(
@@ -274,10 +272,6 @@ export class LoginComponent implements OnInit {
             this.helper.decryptDataLogin(
                 this.getCookieOrLocalStorage('pass')
             ) || undefined;
-
-        console.log('IsMobil:', this.IsMobil());
-        console.log('storedPass:', storedPass);
-        console.log('pass:', pass);
 
         if (
             this.IsMobil() &&

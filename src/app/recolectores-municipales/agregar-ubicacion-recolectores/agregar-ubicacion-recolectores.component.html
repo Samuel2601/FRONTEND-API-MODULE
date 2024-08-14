@@ -1,7 +1,9 @@
 <!-- agregar-ubicacion-recolectores.component.html -->
 <p-toast></p-toast>
 <div class="map-container mb-5">
-    <h2 *ngIf="asignacion&&devices.length>0">Asignación: {{getDeviceGPS(asignacion.deviceId) }}</h2>
+    <h2 *ngIf="asignacion && devices.length > 0">
+        Asignación: {{ getDeviceGPS(asignacion.deviceId) }}
+    </h2>
     <!-- Mapa de Google -->
     <div
         class="card"
@@ -33,10 +35,7 @@
         </div>
     </div>
     <div class="velocidad-container m-5" *ngIf="!ruta && asignacion">
-        <p-button
-            label="Enviar Información"
-            (click)="envioupdate()"
-        ></p-button>
+        <p-button label="Enviar Información" (click)="envioupdate()"></p-button>
     </div>
     <div class="velocidad-container" *ngIf="ruta && !asignacion">
         <p-button
@@ -46,8 +45,17 @@
             (onClick)="updateRuta()"
         ></p-button>
     </div>
+    <div class="velocidad-container2" *ngIf="ruta && !asignacion">
+        <p-button
+            (onClick)="op.toggle($event)"
+            *ngIf="ruta && !asignacion"
+            icon="pi pi-gauge"
+            label="Control de Recorrido"
+        ></p-button>
+    </div>
 </div>
-<p-card header="Control del Recorrido" *ngIf="ruta && !asignacion">
+
+<p-overlayPanel #op>
     <!-- Fila 1: Checkbox que ocupa todo el ancho -->
     <div class="p-fluid">
         <p-checkbox
@@ -125,70 +133,81 @@
             (click)="togglePause()"
         ></button>
     </div>
+</p-overlayPanel>
 
+<p-card
+    header="Puntos de recolección"
+    subheader="Puntos expuestos por el funcionario a cargo"
+    [style]="{ width: 'auto' }"
+    styleClass="p-fluid"
+>
+    <p-table
+        *ngIf="table.length > 0"
+        [value]="table"
+        [scrollable]="true"
+        scrollHeight="300px"
+        [tableStyle]="{ 'min-width': 'auto' }"
+    >
+        <ng-template pTemplate="header">
+            <tr>
+                <th>N°</th>
+                <th>Latitud</th>
+                <th>Longitud</th>
+                <th>Fecha</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-location let-i="rowIndex">
+            <tr
+                (click)="getMarker(i)"
+                [ngClass]="{ 'highlight-row': location.retorno }"
+            >
+                <td>{{ i + 1 }}</td>
+                <td>{{ location.lat }}</td>
+                <td>{{ location.lng }}</td>
+                <td>{{ location.timestamp | date : "short" }}</td>
+            </tr>
+        </ng-template>
+    </p-table>
 </p-card>
-
-<p-table
-    *ngIf="table.length > 0"
-    [value]="table"
-    [scrollable]="true"
-    scrollHeight="300px"
-    [tableStyle]="{ 'min-width': 'auto' }"
+<p-card
+    header="Ruta GPS"
+    subheader="Ruta extraida desde UBICARSAT"
+    [style]="{ width: 'auto' }"
 >
-    <ng-template pTemplate="header">
-        <tr>
-            <th>N°</th>
-            <th>Latitud</th>
-            <th>Longitud</th>
-            <th>Fecha</th>
-        </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-location let-i="rowIndex">
-        <tr
-            (click)="getMarker(i)"
-            [ngClass]="{ 'highlight-row': location.retorno }"
-        >
-            <td>{{ i + 1 }}</td>
-            <td>{{ location.lat }}</td>
-            <td>{{ location.lng }}</td>
-            <td>{{ location.timestamp | date : "short" }}</td>
-        </tr>
-    </ng-template>
-</p-table>
-
-<p-table
-    *ngIf="ruta"
-    [value]="ruta.ruta"
-    [scrollable]="true"
-    scrollHeight="300px"
-    [tableStyle]="{ 'min-width': 'auto' }"
->
-    <ng-template pTemplate="header">
-        <tr>
-            <th>N°</th>
-            <th>Valida</th>
-            <th>Latitud</th>
-            <th>Longitud</th>
-            <th>Altitud</th>
-            <th>Velocidad</th>
-            <th>Fecha</th>
-        </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-location let-i="rowIndex">
-        <tr
-            (click)="getMarker(i)"
-            [ngClass]="{ 'highlight-row': location.retorno }"
-        >
-            <td>{{ i + 1 }}</td>
-            <td>{{ location.valid }}</td>
-            <td>{{ location.latitude }}</td>
-            <td>{{ location.longitude }}</td>
-            <td>{{ location.altitude }}</td>
-            <td>{{ location.speed }} km/h</td>
-            <td>{{ location.fixTime | date : "short" }}</td>
-        </tr>
-    </ng-template>
-</p-table>
+    <p-table
+        *ngIf="ruta"
+        [value]="ruta.ruta"
+        [scrollable]="true"
+        scrollHeight="300px"
+        [tableStyle]="{ 'min-width': 'auto' }"
+    >
+        <ng-template pTemplate="header">
+            <tr>
+                <th>N°</th>
+                <th>Valida</th>
+                <th>Latitud</th>
+                <th>Longitud</th>
+                <th>Altitud</th>
+                <th>Velocidad</th>
+                <th>Fecha</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-location let-i="rowIndex">
+            <tr
+                (click)="getMarker(i)"
+                [ngClass]="{ 'highlight-row': location.retorno }"
+            >
+                <td>{{ i + 1 }}</td>
+                <td>{{ location.valid }}</td>
+                <td>{{ location.latitude }}</td>
+                <td>{{ location.longitude }}</td>
+                <td>{{ location.altitude }}</td>
+                <td>{{ location.speed }} km/h</td>
+                <td>{{ location.fixTime | date : "short" }}</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</p-card>
 
 <p-dialog
     header="Confirmación"

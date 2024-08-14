@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 
 import {
+    FormArray,
     FormBuilder,
     FormControl,
     FormGroup,
@@ -13,313 +14,127 @@ import {
     styleUrl: './formulario-socioeconomico.component.scss',
 })
 export class FormularioSocioeconomicoComponent {
-    surveyForm: FormGroup;
-    houseStates = [
-        { name: 'Casa Cerrada' },
-        { name: 'Solar Vacío' },
-        { name: 'Construcción Iniciada' },
-        { name: 'Hogar Entrevistado' },
-        { name: 'Casa no Habitada' },
-        { name: 'Solar con maleza' },
-    ];
-    estadoSaludStates = [
-        { name: 'Excelente' },
-        { name: 'Bueno' },
-        { name: 'Regular' },
-        { name: 'Malo' },
-        { name: 'Fatal' },
-    ];
-    causasSaludStates = [
-        { name: 'Mala Alimentación' },
-        { name: 'Entorno' },
-        { name: 'El no-uso de medicamentos' },
-        { name: 'No me gusta el médico' },
-        { name: 'No tengo recursos para ir al médico' },
-        { name: 'Distancia con el sub-centro de salud' },
-    ];
-    conexionHigienicoStates = [
-        { name: 'Red pública' },
-        { name: 'Pozo ciego' },
-        { name: 'Pozo séptico' },
-        { name: 'Río o canal' },
-        { name: 'No tiene' },
-    ];
-    viviendaStructureStates = [
-        { name: 'Hormigón' },
-        { name: 'Cartón' },
-        { name: 'Mixta' },
-        { name: 'Madera' },
-        { name: 'Plástico' },
-        { name: 'Caña' },
-        { name: 'Plywood' },
-        { name: 'Zin' },
+    registrationForm: FormGroup;
+    houseStateOptions = [
+        { label: 'Casa Cerrada', value: 'casa_cerrada' },
+        { label: 'Solar Vacío', value: 'solar_vacio' },
+        { label: 'Construcción Iniciada', value: 'construccion_iniciada' },
+        { label: 'Hogar Entrevistado', value: 'hogar_entrevistado' },
+        { label: 'Casa No Habitada', value: 'casa_no_habitada' },
+        { label: 'Solar con Maleza', value: 'solar_con_maleza' },
     ];
 
-    serviciosBasicosStates = [
-        { name: 'Agua' },
-        { name: 'Teléfono/Convencional' },
-        { name: 'Celular' },
-        { name: 'Luz' },
-        { name: 'Alcantarillado' },
-        { name: 'Recolección de la Basura' },
-        { name: 'Otros' },
+    estadoSaludOptions = [
+        { label: 'Excelente', value: 'excelente' },
+        { label: 'Bueno', value: 'bueno' },
+        { label: 'Regular', value: 'regular' },
+        { label: 'Malo', value: 'malo' },
+        { label: 'Fatal', value: 'fatal' },
     ];
 
-    tipoPerdidaStates = [
-        { name: 'Casa' },
-        { name: 'Paredes' },
-        { name: 'Muebles' },
-        { name: 'Enseres' },
+    causasSaludOptions = [
+        { label: 'Mala Alimentación', value: 'mala_alimentacion' },
+        { label: 'Entorno', value: 'entorno' },
+        { label: 'El No-Uso de Medicamento', value: 'no_uso_medicamento' },
+        { label: 'No Me Gusta el Médico', value: 'no_me_gusta_medico' },
+        { label: 'No Tengo Recursos para Ir al Médico', value: 'no_recursos' },
+        {
+            label: 'Distancia con el Subcentro de Salud',
+            value: 'distancia_subcentro',
+        },
     ];
 
-    tenenciaViviendaStates = [
-        { name: 'Propia' },
-        { name: 'Prestada' },
-        { name: 'Abandonada' },
-        { name: 'Donada' },
-        { name: 'Alquilada' },
-        { name: 'Invadida' },
+    conexionHigienicoOptions = [
+        { label: 'Red Pública', value: 'red_publica' },
+        { label: 'Pozo Ciego', value: 'pozo_ciego' },
+        { label: 'Pozo Séptico', value: 'pozo_septico' },
+        { label: 'Río o Canal', value: 'rio_canal' },
+        { label: 'No Tiene', value: 'no_tiene' },
     ];
-
-    documentosPropiedadStates = [
-        { name: 'Contrato de compra-venta' },
-        { name: 'Derecho de posesión' },
-        { name: 'Escritura' },
-        { name: 'Ninguno' },
-    ];
-
-    tipoAlumbradoStates = [
-        { name: 'Electricidad' },
-        { name: 'Gas' },
-        { name: 'Lámparas' },
-        { name: 'Otros' },
-    ];
-
-    abastecimientoAguaStates = [
-        { name: 'Agua Potable' },
-        { name: 'Cisterna' },
-        { name: 'Pozo' },
-        { name: 'Río' },
-        { name: 'Tanquero' },
-        { name: 'Embotellada' },
-        { name: 'Otros' },
-    ];
-    bienesServiciosElectrodomesticosStates = [
-        { name: 'Internet' },
-        { name: 'Lavadora' },
-        { name: 'Cocina de gas' },
-        { name: 'Cocineta' },
-        { name: 'Cocina de inducción' },
-        { name: 'TV' },
-        { name: 'TV Cable' },
-        { name: 'Laptop' },
-        { name: 'Refrigeradora' },
-        { name: 'Computadora' },
-        { name: 'Plancha Eléctrica' },
-        { name: 'Microondas' },
-        { name: 'No quiso responder' },
-        { name: 'Otros' },
-    ];
-
-    zonaRiesgoStates = [
-        { name: 'Deslave' },
-        { name: 'Desbordamientos del río' },
-        { name: 'Inundaciones' },
-        { name: 'Incendios' },
-        { name: 'Otros' },
-        { name: 'No' },
-    ];
-    actividadLaboralStates = [
-        { name: 'A tiempo completo' },
-        { name: 'Parcial' },
-        { name: 'Esporádica' },
-        { name: 'Por temporada' },
-        { name: 'Pensionista' },
-        { name: 'Cesante' },
-        { name: 'Ninguna' },
-    ];
-    relacionDependenciaStates = [
-        { name: 'Sí - formal' },
-        { name: 'informal' },
-        { name: 'No quiso responder' },
-
-    ];
-    cuentaPropiaStates = [
-        { name: 'Sí - con RUC' },
-        { name: 'Sí - con RISE' },
-        { name: 'Sin RUC' },
-        { name: 'No con RISE' },
-        { name: 'No quiso responder' },
-      ];
-    
-      ingresosMensualesStates = [
-        { name: 'Menos que salario básico' },
-        { name: 'USD 460 - USD 500' },
-        { name: 'USD 500 - USD 750' },
-        { name: 'USD 750 - USD 999' },
-        { name: 'USD 1,000+' },
-        { name: 'No quiere responder' },
-      ];
-    
-      fuentesIngresosStates = [
-        { name: 'Trabajo' },
-        { name: 'Bono por discapacidad' },
-        { name: 'Bono Madres Solteras' },
-        { name: 'Bono de Desarrollo Humano' },
-        { name: 'Bono de la Tercera Edad' },
-        { name: 'Apoyo de ONG’s' },
-        { name: 'Pensión de Alimentos' },
-        { name: 'Otros' },
-        { name: 'Pensión por Jubilación' },
-      ];
-       // Definición de actividades en el barrio
-  actividadesBarrioStates = [
-    { name: 'Iglesia' },
-    { name: 'Grupos LGBTI' },
-    { name: 'Comité barrial' },
-    { name: 'Clubes deportivos' },
-    { name: 'Asociación de mujeres' },
-    { name: 'Ninguna' },
-    { name: 'Asociación juvenil' },
-    { name: 'Otros' },
-  ];
-
-  // Actividades dentro del cantón
-  actividadesDentroCantonStates = [
-    { name: 'Playa' },
-    { name: 'Domicilio' },
-    { name: 'Río' },
-    { name: 'Deporte' },
-    { name: 'Campo' },
-    { name: 'Parques' },
-    { name: 'Otros' },
-  ];
-
-  // Actividades fuera del cantón
-  actividadesFueraCantonStates = [
-    { name: 'Playa' },
-    { name: 'Domicilio' },
-    { name: 'Río' },
-    { name: 'Deporte' },
-    { name: 'Campo' },
-    { name: 'Viajes' },
-    { name: 'Parque' },
-    { name: 'Otros' },
-  ];
-
-  // Sugerencias para mejorar el barrio
-  sugerenciasBarrioStates = [
-    { name: 'Calles pavimentadas' },
-    { name: 'Presencia Policial' },
-    { name: 'Áreas verdes' },
-    { name: 'Agua potable' },
-    { name: 'Alcantarillado' },
-    { name: 'Actividades recreativas' },
-    { name: 'Alumbrado público' },
-    { name: 'Recolección de basura' },
-    { name: 'Sub-centro de salud' },
-  ];
-  ayudaHumanitariaStates = [
-    { name: 'Iglesia' },
-    { name: 'Vecinos/as' },
-    { name: 'Amigos/as' },
-    { name: 'Familia' },
-    { name: 'ONG’s' },
-    { name: 'Institución pública' },
-    { name: 'Ninguna' },
-    { name: 'Otros' },
-  ];
-  gastosHogar = [
-    { name: 'Pago alquiler de vivienda' },
-    { name: 'Pago de préstamo de vivienda' },
-    { name: 'Arreglo de la vivienda' },
-    { name: 'Vestimenta' },
-    { name: 'Alimentación' },
-    { name: 'Salud' },
-    { name: 'Educación' },
-    { name: 'Serv. Básicos' },
-    { name: 'Movilidad' },
-    { name: 'Otros Gastos' }
-  ];
-  
-
-      
+    newCausa: string = '';
     constructor(private fb: FormBuilder) {
-        this.surveyForm = this.fb.group({
-            date: ['', Validators.required],
-            possessionTime: [''],
-            phone: [''],
-            nationality: [''],
-            surveyorName: ['', Validators.required],
-            intervieweeName: ['', Validators.required],
-            age: ['', Validators.required],
-            ethnicity: [''],
-            civilStatus: [''],
-            educationLevel: [''],
-            idNumber: [''],
-            disability: [''],
-            address: ['', Validators.required],
-            sector: [''],
-            neighborhood: [''],
-            blockNumber: [''],
-            lotNumber: [''],
-            familyCount: [0, Validators.required],
-            peopleCount: [0, Validators.required],
-            houseState: new FormControl(),
-            estadoSalud: [''],
-            causasSalud: [[]],
-            ultimaVisita: [''],
-            otrosMetodosSanacion: [''],
-            conexionHigienico: [''],
-            bienesServiciosElectrodomesticos: [''],
-            abastecimientoAgua: [''],
-            tipoAlumbrado: [''],
-            documentosPropiedad: [''],
-            tenenciaVivienda: [''],
-            zonaRiesgo: [''],
-            tipoPerdida: [''],
-            serviciosBasicos: [''],
-            numPisos: [''],
-            numHabitaciones: [''],
-            estructuraVivienda: [''],
-            participacionCapacitacion: [''], 
-            cuantosTrabajos: [''], 
-            actividadLaboral: [''],  // 
-            actividadEconomica: [''], // 
-            relacionDependencia: [''],
-            cuentaPropia: [''],
-            ingresosMensuales: [''],
-            reparticionGastos: [''],
-            fuentesIngresos: [[]],
-            otrosIngresos: [''],
-            actividadesBarrio: [[]], // Actividades en el barrio
-            actividadesDentroCantón: [[]], // Actividades dentro del cantón
-            actividadesFueraCantón: [[]], // Actividades fuera del cantón
-            sugerenciasBarrio: [[], Validators.maxLength(3)], // Sugerencias para mejorar el barrio
-            propuestasAdicionales: [''], // Propuestas adicionales
-            ayudaHumanitaria: [[]], // Para las fuentes de ayuda humanitaria
-            otros: [''], // Otros tipos de ayuda
-            parentesco: [''],
-            
-            gastosHogar: this.fb.array([]), // Para los gastos del hogar
-      nombre: [''],
-      genero: [''],
-      edad: [''],
-      estadoCivil: [''],
-      etnia: [''],
-      nacionalidad: [''],
-      cedula: [''],
-      nivelEducativo: [''],
-      ocupacion: [''],
-      discapacidad: [''],
-      enfermedadCronica: ['']
+        this.registrationForm = this.fb.group({
+            informacionRegistro: this.fb.group({
+                date: ['', Validators.required],
+                encuestador: ['', Validators.required],
+            }),
+            informacionPersonal: this.fb.group({
+                entrevistado: ['', Validators.required],
+                dni: ['', Validators.required],
+                edad: [null, Validators.required], // NUMERO
+                nacionalidad: ['', Validators.required],
+                phone: ['', Validators.required],
+            }),
+            informacionUbicacion: this.fb.group({
+                posesionTime: ['', Validators.required],
+                sector: ['', Validators.required],
+                barrio: ['', Validators.required],
+                manzana: ['', Validators.required],
+                lotenumero: ['', Validators.required],
+                familyCount: [null, Validators.required], // NUMERO
+                peopleCount: [null, Validators.required], // NUMERO
+                houseState: ['', Validators.required], // UNO: CASA CERRADA, SOLAR VACÍO, CONSTRUCCIÓN INICIADA, HOGAR ENTREVISTADO, CASA NO HABITADA, SOLAR CON MALEZA
+            }),
+            salud: this.fb.group({
+                estadoSalud: ['', Validators.required], //UNO: EXCELENTE, MALO, BUENO, REGULAR, FATAL
+                causasSalud: [[], Validators.required], // MULTIPLE: MALA ALIMENTACIÓN, ENTORNO, EL NO-USO DE MEDICAMENTO, OTRO (ESPECIFICAR), NO ME GUSTA EL MÉDICO, NO TENGO RECURSOS PARA IR AL MÉDICO, DISTANCIA CON EL SUBCENTRO DE SALUD
+                conexionHigienico: ['', Validators.required], // UNO: RED PÚBLICA, POZO CIEGO, POZO SÉPTICO, RÍO O CANAL, NO TIENE
+            }),
+            vivienda: this.fb.group({
+                estructuraVivienda: ['', Validators.required], // UNO: HORMIGÓN, CARTÓN, MIXTA, MADERA, PLÁSTICO, CAÑA, PLYWOOD, ZINC
+                serviciosBasicos: [[], Validators.required], // Utiliza FormArray para múltiples selecciones
+                tipoPerdida: ['', Validators.required],
+                tenenciaVivienda: ['', Validators.required],
+                documentosPropiedad: [[], Validators.required], // Utiliza FormArray para múltiples selecciones
+                numPisos: ['', Validators.required],
+                numHabitaciones: ['', Validators.required],
+                tipoAlumbrado: ['', Validators.required],
+                abastecimientoAgua: [[], Validators.required], // Utiliza FormArray para múltiples selecciones
+                bienesServiciosElectrodomesticos: [[], Validators.required], // Utiliza FormArray para múltiples selecciones
+                zonaRiesgo: ['', Validators.required],
+            }),
+            mediosDeVida: this.fb.group({
+                participacionCapacitacion: ['', Validators.required],
+                cuantosTrabajos: [null, Validators.required],
+                actividadLaboral: ['', Validators.required],
+                actividadEconomica: ['', Validators.required],
+                relacionDependencia: ['', Validators.required],
+                cuentaPropia: ['', Validators.required],
+                ingresosMensuales: ['', Validators.required],
+                gastosHogar: [[], Validators.required], // Utiliza FormArray para múltiples selecciones
+                otrosGastos: [''],
+                especifique: [''],
+                ahorroFormal: [''],
+                ahorroInformal: [''],
+                fuentesIngresos: [[], Validators.required], // Utiliza FormArray para múltiples selecciones
+                otrosIngresos: [''],
+            }),
+            redesDeApoyo: this.fb.group({
+                actividadesBarrio: [[], Validators.required], // Utiliza FormArray para múltiples selecciones
+                actividadesDentroCanton: [[], Validators.required], // Utiliza FormArray para múltiples selecciones
+                actividadesFueraCanton: [[], Validators.required], // Utiliza FormArray para múltiples selecciones
+                sugerenciasBarrio: [[], Validators.required], // Utiliza FormArray para múltiples selecciones
+                propuestasAdicionales: [''],
+                ayudaHumanitaria: [[], Validators.required], // Utiliza FormArray para múltiples selecciones
+                otros: [''],
+            }),
         });
-        
     }
-    
+    customCausaControl = new FormControl(''); // Control para la nueva causa
+    addCausa() {
+        const nuevaCausa = this.customCausaControl.value.trim();
+        if (nuevaCausa && !this.causasSaludOptions.some(option => option.label === nuevaCausa)) {
+          const causesControl = this.registrationForm.get('salud.causasSalud').value;
+          if (!causesControl.includes(nuevaCausa)) {
+            causesControl.push(nuevaCausa);
+          }
+          this.customCausaControl.setValue(''); // Limpiar campo de texto
+        }
+      }
+
     onSubmit() {
-        console.log(this.surveyForm.value);
-        if (this.surveyForm.valid) {
+        console.log(this.registrationForm.value);
+        if (this.registrationForm.valid) {
             // Aquí puedes manejar el envío del formulario
         }
     }
