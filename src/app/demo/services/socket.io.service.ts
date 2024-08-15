@@ -11,7 +11,7 @@ export class SocketService {
     private socket: Socket;
 
     constructor() {
-        this.initializeStorageListener();
+        //this.initializeStorageListener();
     }
     private initializeStorageListener() {
         console.log("INICIALIZADOR DE ESCUCHA SOCKET");

@@ -55,7 +55,7 @@ export class ListarRecolectoresComponent implements OnInit {
             .subscribe((response) => {
                 if (response.data) {
                     this.arr_asignacion = response.data;
-                    //console.log(this.arr_asignacion);
+                    console.log(this.arr_asignacion);
                 }
             });
     }
@@ -77,7 +77,7 @@ export class ListarRecolectoresComponent implements OnInit {
     }
     verRuta(register: any) {
         if (this.helper.isMobil()) {
-            this.router.navigate(['/recolectores/register' + register._id]);
+            this.router.navigate(['/recolectores/map/' + register._id]);
         } else {
             this.ref = this.dialogService.open(
                 AgregarUbicacionRecolectoresComponent,

@@ -488,6 +488,7 @@ export class MapaComponent implements OnInit, OnDestroy{
                         style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
                         position: google.maps.ControlPosition.LEFT_BOTTOM,
                     },
+                    gestureHandling: 'greedy', //'cooperative', // Control de gestos
                 }
             );
             this.initFullscreenControl();

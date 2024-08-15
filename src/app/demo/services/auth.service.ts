@@ -12,6 +12,7 @@ import { MessageService } from 'primeng/api';
 
 import { environment } from 'src/environments/environment';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { AppMenuComponent } from 'src/app/layout/app.menu.component';
 
 @Injectable({
     providedIn: 'root',
@@ -36,13 +37,14 @@ export class AuthService {
         private socketService: SocketService,
         private messageService: MessageService
     ) {
-        this.initializeGoogleOneTap();
+        //this.initializeGoogleOneTap();
         this.url = GLOBAL.url;
         this.inicializadorSocket();
     }
     async inicializadorSocket() {
         if (this.isAuthenticated()) {
             this.inicialityPermiss();
+            this.getPermisos();
             this.socketService.inicializador();
             this.socketService
                 .onPermissionChange()
@@ -61,18 +63,23 @@ export class AuthService {
             });
         }
     }
+    getPermisosSubject() {
+        return this.permissionsSubject.getValue();
+    }
 
     async initializeGoogleOneTap() {
         try {
-            if (this.helpers.isMobil()) {
-                GoogleAuth.initialize({
-                    clientId: environment.clientId,
-                    scopes: ['profile', 'email'],
-                    grantOfflineAccess: true,
-                });
-            }
+            GoogleAuth.initialize({
+                clientId:
+                    '489368244321-c2vr1nvlg7qlfo85ttd75poi1c1h0365.apps.googleusercontent.com',
+                scopes: ['profile', 'email'],
+                grantOfflineAccess: true,
+            });
         } catch (error) {
-            console.error('Google One Tap initialization failed:', error);
+            console.error(
+                'Google One Tap initialization failed:',
+                JSON.stringify(error)
+            );
         }
     }
 
@@ -128,7 +135,7 @@ export class AuthService {
         }
     }
 
-    private updatePermissions(
+    private async updatePermissions(
         currentPermissions: any[],
         permissionChange: any
     ) {
@@ -149,9 +156,9 @@ export class AuthService {
                 summary: 'Permisos removidos',
             });
         }
-        setTimeout(() => {
+        setTimeout(async () => {
             window.location.reload();
-        }, 1500);
+        }, 2500);
     }
 
     private updateRoles(currentRoles: any[], roleChange: any) {
@@ -185,9 +192,9 @@ export class AuthService {
                 }
             );
         }
-        setTimeout(() => {
+        setTimeout(async () => {
             window.location.reload();
-        }, 1500);
+        }, 2500);
     }
 
     // Método para refrescar el token
@@ -407,6 +414,17 @@ export class AuthService {
                 map((response: any) => {
                     // console.log('LLAMADO PARA OBTENER ROL', response);
                     this.rolesSubject.next(response.data.permisos);
+                    if (this.permissionsSubject.getValue().length == 0) {
+                        this.permissionsSubject.next([
+                            ...response.data.permisos,
+                        ]);
+                    } else {
+                        this.permissionsSubject.next([
+                            ...response.data.permisos,
+                            this.permissionsSubject.getValue(),
+                        ]);
+                    }
+
                     localStorage.setItem(
                         'roles',
                         JSON.stringify(response.data.permisos)
@@ -440,9 +458,12 @@ export class AuthService {
             // Opcional: Recargar la página después de actualizar localStorage
             // location.reload();
         }
-
+        const permiss = [...roles, ...permisos];
+        if (this.permissionsSubject.getValue().length == 0) {
+            this.permissionsSubject.next(permiss);
+        }
         // Combinar roles y permisos y devolver
-        return [...roles, ...permisos];
+        return permiss;
     }
 
     async hasPermissionComponent(
@@ -453,8 +474,9 @@ export class AuthService {
         if (this.isAuthenticated()) {
             if (this.getPermisos().length == 0) {
                 await this.inicialityPermiss();
+            } else {
+                permisos = this.getPermisos();
             }
-            permisos = this.getPermisos();
         }
         const hasPermissionBOL = permisos.some(
             (e) => e.name === permission && e.method === method

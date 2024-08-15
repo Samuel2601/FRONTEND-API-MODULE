@@ -956,6 +956,7 @@ export class LayersComponent implements OnInit {
                         style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
                         position: google.maps.ControlPosition.LEFT_BOTTOM,
                     },
+                    gestureHandling: 'greedy', //'cooperative', // Control de gestos
                 }
             );
             this.initFullscreenControl();

@@ -4,8 +4,8 @@
     <string name="title_activity_main">Esmeraldas la Bella</string>
     <string name="package_name">ec.gob.esmeraldas.labella</string>
     <string name="custom_url_scheme">ec.gob.esmeraldas.labella</string>
-    <string name="server_client_id">489368244321-bslt4irqup8hlc0c59tp3h52v05fbh89.apps.googleusercontent.com</string>
-    <string name="default_web_client_id">489368244321-bslt4irqup8hlc0c59tp3h52v05fbh89.apps.googleusercontent.com</string>
+    <string name="server_client_id">489368244321-c2vr1nvlg7qlfo85ttd75poi1c1h0365.apps.googleusercontent.com</string>
+    <string name="default_web_client_id">489368244321-c2vr1nvlg7qlfo85ttd75poi1c1h0365.apps.googleusercontent.com</string>
     <!--
         The channel name for the background notification. This will be visible
         when the user presses & holds the notification. It defaults to

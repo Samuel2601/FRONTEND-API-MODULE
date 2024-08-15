@@ -136,13 +136,13 @@
 </p-overlayPanel>
 
 <p-card
+    *ngIf="table.length > 0"
     header="Puntos de recolección"
     subheader="Puntos expuestos por el funcionario a cargo"
     [style]="{ width: 'auto' }"
     styleClass="p-fluid"
 >
     <p-table
-        *ngIf="table.length > 0"
         [value]="table"
         [scrollable]="true"
         scrollHeight="300px"
@@ -170,12 +170,12 @@
     </p-table>
 </p-card>
 <p-card
+    *ngIf="ruta"
     header="Ruta GPS"
     subheader="Ruta extraida desde UBICARSAT"
     [style]="{ width: 'auto' }"
 >
     <p-table
-        *ngIf="ruta"
         [value]="ruta.ruta"
         [scrollable]="true"
         scrollHeight="300px"

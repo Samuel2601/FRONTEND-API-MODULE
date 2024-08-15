@@ -36,7 +36,7 @@
     "@capacitor/ios": "^6.1.2",
     "@capacitor/network": "^6.0.2",
     "@capacitor/preferences": "^6.0.2",
-    "@codetrix-studio/capacitor-google-auth": "3.4.0-rc.4",
+    "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
     "@fullcalendar/angular": "^6.1.15",
     "@fullcalendar/core": "^6.1.15",
     "@fullcalendar/daygrid": "^6.1.15",

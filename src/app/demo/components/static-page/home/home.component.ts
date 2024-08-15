@@ -55,7 +55,7 @@ export class HomeComponent implements OnInit {
         private auth: AuthService,
         private socket:SocketService
     ) {
-        socket.inicializador();
+        //socket.inicializador();
         this.incidencia = this.fb.group({
             direccion_geo: [{ value: '', disabled: true }],
             ciudadano: [{ value: '', disabled: true }, Validators.required],

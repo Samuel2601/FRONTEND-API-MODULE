@@ -11,6 +11,7 @@ import { Howl } from 'howler';
 import { NativeBiometric } from 'capacitor-native-biometric';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { Plugins } from '@capacitor/core';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 const { App } = Plugins;
 @Component({
     selector: 'app-login',
@@ -96,15 +97,6 @@ export class LoginComponent implements OnInit {
         });
     }
 
-    private async playIntroAudio(): Promise<void> {
-        return new Promise<void>((resolve) => {
-            this.sound.on('end', () => {
-                resolve();
-            });
-            this.sound.play();
-        });
-    }
-
     private handleQueryParams() {
         this.route.queryParams.subscribe(async (params) => {
             const token = params['token'];
@@ -156,39 +148,33 @@ export class LoginComponent implements OnInit {
     }
 
     async callBiometrico(): Promise<void> {
-        const correoCookieuser = this.getCookieOrLocalStorage('correo');
-        const correoCookiepass = this.getCookieOrLocalStorage('pass');
-
-        if (correoCookieuser) {
-            try {
-                const correoDesencriptado =
-                    this.helper.decryptDataLogin(correoCookieuser);
-                this.loginForm.get('correo').setValue(correoDesencriptado);
-
-                if (this.IsMobil() && correoCookiepass) {
-                    const result = await NativeBiometric.isAvailable();
-                    if (result.isAvailable) {
-                        const verified = await NativeBiometric.verifyIdentity({
-                            reason: 'Para un fácil inicio de sesión',
-                            title: 'Inicio de Sesión',
-                            subtitle: 'Coloque su dedo en el sensor.',
-                            description: 'Se requiere Touch ID o Face ID',
-                        }).catch(() => false);
-
-                        if (verified) {
-                            const passDesencriptado =
-                                this.helper.decryptDataLogin(correoCookiepass);
-                            this.loginForm
-                                .get('pass')
-                                .setValue(passDesencriptado);
-                            this.postLogin();
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Error al desencriptar el correo:', error);
+        try {
+            const result = await NativeBiometric.isAvailable();
+            if (!result.isAvailable) return;
+            const verified = await NativeBiometric.verifyIdentity({
+                reason: 'Para un fácil inicio de sesión',
+                title: 'Inicio de Sesión',
+                subtitle: 'Coloque su dedo en el sensor.',
+                description: 'Se requiere Touch ID o Face ID',
+            })
+                .then(() => true)
+                .catch(() => false);
+            if (verified) {
+                const credentials = await NativeBiometric.getCredentials({
+                    server: 'ec.gob.esmeraldas.labella',
+                });
+                console.log(JSON.stringify(credentials));
+                this.loginForm.get('correo').setValue(credentials.username);
+                this.loginForm.get('pass').setValue(credentials.password);
+                this.postLogin();
+            } else {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Falló',
+                    detail: 'El biométrico',
+                });
             }
-        }
+        } catch (error) {}
     }
 
     private getCookieOrLocalStorage(key: string): string {
@@ -214,6 +200,7 @@ export class LoginComponent implements OnInit {
                 const response = await this.authService.login(user).toPromise();
                 if (response.data) {
                     await this.guardarToken(response.data.token);
+                    await this.navigateAfterLogin();
                     this.storeUserData(
                         this.auth.authToken(response.data.token)
                     );
@@ -266,60 +253,54 @@ export class LoginComponent implements OnInit {
         }
     }
 
-    async navigateAfterLogin(hasPassword: boolean): Promise<void> {
-        const pass = this.loginForm.get('pass').value;
-        const storedPass =
-            this.helper.decryptDataLogin(
-                this.getCookieOrLocalStorage('pass')
-            ) || undefined;
-
-        if (
-            this.IsMobil() &&
-            (storedPass == undefined || pass !== storedPass)
-        ) {
+    async navigateAfterLogin(): Promise<void> {
+        if (this.IsMobil() && this.loginForm.get('save').value) {
             try {
                 const result = await NativeBiometric.isAvailable();
-                console.log('NativeBiometric.isAvailable result:', result);
+                if (!result.isAvailable) return;
+                 // Obtener las credenciales almacenadas previamente
+                 const storedCredentials = await NativeBiometric.getCredentials({
+                    server: 'ec.gob.esmeraldas.labella',
+                }).catch(() => null);
 
-                if (result.isAvailable) {
-                    const verified = await NativeBiometric.verifyIdentity({
-                        reason: 'Para un fácil inicio de sesión',
-                        title: 'Inicio de Sesión',
-                        subtitle: 'Coloque su dedo en el sensor.',
-                        description: 'Se requiere Touch ID o Face ID',
-                    })
-                        .then(() => true)
-                        .catch((error) => {
-                            console.error(
-                                'Biometric verification error:',
-                                error
-                            );
-                            return false;
-                        });
+                const currentUsername = this.loginForm.get('correo').value;
+                const currentPassword = this.loginForm.get('pass').value;
+                if (
+                    storedCredentials &&
+                    storedCredentials.username === currentUsername &&
+                    storedCredentials.password === currentPassword
+                ) {
+                    console.log('Las credenciales ya están guardadas y son las mismas.');
+                    return;
+                }
 
-                    console.log('Biometric verified:', verified);
+                const verified = await NativeBiometric.verifyIdentity({
+                    reason: 'Para un fácil inicio de sesión',
+                    title: 'Inicio de Sesión',
+                    subtitle: 'Coloque su dedo en el sensor.',
+                    description: 'Se requiere Touch ID o Face ID',
+                })
+                    .then(() => true)
+                    .catch(() => false);
 
-                    if (verified) {
-                        localStorage.setItem(
-                            'pass',
-                            this.helper.encryptDataLogin(pass, 'labella')
-                        );
-                    } else {
-                        this.messageService.add({
-                            severity: 'error',
-                            summary: 'Falló',
-                            detail: 'Sin biometría',
-                        });
-                    }
+                if (verified) {
+                    // Save user's credentials
+                    NativeBiometric.setCredentials({
+                        username: this.loginForm.get('correo').value,
+                        password: this.loginForm.get('pass').value,
+                        server: 'ec.gob.esmeraldas.labella',
+                    }).then();
                 } else {
-                    console.log('Biometric not available');
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Falló',
+                        detail: 'El biométrico',
+                    });
                 }
             } catch (error) {
                 console.error('Error checking biometric availability:', error);
             }
         }
-
-        this.rederict(hasPassword);
     }
 
     private async rederict(hasPassword?: boolean) {
@@ -406,30 +387,52 @@ export class LoginComponent implements OnInit {
             storage.setItem('nombreUsuario', nombre);
         }
     }
+    async initializeGoogleOneTap() {
+        try {
+            GoogleAuth.initialize({
+                clientId:
+                    '489368244321-c2vr1nvlg7qlfo85ttd75poi1c1h0365.apps.googleusercontent.com',
+                scopes: ['profile', 'email'],
+                grantOfflineAccess: true,
+            });
+        } catch (error) {
+            console.error(
+                'Google One Tap initialization failed:',
+                JSON.stringify(error)
+            );
+        }
+    }
 
     async loginWithGoogle() {
         if (this.IsMobil()) {
             try {
-                await this.authService.initializeGoogleOneTap();
-                const googleUser = await this.authService.signInWithGoogle();
-                const response: any = await this.authService.sendUserToBackend(
-                    googleUser
-                );
-                if (response.token) {
-                    await this.guardarToken(response.token);
-                    this.storeUserData(this.auth.authToken(response.token));
-                    this.rederict();
-                } else {
-                    console.warn(
-                        'Login failed',
-                        JSON.stringify(response, null, 4)
-                    );
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: `(500)`,
-                        detail: response.message || 'Sin conexión',
+                await this.authService
+                    .initializeGoogleOneTap()
+                    .then(async () => {
+                        const googleUser =
+                            await this.authService.signInWithGoogle();
+                        const response: any =
+                            await this.authService.sendUserToBackend(
+                                googleUser
+                            );
+                        if (response.token) {
+                            await this.guardarToken(response.token);
+                            this.storeUserData(
+                                this.auth.authToken(response.token)
+                            );
+                            this.rederict();
+                        } else {
+                            console.warn(
+                                'Login failed',
+                                JSON.stringify(response, null, 4)
+                            );
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: `(500)`,
+                                detail: response.message || 'Sin conexión',
+                            });
+                        }
                     });
-                }
 
                 // Maneja el usuario autenticado (por ejemplo, envíalo a tu backend)
             } catch (err) {
@@ -443,5 +446,13 @@ export class LoginComponent implements OnInit {
         } else {
             this.authService.loginWithGoogle();
         }
+    }
+    private async playIntroAudio(): Promise<void> {
+        return new Promise<void>((resolve) => {
+            this.sound.on('end', () => {
+                resolve();
+            });
+            this.sound.play();
+        });
     }
 }
