@@ -6,11 +6,14 @@ import { ListService } from 'src/app/demo/services/list.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { CreateService } from 'src/app/demo/services/create.service';
+import { Router } from '@angular/router';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 
 @Component({
     selector: 'app-agregar-recolector',
     templateUrl: './agregar-recolector.component.html',
     styleUrl: './agregar-recolector.component.scss',
+    providers:[DynamicDialogRef]
 })
 export class AgregarRecolectorComponent {
     formulario: FormGroup;
@@ -26,7 +29,9 @@ export class AgregarRecolectorComponent {
         private list: ListService,
         private auth: AuthService,
         private helper: HelperService,
-        private create:CreateService
+        private create:CreateService,
+        private router: Router, // Inyecta Router para redirección
+        private ref: DynamicDialogRef, // Inyecta DynamicDialogConfig para acceder a la configuración del diálogo
     ) {
         this.formulario = this.fb.group({
             funcionario: [null, Validators.required],
@@ -104,6 +109,13 @@ export class AgregarRecolectorComponent {
                     summary: 'Registro',
                     detail: 'Asignación Completada.',
                 });
+                if (!this.isMobil()) {
+                    // Si es móvil, cierra el diálogo
+                    this.ref.close(); // Usa `ref` de DynamicDialogConfig
+                  } else {
+                    // Si no es móvil, redirige a /recolectores/listar
+                    this.router.navigate(['/recolectores/listar']);
+                  }
             })
         } else {
             this.messageService.add({
