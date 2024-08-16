@@ -90,6 +90,7 @@ import { AuthService } from 'src/app/demo/services/auth.service';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { InputTextModule } from 'primeng/inputtext';
 import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
+import { ImportsModule } from 'src/app/demo/services/import';
 interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
     id?: string;
 }
@@ -97,6 +98,7 @@ interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
     selector: 'app-mapa-ficha',
     standalone: true,
     imports: [
+        ImportsModule,
         NgbModule,
         InputSwitchModule,
         InputTextModule,
@@ -132,7 +134,7 @@ interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
         ConfirmationService,
     ],
 })
-export class MapaFichaComponent implements OnInit, OnDestroy{
+export class MapaFichaComponent implements OnInit, OnDestroy {
     @ViewChildren(SpeedDial) speedDials: QueryList<SpeedDial> | undefined;
     @ViewChild('formulariomap', { static: true }) formularioMapRef!: ElementRef;
     mapOptions = {
@@ -243,7 +245,7 @@ export class MapaFichaComponent implements OnInit, OnDestroy{
         private adminservice: AdminService,
         private createService: CreateService,
         private auth: AuthService,
-        private googlemaps:GoogleMapsService
+        private googlemaps: GoogleMapsService
     ) {
         this.fichaSectorialForm = this.fb.group({
             descripcion: ['', Validators.required],
@@ -254,11 +256,14 @@ export class MapaFichaComponent implements OnInit, OnDestroy{
             fecha_evento: [''],
             observacion: [''],
             foto: [],
-            es_articulo:[false],
-            mostrar_en_mapa:[false],
-            icono_marcador: ['https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png',Validators.pattern('https?://.+')],
-            title_marcador:[''],
-            destacado:[false],
+            es_articulo: [false],
+            mostrar_en_mapa: [false],
+            icono_marcador: [
+                'https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png',
+                Validators.pattern('https?://.+'),
+            ],
+            title_marcador: [''],
+            destacado: [false],
         });
         this.subscription = this.layoutService.configUpdate$
             .pipe(debounceTime(25))
@@ -298,7 +303,7 @@ export class MapaFichaComponent implements OnInit, OnDestroy{
                 this.longitud = location.lng();
                 this.poligonoposition(false);
                 ////console.log('Latitude:', location.lat(), 'Longitude:', location.lng());
-                //this.addMarker(location,'NUEVO SISTEMA DE BUSQUEDA');
+                this.addMarker(location,'Ubicación','Tu busqueda');
             })
             .catch((error) => {
                 console.error('Error getting location:', error);
@@ -308,7 +313,7 @@ export class MapaFichaComponent implements OnInit, OnDestroy{
         if (this.mapCustom) {
             google.maps.event.clearInstanceListeners(this.mapCustom);
             this.mapCustom = null;
-           // console.log("Mapa liberado");
+            // console.log("Mapa liberado");
         }
     }
     async ngOnInit() {
@@ -684,6 +689,7 @@ export class MapaFichaComponent implements OnInit, OnDestroy{
 
         // Abrir un nuevo popup con el nombre del barrio
         const infoWindow = new google.maps.InfoWindow({
+            headerDisabled:true,
             ariaLabel: tipo,
             content: message ? message : 'Marcador',
         });
@@ -893,7 +899,9 @@ export class MapaFichaComponent implements OnInit, OnDestroy{
                         }
                     }
                     // Agregar evento de clic al polígono para mostrar el popup
-                    this.levantarpopup(polygon, feature);
+                    //this.levantarpopup(polygon, feature);
+                    this.onlymarker(polygon, feature);
+                    
                     // Trasladar el mapa a la posición del polígono si ver es true
                     if (ver) {
                         const bounds = new google.maps.LatLngBounds();
@@ -958,6 +966,24 @@ export class MapaFichaComponent implements OnInit, OnDestroy{
     infoWindowActual: google.maps.InfoWindow;
     public features: { [id: string]: any } = {};
     id_feature: any;
+    onlymarker(polygon: any, feature: any){
+        if (this.infoWindowActual && !this.capaActiva) {
+            this.infoWindowActual.close();
+            this.infoWindowActual = null;
+            this.url_imag = null;
+        }
+        this.features[polygon.id] = null;
+        polygon.addListener('click', (event: any) => {
+            this.latitud = event.latLng.lat();
+                this.longitud = event.latLng.lng();
+                this.addMarker(
+                    { lat: this.latitud, lng: this.longitud },
+                    'Poligono',
+                    feature.properties.nombre,
+                    feature
+                );
+        });
+    }
     levantarpopup(polygon: any, feature: any) {
         if (this.infoWindowActual && !this.capaActiva) {
             this.infoWindowActual.close();
@@ -1137,15 +1163,24 @@ export class MapaFichaComponent implements OnInit, OnDestroy{
             });
     }
     subcategorias: any[] = [];
-    onCategoriaClick(cateogria: any) {
-        //console.log(cateogria);
-        this.fichaSectorialForm.get('actividad').setValue(cateogria);
-        //this.visible_categoria = false;
+    // Agrega una propiedad para el estado activo
+    activoCategoria: any;
+
+    // Modifica el método onCategoriaClick
+    onCategoriaClick(categoria: any) {
+        // Actualiza el valor en el formulario
+        this.fichaSectorialForm.get('actividad').setValue(categoria);
+
+        // Establece la categoría activa
+        this.activoCategoria = categoria;
+
+        // Muestra la subcategoría
         this.visible_subcategoria = true;
+
+        // Llama al servicio para listar los estados de actividades
         this.list
             .listarEstadosActividadesProyecto(this.token)
             .subscribe((response) => {
-                //console.log(response);
                 if (response.data) {
                     this.subcategorias = response.data;
                 }
@@ -1153,10 +1188,17 @@ export class MapaFichaComponent implements OnInit, OnDestroy{
     }
     visible_map: boolean = false;
 
+    activoSubcategoria: any;
+
+    // Modifica el método onSubCategoriaClick
     onSubCategoriaClick(subcategoria: any): void {
-        //console.log(subcategoria);
-        this.visible_map = true;
-        this.fichaSectorialForm.get('estado').setValue(subcategoria);
+      // Establece la subcategoría activa
+      this.activoSubcategoria = subcategoria;
+  
+      // Muestra el mapa y actualiza el formulario
+      this.visible_map = true;
+      this.fichaSectorialForm.get('estado').setValue(subcategoria);  
+      
     }
     recargarmapa() {
         setTimeout(() => {

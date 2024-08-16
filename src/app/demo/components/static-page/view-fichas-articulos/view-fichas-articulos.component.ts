@@ -3,7 +3,7 @@ import { FilterService } from 'src/app/demo/services/filter.service';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { ImportsModule } from 'src/app/demo/services/import';
 import { MapaMostrarFichasComponent } from '../mapa-mostrar-fichas/mapa-mostrar-fichas.component';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ListService } from 'src/app/demo/services/list.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
 
@@ -44,7 +44,8 @@ export class ViewFichasArticulosComponent implements OnInit {
         private filterService: FilterService,
         private route: ActivatedRoute,
         private listService: ListService,
-        private auth: AuthService
+        private auth: AuthService,
+        private router: Router
     ) {}
     fichas_sectoriales_arr: any[] = [];
     listarFichaSectorial(): void {
@@ -56,7 +57,7 @@ export class ViewFichasArticulosComponent implements OnInit {
                 }
             });
     }
-
+    load:boolean=true;
     ngOnInit(): void {
         this.route.params.subscribe((params) => {
             if (params['id']) {
@@ -81,11 +82,14 @@ export class ViewFichasArticulosComponent implements OnInit {
                     this.liked = this.checkIfLiked();
                     setTimeout(() => {
                         this.view_map = true;
+                        this.load=false;
                     }, 500);
                 }
             },
             (error) => {
                 console.error(error);
+                this.load=false;
+                throw new Error(error);
             }
         );
     }
@@ -238,4 +242,7 @@ export class ViewFichasArticulosComponent implements OnInit {
         // Formato requerido: YYYYMMDDTHHMMSSZ
         return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
     }
+    goToHomePage(): void {
+        this.router.navigate(['/home']);
+      }
 }

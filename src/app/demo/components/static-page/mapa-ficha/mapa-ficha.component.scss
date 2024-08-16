@@ -49,6 +49,16 @@
       }
   }
 }
+
+.cube-categoria.active {
+  border: 2px solid #007bff; /* Cambia el color según tu diseño */
+  background-color: #e9ecef; /* Cambia el color de fondo según tu diseño */
+}
+.p-table .active {
+  background-color: #007bff; /* Cambia el color de fondo según tu diseño */
+  color: white; /* Cambia el color del texto si es necesario */
+}
+
 $input-width: 430px; // Ancho para escritorio
 
 .inputmap {

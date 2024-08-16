@@ -348,7 +348,7 @@
 </div>
 <div *ngIf="visible_fichas_mostrar">
     <h3>Eventos:</h3> 
-    <p-button label="Añadir Todos al Calendario" icon="pi pi-calendar" (click)="addAllEventsToCalendar()"></p-button>
+    <p-button *ngIf="!isMobil()" label="Añadir Todos al Calendario" icon="pi pi-calendar" (click)="addAllEventsToCalendar()"></p-button>
     <app-mapa-mostrar-fichas
         *ngIf="visible_fichas_mostrar"
     ></app-mapa-mostrar-fichas>

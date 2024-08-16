@@ -56,6 +56,9 @@
                             (click)="
                                 onCategoriaClick(categoria); nextCallback.emit()
                             "
+                            [ngClass]="{
+                                active: categoria === activoCategoria
+                            }"
                         >
                             <div
                                 class="cube-face-categoria cube-front-categoria"
@@ -96,10 +99,12 @@
                     <ng-template pTemplate="header">
                         <tr>
                             <th>
-                                {{
-                                    fichaSectorialForm.get("actividad").value
-                                        .nombre
-                                }}
+                                <h3>
+                                    <strong>{{
+                                        fichaSectorialForm.get("actividad")
+                                            .value.nombre
+                                    }}</strong>
+                                </h3>
                             </th>
                         </tr>
                     </ng-template>
@@ -120,6 +125,18 @@
                                 "
                             >
                                 {{ product.nombre }}
+                                <p-avatar *ngIf="activoSubcategoria
+                                ? product._id === activoSubcategoria._id
+                                : false"
+                                    icon="pi pi-check"
+                                    styleClass="mr-2"
+                                    size="large"
+                                    [style]="{
+                                        'background-color': '#e9fceb',
+                                        color: '#126119'
+                                    }"
+                                    shape="circle"
+                                />
                             </td>
                         </tr>
                     </ng-template>
@@ -271,14 +288,19 @@
                     "
                 >
                     <p style="margin: 1rem">
-                       Quieres que se muestre en la página principal?
+                        Quieres que se muestre en la página principal?
                     </p>
                     <p-inputSwitch formControlName="destacado" />
                 </div>
 
-
-                <div class="mb-5" *ngIf="fichaSectorialForm.get('es_articulo').value">
-                    <label htmlFor="title_marcador"> Titulo corto (Se utilizará para marcadores y articulos):</label>
+                <div
+                    class="mb-5"
+                    *ngIf="fichaSectorialForm.get('es_articulo').value"
+                >
+                    <label htmlFor="title_marcador">
+                        Titulo corto (Se utilizará para marcadores y
+                        articulos):</label
+                    >
                     <div
                         style="
                             display: flex;
@@ -286,7 +308,11 @@
                             justify-content: flex-start;
                         "
                     >
-                    <input type="text" pInputText formControlName="title_marcador" />
+                        <input
+                            type="text"
+                            pInputText
+                            formControlName="title_marcador"
+                        />
                     </div>
                 </div>
 
@@ -341,10 +367,15 @@
                         <p-inputSwitch formControlName="mostrar_en_mapa" />
                     </div>
                 </div>
-                <div class="mb-5" *ngIf="fichaSectorialForm.get('mostrar_en_mapa').value">
+                <div
+                    class="mb-5"
+                    *ngIf="fichaSectorialForm.get('mostrar_en_mapa').value"
+                >
                     <h4 for="fecha_evento" class="form-label">
-                        Quieres añadir un marcador personalizado? (Puedes subirlo en 
-                        <a href="https://postimg.cc/" target="_blank">Posmat</a> y añadir la URL del Marcador)
+                        Quieres añadir un marcador personalizado? (Puedes
+                        subirlo en
+                        <a href="https://postimg.cc/" target="_blank">Posmat</a>
+                        y añadir la URL del Marcador)
                     </h4>
                     <div
                         style="
@@ -353,11 +384,13 @@
                             justify-content: flex-start;
                         "
                     >
-                    <input type="text" pInputText formControlName="icono_marcador" />
+                        <input
+                            type="text"
+                            pInputText
+                            formControlName="icono_marcador"
+                        />
                     </div>
                 </div>
-                
-                
             </form>
             <h4>Puedes agregar fotos, es opcional. (maximo 5 fotos)</h4>
             <div class="mb-3" *ngIf="!isMobil() && upload">

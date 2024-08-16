@@ -136,7 +136,7 @@
                     <!-- Botones de inicio de sesión con Facebook y Google -->
                     <div class="flex flex-column align-items-center my-3">
                         <div class="row">
-                            <p-button
+                            <p-button *ngIf="!IsMobil()"
                                 [text]="true"
                                 [raised]="true"
                                 size="large"
