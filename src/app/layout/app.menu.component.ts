@@ -23,7 +23,7 @@ export class AppMenuComponent implements OnInit {
         this.permisos_arr = this.auth.getPermisosSubject();
         this.auth.permissions$.subscribe((permissions) => {
             this.permisos_arr = this.auth.getPermisosSubject();
-            console.log(this.permisos_arr);
+            //console.log(this.permisos_arr);
             this.loadPermissions(); // Llama a loadPermissions cuando hay cambios en los permisos
         });
 
