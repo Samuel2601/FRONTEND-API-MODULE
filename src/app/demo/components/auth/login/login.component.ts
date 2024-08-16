@@ -70,8 +70,9 @@ export class LoginComponent implements OnInit {
         return this.helper.isMobil();
     }
 
-    ngOnInit(): void {
+    async ngOnInit(): Promise<void> {
         this.helper.llamarspinner('login');
+        await this.biometricocredential();
         this.handleQueryParams();
         this.playIntroAudio();
         this.setHeight();
@@ -85,7 +86,21 @@ export class LoginComponent implements OnInit {
             this.loadUserData();
         }
         this.helper.cerrarspinner('login');
+      
     }
+    statusbiometrico:boolean=false;
+    async biometricocredential () {
+        try {
+            const credentials = await NativeBiometric.getCredentials({
+                server: 'ec.gob.esmeraldas.labella',
+            });
+            this.statusbiometrico=!!credentials;
+        } catch (error) {
+            console.error('Error obteniendo credenciales:', error);
+            this.statusbiometrico=false;
+        }
+    }
+
 
     private removeWhitespaceFromEmail(): void {
         this.loginForm.get('correo').valueChanges.subscribe((value) => {
@@ -133,24 +148,21 @@ export class LoginComponent implements OnInit {
         );
         this.callBiometrico();
     }
-
-    statusbiometrico(): boolean {
-        const correoCookieuser = this.helper.isMobil()
-            ? localStorage.getItem('correo')
-            : this.cookieService.get('correo');
-        const correoCookiepass = this.helper.isMobil()
-            ? localStorage.getItem('pass')
-            : this.cookieService.get('pass');
-        if (correoCookieuser && correoCookiepass) {
-            return true;
-        }
-        return false;
-    }
-
+    
     async callBiometrico(): Promise<void> {
         try {
+            // Verifica si la autenticación biométrica está disponible
             const result = await NativeBiometric.isAvailable();
-            if (!result.isAvailable) return;
+            if (!result.isAvailable) {
+                this.messageService.add({
+                    severity: 'warn',
+                    summary: 'No disponible',
+                    detail: 'La autenticación biométrica no está disponible en este dispositivo.',
+                });
+                return;
+            }
+
+            // Realiza la verificación biométrica
             const verified = await NativeBiometric.verifyIdentity({
                 reason: 'Para un fácil inicio de sesión',
                 title: 'Inicio de Sesión',
@@ -159,22 +171,61 @@ export class LoginComponent implements OnInit {
             })
                 .then(() => true)
                 .catch(() => false);
+
+            // Si la verificación biométrica es exitosa, intenta obtener las credenciales
             if (verified) {
-                const credentials = await NativeBiometric.getCredentials({
-                    server: 'ec.gob.esmeraldas.labella',
-                });
-                console.log(JSON.stringify(credentials));
-                this.loginForm.get('correo').setValue(credentials.username);
-                this.loginForm.get('pass').setValue(credentials.password);
-                this.postLogin();
+                try {
+                    const credentials = await NativeBiometric.getCredentials({
+                        server: 'ec.gob.esmeraldas.labella',
+                    });
+
+                    if (credentials) {
+                        // Establece las credenciales obtenidas en el formulario de inicio de sesión
+                        this.loginForm
+                            .get('correo')
+                            .setValue(credentials.username);
+                        this.loginForm
+                            .get('pass')
+                            .setValue(credentials.password);
+
+                        // Llama a la función de postLogin para iniciar sesión
+                        this.postLogin();
+                    } else {
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Falló',
+                            detail: 'No se encontraron credenciales almacenadas.',
+                        });
+                    }
+                } catch (getCredentialsError) {
+                    // Maneja el error al intentar obtener las credenciales
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'No se pudieron recuperar las credenciales.',
+                    });
+                    console.error(
+                        'Error al obtener credenciales:',
+                        getCredentialsError
+                    );
+                }
             } else {
+                // Si la verificación biométrica falla
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Falló',
-                    detail: 'El biométrico',
+                    detail: 'La autenticación biométrica falló.',
                 });
             }
-        } catch (error) {}
+        } catch (error) {
+            // Maneja cualquier otro error
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Hubo un problema con la autenticación biométrica.',
+            });
+            console.error('Error en callBiometrico:', error);
+        }
     }
 
     private getCookieOrLocalStorage(key: string): string {
@@ -258,8 +309,8 @@ export class LoginComponent implements OnInit {
             try {
                 const result = await NativeBiometric.isAvailable();
                 if (!result.isAvailable) return;
-                 // Obtener las credenciales almacenadas previamente
-                 const storedCredentials = await NativeBiometric.getCredentials({
+                // Obtener las credenciales almacenadas previamente
+                const storedCredentials = await NativeBiometric.getCredentials({
                     server: 'ec.gob.esmeraldas.labella',
                 }).catch(() => null);
 
@@ -270,7 +321,9 @@ export class LoginComponent implements OnInit {
                     storedCredentials.username === currentUsername &&
                     storedCredentials.password === currentPassword
                 ) {
-                    console.log('Las credenciales ya están guardadas y son las mismas.');
+                    console.log(
+                        'Las credenciales ya están guardadas y son las mismas.'
+                    );
                     return;
                 }
 

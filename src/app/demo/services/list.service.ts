@@ -29,16 +29,16 @@ export class ListService {
     }
     diaEntero(): { start: string; end: string } {
         const now = new Date();
-    
+
         // Establecer la fecha para la medianoche de hoy
         const end = new Date(now);
         end.setHours(0, 0, 0, 0);
-    
+
         // Establecer la fecha para la medianoche del día anterior
         const start = new Date(now);
         start.setDate(now.getDate() - 1);
         start.setHours(0, 0, 0, 0);
-    
+
         return {
             start: start.toISOString(),
             end: end.toISOString(),
@@ -55,7 +55,7 @@ export class ListService {
             Authorization: token,
         });
         //const { start, end } = this.diaEntero();
-                
+
         const params = this.paramsf(campos, all);
         return this.http.get(this.url + 'recolector', {
             headers: headers,
@@ -95,7 +95,7 @@ export class ListService {
         let params = new HttpParams()
             .set('mostrar_en_mapa', 'true')
             .set('fecha_evento[start]', start)
-            .set('fecha_evento[end]', end)            
+            .set('fecha_evento[end]', end)
             .set('view', 'true')
             .set('populate', 'estado,actividad');
         /*const fullUrl = `${this.url}ficha_sectorial?${params.toString()}`;
@@ -104,9 +104,26 @@ export class ListService {
             params: params,
         });
     }
+    listarFichaSectorialArticulos(): Observable<any> {
+        const { start, end } = this.calcularFechaUnMesAdelanteUnMesAtras();
+
+        let params = new HttpParams()
+            //.set('mostrar_en_mapa', 'true')
+            .set('es_articulo', 'true')
+            //.set('fecha_evento[start]', start)
+            //.set('fecha_evento[end]', end)
+            .set('view', 'true')
+            .set('populate', 'estado,actividad');
+        /*const fullUrl = `${this.url}ficha_sectorial?${params.toString()}`;
+        console.log('Full URL:', fullUrl);*/
+        return this.http.get(this.url + 'ficha_sectorial', {
+            params: params,
+        });
+    }
+
     listarFichaSectorialHome(): Observable<any> {
         let params = new HttpParams()
-            .set('destacado', 'true')       
+            .set('destacado', 'true')
             .set('view', 'true')
             .set('populate', 'estado,actividad');
         return this.http.get(this.url + 'ficha_sectorial', {

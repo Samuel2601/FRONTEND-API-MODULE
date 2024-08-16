@@ -50,7 +50,7 @@ export class ViewFichasArticulosComponent implements OnInit {
     fichas_sectoriales_arr: any[] = [];
     listarFichaSectorial(): void {
         this.listService
-            .listarFichaSectorialMapa()
+            .listarFichaSectorialArticulos()
             .subscribe((response: any) => {
                 if (response.data && response.data.length > 0) {
                     this.fichas_sectoriales_arr = response.data;

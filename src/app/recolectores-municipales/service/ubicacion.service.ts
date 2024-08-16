@@ -4,22 +4,22 @@ import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { Preferences } from '@capacitor/preferences';
-import {
+/*import {
     BackgroundGeolocationPlugin,
     WatcherOptions,
     Location,
     CallbackError,
-} from '@capacitor-community/background-geolocation';
+} from '@capacitor-community/background-geolocation';*/
 import { registerPlugin } from '@capacitor/core';
 import { BehaviorSubject } from 'rxjs';
 import { Geolocation } from '@capacitor/geolocation';
 import { Network } from '@capacitor/network';
 import { AuthService } from 'src/app/demo/services/auth.service';
-
+/*
 const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>(
     'BackgroundGeolocation'
 );
-
+*/
 @Injectable({
     providedIn: 'root',
 })
@@ -41,7 +41,7 @@ export class UbicacionService {
     private readonly MAX_DISTANCE_KM = 0.001; // Distancia máxima permitida entre puntos consecutivos en kilómetros
     private readonly MIN_SPEED_KMH = 90 * 1000; // Velocidad mínima en km/h para considerar la ubicación como válida
 
-    iniciarWatcher() {
+    /*iniciarWatcher() {
         const options: WatcherOptions = {
             backgroundMessage: 'Cancela para prevenir drenar tu batería',
             backgroundTitle: 'Aviso de rastreo',
@@ -82,13 +82,13 @@ export class UbicacionService {
                     speed: location.speed ? location.speed * 3.6 : 0,
                     destacado: false,
                 };
-                /*const nuevaUbicacion = {
+                const nuevaUbicacion = {
                     lat: location.latitude,
                     lng: location.longitude,
                     timestamp: new Date().toISOString(),
                     speed: location.speed ? location.speed * 3.6 : 0, // Convertir m/s a km/h si `speed` está disponible
                     destacado: false,
-                };*/
+                };*
                 // Solo guarda y emite si la nueva ubicación es válida
                 const valid = this.isValidLocation(nuevaUbicacion, now).resp;
                 if (valid) {
@@ -107,7 +107,7 @@ export class UbicacionService {
             .catch((err) => {
                 console.error('Error al iniciar el watcher', err);
             });
-    }
+    }*/
     isValidLocation(
         nuevaUbicacion: {
             lat: number;

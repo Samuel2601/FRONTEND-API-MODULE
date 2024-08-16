@@ -91,8 +91,8 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
                 map: this.mapCustom,
                 title: item.direccion_geo.nombre,
                 icon: {
-                    url: item.icono_marcador, // URL de la imagen del icono del marcador
-                    scaledSize: new google.maps.Size(120, 120), // Tamaño personalizado del icono
+                    url: item.icono_marcador?item.icono_marcador:'https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png', // URL de la imagen del icono del marcador
+                    scaledSize: item.icono_marcador||item.icono_marcador!='https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png'?new google.maps.Size(120, 120):new google.maps.Size(50, 50), // Tamaño personalizado del icono
                 },
             });
 
