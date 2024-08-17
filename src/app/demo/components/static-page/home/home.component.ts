@@ -53,7 +53,7 @@ export class HomeComponent implements OnInit {
         public dialogService: DialogService,
         private router: Router,
         private auth: AuthService,
-        private socket:SocketService
+        private socket: SocketService
     ) {
         //socket.inicializador();
         this.incidencia = this.fb.group({
@@ -737,7 +737,26 @@ export class HomeComponent implements OnInit {
                 this.visible_fichas_mostrar = false;
 
                 if (this.isMobil()) {
-                    this.router.navigate(['/crear-incidente']);
+                    //this.router.navigate(['/crear-incidente']);
+                    if (this.button_active.cate && this.button_active.sub) {
+                        console.log('/crear-incidente',
+                            "CATEGORIA",this.button_active.cate,
+                            "SUBCATEGORIA",this.button_active.sub,);
+                        this.router.navigate([
+                            '/crear-incidente',
+                            this.button_active.cate,
+                            this.button_active.sub,
+                        ]);
+                    } else if (this.button_active.cate) {
+                        console.log('/crear-incidente',
+                            this.button_active.cate);
+                        this.router.navigate([
+                            '/crear-incidente',
+                            this.button_active.cate,
+                        ]);
+                    } else {
+                        this.router.navigate(['/crear-incidente']);
+                    }
                 } else {
                     this.visible_incidente = true;
                 }

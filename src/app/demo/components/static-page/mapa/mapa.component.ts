@@ -14,7 +14,7 @@ import {
     Input,
     OnDestroy,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import * as L from 'leaflet';
 import {
     CommonModule,
@@ -88,6 +88,7 @@ import { BadgeModule } from 'primeng/badge';
 import { CreateService } from 'src/app/demo/services/create.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
+import { ImportsModule } from 'src/app/demo/services/import';
 interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
     id?: string;
 }
@@ -95,6 +96,7 @@ interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
     selector: 'app-mapa',
     standalone: true,
     imports: [
+        ImportsModule,
         NgbModule,
         FormsModule,
         CommonModule,
@@ -127,7 +129,7 @@ interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
         ConfirmationService,
     ],
 })
-export class MapaComponent implements OnInit, OnDestroy{
+export class MapaComponent implements OnInit, OnDestroy {
     @Input() cate: any = '';
     @Input() sub: any = '';
     @ViewChildren(SpeedDial) speedDials: QueryList<SpeedDial> | undefined;
@@ -241,7 +243,8 @@ export class MapaComponent implements OnInit, OnDestroy{
         private adminservice: AdminService,
         private createService: CreateService,
         private auth: AuthService,
-        private googlemaps:GoogleMapsService
+        private googlemaps: GoogleMapsService,
+        private route: ActivatedRoute
     ) {
         this.incidencia = this.fb.group({
             direccion_geo: [{ value: '' }],
@@ -249,7 +252,7 @@ export class MapaComponent implements OnInit, OnDestroy{
             categoria: [{ value: '' }, Validators.required],
             subcategoria: [{ value: '' }, Validators.required],
             descripcion: ['', Validators.required],
-            estado:['']
+            estado: [''],
         });
         this.subscription = this.layoutService.configUpdate$
             .pipe(debounceTime(25))
@@ -299,10 +302,14 @@ export class MapaComponent implements OnInit, OnDestroy{
         if (this.mapCustom) {
             google.maps.event.clearInstanceListeners(this.mapCustom);
             this.mapCustom = null;
-          //  console.log("Mapa liberado");
+            //  console.log("Mapa liberado");
         }
     }
     async ngOnInit() {
+        this.route.params.subscribe((params) => {
+            this.cate = params['cate'];
+            this.sub = params['sub'];
+        });
         this.helperService.llamarspinner('init index layer');
         const checkObservables = {
             IndexFichaSectorialComponent:
@@ -1104,14 +1111,16 @@ export class MapaComponent implements OnInit, OnDestroy{
         this.visible_categoria = true;
         this.listCategoria();
     }
-    estados_id:string='';
+    estados_id: string = '';
     listEstado() {
         this.list.listarEstadosIncidentes(this.token).subscribe((response) => {
             if (response.data) {
-                let arr:any[]=[];
-                arr=response.data;
-                const pendiente= arr.find(element=>element.nombre=="Pendiente");
-                this.estados_id=pendiente._id;
+                let arr: any[] = [];
+                arr = response.data;
+                const pendiente = arr.find(
+                    (element) => element.nombre == 'Pendiente'
+                );
+                this.estados_id = pendiente._id;
                 this.incidencia.get('estado').setValue(this.estados_id);
             }
         });
@@ -1143,7 +1152,7 @@ export class MapaComponent implements OnInit, OnDestroy{
         //this.visible_categoria = false;
         this.visible_subcategoria = true;
         this.list
-            .listarSubcategorias(this.token, {'categoria':cateogria._id})
+            .listarSubcategorias(this.token, { categoria: cateogria._id })
             .subscribe((response) => {
                 //console.log(response);
                 if (response.data) {
@@ -1153,7 +1162,7 @@ export class MapaComponent implements OnInit, OnDestroy{
                             (element) => element.nombre == this.sub
                         );
                         if (aux) {
-                           // console.log(aux);
+                            // console.log(aux);
 
                             this.onSubCategoriaClick(aux);
                         }
@@ -1306,6 +1315,7 @@ export class MapaComponent implements OnInit, OnDestroy{
                             setTimeout(() => {
                                 this.helperService.cerrarMapa();
                             }, 1000);
+                            this.router.navigate(['/maps/incidente']);
                         }
                     },
                     (error) => {

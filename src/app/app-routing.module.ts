@@ -35,6 +35,8 @@ import { MapaTrashComponent } from './demo/components/static-page/mapa-trash/map
                     { path: 'home', component: HomeComponent },
                     { path: 'crear-ficha', component: MapaFichaComponent,canActivate: [AuthGuard] },                    
                     { path: 'crear-incidente', component: MapaComponent,canActivate: [AuthGuard] },
+                    { path: 'crear-incidente/:cate', component: MapaComponent,canActivate: [AuthGuard]  },
+                    { path: 'crear-incidente/:cate/:sub', component: MapaComponent ,canActivate: [AuthGuard] },
                     { path: 'ver-ficha/:id', component: ViewFichasArticulosComponent,canActivate: [AuthGuard] },
                     { path: '', component: HomeComponent },
                     {path:'mapa-recolectores', component:MapaTrashComponent}

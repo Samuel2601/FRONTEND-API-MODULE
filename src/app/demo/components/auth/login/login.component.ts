@@ -86,21 +86,20 @@ export class LoginComponent implements OnInit {
             this.loadUserData();
         }
         this.helper.cerrarspinner('login');
-      
     }
-    statusbiometrico:boolean=false;
-    async biometricocredential () {
+    statusbiometrico: boolean = false;
+    async biometricocredential() {
+        if (!this.IsMobil()) return;
         try {
             const credentials = await NativeBiometric.getCredentials({
                 server: 'ec.gob.esmeraldas.labella',
             });
-            this.statusbiometrico=!!credentials;
+            this.statusbiometrico = !!credentials;
         } catch (error) {
             console.error('Error obteniendo credenciales:', error);
-            this.statusbiometrico=false;
+            this.statusbiometrico = false;
         }
     }
-
 
     private removeWhitespaceFromEmail(): void {
         this.loginForm.get('correo').valueChanges.subscribe((value) => {
@@ -148,8 +147,9 @@ export class LoginComponent implements OnInit {
         );
         this.callBiometrico();
     }
-    
+
     async callBiometrico(): Promise<void> {
+        if (!this.IsMobil()) return;
         try {
             // Verifica si la autenticación biométrica está disponible
             const result = await NativeBiometric.isAvailable();
@@ -305,7 +305,8 @@ export class LoginComponent implements OnInit {
     }
 
     async navigateAfterLogin(): Promise<void> {
-        if (this.IsMobil() && this.loginForm.get('save').value) {
+        if (!this.IsMobil()) return;
+        if (this.loginForm.get('save').value) {
             try {
                 const result = await NativeBiometric.isAvailable();
                 if (!result.isAvailable) return;
@@ -337,12 +338,30 @@ export class LoginComponent implements OnInit {
                     .catch(() => false);
 
                 if (verified) {
+                    await NativeBiometric.deleteCredentials({
+                        server: 'ec.gob.esmeraldas.labella',
+                    });
                     // Save user's credentials
-                    NativeBiometric.setCredentials({
+                    const confir = await NativeBiometric.setCredentials({
                         username: this.loginForm.get('correo').value,
                         password: this.loginForm.get('pass').value,
                         server: 'ec.gob.esmeraldas.labella',
-                    }).then();
+                    })
+                        .then(() => true)
+                        .catch(() => false);
+                    if (confir) {
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Exito',
+                            detail: 'Se guardaron las credenciales',
+                        });
+                    } else {
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Falló',
+                            detail: 'El biométrico fallo',
+                        });
+                    }
                 } else {
                     this.messageService.add({
                         severity: 'error',
