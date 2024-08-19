@@ -201,6 +201,14 @@ export class StackIncidentesComponent implements OnInit {
             return acc;
         }, []);
     }
+    getTotales(arreglo:any){
+        let total=0;
+        arreglo.forEach((element:number) => {
+            total+=element;
+        });
+        return total;
+    }
+
 
     @Input() filtro: string | undefined;
     @Input() valor: number | undefined;

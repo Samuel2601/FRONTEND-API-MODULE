@@ -36,7 +36,7 @@
 
 <p-scrollPanel styleClass="custombar2" *ngIf="!modal">
     <div class="card">
-        <p-table [paginatorDropdownAppendTo]="'body'" *ngIf="basicData" [value]="basicData.labels" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5, 10, 20]">
+        <p-table [paginatorDropdownAppendTo]="'body'" *ngIf="basicData" [value]="basicData.labels" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5, 10, 20, 1000]">
             <ng-template pTemplate="header">
                 <tr>
                     <th *ngIf="longLabels[0]">Incide</th>
@@ -51,6 +51,19 @@
                     <td><ng-container *ngIf="longLabels[i]">{{longLabels[i]}}</ng-container> <ng-container *ngIf="!longLabels[i]">{{ item }}</ng-container> </td>
                     <td>{{ basicData.datasets[0].data[i] }}</td>
                     <td>{{ basicData.datasets[0].data[i] / constIncidente.length | percent: '1.2' }}</td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="footer">
+                <tr>
+                    <td colspan="2">Total</td>
+                    <td>
+                        {{
+                            getTotales(basicData.datasets[0].data)
+                        }}
+                    </td>
+                    <td>
+                        100%
+                    </td>
                 </tr>
             </ng-template>
         </p-table>

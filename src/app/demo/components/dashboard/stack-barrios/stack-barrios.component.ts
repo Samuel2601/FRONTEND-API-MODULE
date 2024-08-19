@@ -439,4 +439,12 @@ export class StackBarriosComponent implements OnInit {
                 return 'secondary'; // Asegúrate de retornar un valor válido por defecto
         }
     }
+    getTotales(arreglo:any){
+        let total=0;
+        arreglo.forEach((element:number) => {
+            total+=element;
+        });
+        return total;
+    }
+
 }

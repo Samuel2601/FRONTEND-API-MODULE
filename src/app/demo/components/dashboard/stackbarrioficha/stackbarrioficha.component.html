@@ -53,6 +53,19 @@
                     <td>{{ basicData.datasets[0].data[i] / constFicha.length | percent: '1.2' }}</td>
                 </tr>
             </ng-template>
+            <ng-template pTemplate="footer">
+                <tr>
+                    <td colspan="2">Total</td>
+                    <td>
+                        {{
+                            getTotales(basicData.datasets[0].data)
+                        }}
+                    </td>
+                    <td>
+                        100%
+                    </td>
+                </tr>
+            </ng-template>
         </p-table>
         <!--
  <p-table [paginatorDropdownAppendTo]="'body'"

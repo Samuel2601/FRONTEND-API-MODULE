@@ -229,6 +229,13 @@ export class StackbarriofichaComponent {
 
         return { label: maximoLabel, valor: maximoValor };
     }
+    getTotales(arreglo:any){
+        let total=0;
+        arreglo.forEach((element:number) => {
+            total+=element;
+        });
+        return total;
+    }
 
     async cargar() {
         this.loading = true;

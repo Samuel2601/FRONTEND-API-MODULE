@@ -35,6 +35,17 @@
                 </td>
                 <td>{{ sumaValores[i].toString() }}</td>
             </tr>
+        </ng-template>.
+        <ng-template pTemplate="footer">
+            <tr>
+                <td colspan="2">Total</td>
+                <td *ngFor="let cont of basicData.datasets; let j = index">
+                    {{ getTotales(cont.data) }}
+                </td>
+                <td>
+                    {{ getTotales(sumaValores) }}
+                </td>
+            </tr>
         </ng-template>
     </p-table>
 </div>
