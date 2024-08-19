@@ -134,10 +134,84 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
                 this.dataForm[key] = this.crearDatosGrafico(this.totales[key]);
             }
         }
+        this.totales = this.sortTotalesByRegistros(this.totales);
+        console.log(this.totales);
+        this.dataForm = this.sortDataAndLabels(this.dataForm);
+        this.table_items=this.convertirObjetoEnArreglo(this.dataForm);
+        console.log(this.table_items);
         this.load_table = true;
         setTimeout(() => {
             this.helper.cerrarspinner('filtro lista incidente');
         }, 500);
+    }
+    sortTotalesByRegistros(totales: any) {
+        // Iterar sobre cada propiedad en `totales`
+        for (const key in totales) {
+            if (totales.hasOwnProperty(key)) {
+                const item = totales[key];
+                // Verificar si el valor es un objeto que contiene `registros`
+                if (typeof item === 'object') {
+                    // Convertir el objeto en un array de pares [clave, valor]
+                    const entriesArray = Object.entries(item);
+    
+                    // Ordenar el array en función de `registros` de mayor a menor
+                    entriesArray.sort((a: any, b: any) => b[1].registros - a[1].registros);
+    
+                    // Convertir de nuevo el array ordenado a un objeto
+                    totales[key] = Object.fromEntries(entriesArray);
+                }
+            }
+        }
+        
+        return totales;
+    }
+    sortDataAndLabels(dataForm: any) {
+        // Función para ordenar datasets y labels
+        const sortDataSet = (datasets: any[], labels: string[]) => {
+            // Obtener el dataset que contiene los datos
+            const data = datasets[0].data;
+
+            // Crear una lista de pares [valor, label] para ordenarla
+            const combined = data.map((value: number, index: number) => ({
+                value,
+                label: labels[index],
+            }));
+
+            // Ordenar de mayor a menor basado en el valor
+            combined.sort((a, b) => b.value - a.value);
+
+            // Actualizar los datasets y labels con el nuevo orden
+            datasets[0].data = combined.map((item) => item.value);
+            return combined.map((item) => item.label);
+        };
+
+        // Ordenar categorias, direcciones, estados, y subcategorias
+        dataForm.categorias.labels = sortDataSet(
+            dataForm.categorias.datasets,
+            dataForm.categorias.labels
+        );
+        dataForm.direcciones.labels = sortDataSet(
+            dataForm.direcciones.datasets,
+            dataForm.direcciones.labels
+        );
+        dataForm.estados.labels = sortDataSet(
+            dataForm.estados.datasets,
+            dataForm.estados.labels
+        );
+        dataForm.subcategorias.labels = sortDataSet(
+            dataForm.subcategorias.datasets,
+            dataForm.subcategorias.labels
+        );
+        console.log(dataForm);
+        
+        return dataForm;
+    }
+    table_items:any[]=[];
+    convertirObjetoEnArreglo(objeto: any): any[] {
+        return Object.keys(objeto).map((key) => ({
+            clave: key,
+            valor: objeto[key],
+        }));
     }
 
     totales: any;
@@ -249,30 +323,38 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
     async ngOnInit() {
         try {
             const checkObservables = {
-                DashboardComponent: this.auth.hasPermissionComponent('dashboard', 'get'),
-                ReporteIncidenteView: this.auth.hasPermissionComponent('/reporteincidente', 'get'),
+                DashboardComponent: this.auth.hasPermissionComponent(
+                    'dashboard',
+                    'get'
+                ),
+                ReporteIncidenteView: this.auth.hasPermissionComponent(
+                    '/reporteincidente',
+                    'get'
+                ),
             };
-    
+
             forkJoin(checkObservables).subscribe(async (check) => {
                 this.check = check;
                 //console.log(check);
-    
+
                 if (!this.check.DashboardComponent) {
                     this.router.navigate(['/notfound']);
                     return; // Añade return para evitar continuar si no tienes permisos
                 }
-    
+
                 try {
                     await Promise.all([
                         this.rankin(),
                         this.listCategoria(),
                         this.listarEstado(),
                     ]);
-    
-                    this.filterForm.get('categoria').valueChanges.subscribe(() => {
-                        this.updateSubcategorias();
-                    });
-    
+
+                    this.filterForm
+                        .get('categoria')
+                        .valueChanges.subscribe(() => {
+                            this.updateSubcategorias();
+                        });
+
                     // Llama a filtro después de que todas las promesas se hayan resuelto
                     this.filtro();
                 } catch (error) {
@@ -285,7 +367,6 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
             this.router.navigate(['/notfound']);
         }
     }
-    
 
     async load_selecte() {
         if (this.cate) {
@@ -548,12 +629,7 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
         }
         return { datasets: [dataset], labels };
     }
-    convertirObjetoEnArreglo(objeto: any): any[] {
-        return Object.keys(objeto).map((key) => ({
-            clave: key,
-            valor: objeto[key],
-        }));
-    }
+
     handleHover(evt, item, legend) {
         legend.chart.data.datasets[0].backgroundColor.forEach(
             (color, index, colors) => {

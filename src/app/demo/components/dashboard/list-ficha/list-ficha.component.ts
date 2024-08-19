@@ -86,7 +86,9 @@ export class ListFichaComponent implements OnInit {
                         direccionesNombres.includes(
                             this.isJSONString(elemento.direccion_geo)
                                 ? this.parseJSON(elemento.direccion_geo).nombre
-                                : elemento.direccion_geo.nombre? elemento.direccion_geo.nombre:elemento.direccion_geo
+                                : elemento.direccion_geo.nombre
+                                ? elemento.direccion_geo.nombre
+                                : elemento.direccion_geo
                         )) &&
                     (view == null || elemento.view == view)
                 );
@@ -133,8 +135,8 @@ export class ListFichaComponent implements OnInit {
                     (acc.actividades[elemento.actividad.nombre] || 0) + 1;
 
                 // Encargados
-                acc.encargados[elemento.encargado.nombres] =
-                    (acc.encargados[elemento.encargado.nombres] || 0) + 1;
+                acc.encargados[elemento.encargado.fullname] =
+                    (acc.encargados[elemento.encargado.fullname] || 0) + 1;
 
                 // Estados
                 acc.estados[elemento.estado.nombre] =
@@ -143,7 +145,9 @@ export class ListFichaComponent implements OnInit {
                 // Direcciones
                 const direccion = this.isJSONString(elemento.direccion_geo)
                     ? this.parseJSON(elemento.direccion_geo).nombre
-                    : elemento.direccion_geo.nombre? elemento.direccion_geo.nombre:elemento.direccion_geo;
+                    : elemento.direccion_geo.nombre
+                    ? elemento.direccion_geo.nombre
+                    : elemento.direccion_geo;
                 acc.direcciones[direccion] =
                     (acc.direcciones[direccion] || 0) + 1;
 
@@ -245,7 +249,18 @@ export class ListFichaComponent implements OnInit {
                 .then((response) => {
                     if (response.data) {
                         this.constFicha = response.data;
+                        this.constFicha.forEach((element) => {
+                            // Si 'encargado' es un objeto, añade la propiedad 'fullname'
+                            element.encargado = {
+                                ...element.encargado,
+                                fullname:
+                                    element.encargado.last_name +
+                                    ' ' +
+                                    element.encargado.name,
+                            };
+                        });
                         this.ficha = this.constFicha;
+                        console.log(this.constFicha);
                         this.obtenerValoresUnicosDireccionGeo();
                     }
                 });
@@ -260,7 +275,9 @@ export class ListFichaComponent implements OnInit {
             this.constFicha.map((elemento) =>
                 this.isJSONString(elemento.direccion_geo)
                     ? this.parseJSON(elemento.direccion_geo).nombre
-                    : elemento.direccion_geo.nombre? elemento.direccion_geo.nombre:elemento.direccion_geo
+                    : elemento.direccion_geo.nombre
+                    ? elemento.direccion_geo.nombre
+                    : elemento.direccion_geo
             )
         );
         this.direcciones = Array.from(valoresUnicos).map((nombre) => ({
@@ -304,12 +321,7 @@ export class ListFichaComponent implements OnInit {
             // Eliminar duplicados
             this.encargados = this.encargados.filter(
                 (encargado, index, self) =>
-                    index ===
-                    self.findIndex(
-                        (e) =>
-                            e._id === encargado._id &&
-                            e.nombres === encargado.nombres
-                    )
+                    index === self.findIndex((e) => e._id === encargado._id)
             );
         } catch (error) {
             console.error('Error al obtener encargados:', error);

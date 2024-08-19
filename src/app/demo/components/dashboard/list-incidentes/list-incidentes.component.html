@@ -402,14 +402,16 @@
                         Ciudadano
                         <p-columnFilter
                             type="text"
-                            field="ciudadano.nombres"
+                            field="ciudadano.last_name"
                             display="Ciudadano"
                         ></p-columnFilter>
                         <th
-                            pSortableColumn="ciudadano.nombre"
+                            pSortableColumn="ciudadano.last_name"
                             style="width: 20%"
                         >
-                            <p-sortIcon field="ciudadano.nombre"></p-sortIcon>
+                            <p-sortIcon
+                                field="ciudadano.last_name"
+                            ></p-sortIcon>
                         </th>
                     </div>
                 </th>
@@ -442,7 +444,8 @@
                     {{ incidente.subcategoria.nombre }}
                 </td>
                 <td>
-                    {{ incidente.ciudadano.nombres }}
+                    {{ incidente.ciudadano.last_name }}
+                    {{ incidente.ciudadano.name }}
                 </td>
                 <td>
                     <p-tag
@@ -462,12 +465,7 @@
 </div>
 
 <ng-container *ngIf="load_table && incidente.length > 0">
-    <ng-container
-        *ngFor="
-            let item of convertirObjetoEnArreglo(dataForm);
-            trackBy: trackByFn
-        "
-    >
+    <ng-container *ngFor="let item of table_items; trackBy: trackByFn">
         <div class="card grid" [id]="item.clave">
             <div class="col-12 xl:col-6">
                 <p-chart
@@ -483,6 +481,9 @@
                     [paginatorDropdownAppendTo]="'body'"
                     #dt1
                     [value]="getEntries(totales[item.clave])"
+                    [paginator]="true"
+                    [rows]="isMobil()?5:10"
+                    [rowsPerPageOptions]="[5, 10, 20, 1000]"
                 >
                     <ng-template pTemplate="caption">
                         <div class="flex">
@@ -505,6 +506,7 @@
                             ></p-button>
                         </div>
                     </ng-template>
+
                     <ng-template pTemplate="header">
                         <tr>
                             <th>{{ item.clave | uppercase }}</th>
@@ -512,6 +514,7 @@
                             <th>PORCENTAJE</th>
                         </tr>
                     </ng-template>
+
                     <ng-template pTemplate="body" let-categoria>
                         <tr>
                             <td>{{ categoria[0] }}</td>
@@ -519,11 +522,12 @@
                             <td>
                                 {{
                                     categoria[1].porcentaje / 100
-                                        | percent : "1.2"
+                                        | percent : "1.2-2"
                                 }}
                             </td>
                         </tr>
                     </ng-template>
+
                     <ng-template pTemplate="footer">
                         <tr>
                             <td>Total</td>
@@ -536,7 +540,8 @@
                             <td>
                                 {{
                                     getTotales(totales[item.clave])
-                                        .totalPorcentaje / 100 | percent : "1.2"
+                                        .totalPorcentaje / 100
+                                        | percent : "1.2-2"
                                 }}
                             </td>
                         </tr>
@@ -582,6 +587,7 @@
         </div>
     </ng-template>
 </p-galleria>
+
 <!--GALERIA DE IMAGENES DE CADA INCIDENTE-->
 <p-galleria
     appendTo="body"
@@ -657,7 +663,7 @@
         </p>
         <p>
             <strong>Ciudadano:</strong>
-            {{ optionview.ciudadano.nombres }}
+            {{ optionview.ciudadano.last_name }} {{ optionview.ciudadano.name }}
         </p>
         <p>
             <strong>Descripción:</strong>

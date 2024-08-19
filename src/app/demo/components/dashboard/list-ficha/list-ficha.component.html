@@ -96,7 +96,7 @@
                                 class="inline-flex align-items-center gap-2 px-1"
                                 *ngFor="let option of value"
                             >
-                                <div>{{ option.nombres }}</div>
+                                <div>{{ option.fullname }}</div>
                             </div>
                             <div *ngIf="!value || value.length === 0">
                                 Seleccione las Categorias
@@ -104,7 +104,7 @@
                         </ng-template>
                         <ng-template let-encargado pTemplate="item">
                             <div class="flex align-items-center gap-2">
-                                <div>{{ encargado.name }}</div>
+                                <div>{{ encargado.fullname }}</div>
                             </div>
                         </ng-template>
                         <ng-template let-encargado pTemplate="footer">
@@ -292,8 +292,7 @@
         [globalFilterFields]="[
             'direccion_geo',
             'actividad.nombre',
-            'encargado.name',
-            'encargado.last_name',
+            'encargado.fullname',
             'fecha_evento',
             'estado.nombre'
         ]"
@@ -368,14 +367,14 @@
                         Encargado
                         <p-columnFilter
                             type="text"
-                            field="encargado.last_name"
+                            field="encargado.fullname"
                             display="Encargado"
                         ></p-columnFilter>
                         <th
-                            pSortableColumn="encargado.last_name"
+                            pSortableColumn="encargado.fullname"
                             style="width: 20%"
                         >
-                            <p-sortIcon field="encargado.last_name"></p-sortIcon>
+                            <p-sortIcon field="encargado.fullname"></p-sortIcon>
                         </th>
                     </div>
                 </th>
@@ -426,7 +425,7 @@
                     {{ ficha.actividad.nombre }}
                 </td>
                 <td>
-                    {{ ficha.encargado.name }} {{ ficha.encargado.last_name }}
+                    {{ ficha.encargado.fullname }}
                 </td>
                 <td>
                     {{ ficha.fecha_evento | date : "medium" : "es" }}
@@ -576,7 +575,7 @@
         </p>
         <p>
             <strong>Encargado:</strong>
-            {{ optionview.encargado.name }} {{ optionview.encargado.last_name }}
+            {{ optionview.encargado.fullname }}
         </p>
         <p>
             <strong>Estado:</strong>

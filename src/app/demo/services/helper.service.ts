@@ -11,7 +11,7 @@ import { StackFichasComponent } from '../components/dashboard/stack-fichas/stack
 import { StackIncidentesComponent } from '../components/dashboard/stack-incidentes/stack-incidentes.component';
 import { StackbarriofichaComponent } from '../components/dashboard/stackbarrioficha/stackbarrioficha.component';
 import { Capacitor } from '@capacitor/core';
-
+import { Device } from '@capacitor/device';
 @Injectable({
     providedIn: 'root',
 })
@@ -22,19 +22,19 @@ export class HelperService {
     public geocoderService: google.maps.Geocoder;
     public key = 'labella'; //'buzon';
     llamadasActivas = 0;
-    spiner: any=null;
+    spiner: any = null;
     private mapComponent: LayersComponent | null = null;
     private homeComponent: HomeComponent | null = null;
 
     constructor(private dialogService: DialogService, private router: Router) {}
 
     isMobil(): boolean {
-        return  Capacitor.isNativePlatform() //window.innerWidth <= 575; 
+        return Capacitor.isNativePlatform(); //window.innerWidth <= 575;
     }
-    isAndroit(){
-      
+    async isAndroid(): Promise<boolean> {
+        const info = await Device.getInfo();
+        return info.platform === 'android';
     }
-
     deshabilitarMapa() {
         this.deshabilitarMapaSubject.next();
     }
@@ -103,8 +103,9 @@ export class HelperService {
     }
 
     llamarspinner(id: any) {
-        console.log("LLAMO", id);
-        if (this.llamadasActivas === 0 && this.spiner==null) {  // Verifica si el spinner no está ya abierto
+        console.log('LLAMO', id);
+        if (this.llamadasActivas === 0 && this.spiner == null) {
+            // Verifica si el spinner no está ya abierto
             this.spiner = this.dialogService.open(SpinnerComponent, {
                 header: 'Cargando',
                 dismissableMask: false,
@@ -115,17 +116,17 @@ export class HelperService {
         this.llamadasActivas++;
     }
 
-    cerrarspinner(id:any) {
+    cerrarspinner(id: any) {
         this.llamadasActivas--;
         //console.log("CERRO",id);
-       // console.log(`Llamadas activas: ${this.llamadasActivas}`);
-    
+        // console.log(`Llamadas activas: ${this.llamadasActivas}`);
+
         if (this.llamadasActivas == 0) {
             setTimeout(() => {
                 if (this.spiner !== null) {
                     try {
                         this.spiner.close();
-                       // console.log('Intentando destruir el spinner');
+                        // console.log('Intentando destruir el spinner');
                         this.spiner.destroy();
                         this.spiner = null; // Asegúrate de establecerlo a null después de destruirlo
                         //console.log('Spinner destruido correctamente');
@@ -133,15 +134,13 @@ export class HelperService {
                         console.error('Error closing spinner:', error);
                     }
                 } else {
-                   // console.log('Spinner ya es null, no es necesario destruirlo');
+                    // console.log('Spinner ya es null, no es necesario destruirlo');
                 }
             }, 1000);
         } else {
-           // console.log('Aún hay llamadas activas, no se destruye el spinner');
+            // console.log('Aún hay llamadas activas, no se destruye el spinner');
         }
     }
-    
-    
 
     setMapComponent(mapComponent: LayersComponent) {
         this.mapComponent = mapComponent;

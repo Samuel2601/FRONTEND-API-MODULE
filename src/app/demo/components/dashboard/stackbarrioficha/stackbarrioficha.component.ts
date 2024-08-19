@@ -49,19 +49,39 @@ export class StackbarriofichaComponent {
                 return;
             }
         }
-
+        console.log(this.constFicha);
         // Agrupar y contar los incidentes por nombre de dirección
         const incidentesPorDireccion = this.constFicha.reduce(
             (acc: any, incidente: any) => {
-                const nombreDireccion = incidente.direccion_geo;
-                acc[nombreDireccion] = acc[nombreDireccion]
-                    ? acc[nombreDireccion] + 1
-                    : 1;
-                return acc;
+              let nombreDireccion: string;
+          
+              // Verifica si `direccion_geo` es un string o un objeto
+              if (typeof incidente.direccion_geo === 'string') {
+                try {
+                  // Intenta parsear el string como JSON
+                  const parsedDireccion = JSON.parse(incidente.direccion_geo);
+          
+                  // Si el parseo tiene éxito y tiene la propiedad `nombre`, úsala
+                  nombreDireccion = parsedDireccion.nombre || incidente.direccion_geo;
+                } catch (e) {
+                  // Si no se puede parsear, asumimos que es un string plano y lo usamos
+                  nombreDireccion = incidente.direccion_geo;
+                }
+              } else if (typeof incidente.direccion_geo === 'object') {
+                // Si ya es un objeto, simplemente accede a la propiedad `nombre`
+                nombreDireccion = incidente.direccion_geo.nombre;
+              }
+          
+              // Suma la incidencia en `acc` para la dirección correspondiente
+              acc[nombreDireccion] = acc[nombreDireccion]
+                ? acc[nombreDireccion] + 1
+                : 1;
+          
+              return acc;
             },
             {}
-        );
-
+          );
+        console.log(incidentesPorDireccion);
         // Ordenar las direcciones por cantidad de incidentes (de mayor a menor)
         const direccionesOrdenadas = Object.entries(incidentesPorDireccion)
             .sort((a: any, b: any) => b[1] - a[1])
@@ -112,6 +132,7 @@ export class StackbarriofichaComponent {
         this.longLabels = direccionesOrdenadas;
         const longLabels = this.longLabels
         const indices = this.longLabels.map((_, index) => index + 1);
+        console.log(longLabels);
         this.basicData.labels = indices//direccionesOrdenadas;
         this.optionsbar = {
             maintainAspectRatio: false,
@@ -358,6 +379,7 @@ export class StackbarriofichaComponent {
             this.lista_feature = this.lista_feature.filter((element: any) => {
                 return element.properties.nombre;
             });
+            console.log(this.lista_feature);
             return data;
         } catch (error) {
             this.messageService.add({
