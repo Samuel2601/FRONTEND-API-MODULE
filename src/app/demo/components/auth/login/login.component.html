@@ -136,7 +136,8 @@
                     <!-- Botones de inicio de sesión con Facebook y Google -->
                     <div class="flex flex-column align-items-center my-3">
                         <div class="row">
-                            <p-button *ngIf="!IsMobil()"
+                            <p-button
+                                *ngIf="!IsMobil()"
                                 [text]="true"
                                 [raised]="true"
                                 size="large"
@@ -181,6 +182,10 @@
                         </button>
                         -->
                     </div>
+                    <div style="direction: flex; justify-content: flex-end">
+                        <i style="display: flex;
+    justify-content: flex-end;" class="bi bi-bug" (click)="deletecredential()"></i>
+                    </div>
                 </form>
             </div>
         </div>
@@ -189,24 +194,51 @@
 
 <p-dialog [(visible)]="visible">
     <ng-template pTemplate="headless">
-        <div class="flex flex-column px-8 py-5 gap-4" style="border-radius: 12px; background-image: radial-gradient(circle at left top, var(--primary-400), var(--primary-700))">
+        <div
+            class="flex flex-column px-8 py-5 gap-4"
+            style="
+                border-radius: 12px;
+                background-image: radial-gradient(
+                    circle at left top,
+                    var(--primary-400),
+                    var(--primary-700)
+                );
+            "
+        >
             <div class="card flex justify-content-center">
                 <p-inputOtp [(ngModel)]="codevalid">
-                    <ng-template pTemplate="input" let-token let-events="events">
-                        <input 
+                    <ng-template
+                        pTemplate="input"
+                        let-token
+                        let-events="events"
+                    >
+                        <input
                             pInputText
-                            class="custom-otp-input" 
-                            (input)="events.input($event)" 
-                            (keydown)="events.keydown($event)" 
-                            type="text" 
-                            [attr.value]="token" 
-                            [maxLength]="1" />
+                            class="custom-otp-input"
+                            (input)="events.input($event)"
+                            (keydown)="events.keydown($event)"
+                            type="text"
+                            [attr.value]="token"
+                            [maxLength]="1"
+                        />
                     </ng-template>
                 </p-inputOtp>
             </div>
             <div class="flex align-items-center gap-2">
-                <p-button label="Enviar" (click)="verifiCode()" [text]="true" styleClass="p-3 w-full text-primary-50 border-1 border-white-alpha-30 hover:bg-white-alpha-10" class="w-full"  />
-                <p-button label="Cancelar" (click)="visible=false" [text]="true"  styleClass="p-3 w-full text-primary-50 border-1 border-white-alpha-30 hover:bg-white-alpha-10" class="w-full" />
+                <p-button
+                    label="Enviar"
+                    (click)="verifiCode()"
+                    [text]="true"
+                    styleClass="p-3 w-full text-primary-50 border-1 border-white-alpha-30 hover:bg-white-alpha-10"
+                    class="w-full"
+                />
+                <p-button
+                    label="Cancelar"
+                    (click)="visible = false"
+                    [text]="true"
+                    styleClass="p-3 w-full text-primary-50 border-1 border-white-alpha-30 hover:bg-white-alpha-10"
+                    class="w-full"
+                />
             </div>
         </div>
     </ng-template>
