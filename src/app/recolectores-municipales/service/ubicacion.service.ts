@@ -224,9 +224,15 @@ export class UbicacionService {
             if (locations.value && asign.value) {
                 const parsedLocations = JSON.parse(locations.value);
                 const parsedAsign = JSON.parse(asign.value);
+                const token = this.auth.token();
 
+                // Verificamos que el datatoken sea de tipo string
+                if (!token || typeof token !== 'string') {
+                    console.error('Token inválido o no encontrado.');
+                    return;
+                }
                 const result = await this.updateRutaRecolector(
-                    this.auth.token(),
+                    token,
                     parsedAsign._id,
                     { puntos_recoleccion: parsedLocations }
                 ).toPromise();

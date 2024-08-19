@@ -1,6 +1,6 @@
 <div class="surface-section px-4 py-8 md:px-6 lg:px-8 overflow-hidden">
     <div class="flex flex-wrap">
-        <article
+        <article *ngIf="!isMobil()||(isMobil()&&!token)"
             class="w-full mt-8 xl:mt-0 xl:mb-0 xl:w-8 flex flex-column flex-order-1 xl:flex-order-0 justify-content-center align-items-center xl:align-items-start"
         >
             <span

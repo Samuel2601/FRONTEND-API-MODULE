@@ -149,7 +149,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
 
     check: any = {};
     token = this.auth.token();
-    id = this.auth.idUserToken(this.token);
+    id = this.auth.idUserToken();
 
     async ngOnInit(): Promise<void> {
        // console.log(this.id);

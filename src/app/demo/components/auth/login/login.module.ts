@@ -14,8 +14,10 @@ import { AvatarGroupModule } from 'primeng/avatargroup';
 import { ImageModule } from 'primeng/image';
 import { InputOtpModule } from 'primeng/inputotp';
 import { DialogModule } from 'primeng/dialog';
+import { ImportsModule } from 'src/app/demo/services/import';
 @NgModule({
     imports: [
+        ImportsModule,
         CommonModule,
         LoginRoutingModule,
         ButtonModule,

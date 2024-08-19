@@ -97,22 +97,31 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
                 console.error('Error al realizar la solicitud:', error);
             });
     }
-    listartEstados(){
-        this.listService.listarEstadosIncidentes(this.token).subscribe(response=>{
-          if(response.data&&response.data.length>0){
-            const aux=response.data.find(elemnent=>elemnent.orden==1);
-            this.nuevoIncidenteDenuncia.get('estado').setValue(aux._id); 
-            //console.log(this.nuevoIncidenteDenuncia.get('estado').value);
-          }
-        },error=>{
-          console.error(error);
-          if(error.error.message=='InvalidToken'){
-            this.router.navigate(["/auth/login"]);
-          }else{
-            this.messageService.add({severity: 'error', summary:  ('('+error.status+')').toString(), detail: error.error.message||'Sin conexión'});
-          }      
-        });
-      }
+    listartEstados() {
+        this.listService.listarEstadosIncidentes(this.token).subscribe(
+            (response) => {
+                if (response.data && response.data.length > 0) {
+                    const aux = response.data.find(
+                        (elemnent) => elemnent.orden == 1
+                    );
+                    this.nuevoIncidenteDenuncia.get('estado').setValue(aux._id);
+                    //console.log(this.nuevoIncidenteDenuncia.get('estado').value);
+                }
+            },
+            (error) => {
+                console.error(error);
+                if (error.error.message == 'InvalidToken') {
+                    this.router.navigate(['/auth/login']);
+                } else {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: ('(' + error.status + ')').toString(),
+                        detail: error.error.message || 'Sin conexión',
+                    });
+                }
+            }
+        );
+    }
 
     tipocat: any;
     tiposucat: any;
@@ -159,7 +168,7 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
                     this.direccion.longitud
                 ),
                 this.listarCategorias(),
-                this.listartEstados()
+                this.listartEstados(),
             ]);
         } finally {
             setTimeout(() => {
@@ -406,14 +415,21 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
     load_form: boolean = false;
     crearIncidenteDenuncia(): void {
         //console.log(this.nuevoIncidenteDenuncia.value);
+        const token = this.auth.token();
+
+        // Verificamos que el datatoken sea de tipo string
+        if (!token || typeof token !== 'string') {
+            console.error('Token inválido o no encontrado.');
+            return;
+        }
         this.nuevoIncidenteDenuncia
             .get('ciudadano')
-            ?.setValue(this.auth.idUserToken(this.token));
+            ?.setValue(this.auth.idUserToken(token));
 
         if (this.nuevoIncidenteDenuncia.valid) {
             this.nuevoIncidenteDenuncia.enable();
             this.load_form = false;
-           // console.log(this.nuevoIncidenteDenuncia.value);
+            // console.log(this.nuevoIncidenteDenuncia.value);
             this.createService
                 .registrarIncidenteDenuncia(
                     this.token,

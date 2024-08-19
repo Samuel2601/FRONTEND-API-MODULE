@@ -43,7 +43,7 @@ export class IndexPermisosComponent {
             .subscribe(
                 (response) => {
                     this.permisos = response.data;
-                  //  console.log(this.permisos);
+                    //  console.log(this.permisos);
                 },
                 (error) => {
                     //console.log(error);
@@ -72,7 +72,7 @@ export class IndexPermisosComponent {
         }
         this.selectAll = event.checked;
     }
-    onModelChange(event: any,index:any) {
+    onModelChange(event: any, index: any) {
         this.permisos[index].user = event.filter(
             (user: any, index: number, self: any[]) =>
                 index === self.findIndex((u: any) => u._id === user._id)
@@ -147,9 +147,16 @@ export class IndexPermisosComponent {
         // Guardar los cambios de la categoría
         ////console.log('Guardar cambios de la categoría:', categoria);
         // Agregar roles seleccionados al permiso
+        const token = this.auth.token();
+
+        // Verificamos que el datatoken sea de tipo string
+        if (!token || typeof token !== 'string') {
+            console.error('Token inválido o no encontrado.');
+            return;
+        }
         categoria.user = categoria.user.map((u: any) => u._id);
         this.updateServices
-            .actualizarPermisos(this.token, categoria._id, categoria)
+            .actualizarPermisos(token, categoria._id, categoria)
             .subscribe((response) => {
                 const indexToUpdate = this.permisos.findIndex(
                     (element: any) => element._id === categoria._id
@@ -167,13 +174,13 @@ export class IndexPermisosComponent {
 
     onRowEditCancel(categoria: any, rowIndex: number) {
         // Cancelar la edición de la categoría
-       // console.log('Cancelar edición de la categoría:', categoria);
+        // console.log('Cancelar edición de la categoría:', categoria);
         // Restaurar la categoría a su estado original
         this.permisos[rowIndex] = this.clonedProducts[categoria._id as string];
         delete this.clonedProducts[categoria._id as string];
         //console.log('Cancelar edición de la categoría:', categoria);
     }
     imprimir(dato: any) {
-      //  console.log(dato);
+        //  console.log(dato);
     }
 }

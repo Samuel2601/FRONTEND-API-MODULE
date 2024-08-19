@@ -111,7 +111,7 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
     visible: boolean = false;
     option: any;
     token = this.auth.token();
-    id = this.auth.idUserToken(this.token);
+    id = this.auth.idUserToken();
     loading:boolean = false;
     async ngOnInit(): Promise<void> {
         

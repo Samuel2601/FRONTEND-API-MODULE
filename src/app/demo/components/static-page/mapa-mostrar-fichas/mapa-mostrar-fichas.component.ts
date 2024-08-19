@@ -33,15 +33,6 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
     async ngOnInit() {
         await this.initMap();
-        setTimeout(async () => {
-            // console.log('FICHA QUE RECIBE:', this.ficha);
-            if (this.ficha) {
-                this.fichas_sectoriales_arr = [this.ficha];
-                await this.marcadoresmapa();
-            } else {
-                await this.listarFichaSectorialMapa();
-            }
-        }, 1000);
     }
 
     async initMap() {
@@ -63,6 +54,15 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
             );
 
             this.initFullscreenControl();
+            setTimeout(async () => {
+                // console.log('FICHA QUE RECIBE:', this.ficha);
+                if (this.ficha) {
+                    this.fichas_sectoriales_arr = [this.ficha];
+                    await this.marcadoresmapa();
+                } else {
+                    await this.listarFichaSectorialMapa();
+                }
+            }, 1000);
         });
     }
 

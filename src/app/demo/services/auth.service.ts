@@ -198,29 +198,42 @@ export class AuthService {
     }
 
     // Método para refrescar el token
-    async refreshToken() {
+    async refreshToken(): Promise<void> {
         const token = this.token();
         const id = this.idUserToken();
-        let headers = new HttpHeaders({
-            'Content-Type': 'application/json',
-            Authorization: token,
-        });
-        const params = new HttpParams().set('id', id);
 
-        // Realizar la solicitud para refrescar el token
+        // Verificamos que el token sea de tipo string
+        if (!token || typeof token !== 'string') {
+            console.error('Token inválido o no encontrado.');
+            return;
+        }
+
         try {
+            const headers = new HttpHeaders({
+                'Content-Type': 'application/json',
+                Authorization: token,
+            });
+
+            const params = new HttpParams().set('id', id);
+
+            // Realizar la solicitud para refrescar el token
             const response = await this.http
                 .put<{ token: string }>(
-                    this.url + 'refreshtoken',
-                    { id },
-                    { headers: headers, params: params }
+                    `${this.url}refreshtoken`, // Uso de template string para concatenar
+                    {}, // Si el cuerpo solo requiere el id, puede omitirse al estar en params
+                    { headers, params }
                 )
                 .toPromise();
-            // Guardar el nuevo token recibido
-            this.guardarToken(response.token);
-            return response;
+
+            if (response && response.token) {
+                // Guardar el nuevo token recibido
+                this.guardarToken(response.token);
+                console.log('Token actualizado correctamente');
+            } else {
+                console.error('La respuesta no contiene un token válido.');
+            }
         } catch (error) {
-            console.error('Error al refrescar el token', error);
+            console.error('Error al refrescar el token:', error);
             throw error;
         }
     }
@@ -278,7 +291,7 @@ export class AuthService {
         return this.http.post(this.url + 'validcode', data, { headers });
     }
 
-    token(): string | null {
+    token(): string | boolean {
         const token =
             sessionStorage.getItem('token') || localStorage.getItem('token');
         if (token) {
@@ -293,7 +306,7 @@ export class AuthService {
             // console.log('regreso a  login');
             this.redirectToLoginIfNeeded();
         }
-        return token || null;
+        return token || false;
     }
 
     calcularTiempoRestante(token: string): number {
@@ -316,20 +329,39 @@ export class AuthService {
 
     authToken(token?: string) {
         try {
+            // Si no se pasa un token, se obtiene el token predeterminado.
             const datatoken = token || this.token();
+    
+            // Verificamos que el datatoken sea de tipo string
+            if (!datatoken || typeof datatoken !== 'string') {
+                console.error('Token inválido o no encontrado.');
+                return;
+            }
+    
+            // Si el usuario está autenticado, decodificamos el token
             if (this.isAuthenticated()) {
                 const helper = new JwtHelperService();
                 return helper.decodeToken(datatoken);
             }
+    
         } catch (error) {
-            console.error(error);
+            console.error('Error al decodificar el token:', error);
             return '';
         }
     }
+    
 
     roleUserToken(token?: string) {
         try {
+            // Si no se pasa un token, se obtiene el token predeterminado.
             const datatoken = token || this.token();
+    
+            // Verificamos que el datatoken sea de tipo string
+            if (!datatoken || typeof datatoken !== 'string') {
+                console.error('Token inválido o no encontrado.');
+                return;
+            }
+
             if (this.isAuthenticated()) {
                 const helper = new JwtHelperService();
                 return helper.decodeToken(datatoken).role;
@@ -342,7 +374,14 @@ export class AuthService {
 
     idUserToken(token?: string) {
         try {
+            // Si no se pasa un token, se obtiene el token predeterminado.
             const datatoken = token || this.token();
+    
+            // Verificamos que el datatoken sea de tipo string
+            if (!datatoken || typeof datatoken !== 'string') {
+                console.error('Token inválido o no encontrado.');
+                return;
+            }
             if (this.isAuthenticated()) {
                 const helper = new JwtHelperService();
                 // console.log(helper.decodeToken(datatoken));
@@ -487,7 +526,8 @@ export class AuthService {
 
     isAuthenticated(): boolean {
         const token = this.token();
-        if (!token) {
+
+        if (!token || typeof token !== 'string') {
             this.clearSession();
             return false;
         }
@@ -514,10 +554,6 @@ export class AuthService {
         const fotoUsuario =
             localStorage.getItem('fotoUsuario') ||
             sessionStorage.getItem('fotoUsuario');
-        const correo =
-            localStorage.getItem('correo') || sessionStorage.getItem('correo');
-        const pass =
-            localStorage.getItem('pass') || sessionStorage.getItem('pass');
 
         // Limpiar todo excepto los valores preservados
         sessionStorage.clear();
@@ -526,8 +562,6 @@ export class AuthService {
         // Restaurar los valores preservados
         if (nombreUsuario) localStorage.setItem('nombreUsuario', nombreUsuario);
         if (fotoUsuario) localStorage.setItem('fotoUsuario', fotoUsuario);
-        if (correo) localStorage.setItem('correo', correo);
-        if (pass) localStorage.setItem('pass', pass);
     }
 
     public redirectToLoginIfNeeded(home: boolean = false) {

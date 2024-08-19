@@ -182,9 +182,11 @@
                         </button>
                         -->
                     </div>
-                    <div style="direction: flex; justify-content: flex-end">
+                    <p-toast />
+                    <p-confirmDialog />
+                    <div style="direction: flex; justify-content: flex-end" *ngIf="IsMobil()">
                         <i style="display: flex;
-    justify-content: flex-end;" class="bi bi-bug" (click)="deletecredential()"></i>
+    justify-content: flex-end;" class="bi bi-bug" (click)="deletecredential($event)"></i>
                     </div>
                 </form>
             </div>

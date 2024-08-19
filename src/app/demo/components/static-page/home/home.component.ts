@@ -715,7 +715,7 @@ export class HomeComponent implements OnInit {
     visible_incidente: boolean = false;
     visible_incidente_mirror: boolean = false;
     button_active: any = { cate: '', sub: '' };
-    token = this.auth.token() || undefined;
+    token = this.auth.token() || false;
 
     incidente(cate?, sub?) {
         if (this.auth.token()) {

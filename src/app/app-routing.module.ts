@@ -9,6 +9,7 @@ import { MapaFichaComponent } from './demo/components/static-page/mapa-ficha/map
 import { MapaComponent } from './demo/components/static-page/mapa/mapa.component';
 import { ViewFichasArticulosComponent } from './demo/components/static-page/view-fichas-articulos/view-fichas-articulos.component';
 import { MapaTrashComponent } from './demo/components/static-page/mapa-trash/mapa-trash.component';
+import { MostrarFichasArticulosComponent } from './demo/components/static-page/mostrar-fichas-articulos/mostrar-fichas-articulos.component';
 @NgModule({
     imports: [
         RouterModule.forRoot([
@@ -38,6 +39,8 @@ import { MapaTrashComponent } from './demo/components/static-page/mapa-trash/map
                     { path: 'crear-incidente/:cate', component: MapaComponent,canActivate: [AuthGuard]  },
                     { path: 'crear-incidente/:cate/:sub', component: MapaComponent ,canActivate: [AuthGuard] },
                     { path: 'ver-ficha/:id', component: ViewFichasArticulosComponent,canActivate: [AuthGuard] },
+                    { path: 'lista-fichas', component: MostrarFichasArticulosComponent,canActivate: [AuthGuard] },
+                    
                     { path: '', component: HomeComponent },
                     {path:'mapa-recolectores', component:MapaTrashComponent}
                 ]

@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { ImportsModule } from 'src/app/demo/services/import';
 import { ListService } from 'src/app/demo/services/list.service';
 import { ViewFichasArticulosComponent } from '../view-fichas-articulos/view-fichas-articulos.component';
+import { HelperService } from 'src/app/demo/services/helper.service';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-mostrar-fichas-articulos',
@@ -15,7 +17,7 @@ export class MostrarFichasArticulosComponent implements OnInit{
     displayDialog: boolean = false;
     selectedFichaId: any;
 
-    constructor(private listService: ListService) {}
+    constructor(private listService: ListService, private helper:HelperService,private router: Router) {}
 
     ngOnInit(): void {
         this.listarFichaSectorial();
@@ -30,9 +32,17 @@ export class MostrarFichasArticulosComponent implements OnInit{
                 }
             });
     }
+    IsMobil() {
+        return this.helper.isMobil();
+    }
 
-    mostrarFicha(fichaId: string): void {
-        this.selectedFichaId = fichaId;
-        this.displayDialog = true;
+    mostrarFicha(fichaId: any): void {
+        if(!this.IsMobil()){
+            this.selectedFichaId = fichaId;
+            this.displayDialog = true;
+        }else{
+            this.router.navigate(['/ver-ficha', fichaId._id]); 
+        }
+     
     }
 }

@@ -1292,7 +1292,7 @@ export class MapaComponent implements OnInit, OnDestroy {
         ////console.log(this.nuevoIncidenteDenuncia.value);
         this.incidencia
             .get('ciudadano')
-            ?.setValue(this.auth.idUserToken(this.token));
+            ?.setValue(this.auth.idUserToken());
 
         if (this.incidencia.valid) {
             this.createService

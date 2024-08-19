@@ -303,7 +303,7 @@ export class MapaFichaComponent implements OnInit, OnDestroy {
                 this.longitud = location.lng();
                 this.poligonoposition(false);
                 ////console.log('Latitude:', location.lat(), 'Longitude:', location.lng());
-                this.addMarker(location,'Ubicación','Tu busqueda');
+                this.addMarker(location, 'Ubicación', 'Tu busqueda');
             })
             .catch((error) => {
                 console.error('Error getting location:', error);
@@ -689,7 +689,7 @@ export class MapaFichaComponent implements OnInit, OnDestroy {
 
         // Abrir un nuevo popup con el nombre del barrio
         const infoWindow = new google.maps.InfoWindow({
-            headerDisabled:true,
+            headerDisabled: true,
             ariaLabel: tipo,
             content: message ? message : 'Marcador',
         });
@@ -901,7 +901,7 @@ export class MapaFichaComponent implements OnInit, OnDestroy {
                     // Agregar evento de clic al polígono para mostrar el popup
                     //this.levantarpopup(polygon, feature);
                     this.onlymarker(polygon, feature);
-                    
+
                     // Trasladar el mapa a la posición del polígono si ver es true
                     if (ver) {
                         const bounds = new google.maps.LatLngBounds();
@@ -966,7 +966,7 @@ export class MapaFichaComponent implements OnInit, OnDestroy {
     infoWindowActual: google.maps.InfoWindow;
     public features: { [id: string]: any } = {};
     id_feature: any;
-    onlymarker(polygon: any, feature: any){
+    onlymarker(polygon: any, feature: any) {
         if (this.infoWindowActual && !this.capaActiva) {
             this.infoWindowActual.close();
             this.infoWindowActual = null;
@@ -975,13 +975,13 @@ export class MapaFichaComponent implements OnInit, OnDestroy {
         this.features[polygon.id] = null;
         polygon.addListener('click', (event: any) => {
             this.latitud = event.latLng.lat();
-                this.longitud = event.latLng.lng();
-                this.addMarker(
-                    { lat: this.latitud, lng: this.longitud },
-                    'Poligono',
-                    feature.properties.nombre,
-                    feature
-                );
+            this.longitud = event.latLng.lng();
+            this.addMarker(
+                { lat: this.latitud, lng: this.longitud },
+                'Poligono',
+                feature.properties.nombre,
+                feature
+            );
         });
     }
     levantarpopup(polygon: any, feature: any) {
@@ -1192,13 +1192,12 @@ export class MapaFichaComponent implements OnInit, OnDestroy {
 
     // Modifica el método onSubCategoriaClick
     onSubCategoriaClick(subcategoria: any): void {
-      // Establece la subcategoría activa
-      this.activoSubcategoria = subcategoria;
-  
-      // Muestra el mapa y actualiza el formulario
-      this.visible_map = true;
-      this.fichaSectorialForm.get('estado').setValue(subcategoria);  
-      
+        // Establece la subcategoría activa
+        this.activoSubcategoria = subcategoria;
+
+        // Muestra el mapa y actualiza el formulario
+        this.visible_map = true;
+        this.fichaSectorialForm.get('estado').setValue(subcategoria);
     }
     recargarmapa() {
         setTimeout(() => {
@@ -1299,9 +1298,16 @@ export class MapaFichaComponent implements OnInit, OnDestroy {
         //console.log(this.selectedFilesnew);
 
         ////console.log(this.nuevoIncidenteDenuncia.value);
+        const token = this.auth.token();
+
+        // Verificamos que el datatoken sea de tipo string
+        if (!token || typeof token !== 'string') {
+            console.error('Token inválido o no encontrado.');
+            return;
+        }
         this.fichaSectorialForm
             .get('encargado')
-            ?.setValue(this.auth.idUserToken(this.token));
+            ?.setValue(this.auth.idUserToken(token));
         if (this.fichaSectorialForm.valid) {
             this.createService
                 .registrarActividadProyecto(
