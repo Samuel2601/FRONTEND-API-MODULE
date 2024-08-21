@@ -28,12 +28,27 @@ export class HelperService {
 
     constructor(private dialogService: DialogService, private router: Router) {}
 
-    isMobil(): boolean {
-        return Capacitor.isNativePlatform(); //window.innerWidth <= 575;
+    async isMobil(): Promise<boolean> {
+        const isNative = Capacitor.isNativePlatform();
+        
+        if (isNative) {
+            const isAndroid = await this.isAndroid();
+            if (!isAndroid) {
+                this.applySafeAreaCSS();
+            }
+        }
+        
+        return isNative;
     }
+    
     async isAndroid(): Promise<boolean> {
         const info = await Device.getInfo();
         return info.platform === 'android';
+    }
+    
+    applySafeAreaCSS(): void {
+        // Agrega una clase específica al body para aplicar los estilos de safe area en iOS
+        document.body.classList.add('safe-area-ios');
     }
     deshabilitarMapa() {
         this.deshabilitarMapaSubject.next();
