@@ -707,19 +707,32 @@ export class HomeComponent implements OnInit {
     openLink(url: string) {
         // Verificar si es un dispositivo móvil
         const isMobile = this.isMobil();
-
-        // Verificar si la URL contiene la URL base
-        const isSameAppUrl = url.includes(this.url);
-
-        if (isMobile && isSameAppUrl) {
-            // Si es móvil y la URL es interna, navegar en la misma ventana
-            const relativeUrl = url.replace(this.url, ''); // Remover la base de la URL
-            this.router.navigate(['/'+relativeUrl]);
-        } else if (!isMobile || !isSameAppUrl) {
-            // En otro caso, abrir una nueva pestaña si es necesario
-            window.open(url, '_blank');
+    
+        // Verificar si la URL es interna (contiene this.url)
+        const isSameAppUrl = url.startsWith(this.url);
+    
+        // Extraer la ruta relativa si es interna
+        let relativeUrl = url;
+        if (isSameAppUrl) {
+          relativeUrl = url.replace(this.url, ''); // Remover la base de la URL
+          //alert('Te redirijeremos a:'+'/'+relativeUrl);
+          this.router.navigate(['/'+relativeUrl]);
+          return;
         }
-    }
+    
+        // Verificar si la URL es una ruta relativa dentro de la app
+        const isRelativeUrl = relativeUrl.startsWith('/');
+    
+        if (isMobile) {
+          // Si es móvil y la URL es interna, navegar dentro de la aplicación
+          //alert('Te redirijeremos a:'+relativeUrl);
+          this.router.navigate([relativeUrl]);
+        } else {
+            //alert('Crearemos una nueva ventana: '+url);
+          // En otros casos, abrir la URL en una nueva pestaña
+          window.open(url, '_blank');
+        }
+      }
     isMobil(): boolean {
         return this.helperService.isMobil();
     }
