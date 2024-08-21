@@ -95,11 +95,13 @@ export class LoginComponent implements OnInit {
         try {
             const credentials = await NativeBiometric.getCredentials({
                 server: 'ec.gob.esmeraldas.labella',
-            }).then(() => {
-                return true;
-            }).catch((err) => {
-                return false;
-            });
+            })
+                .then(() => {
+                    return true;
+                })
+                .catch((err) => {
+                    return false;
+                });
             this.statusbiometrico = credentials;
         } catch (error) {
             console.error('Error obteniendo credenciales:', error);
@@ -156,9 +158,8 @@ export class LoginComponent implements OnInit {
 
     async callBiometrico(): Promise<void> {
         if (!this.IsMobil()) return;
-        if(!this.statusbiometrico) return;
+        if (!this.statusbiometrico) return;
         try {
-            
             // Verifica si la autenticación biométrica está disponible
             const result = await NativeBiometric.isAvailable();
             if (!result.isAvailable) {
@@ -176,6 +177,9 @@ export class LoginComponent implements OnInit {
                 title: 'Inicio de Sesión',
                 subtitle: 'Coloque su dedo en el sensor.',
                 description: 'Se requiere Touch ID o Face ID',
+                useFallback: true,
+                fallbackTitle: 'Usar Código',
+                maxAttempts: 5,
             })
                 .then(() => true)
                 .catch(() => false);
@@ -314,16 +318,16 @@ export class LoginComponent implements OnInit {
 
     async navigateAfterLogin(): Promise<void> {
         if (!this.IsMobil()) return;
-    
+
         if (this.loginForm.get('save').value) {
             const currentUsername = this.loginForm.get('correo').value;
             const currentPassword = this.loginForm.get('pass').value;
-    
+
             try {
                 // Verificar disponibilidad del biométrico
                 const result = await NativeBiometric.isAvailable();
                 if (!result.isAvailable) return;
-    
+
                 // Intentar obtener credenciales almacenadas
                 const storedCredentials = await NativeBiometric.getCredentials({
                     server: 'ec.gob.esmeraldas.labella',
@@ -331,34 +335,78 @@ export class LoginComponent implements OnInit {
                     console.error('Error al obtener las credenciales:', error);
                     return null;
                 });
-    
+
                 // Comparar las credenciales almacenadas con las actuales
-                if (storedCredentials &&
+                if (
+                    storedCredentials &&
                     storedCredentials.username === currentUsername &&
-                    storedCredentials.password === currentPassword) {
-                    console.log('Las credenciales ya están guardadas y son las mismas.');
+                    storedCredentials.password === currentPassword
+                ) {
+                    console.log(
+                        'Las credenciales ya están guardadas y son las mismas.'
+                    );
                     return;
                 }
-    
+
                 // Reintentar la verificación biométrica hasta que sea exitosa o el usuario cancele
                 let verified = false;
                 while (!verified) {
-                    const verificationResult = await NativeBiometric.verifyIdentity({
-                        reason: 'Para un fácil inicio de sesión',
-                        title: 'Inicio de Sesión',
-                        subtitle: 'Coloque su dedo en el sensor.',
-                        description: 'Se requiere Touch ID o Face ID',
-                    })
-                        .then(() => true)
-                        .catch((err) => {
-                            console.error('Error al verificar la identidad biométrica:', err);
-                            return false;
-                        });
-    
+                    const verificationResult =
+                        await NativeBiometric.verifyIdentity({
+                            reason: 'Por favor, autentícate para guardar las credenciales de tu cuenta',
+                            title: 'Inicio de Sesión',
+                            subtitle: 'Coloque su dedo en el sensor.',
+                            description: 'Se requiere Touch ID o Face ID',
+                            useFallback: true,
+                            fallbackTitle: 'Usar Código',
+                            maxAttempts: 5,
+                        })
+                            .then((state) => {
+                                console.log();
+                                return true;
+                            })
+                            .catch((err) => {
+                                console.error(
+                                    'Error al verificar la identidad biométrica:',
+                                    err
+                                );
+                                return false;
+                            });
+
                     if (verificationResult) {
-                        verified = true;
+                        // Guardar las nuevas credenciales si la verificación fue exitosa
+                        const confir = await NativeBiometric.setCredentials({
+                            username: currentUsername,
+                            password: currentPassword,
+                            server: 'ec.gob.esmeraldas.labella',
+                        })
+                            .then(() => true)
+                            .catch((err) => {
+                                console.error(
+                                    'Error al guardar las credenciales:',
+                                    err
+                                );
+                                return false;
+                            });
+
+                        if (confir) {
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Éxito',
+                                detail: 'Se guardaron las credenciales',
+                            });
+                            verified = true;
+                        } else {
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'Falló',
+                                detail: 'El biométrico falló al guardar las credenciales',
+                            });
+                        }
                     } else {
-                        const retry = confirm('La verificación biométrica falló. ¿Desea intentarlo de nuevo?');
+                        const retry = confirm(
+                            'La verificación biométrica falló. ¿Desea intentarlo de nuevo?'
+                        );
                         if (!retry) {
                             this.messageService.add({
                                 severity: 'error',
@@ -369,35 +417,11 @@ export class LoginComponent implements OnInit {
                         }
                     }
                 }
-    
-                // Guardar las nuevas credenciales si la verificación fue exitosa
-                const confir = await NativeBiometric.setCredentials({
-                    username: currentUsername,
-                    password: currentPassword,
-                    server: 'ec.gob.esmeraldas.labella',
-                })
-                    .then(() => true)
-                    .catch((err) => {
-                        console.error('Error al guardar las credenciales:', err);
-                        return false;
-                    });
-    
-                if (confir) {
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Éxito',
-                        detail: 'Se guardaron las credenciales',
-                    });
-                } else {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Falló',
-                        detail: 'El biométrico falló al guardar las credenciales',
-                    });
-                }
-    
             } catch (error) {
-                console.error('Error al verificar la disponibilidad biométrica:', error);
+                console.error(
+                    'Error al verificar la disponibilidad biométrica:',
+                    error
+                );
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Falló',
@@ -406,7 +430,6 @@ export class LoginComponent implements OnInit {
             }
         }
     }
-    
 
     async deletecredential(event: Event): Promise<void> {
         this.confirmationService.confirm({

@@ -28,17 +28,8 @@ export class HelperService {
 
     constructor(private dialogService: DialogService, private router: Router) {}
 
-    async isMobil(): Promise<boolean> {
-        const isNative = Capacitor.isNativePlatform();
-        
-        if (isNative) {
-            const isAndroid = await this.isAndroid();
-            if (!isAndroid) {
-                this.applySafeAreaCSS();
-            }
-        }
-        
-        return isNative;
+    isMobil():boolean{
+        return Capacitor.isNativePlatform(); //window.innerWidth <= 575;
     }
     
     async isAndroid(): Promise<boolean> {
