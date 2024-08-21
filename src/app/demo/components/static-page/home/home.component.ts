@@ -714,7 +714,7 @@ export class HomeComponent implements OnInit {
         if (isMobile && isSameAppUrl) {
             // Si es móvil y la URL es interna, navegar en la misma ventana
             const relativeUrl = url.replace(this.url, ''); // Remover la base de la URL
-            this.router.navigate([relativeUrl]);
+            this.router.navigate(['/'+relativeUrl]);
         } else if (!isMobile || !isSameAppUrl) {
             // En otro caso, abrir una nueva pestaña si es necesario
             window.open(url, '_blank');
