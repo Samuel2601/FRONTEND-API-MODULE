@@ -703,8 +703,20 @@ export class HomeComponent implements OnInit {
             this.filteredProductos = this.productos;
         }
     }
-    openLink(url) {
-        if (url) {
+
+    openLink(url: string) {
+        // Verificar si es un dispositivo móvil
+        const isMobile = this.isMobil();
+
+        // Verificar si la URL contiene la URL base
+        const isSameAppUrl = url.includes(this.url);
+
+        if (isMobile && isSameAppUrl) {
+            // Si es móvil y la URL es interna, navegar en la misma ventana
+            const relativeUrl = url.replace(this.url, ''); // Remover la base de la URL
+            this.router.navigate([relativeUrl]);
+        } else if (!isMobile || !isSameAppUrl) {
+            // En otro caso, abrir una nueva pestaña si es necesario
             window.open(url, '_blank');
         }
     }
@@ -739,17 +751,23 @@ export class HomeComponent implements OnInit {
                 if (this.isMobil()) {
                     //this.router.navigate(['/crear-incidente']);
                     if (this.button_active.cate && this.button_active.sub) {
-                        console.log('/crear-incidente',
-                            "CATEGORIA",this.button_active.cate,
-                            "SUBCATEGORIA",this.button_active.sub,);
+                        console.log(
+                            '/crear-incidente',
+                            'CATEGORIA',
+                            this.button_active.cate,
+                            'SUBCATEGORIA',
+                            this.button_active.sub
+                        );
                         this.router.navigate([
                             '/crear-incidente',
                             this.button_active.cate,
                             this.button_active.sub,
                         ]);
                     } else if (this.button_active.cate) {
-                        console.log('/crear-incidente',
-                            this.button_active.cate);
+                        console.log(
+                            '/crear-incidente',
+                            this.button_active.cate
+                        );
                         this.router.navigate([
                             '/crear-incidente',
                             this.button_active.cate,
