@@ -192,6 +192,9 @@ $gutter: 1rem; //for primeflex grid system
     padding-right: env(safe-area-inset-right);
     //margin-top: env(safe-area-inset-top);
 }
+.mobile-topbar {
+    height: 7rem !important;
+  }
 
 
 @import "assets/layout/styles/layout/layout.scss";
