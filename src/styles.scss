@@ -192,10 +192,12 @@ $gutter: 1rem; //for primeflex grid system
     padding-right: env(safe-area-inset-right);
     //margin-top: env(safe-area-inset-top);
 }
+/* Ajuste para dispositivos móviles no Android */
 .mobile-topbar {
-    height: 7rem !important;
-  }
-
+    height: calc(
+        7rem + env(safe-area-inset-top)
+    ); /* Ajustar altura incluyendo el espacio seguro */
+}
 
 @import "assets/layout/styles/layout/layout.scss";
 
