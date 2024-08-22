@@ -199,23 +199,6 @@ $gutter: 1rem; //for primeflex grid system
     ); /* Ajustar altura incluyendo el espacio seguro */
 }
 
-.flex-auto {
-    flex: 1 1 auto;
-}
-
-@media (max-width: 768px) {
-    .flex-auto-sm {
-        flex: 1 1 auto;
-        max-width: 50%; /* Ocupa la mitad del contenedor en pantallas pequeñas */
-    }
-}
-
-@media (max-width: 576px) {
-    .flex-auto-sm {
-        max-width: 100%; /* Ocupa todo el ancho en pantallas muy pequeñas */
-    }
-}
-
 @import "assets/layout/styles/layout/layout.scss";
 
 /* PrimeNG */

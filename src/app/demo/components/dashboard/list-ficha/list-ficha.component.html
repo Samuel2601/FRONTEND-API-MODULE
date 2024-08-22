@@ -620,6 +620,8 @@
     [circular]="true"
     [fullScreen]="true"
     [showItemNavigators]="true"
+    baseZIndex="99999"    
+    (hide)="onHide()"
 >
     <ng-template pTemplate="item" let-item>
         <div

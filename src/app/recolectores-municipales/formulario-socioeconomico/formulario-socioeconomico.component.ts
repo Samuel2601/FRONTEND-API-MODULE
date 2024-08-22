@@ -163,20 +163,16 @@ export class FormularioSocioeconomicoComponent {
                 zonaRiesgo: ['', Validators.required], //UNO: DESLAVE, DEBORDAMIENTOS DEL RÍO, INUNDACIONES, INCENDIOS, OTROS: , NO
             }),
             mediosDeVida: this.fb.group({
-                participacionCapacitacion: ['', Validators.required],
-                cuantosTrabajos: [null, Validators.required],
-                actividadLaboral: ['', Validators.required],
-                actividadEconomica: ['', Validators.required],
-                relacionDependencia: ['', Validators.required],
-                cuentaPropia: ['', Validators.required],
-                ingresosMensuales: ['', Validators.required],
-                gastosHogar: [[], Validators.required], // Utiliza FormArray para múltiples selecciones
-                otrosGastos: [''],
-                especifique: [''],
-                ahorroFormal: [''],
-                ahorroInformal: [''],
-                fuentesIngresos: [[], Validators.required], // Utiliza FormArray para múltiples selecciones
-                otrosIngresos: [''],
+                participacionCapacitacion: ['', Validators.required], //UNO: SI, NO
+                cuantosTrabajos: [null, Validators.required], //NÚMERO
+                actividadLaboral: ['', Validators.required], //UNO: A TIEMPO COMPLETO, PARCIAL, ESPORÁDICA, POR TEMPORADA, PENSIONISTA, CESANTE, NINGUNA
+                actividadEconomica: [[], Validators.required], // DIALOG PARA INGRESAR EL NOMBRE DE LA ACTIVIDAD ECONOMICA //HACER UN PEQUEÑA TABLA PARA MOSTRAR LOS INGRESADOS, AÑADIR BOTÓN PARA MODIFICAR CON EL DIALOG O BORRAR
+                relacionDependencia: ['', Validators.required], //UNO: SI FORMAL, INFORMAL, NO QUISO RESPONDER
+                cuentaPropia: ['', Validators.required], //UNO: SI CON RUC, SI CON RISE, SIN RUC, NO CON RISE, NO QUISO RESPONDER
+                ingresosMensuales: ['', Validators.required], // UNO: Menos que salario basicos, USD460 - USD500,USD500 - USD750,USD750 - USD999, USD1000+, No quiere responder
+                gastosHogar: [[], Validators.required], // ESPECIFICAR CUANTO PARA CADA UNO: Pago alquiler de vivienda %, Pago de préstamo de vivienda %, Arreglo de la vivienda %, Vestimenta %, Alimentación %, Salud %, Educación %, Serv.Básicos %, Movilidad %, Otros Gastos %, Ahorro % 
+                especifique: [''], // Ahorro Formal: NUMERO, Ahorro Informal: NUMERO
+                fuentesIngresos: [[], Validators.required], //MULTIPLE: Trabajo, Bono por discapacidad, Bono Madres Solteras, Bono de Desarrollo Humano, Bono de la Tercera Edad, Apoyo  de ONG’s, Pensiòn de Alimentos, Otros, Pension por Jubilacion
             }),
             redesDeApoyo: this.fb.group({
                 actividadesBarrio: [[], Validators.required], // Utiliza FormArray para múltiples selecciones
@@ -214,4 +210,37 @@ export class FormularioSocioeconomicoComponent {
             // Aquí puedes manejar el envío del formulario
         }
     }
+    actividadEconomicaList: any[] = [];
+    isDialogVisible: boolean = false;
+    editIndex: number | null = null;
+    actividadEconomica: any = { nombre: '' };
+  
+    // Mostrar diálogo para añadir o editar actividad económica
+  showActividadEconomicaDialog(index: number | null = null) {
+    if (index !== null) {
+      this.actividadEconomica = { ...this.actividadEconomicaList[index] }; // Copiar la actividad existente
+      this.editIndex = index;
+    } else {
+      this.actividadEconomica = { nombre: '' }; // Nueva actividad
+      this.editIndex = null;
+    }
+    this.isDialogVisible = true;
+  }
+
+  // Confirmar adición o edición de actividad económica
+  saveActividadEconomica() {
+    if (this.editIndex !== null) {
+      this.actividadEconomicaList[this.editIndex] = this.actividadEconomica;
+    } else {
+      this.actividadEconomicaList.push(this.actividadEconomica);
+    }
+    this.registrationForm.get('mediosDeVida').value.controls['actividadEconomica'].setValue(this.actividadEconomicaList);
+    this.isDialogVisible = false;
+  }
+
+  // Eliminar actividad económica
+  removeActividadEconomica(index: number) {
+    this.actividadEconomicaList.splice(index, 1);
+    this.registrationForm.get('mediosDeVida').value.controls['actividadEconomica'].setValue(this.actividadEconomicaList);
+  }
 }

@@ -347,9 +347,7 @@
                                 pSortableColumn="ciudadano.name"
                                 style="width: 20%"
                             >
-                                <p-sortIcon
-                                    field="ciudadano.name"
-                                ></p-sortIcon>
+                                <p-sortIcon field="ciudadano.name"></p-sortIcon>
                             </th>
                         </div>
                     </th>
@@ -404,7 +402,10 @@
                     <th style="min-width: 10rem">
                         <div class="flex align-items-center">Foto</div>
                     </th>
-                    <th style="min-width: 10rem" *ngIf="!isMobil()&&!check.TotalFilter" >
+                    <th
+                        style="min-width: 10rem"
+                        *ngIf="!isMobil() && !check.TotalFilter"
+                    >
                         <div class="flex align-items-center">
                             Encargado
                             <p-columnFilter
@@ -416,9 +417,7 @@
                                 pSortableColumn="encargado.name"
                                 style="width: 20%"
                             >
-                                <p-sortIcon
-                                    field="encargado.name"
-                                ></p-sortIcon>
+                                <p-sortIcon field="encargado.name"></p-sortIcon>
                             </th>
                         </div>
                     </th>
@@ -450,7 +449,13 @@
                         {{ rowIndex + 1 }}
                     </td>
                     <td>
-                        {{ incidente.direccion_geo.nombre }} <ng-container *ngIf="check.ViewIncidente&&incidente.view==false">(Borrado)</ng-container>
+                        {{ incidente.direccion_geo.nombre }}
+                        <ng-container
+                            *ngIf="
+                                check.ViewIncidente && incidente.view == false
+                            "
+                            >(Borrado)</ng-container
+                        >
                     </td>
                     <td *ngIf="incidente.categoria">
                         {{ incidente.categoria.nombre }}
@@ -498,7 +503,7 @@
                             "
                         />
                     </td>
-                    <td *ngIf="!isMobil()&&!check.TotalFilter">
+                    <td *ngIf="!isMobil() && !check.TotalFilter">
                         <ng-container *ngIf="incidente.encargado">{{
                             incidente.encargado.name
                         }}</ng-container>
@@ -553,6 +558,8 @@
     [circular]="true"
     [fullScreen]="true"
     [showItemNavigators]="true"
+    baseZIndex="99999"
+    (visibleChange)="onHide()"
 >
     <ng-template pTemplate="item" let-item>
         <img
@@ -575,7 +582,7 @@
     header="Detalles de la Incidencia"
     [(visible)]="visible"
     [modal]="false"
-    [style]="{ width: isMobil() ? '100%' : '40vw' }"
+    [style]="{ width: isMobil() ? '100%' : '40vw' }"    
 >
     <div class="modal-body" *ngIf="option">
         <p *ngIf="option.categoria">
@@ -592,7 +599,8 @@
         </p>
         <p>
             <strong>Estado:</strong>
-            <p-tag *ngIf="option.estado"
+            <p-tag
+                *ngIf="option.estado"
                 [value]="option.estado.nombre"
                 [severity]="getSeverity(option.estado.nombre, option.createdAt)"
             ></p-tag>
@@ -648,7 +656,8 @@
                 <p-button
                     class="m-3"
                     *ngIf="
-                        ((option.estado&&option.estado.orden != 2 &&
+                        ((option.estado &&
+                            option.estado.orden != 2 &&
                             check.EditIncidentesDenunciaComponent) ||
                             check.ContestarIncidente) &&
                         option._id == id
@@ -660,7 +669,8 @@
                 <p-button
                     class="m-3"
                     *ngIf="
-                    option.estado&&option.estado.orden != 2 &&
+                        option.estado &&
+                        option.estado.orden != 2 &&
                         check.EditIncidentesDenunciaComponent
                     "
                     [label]="'Responder'"
@@ -670,7 +680,7 @@
                 <p-button
                     class="m-3"
                     *ngIf="
-                    option.estado&&option.estado.orden == 1 ||
+                        (option.estado && option.estado.orden == 1) ||
                         check.BorrarIncidente == true
                     "
                     label="Borrar"

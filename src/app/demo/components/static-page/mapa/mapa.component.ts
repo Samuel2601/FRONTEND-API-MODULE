@@ -1342,6 +1342,9 @@ export class MapaComponent implements OnInit, OnDestroy {
             this.helperService.cerrarspinner('sinardap');
         }
     }
+    onHide() {
+        this.displayCustom = false;
+    }
     upload: boolean = true;
     imagenesSeleccionadas: any[] = [];
     load_carrusel = false;

@@ -412,6 +412,10 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
             this.load_carrusel = true;
         }, 500);
     }
+    onHide() {
+        this.displayCustom = false;
+    }
+
     load_form: boolean = false;
     crearIncidenteDenuncia(): void {
         //console.log(this.nuevoIncidenteDenuncia.value);

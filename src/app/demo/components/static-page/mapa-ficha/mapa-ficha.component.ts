@@ -1289,6 +1289,9 @@ export class MapaFichaComponent implements OnInit, OnDestroy {
             this.procederSinCargar();
         }, 1000);
     }
+    onHide() {
+        this.displayCustom = false;
+    }
 
     procederSinCargar() {
         this.helperService.llamarspinner('init sin carga');

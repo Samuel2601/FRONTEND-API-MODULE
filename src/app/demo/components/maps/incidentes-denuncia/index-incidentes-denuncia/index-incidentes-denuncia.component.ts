@@ -141,6 +141,9 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
     isMobil() {
         return this.helperservice.isMobil();
     }
+    onHide() {
+        this.displayBasic = false;
+    }
 
     checkstatus = ['danger', 'warning', 'danger', 'success'];
 

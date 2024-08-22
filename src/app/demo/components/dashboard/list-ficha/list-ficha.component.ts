@@ -127,6 +127,9 @@ export class ListFichaComponent implements OnInit {
     trackByFn(index, item) {
         return item.id; // Cambia 'id' por la propiedad única de tu objeto
     }
+    onHide() {
+        this.displayBasic = false;
+    }
     calcularTotalesYPorcentajes(fichas: any[], totalFichas: number) {
         const totales = fichas.reduce(
             (acc, elemento) => {

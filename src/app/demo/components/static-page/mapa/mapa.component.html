@@ -490,6 +490,8 @@
                     [fullScreen]="true"
                     [showItemNavigators]="true"
                     [showThumbnails]="false"
+                    baseZIndex="99999"    
+                    (hide)="onHide()"
                 >
                     <ng-template pTemplate="item" let-item>
                         <img

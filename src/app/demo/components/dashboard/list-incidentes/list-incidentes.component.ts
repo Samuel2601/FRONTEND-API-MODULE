@@ -652,6 +652,9 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
     getEntries(obj: any): any[] {
         return Object.entries(obj || {});
     }
+    onHide() {
+        this.displayBasic = false;
+    }
 
     getTotales(totales: any) {
         let totalRegistros = 0;

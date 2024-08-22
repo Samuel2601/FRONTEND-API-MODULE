@@ -240,6 +240,9 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
             this.helperservice.cerrarspinner('listar ficha sectorial');
         }
     }
+    onHide() {
+        this.displayBasic = false;
+    }
 
     llamarmodal2() {
         this.ref = this.dialogService.open(IndexActividadProyectoComponent, {

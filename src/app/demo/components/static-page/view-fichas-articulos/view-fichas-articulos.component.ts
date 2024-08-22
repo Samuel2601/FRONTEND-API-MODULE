@@ -48,6 +48,9 @@ export class ViewFichasArticulosComponent implements OnInit {
         private router: Router
     ) {}
     fichas_sectoriales_arr: any[] = [];
+    onHide() {
+        this.displayFoto = false;
+    }
     listarFichaSectorial(): void {
         this.listService
             .listarFichaSectorialArticulos()

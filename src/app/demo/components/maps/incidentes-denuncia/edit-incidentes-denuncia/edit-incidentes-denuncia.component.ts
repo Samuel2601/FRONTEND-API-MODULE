@@ -71,6 +71,9 @@ export class EditIncidentesDenunciaComponent implements OnInit {
             view: true,
         });
     }
+    onHide() {
+        this.displayCustom = false;
+    }
     responsiveimage(): string {
         return (window.innerWidth - 50).toString();
     }
