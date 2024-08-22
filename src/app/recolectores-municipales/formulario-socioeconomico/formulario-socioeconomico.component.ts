@@ -51,6 +51,76 @@ export class FormularioSocioeconomicoComponent {
         { label: 'Río o Canal', value: 'rio_canal' },
         { label: 'No Tiene', value: 'no_tiene' },
     ];
+
+    estructuraViviendaOptions = [
+        'Hormigón',
+        'Cartón',
+        'Mixta',
+        'Madera',
+        'Plástico',
+        'Caña',
+        'Plywood',
+        'Zinc',
+    ];
+    serviciosBasicosOptions = [
+        'Agua',
+        'Teléfono/Convencional',
+        'Celular',
+        'Luz',
+        'Alcantarillado',
+        'Recolección de Basura',
+        'Otros',
+    ];
+    tenenciaViviendaOptions = [
+        'Propia',
+        'Alquilada',
+        'Prestada',
+        'Donada',
+        'Invadida',
+        'Abandonada',
+        'Otro',
+    ];
+    documentosPropiedadOptions = [
+        'Contrato de Compra-Venta',
+        'Derecho de Posesión',
+        'Escritura',
+        'Ninguna',
+    ];
+    tipoAlumbradoOptions = ['Electricidad', 'Lámparas', 'Otros'];
+    abastecimientoAguaOptions = [
+        'Agua Potable',
+        'Cisterna',
+        'Pozo',
+        'Río',
+        'Tanquero',
+        'Embotellada',
+        'Otros',
+    ];
+    bienesServiciosElectrodomesticosOptions = [
+        'Internet',
+        'Lavadora',
+        'Cocina de Gas',
+        'Cocina Eléctrica',
+        'Cocina de Inducción',
+        'TV',
+        'TV Cable',
+        'Laptop',
+        'Refrigeradora',
+        'Computadora',
+        'Plancha Eléctrica',
+        'Microondas',
+        'No Quiso Responder',
+        'Otros',
+    ];
+    zonaRiesgoOptions = [
+        'Deslave',
+        'Desbordamientos del Río',
+        'Inundaciones',
+        'Incendios',
+        'Otros',
+        'No',
+    ];
+
     newCausa: string = '';
     constructor(private fb: FormBuilder) {
         this.registrationForm = this.fb.group({
@@ -82,16 +152,15 @@ export class FormularioSocioeconomicoComponent {
             }),
             vivienda: this.fb.group({
                 estructuraVivienda: ['', Validators.required], // UNO: HORMIGÓN, CARTÓN, MIXTA, MADERA, PLÁSTICO, CAÑA, PLYWOOD, ZINC
-                serviciosBasicos: [[], Validators.required], // Utiliza FormArray para múltiples selecciones
-                tipoPerdida: ['', Validators.required],
-                tenenciaVivienda: ['', Validators.required],
-                documentosPropiedad: [[], Validators.required], // Utiliza FormArray para múltiples selecciones
+                serviciosBasicos: [[], Validators.required], // MULTIPLE: AUGA, TELÉFONO/CONVENCIONAL, CELULAR, LUZ, ALCANTARILLADO, RECOLECCIÓN DE LA BASURA, OTROS
+                tenenciaVivienda: ['', Validators.required], // UNO: PROPIA, ALQUILADA, PRESTADA, DONADA, INVADIDA, ABANDONADA, OTRO:
+                documentosPropiedad: [[], Validators.required], // UNO: CONTRATO DE COMPRA-VENTA, DERECHO DE POSISÓN, ESCRITURA, NINGUNA
                 numPisos: ['', Validators.required],
                 numHabitaciones: ['', Validators.required],
-                tipoAlumbrado: ['', Validators.required],
-                abastecimientoAgua: [[], Validators.required], // Utiliza FormArray para múltiples selecciones
-                bienesServiciosElectrodomesticos: [[], Validators.required], // Utiliza FormArray para múltiples selecciones
-                zonaRiesgo: ['', Validators.required],
+                tipoAlumbrado: ['', Validators.required], // UNO: ELECTRICIDAD, LAMPARAS, OTROS:
+                abastecimientoAgua: [[], Validators.required], // MULTIPLE: AGUA POTABLE, CISTERNA, POZO, RIO, TANQUERO, EMBOTELLADA, OTROS:
+                bienesServiciosElectrodomesticos: [[], Validators.required], //MULTIPLE: INTERNET, LAVADORA, COCINA DE GAS, COCINEA, COCINA DE INDUCCIÓN, TV, TV CABLE, LAPTOP, REFRIGERADORA, COMPUTADORA, PLANCHA EÉCTRICA, MICROONDAS, NO QUISO RESPONDER, OTROS:
+                zonaRiesgo: ['', Validators.required], //UNO: DESLAVE, DEBORDAMIENTOS DEL RÍO, INUNDACIONES, INCENDIOS, OTROS: , NO
             }),
             mediosDeVida: this.fb.group({
                 participacionCapacitacion: ['', Validators.required],
@@ -121,16 +190,23 @@ export class FormularioSocioeconomicoComponent {
         });
     }
     customCausaControl = new FormControl(''); // Control para la nueva causa
+    displayoption:number=3;
     addCausa() {
         const nuevaCausa = this.customCausaControl.value.trim();
-        if (nuevaCausa && !this.causasSaludOptions.some(option => option.label === nuevaCausa)) {
-          const causesControl = this.registrationForm.get('salud.causasSalud').value;
-          if (!causesControl.includes(nuevaCausa)) {
-            causesControl.push(nuevaCausa);
-          }
-          this.customCausaControl.setValue(''); // Limpiar campo de texto
+        if (
+            nuevaCausa &&
+            !this.causasSaludOptions.some(
+                (option) => option.label === nuevaCausa
+            )
+        ) {
+            const causesControl =
+                this.registrationForm.get('salud.causasSalud').value;
+            if (!causesControl.includes(nuevaCausa)) {
+                causesControl.push(nuevaCausa);
+            }
+            this.customCausaControl.setValue(''); // Limpiar campo de texto
         }
-      }
+    }
 
     onSubmit() {
         console.log(this.registrationForm.value);

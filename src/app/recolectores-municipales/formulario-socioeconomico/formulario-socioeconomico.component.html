@@ -8,6 +8,19 @@
             src="https://primefaces.org/cdn/primeng/images/card-ng.jpg"
         />
     </ng-template>
+    <input
+        type="text"
+        pInputText
+        [(ngModel)]="displayoption"
+        class="w-full mb-3"
+    />
+    <p-slider
+        [(ngModel)]="displayoption"
+        min="0"
+        max="10"
+        styleClass="w-14rem"
+    ></p-slider>
+
     <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
         <!-- Información de Registro -->
         <p-card header="Información de Registro">
@@ -62,11 +75,7 @@
                 </div>
                 <div class="flex-auto">
                     <label for="edad">Edad</label>
-                    <p-inputNumber
-                        formControlName="edad"
-                        placeholder="Edad"
-                        [required]="true"
-                    >
+                    <p-inputNumber formControlName="edad" [required]="true">
                     </p-inputNumber>
                 </div>
                 <div class="flex-auto">
@@ -129,7 +138,6 @@
                         type="text"
                         pInputText
                         formControlName="manzana"
-                        placeholder="Manzana"
                         [required]="true"
                     />
                 </div>
@@ -202,7 +210,14 @@
                             [formControl]="customCausaControl"
                             (keyup.enter)="addCausa()"
                         />
-                        <button type="button" pButton icon="pi pi-plus" label="Agregar Causa" class="p-button-success" (click)="addCausa()"></button>
+                        <button
+                            type="button"
+                            pButton
+                            icon="pi pi-plus"
+                            label="Agregar Causa"
+                            class="p-button-success"
+                            (click)="addCausa()"
+                        ></button>
                     </p-inputGroup>
                 </div>
                 <div class="flex-auto">
@@ -214,6 +229,290 @@
                         [required]="true"
                     >
                     </p-dropdown>
+                </div>
+            </div>
+        </p-card>
+        <!-- Vivienda -->
+        <p-card header="Información de Vivienda">
+            <div class="flex flex-wrap gap-3 p-fluid" formGroupName="vivienda">
+                <!-- Estructura de Vivienda (RadioButtons o Dropdown) -->
+                <div class="flex-auto">
+                    <label>Estructura de Vivienda</label>
+                    <div
+                        *ngIf="
+                            estructuraViviendaOptions.length <= displayoption;
+                            else dropdownEstructuraVivienda
+                        "
+                    >
+                        <div class="flex flex-wrap gap-3 mt-3 mb-2">
+                            <div
+                                *ngFor="let option of estructuraViviendaOptions"
+                                class="flex align-items-center"
+                            >
+                                <p-radioButton
+                                    formControlName="estructuraVivienda"
+                                    [value]="option"
+                                    inputId="{{ option }}"
+                                ></p-radioButton>
+                                <label for="{{ option }}">{{ option }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <ng-template #dropdownEstructuraVivienda>
+                        <p-dropdown
+                            formControlName="estructuraVivienda"
+                            [options]="estructuraViviendaOptions"
+                            placeholder="Seleccione"
+                        ></p-dropdown>
+                    </ng-template>
+                </div>
+
+                <!-- Servicios Básicos (Checkboxes o MultiSelect) -->
+                <div class="flex-auto">
+                    <label>Servicios Básicos</label>
+                    <div
+                        *ngIf="
+                            serviciosBasicosOptions.length <= displayoption;
+                            else multiSelectServiciosBasicos
+                        "
+                    >
+                        <div class="flex flex-wrap gap-3 mt-3 mb-2">
+                            <div
+                                *ngFor="let option of serviciosBasicosOptions"
+                                class="flex align-items-center"
+                            >
+                                <p-checkbox
+                                    formControlName="serviciosBasicos"
+                                    [value]="option"
+                                    inputId="{{ option }}"
+                                ></p-checkbox>
+                                <label for="{{ option }}">{{ option }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <ng-template #multiSelectServiciosBasicos>
+                        <p-multiSelect
+                            formControlName="serviciosBasicos"
+                            [options]="serviciosBasicosOptions"
+                            placeholder="Seleccione"
+                        ></p-multiSelect>
+                    </ng-template>
+                </div>
+
+                <!-- Tenencia de Vivienda (RadioButtons o Dropdown) -->
+                <div class="flex-auto">
+                    <label>Tenencia de Vivienda</label>
+                    <div
+                        *ngIf="
+                            tenenciaViviendaOptions.length <= displayoption;
+                            else dropdownTenenciaVivienda
+                        "
+                    >
+                        <div class="flex flex-wrap gap-3 mt-3 mb-2">
+                            <div
+                                *ngFor="let option of tenenciaViviendaOptions"
+                                class="flex align-items-center"
+                            >
+                                <p-radioButton
+                                    formControlName="tenenciaVivienda"
+                                    [value]="option"
+                                    inputId="{{ option }}"
+                                ></p-radioButton>
+                                <label for="{{ option }}">{{ option }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <ng-template #dropdownTenenciaVivienda>
+                        <p-dropdown
+                            formControlName="tenenciaVivienda"
+                            [options]="tenenciaViviendaOptions"
+                            placeholder="Seleccione"
+                        ></p-dropdown>
+                    </ng-template>
+                </div>
+
+                <!-- Documentos de Propiedad (Checkboxes o MultiSelect) -->
+                <div class="flex-auto">
+                    <label>Documentos de Propiedad</label>
+                    <div
+                        *ngIf="
+                            documentosPropiedadOptions.length <= displayoption;
+                            else dropdownDocumentosPropiedad
+                        "
+                    >
+                        <div class="flex flex-wrap gap-3 mt-3 mb-2">
+                            <div
+                                *ngFor="
+                                    let option of documentosPropiedadOptions
+                                "
+                                class="flex align-items-center"
+                            >
+                                <p-radioButton
+                                    formControlName="documentosPropiedad"
+                                    [value]="option"
+                                    inputId="{{ option }}"
+                                ></p-radioButton>
+                                <label for="{{ option }}">{{ option }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <ng-template #dropdownDocumentosPropiedad>
+                        <p-dropdown
+                            formControlName="documentosPropiedad"
+                            [options]="documentosPropiedadOptions"
+                            placeholder="Seleccione"
+                        ></p-dropdown>
+                    </ng-template>
+                </div>
+
+                <!-- Tipo de Alumbrado (RadioButtons o Dropdown) -->
+                <div class="flex-auto">
+                    <label>Tipo de Alumbrado</label>
+                    <div
+                        *ngIf="
+                            tipoAlumbradoOptions.length <= displayoption;
+                            else dropdownTipoAlumbrado
+                        "
+                    >
+                        <div class="flex flex-wrap gap-3 mt-3 mb-2">
+                            <div
+                                *ngFor="let option of tipoAlumbradoOptions"
+                                class="flex align-items-center"
+                            >
+                                <p-radioButton
+                                    formControlName="tipoAlumbrado"
+                                    [value]="option"
+                                    inputId="{{ option }}"
+                                ></p-radioButton>
+                                <label for="{{ option }}">{{ option }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <ng-template #dropdownTipoAlumbrado>
+                        <p-dropdown
+                            formControlName="tipoAlumbrado"
+                            [options]="tipoAlumbradoOptions"
+                            placeholder="Seleccione"
+                        ></p-dropdown>
+                    </ng-template>
+                </div>
+
+                <!-- Abastecimiento de Agua (Checkboxes o MultiSelect) -->
+                <div class="flex-auto">
+                    <label>Abastecimiento de Agua</label>
+                    <div
+                        *ngIf="
+                            abastecimientoAguaOptions.length <= displayoption;
+                            else multiSelectAbastecimientoAgua
+                        "
+                    >
+                        <div class="flex flex-wrap gap-3 mt-3 mb-2">
+                            <div
+                                *ngFor="let option of abastecimientoAguaOptions"
+                                class="flex align-items-center"
+                            >
+                                <p-checkbox
+                                    formControlName="abastecimientoAgua"
+                                    [value]="option"
+                                    inputId="{{ option }}"
+                                ></p-checkbox>
+                                <label for="{{ option }}">{{ option }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <ng-template #multiSelectAbastecimientoAgua>
+                        <p-multiSelect
+                            formControlName="abastecimientoAgua"
+                            [options]="abastecimientoAguaOptions"
+                            placeholder="Seleccione"
+                        ></p-multiSelect>
+                    </ng-template>
+                </div>
+                <div class="row">
+                    <!-- Número de Pisos (Input) -->
+                    <div class="flex-auto">
+                        <label for="numPisos">Número de Pisos</label>
+                        <p-inputNumber
+                            formControlName="numPisos"
+                            placeholder="Número de Pisos"
+                        ></p-inputNumber>
+                    </div>
+
+                    <!-- Número de Habitaciones (Input) -->
+                    <div class="flex-auto">
+                        <label for="numPisos">Número de Habitaciones</label>
+                        <p-inputNumber
+                            formControlName="numHabitaciones"
+                            placeholder="Número de Habitaciones"
+                        ></p-inputNumber>
+                    </div>
+                </div>
+
+                <!-- Bienes y Servicios Electrodomésticos (Checkboxes o MultiSelect) -->
+                <div class="flex-auto">
+                    <label>Bienes y Servicios Electrodomésticos</label>
+                    <div
+                        *ngIf="
+                            bienesServiciosElectrodomesticosOptions.length <=
+                                displayoption;
+                            else multiSelectBienesServiciosElectrodomesticos
+                        "
+                    >
+                        <div class="flex flex-wrap gap-3 mt-3 mb-2">
+                            <div
+                                *ngFor="
+                                    let option of bienesServiciosElectrodomesticosOptions
+                                "
+                                class="flex align-items-center"
+                            >
+                                <p-checkbox
+                                    formControlName="bienesServiciosElectrodomesticos"
+                                    [value]="option"
+                                    inputId="{{ option }}"
+                                ></p-checkbox>
+                                <label for="{{ option }}">{{ option }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <ng-template #multiSelectBienesServiciosElectrodomesticos>
+                        <p-multiSelect
+                            formControlName="bienesServiciosElectrodomesticos"
+                            [options]="bienesServiciosElectrodomesticosOptions"
+                            placeholder="Seleccione"
+                        ></p-multiSelect>
+                    </ng-template>
+                </div>
+
+                <!-- Zona de Riesgo (RadioButtons o Dropdown) -->
+                <div class="flex-auto">
+                    <label>Zona de Riesgo</label>
+                    <div
+                        *ngIf="
+                            zonaRiesgoOptions.length <= displayoption;
+                            else dropdownZonaRiesgo
+                        "
+                    >
+                        <div class="flex flex-wrap gap-3 mt-3 mb-2">
+                            <div
+                                *ngFor="let option of zonaRiesgoOptions"
+                                class="flex align-items-center"
+                            >
+                                <p-radioButton
+                                    formControlName="zonaRiesgo"
+                                    [value]="option"
+                                    inputId="{{ option }}"
+                                ></p-radioButton>
+                                <label for="{{ option }}">{{ option }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <ng-template #dropdownZonaRiesgo>
+                        <p-dropdown
+                            formControlName="zonaRiesgo"
+                            [options]="zonaRiesgoOptions"
+                            placeholder="Seleccione"
+                        ></p-dropdown>
+                    </ng-template>
                 </div>
             </div>
         </p-card>
