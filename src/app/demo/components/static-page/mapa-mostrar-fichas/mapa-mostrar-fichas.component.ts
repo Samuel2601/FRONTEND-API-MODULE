@@ -91,10 +91,18 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
                 map: this.mapCustom,
                 title: item.direccion_geo.nombre,
                 icon: {
-                    url: item.icono_marcador?item.icono_marcador:'https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png', // URL de la imagen del icono del marcador
-                    scaledSize: item.icono_marcador||item.icono_marcador!='https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png'?new google.maps.Size(120, 120):new google.maps.Size(50, 50), // Tamaño personalizado del icono
+                    url: item.icono_marcador
+                        ? item.icono_marcador
+                        : 'https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png', // URL de la imagen del icono del marcador
+                    scaledSize: new Date(item.fecha_evento).getTime() < new Date().getTime()
+                        ? new google.maps.Size(50, 50) // Si la fecha del evento ya pasó, el tamaño será 30
+                        : (item.icono_marcador &&
+                           item.icono_marcador != 'https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png'
+                            ? new google.maps.Size(120, 120) // Si tiene un icono personalizado, tamaño 120
+                            : new google.maps.Size(50, 50)), // Icono por defecto, tamaño 50
                 },
             });
+            
 
             // Añadir la posición del marcador a los límites
             bounds.extend(position);
