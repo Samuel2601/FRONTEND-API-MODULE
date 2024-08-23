@@ -97,7 +97,8 @@
                     <div
                         class="field p-fluid"
                         *ngIf="
-                            incidencia.get('ciudadano').value?._id != id_user ||this.check.EditIncidentesDenunciaComponent
+                            incidencia.get('ciudadano').value?._id != id_user ||
+                            this.check.EditIncidentesDenunciaComponent
                         "
                     >
                         <label htmlFor="respuesta">Respuesta</label>
@@ -129,7 +130,11 @@
                     >
                         <ng-template pTemplate="item" let-item>
                             <img
-                                [src]="url + 'obtener_imagen/incidentes_denuncia/' + item"
+                                [src]="
+                                    url +
+                                    'obtener_imagen/incidentes_denuncia/' +
+                                    item
+                                "
                                 style="width: 100%; display: block"
                             />
                         </ng-template>
@@ -139,7 +144,9 @@
                             >
                                 <img
                                     [src]="
-                                        url + 'obtener_imagen/incidentes_denuncia/' + item
+                                        url +
+                                        'obtener_imagen/incidentes_denuncia/' +
+                                        item
                                     "
                                     style="display: block"
                                     style="width: 30%"
@@ -151,8 +158,9 @@
                 <div
                     class="w-full lg:w-6 p-4 lg:p-7"
                     *ngIf="
-                       ( incidencia.get('ciudadano').value?._id != id_user ||this.check.EditIncidentesDenunciaComponent 
-                        )&&load_imagen
+                        (incidencia.get('ciudadano').value?._id != id_user ||
+                            this.check.EditIncidentesDenunciaComponent) &&
+                        load_imagen
                     "
                 >
                     <label htmlFor="respuesta">Imagenes de Respuesta</label>
@@ -221,28 +229,43 @@
                             "
                             icon="pi pi-trash"
                         ></p-button>
-
-                        <p-galleria
-                            [value]="imagenesSeleccionadas"
+                        <p-dialog
+                            appendTo="body"
                             [(visible)]="displayCustom"
-                            [(activeIndex)]="activeIndex"
-                            [responsiveOptions]="responsiveOptions"
-                            [containerStyle]="{ 'max-width': '850px' }"
-                            [numVisible]="7"
-                            [circular]="true"
-                            [fullScreen]="true"
-                            [showItemNavigators]="true"
-                            [showThumbnails]="false"
-                            baseZIndex="99999"    
-                            (hide)="onHide()"
+                            [modal]="true"
+                            [responsive]="true"
+                            [baseZIndex]="99999"
+                            [dismissableMask]="true"
+                            [style]="{
+                                'max-width': isMobil() ? '100%' : '80%',
+                                'max-height': isMobil() ? '80vh' : '50vh'
+                            }"
                         >
-                            <ng-template pTemplate="item" let-item>
-                                <img
-                                    [src]="item.itemImageSrc"
-                                    style="width: 80%; display: block"
-                                />
+                            <ng-template pTemplate="headless">
+                                <p-galleria
+                                    [value]="imagenesSeleccionadas"
+                                    [(visible)]="displayCustom"
+                                    [responsiveOptions]="responsiveOptions"
+                                    [containerStyle]="{ 'max-width': '100%' }"
+                                    [numVisible]="9"
+                                    [circular]="true"
+                                    [fullScreen]="false"
+                                    [showItemNavigators]="true"
+                                    baseZIndex="99999"
+                                >
+                                    <ng-template pTemplate="item" let-item>
+                                        <img
+                                            [src]="item.itemImageSrc"
+                                            style="
+                                                width: 100%;
+                                                display: block;
+                                                max-height: 60vh;
+                                            "
+                                        />
+                                    </ng-template>
+                                </p-galleria>
                             </ng-template>
-                        </p-galleria>
+                        </p-dialog>
                     </div>
                 </div>
             </div>

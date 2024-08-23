@@ -549,40 +549,52 @@
         </p-table>
     </div>
 </div>
-<p-galleria
-    [value]="imagenModal"
+<p-dialog
     [(visible)]="displayBasic"
-    [responsiveOptions]="responsiveOptions"
-    [containerStyle]="{ 'max-width': '50%' }"
-    [numVisible]="9"
-    [circular]="true"
-    [fullScreen]="true"
-    [showItemNavigators]="true"
-    baseZIndex="99999"
-    (visibleChange)="onHide()"
+    [modal]="true"
+    [responsive]="true"
+    [baseZIndex]="99999"
+    [dismissableMask]="true"
+    [style]="{ 'max-width': isMobil()?'100%':'80%', 'max-height':isMobil()?'80vh':'50vh'}"
 >
-    <ng-template pTemplate="item" let-item>
-        <img
-            [src]="url + 'obtener_imagen/incidentes_denuncia/' + item"
-            style="width: 100%; display: block"
-        />
+    <ng-template pTemplate="headless">
+        <p-galleria
+            [value]="imagenModal"
+            [(visible)]="displayBasic"
+            [responsiveOptions]="responsiveOptions"
+            [containerStyle]="{ 'max-width': '100%' }"
+            [numVisible]="9"
+            [circular]="true"
+            [fullScreen]="false"
+            [showItemNavigators]="true"
+            baseZIndex="99999"
+        >
+            <ng-template pTemplate="item" let-item>
+                <img
+                    [src]="url + 'obtener_imagen/incidentes_denuncia/' + item"
+                    style="width: 100%; display: block; max-height: 60vh;"
+                />
+            </ng-template>
+            <ng-template pTemplate="thumbnail" let-item>
+                <div class="grid grid-nogutter justify-content-center">
+                    <img
+                        [src]="
+                            url + 'obtener_imagen/incidentes_denuncia/' + item
+                        "
+                        style="display: block"
+                        style="width: 30%; max-height: 20vh"
+                    />
+                </div>
+            </ng-template>
+        </p-galleria>
     </ng-template>
-    <ng-template pTemplate="thumbnail" let-item>
-        <div class="grid grid-nogutter justify-content-center">
-            <img
-                [src]="url + 'obtener_imagen/incidentes_denuncia/' + item"
-                style="display: block"
-                style="width: 30%"
-            />
-        </div>
-    </ng-template>
-</p-galleria>
+</p-dialog>
 
 <p-dialog
     header="Detalles de la Incidencia"
     [(visible)]="visible"
     [modal]="false"
-    [style]="{ width: isMobil() ? '100%' : '40vw' }"    
+    [style]="{ width: isMobil() ? '100%' : '40vw' }"
 >
     <div class="modal-body" *ngIf="option">
         <p *ngIf="option.categoria">

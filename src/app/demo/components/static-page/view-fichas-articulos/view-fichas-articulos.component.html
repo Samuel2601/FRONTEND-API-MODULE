@@ -1,34 +1,48 @@
-<p-galleria
+<p-dialog
     *ngIf="ficha && ficha.foto.length > 0"
-    [value]="ficha.foto"
+    appendTo="body"
     [(visible)]="displayFoto"
-    [responsiveOptions]="responsiveOptions"
-    [containerStyle]="{ 'max-width': isMobile() ? '90vw' : '40vw' }"
-    [numVisible]="9"
-    [circular]="true"
-    [fullScreen]="true"
-    [showItemNavigators]="true"
-    baseZIndex="99999"    
-    (hide)="onHide()"
+    [modal]="true"
+    [responsive]="true"
+    [baseZIndex]="99999"
+    [dismissableMask]="true"
+    [style]="{
+        'max-width': isMobile() ? '100%' : '80%',
+        'max-height': isMobile() ? '80vh' : '50vh'
+    }"
 >
-    <ng-template pTemplate="item" let-item>
-        <img
-            [src]="url + 'obtener_imagen/ficha_sectorial/' + item"
-            style="width: 100%; display: block"
-        />
+    <ng-template pTemplate="headless">
+        <p-galleria
+            [value]="ficha.foto"
+            [(visible)]="displayFoto"
+            [responsiveOptions]="responsiveOptions"
+            [containerStyle]="{ 'max-width': '100%' }"
+            [numVisible]="9"
+            [circular]="true"
+            [fullScreen]="false"
+            [showItemNavigators]="true"
+            baseZIndex="99999"
+        >
+            <ng-template pTemplate="item" let-item>
+                <img
+                    [src]="url + 'obtener_imagen/ficha_sectorial/' + item"
+                    style="width: 100%; display: block; max-height: 60vh"
+                />
+            </ng-template>
+            <ng-template pTemplate="thumbnail" let-item>
+                <div class="grid grid-nogutter justify-content-center">
+                    <img
+                        [src]="url + 'obtener_imagen/ficha_sectorial/' + item"
+                        style="display: block"
+                        style="width: 30%; max-height: 20vh"
+                    />
+                </div>
+            </ng-template>
+        </p-galleria>
     </ng-template>
-    <ng-template pTemplate="thumbnail" let-item>
-        <div class="grid grid-nogutter justify-content-center">
-            <img
-                [src]="url + 'obtener_imagen/ficha_sectorial/' + item"
-                style="display: block"
-                [style.width]="isMobile() ? '20vw' : '5vw'"
-            />
-        </div>
-    </ng-template>
-</p-galleria>
+</p-dialog>
 
-<div class="surface-section px-4 py-8 md:px-6 lg:px-8" *ngIf="ficha&&!load">
+<div class="surface-section px-4 py-8 md:px-6 lg:px-8" *ngIf="ficha && !load">
     <div
         class="py-4 text-center md:text-left border-round bg-cover h-20rem lg:h-30rem flex flex-column justify-content-end mb-5 image-container"
         [ngStyle]="{
@@ -149,7 +163,10 @@
                 class="flex flex-wrap justify-content-between align-items-center gap-3 p-3 border-round"
             ></div>
         </div>
-        <div class="col-12 lg:col-3 lg:border-left-1 surface-border" *ngIf="fichas_sectoriales_arr.length>0">
+        <div
+            class="col-12 lg:col-3 lg:border-left-1 surface-border"
+            *ngIf="fichas_sectoriales_arr.length > 0"
+        >
             <div class="p-3">
                 <!--
                  <div class="flex border-bottom-1 surface-border pb-4 mb-5" >
@@ -223,20 +240,35 @@
     <p-skeleton width="10rem" height="4rem" borderRadius="16px" />
 </div>
 
-<div class="ng-star-inserted" *ngIf="!ficha&&!load" >
+<div class="ng-star-inserted" *ngIf="!ficha && !load">
     <div class="surface-section px-4 py-8 md:px-6 lg:px-8">
-      <div class="flex flex-column lg:flex-row justify-content-center align-items-center gap-7">
-        <div class="text-center lg:text-right">
-          <div class="mt-6 mb-3 font-bold text-6xl text-900">Estás perdido?</div>
-          <p class="text-700 text-3xl mt-0 mb-6">Lo sentimos, parece que este recurso no está.</p>
-          <button pButton type="button" label="Go back to home page" class="p-button-outlined" (click)="goToHomePage()">
-            <span class="p-button-label">Regresemos a casa</span>
-          </button>
+        <div
+            class="flex flex-column lg:flex-row justify-content-center align-items-center gap-7"
+        >
+            <div class="text-center lg:text-right">
+                <div class="mt-6 mb-3 font-bold text-6xl text-900">
+                    Estás perdido?
+                </div>
+                <p class="text-700 text-3xl mt-0 mb-6">
+                    Lo sentimos, parece que este recurso no está.
+                </p>
+                <button
+                    pButton
+                    type="button"
+                    label="Go back to home page"
+                    class="p-button-outlined"
+                    (click)="goToHomePage()"
+                >
+                    <span class="p-button-label">Regresemos a casa</span>
+                </button>
+            </div>
+            <div>
+                <img
+                    src="assets/demo/images/error/asset-error.svg"
+                    alt="Image"
+                    class="w-full md:w-28rem"
+                />
+            </div>
         </div>
-        <div>
-          <img src="assets/demo/images/error/asset-error.svg" alt="Image" class="w-full md:w-28rem">
-        </div>
-      </div>
     </div>
-  </div>
-  
+</div>

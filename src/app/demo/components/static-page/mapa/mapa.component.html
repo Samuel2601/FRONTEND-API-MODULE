@@ -198,19 +198,24 @@
                             [forceSelection]="true"
                             (onSelect)="imprimir(query)"
                             [inputStyle]="{
-                                width: isMobil()
-                                    ? responsiveimage()
-                                    : '80vh'
+                                width: isMobil() ? responsiveimage() : '80vh'
                             }"
                         >
                         </p-autoComplete>
                         <label for="float-label"
-                            >Ingresa una dirección o referencia
-                            mapa
+                            >Ingresa una dirección o referencia mapa
                         </label>
                     </span>
 
-                    <div class="card" id="map2" style="min-height: 50vh;margin-left: -18px; margin-right: -18px;"></div>
+                    <div
+                        class="card"
+                        id="map2"
+                        style="
+                            min-height: 50vh;
+                            margin-left: -18px;
+                            margin-right: -18px;
+                        "
+                    ></div>
                     <div [style.display]="'none'">
                         <div class="controls fullscreen-control">
                             <button
@@ -478,28 +483,43 @@
                     "
                     icon="pi pi-trash"
                 ></p-button>
-
-                <p-galleria
-                    [value]="imagenesSeleccionadas"
+                <p-dialog
+                    appendTo="body"
                     [(visible)]="displayCustom"
-                    [(activeIndex)]="activeIndexG"
-                    [responsiveOptions]="responsiveOptions"
-                    [containerStyle]="{ 'max-width': '850px' }"
-                    [numVisible]="7"
-                    [circular]="true"
-                    [fullScreen]="true"
-                    [showItemNavigators]="true"
-                    [showThumbnails]="false"
-                    baseZIndex="99999"    
-                    (hide)="onHide()"
+                    [modal]="true"
+                    [responsive]="true"
+                    [baseZIndex]="99999"
+                    [dismissableMask]="true"
+                    [style]="{
+                        'max-width': isMobil() ? '100%' : '80%',
+                        'max-height': isMobil() ? '80vh' : '50vh'
+                    }"
                 >
-                    <ng-template pTemplate="item" let-item>
-                        <img
-                            [src]="item.itemImageSrc"
-                            style="width: 60%; display: block"
-                        />
+                    <ng-template pTemplate="headless">
+                        <p-galleria
+                            [value]="imagenesSeleccionadas"
+                            [(visible)]="displayCustom"
+                            [responsiveOptions]="responsiveOptions"
+                            [containerStyle]="{ 'max-width': '100%' }"
+                            [numVisible]="9"
+                            [circular]="true"
+                            [fullScreen]="false"
+                            [showItemNavigators]="true"
+                            baseZIndex="99999"
+                        >
+                            <ng-template pTemplate="item" let-item>
+                                <img
+                                    [src]="item.itemImageSrc"
+                                    style="
+                                        width: 100%;
+                                        display: block;
+                                        max-height: 60vh;
+                                    "
+                                />
+                            </ng-template>
+                        </p-galleria>
                     </ng-template>
-                </p-galleria>
+                </p-dialog>
             </div>
             <div class="flex pt-4 justify-content-between">
                 <p-toast />

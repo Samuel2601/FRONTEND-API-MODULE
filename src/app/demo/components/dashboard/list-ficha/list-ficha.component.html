@@ -414,9 +414,13 @@
                     <ng-container *ngIf="isJSONString(ficha.direccion_geo)">{{
                         parseJSON(ficha.direccion_geo).nombre
                     }}</ng-container>
-                    <ng-container *ngIf="!isJSONString(ficha.direccion_geo)&&!ficha.direccion_geo.nombre">{{
-                        ficha.direccion_geo
-                    }}</ng-container>
+                    <ng-container
+                        *ngIf="
+                            !isJSONString(ficha.direccion_geo) &&
+                            !ficha.direccion_geo.nombre
+                        "
+                        >{{ ficha.direccion_geo }}</ng-container
+                    >
                     <ng-container *ngIf="ficha.direccion_geo.nombre">{{
                         ficha.direccion_geo.nombre
                     }}</ng-container>
@@ -609,43 +613,45 @@
     </div>
 </p-dialog>
 <!--GALERIA DE IMAGENES DE CADA INCIDENTE-->
-<p-galleria
+<p-dialog
     appendTo="body"
-    *ngIf="displayBasic"
-    [value]="imagenModal"
     [(visible)]="displayBasic"
-    [responsiveOptions]="responsiveOptions"
-    [containerStyle]="{ 'max-width': '50vw' }"
-    [numVisible]="9"
-    [circular]="true"
-    [fullScreen]="true"
-    [showItemNavigators]="true"
-    baseZIndex="99999"    
-    (hide)="onHide()"
+    [modal]="true"
+    [responsive]="true"
+    [baseZIndex]="99999"
+    [dismissableMask]="true"
+    [style]="{
+        'max-width': isMobil() ? '100%' : '80%',
+        'max-height': isMobil() ? '80vh' : '50vh'
+    }"
 >
-    <ng-template pTemplate="item" let-item>
-        <div
-            style="
-                width: 50vw;
-                height: 50vh;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            "
+    <ng-template pTemplate="headless">
+        <p-galleria
+            [value]="imagenModal"
+            [(visible)]="displayBasic"
+            [responsiveOptions]="responsiveOptions"
+            [containerStyle]="{ 'max-width': '100%' }"
+            [numVisible]="9"
+            [circular]="true"
+            [fullScreen]="false"
+            [showItemNavigators]="true"
+            baseZIndex="99999"
         >
-            <img
-                [src]="url + 'obtener_imagen/ficha_sectorial/' + item"
-                style="max-width: 100%; max-height: 100%"
-            />
-        </div>
+            <ng-template pTemplate="item" let-item>
+                <img
+                    [src]="url + 'obtener_imagen/ficha_sectorial/' + item"
+                    style="width: 100%; display: block; max-height: 60vh"
+                />
+            </ng-template>
+            <ng-template pTemplate="thumbnail" let-item>
+                <div class="grid grid-nogutter justify-content-center">
+                    <img
+                        [src]="url + 'obtener_imagen/ficha_sectorial/' + item"
+                        style="display: block"
+                        style="width: 30%; max-height: 20vh"
+                    />
+                </div>
+            </ng-template>
+        </p-galleria>
     </ng-template>
-    <ng-template pTemplate="thumbnail" let-item>
-        <div class="grid grid-nogutter justify-content-center">
-            <img
-                [src]="url + 'obtener_imagen/ficha_sectorial/' + item"
-                style="display: block"
-                style="width: 70px"
-            />
-        </div>
-    </ng-template>
-</p-galleria>
+</p-dialog>
