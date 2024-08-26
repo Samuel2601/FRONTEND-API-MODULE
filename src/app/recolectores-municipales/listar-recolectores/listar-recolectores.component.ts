@@ -181,4 +181,7 @@ export class ListarRecolectoresComponent implements OnInit {
     showoverlay(regi: any) {
         this.register=regi.puntos_recoleccion.filter(e => e.retorno === true);
     }
+    isMobil(){
+        return this.helper.isMobil();
+    }
 }
