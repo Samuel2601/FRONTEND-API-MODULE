@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Optional } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { UbicacionService } from '../service/ubicacion.service';
@@ -8,12 +8,13 @@ import { HelperService } from 'src/app/demo/services/helper.service';
 import { CreateService } from 'src/app/demo/services/create.service';
 import { Router } from '@angular/router';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { filter } from 'rxjs';
 
 @Component({
     selector: 'app-agregar-recolector',
     templateUrl: './agregar-recolector.component.html',
     styleUrl: './agregar-recolector.component.scss',
-    providers:[DynamicDialogRef]
+    providers: [DynamicDialogConfig],
 })
 export class AgregarRecolectorComponent {
     formulario: FormGroup;
@@ -29,43 +30,42 @@ export class AgregarRecolectorComponent {
         private list: ListService,
         private auth: AuthService,
         private helper: HelperService,
-        private create:CreateService,
+        private create: CreateService,
         private router: Router, // Inyecta Router para redirección
-        private ref: DynamicDialogRef, // Inyecta DynamicDialogConfig para acceder a la configuración del diálogo
+        @Optional() public ref: DynamicDialogRef // Inyecta DynamicDialogConfig para acceder a la configuración del diálogo
     ) {
         this.formulario = this.fb.group({
             funcionario: [null, Validators.required],
             deviceId: [null, Validators.required],
         });
     }
-    isMobil(){
+    isMobil() {
         return this.helper.isMobil();
     }
     token = this.auth.token();
     async ngOnInit() {
         await this.fetchFuncionarios();
         await this.fetchDevices();
-       
     }
 
     async fetchFuncionarios() {
         this.list
-            .listarUsuarios(this.token,{role:"66bb7b1fcc9232a17ce931d9"}) //"65c505bc9c664a1238b47f1a" FUNCIONARIO
+            .listarUsuarios(this.token, { role: '66bb7b1fcc9232a17ce931d9' }) //"65c505bc9c664a1238b47f1a" FUNCIONARIO
             .subscribe((response) => {
                 //console.log(response);
                 if (response.data) {
-                    this.funcionarios = response.data.map(funcionario => ({
-                      ...funcionario,
-                      fullName: `${funcionario.name} ${funcionario.last_name}`
-                  }));
+                    this.funcionarios = response.data.map((funcionario) => ({
+                        ...funcionario,
+                        fullName: `${funcionario.name} ${funcionario.last_name}`,
+                    }));
                 }
             });
     }
 
     async fetchDevices() {
         this.ubicar.obtenerDeviceGPS().subscribe(async (response) => {
-           // console.log(response);
-            this.devices = response;
+            console.log(response);
+            this.devices = response.filter(e=>e.status=="online");
             await this.checkExistingRegistrations();
         });
     }
@@ -78,7 +78,7 @@ export class AgregarRecolectorComponent {
         this.list
             .listarAsignacionRecolectores(this.token, { dateOnly }, false)
             .subscribe((response) => {
-               // console.log(response);
+                // console.log(response);
                 const data: any[] = response.data || [];
                 if (data.length > 0) {
                     data.forEach((element_data) => {
@@ -89,7 +89,7 @@ export class AgregarRecolectorComponent {
                         this.devices = this.devices.filter(
                             (element) => element.id != element_data.deviceId
                         );
-                       /* console.log(this.devices.filter(
+                        /* console.log(this.devices.filter(
                             (element) => element.id != element_data.deviceId
                         ));*/
                     });
@@ -99,24 +99,33 @@ export class AgregarRecolectorComponent {
 
     onSubmit() {
         if (this.formulario.valid) {
-            this.formulario.get('funcionario').setValue( this.formulario.get('funcionario').value._id);
-            this.formulario.get('deviceId').setValue( this.formulario.get('deviceId').value.id);
+            this.formulario
+                .get('funcionario')
+                .setValue(this.formulario.get('funcionario').value._id);
+            this.formulario
+                .get('deviceId')
+                .setValue(this.formulario.get('deviceId').value.id);
             //console.log(this.formulario.value);
-            this.create.registrarAsignacionReolectores(this.token,this.formulario.value).subscribe(response=>{
-                //console.log(response);
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Registro',
-                    detail: 'Asignación Completada.',
+            this.create
+                .registrarAsignacionReolectores(
+                    this.token,
+                    this.formulario.value
+                )
+                .subscribe((response) => {
+                    //console.log(response);
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Registro',
+                        detail: 'Asignación Completada.',
+                    });
+                    if (!this.isMobil()) {
+                        // Si es móvil, cierra el diálogo
+                        this.ref.close(); // Usa `ref` de DynamicDialogConfig
+                    } else {
+                        // Si no es móvil, redirige a /recolectores/listar
+                        this.router.navigate(['/recolectores/listar']);
+                    }
                 });
-                if (!this.isMobil()) {
-                    // Si es móvil, cierra el diálogo
-                    this.ref.close(); // Usa `ref` de DynamicDialogConfig
-                  } else {
-                    // Si no es móvil, redirige a /recolectores/listar
-                    this.router.navigate(['/recolectores/listar']);
-                  }
-            })
         } else {
             this.messageService.add({
                 severity: 'warn',

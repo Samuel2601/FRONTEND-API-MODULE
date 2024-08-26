@@ -1,5 +1,5 @@
 import { Component, OnInit, Optional } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Subscription, filter } from 'rxjs';
 import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 import { UbicacionService } from '../service/ubicacion.service';
 import { Geolocation } from '@capacitor/geolocation';
@@ -89,7 +89,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     devices: any[] = [];
     async fetchDevices() {
         this.ubicacionService.obtenerDeviceGPS().subscribe((response) => {
-            this.devices = response;
+            this.devices = response.filter((e) => e.status == 'online');
         });
     }
     getDeviceGPS(id: string) {
@@ -402,30 +402,70 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         let segment = [];
         let currentColorIndex = 0;
 
-        for (let i = 0; i < locations.length - 1; i++) {
-            const currentPoint = locations[i];
-            const nextPoint = locations[i + 1];
+        // Verificar si hay un punto de recolección con retorno=true en este punto
+        const puntoRetorno = this.ruta.puntos_recoleccion.filter(
+            (element: any) => element.retorno == true
+        );
 
-            segment.push({
-                id: currentPoint.id,
-                lat: currentPoint.latitude,
-                lng: currentPoint.longitude,
+        // Iterar sobre los puntos de retorno y dividir los segmentos basados en timestamp
+        for (let i = 0; i < puntoRetorno.length; i++) {
+            const retornoActual = puntoRetorno[i];
+            const retornoSiguiente = puntoRetorno[i + 1];
+
+            const retornoTimestampActual = new Date(
+                retornoActual.timestamp
+            ).getTime();
+            const retornoTimestampSiguiente = retornoSiguiente
+                ? new Date(retornoSiguiente.timestamp).getTime()
+                : Infinity;
+
+            // Crear un segmento basado en el rango de timestamps
+            const segmentLocations = locations.filter((location) => {
+                const locationTimestamp = new Date(location.fixTime).getTime();
+                return (
+                    locationTimestamp <= retornoTimestampActual
+                );
             });
 
-            // Chequea si el siguiente punto es el mismo que el actual o si es el final del array
-            if (
-                currentPoint.latitude === nextPoint.latitude &&
-                currentPoint.longitude === nextPoint.longitude
-            ) {
-                // Termina el segmento actual y dibuja la línea
+            // Si hay puntos en el segmento, dibujar la línea
+            if (segmentLocations.length > 0) {
+                segmentLocations.forEach((point) => {
+                    segment.push({
+                        id: point.id,
+                        lat: point.latitude,
+                        lng: point.longitude,
+                        fixTime: point.fixTime
+                    });
+                });
+
                 this.drawSegment(segment, colors[currentColorIndex]);
                 currentColorIndex = (currentColorIndex + 1) % colors.length;
-                segment = [];
+                segment = []; // Reiniciar el segmento después de dibujar
             }
         }
 
-        // Dibuja el último segmento si hay puntos restantes
-        if (segment.length > 0) {
+        // Dibuja los puntos que están después del último punto de retorno
+        const lastRetornoTimestamp =
+            puntoRetorno.length > 0
+                ? new Date(
+                      puntoRetorno[puntoRetorno.length - 1].timestamp
+                  ).getTime()
+                : -Infinity;
+        const remainingLocations = locations.filter((location) => {
+            const locationTimestamp = new Date(location.fixTime).getTime();
+            return locationTimestamp >= lastRetornoTimestamp;
+        });
+
+        if (remainingLocations.length > 0) {
+            remainingLocations.forEach((point) => {
+                segment.push({
+                    id: point.id,
+                    lat: point.latitude,
+                    lng: point.longitude,
+                    fixTime: point.fixTime
+                });
+            });
+
             this.drawSegment(segment, colors[currentColorIndex]);
         }
 
@@ -504,7 +544,8 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     segmentos: any[] = [];
     drawSegment(segment: any, color: any) {
         this.segmentos.push(segment);
-        const path = segment.map((segment) => ({
+        console.log('Segmentos: ', this.segmentos);
+        const path = segment.map((segment:any) => ({
             lat: segment.lat,
             lng: segment.lng,
         }));

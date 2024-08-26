@@ -21,8 +21,87 @@
                     {{ product.funcionario.name }}
                     {{ product.funcionario.last_name }}
                 </td>
-                <td><p-button icon="pi pi-map" label="Ver" (onClick)="verRuta(product)"></p-button></td>
+                <td>
+                    <p-button
+                        (onClick)="op.toggle($event); showoverlay(product)"
+                        icon="pi pi-receipt"
+                        label="Capacidad"
+                    ></p-button>
+                    <p-button
+                        class="mx-2"
+                        icon="pi pi-map"
+                        label="Ver"
+                        (onClick)="verRuta(product)"
+                    ></p-button>
+
+                    <p-button
+                        class="mx-2"
+                        icon="pi pi-eraser"
+                        label="Eliminar"
+                        (onClick)="confirm($event, product)"
+                    ></p-button>
+                </td>
             </tr>
         </ng-template>
     </p-table>
 </p-card>
+<p-toast />
+<p-confirmPopup>
+    <ng-template pTemplate="content" let-message>
+        <div
+            class="flex flex-column align-items-center w-full gap-3 border-bottom-1 surface-border p-3 mb-3"
+        >
+            <i [class]="message.icon" class="text-6xl text-primary-500"></i>
+            <p>{{ message.message }}</p>
+        </div>
+    </ng-template>
+</p-confirmPopup>
+
+<p-overlayPanel #op>
+    <div class="flex flex-column gap-3 w-25rem" *ngIf="register">
+        <div>
+            <span class="font-medium text-900 block mb-2">Puntos de Retorno</span>
+            <div class="flex">
+                <p-table
+                    [value]="register"
+                    selectionMode="single"
+                    [paginator]="true"
+                    [rows]="5"
+                    responsiveLayout="scroll"
+                >
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>N°</th>
+                            <th pSortableColumn="timestamp">
+                                Retorno <p-sortIcon field="timestamp" />
+                            </th>
+                            <th pSortableColumn="capacidad">
+                                Capacidad <p-sortIcon field="capacidad" />
+                            </th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template
+                        pTemplate="body"
+                        let-product
+                        let-index="rowIndex"
+                    >
+                        <tr>
+                            <td>{{ index + 1 }}</td>
+                            <td>{{ product.timestamp | date : "medium" }}</td>
+                            <td>
+                                <p-dropdown
+                                    appendTo="body"
+                                    [options]="capacidadOpciones"
+                                    [(ngModel)]="product.capacidad_retorno"
+                                    placeholder="Selecciona capacidad"
+                                    optionLabel="label"
+                                ></p-dropdown>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+        </div>
+    </div>
+</p-overlayPanel>

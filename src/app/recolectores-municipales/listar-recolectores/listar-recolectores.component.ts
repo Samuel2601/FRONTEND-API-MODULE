@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
@@ -9,12 +9,18 @@ import { AgregarRecolectorComponent } from '../agregar-recolector/agregar-recole
 import { App } from '@capacitor/app';
 import { UbicacionService } from '../service/ubicacion.service';
 import { AgregarUbicacionRecolectoresComponent } from '../agregar-ubicacion-recolectores/agregar-ubicacion-recolectores.component';
+import { DeleteService } from 'src/app/demo/services/delete.service';
 
 @Component({
     selector: 'app-listar-recolectores',
     templateUrl: './listar-recolectores.component.html',
     styleUrl: './listar-recolectores.component.scss',
-    providers: [MessageService, DynamicDialogRef,DialogService],
+    providers: [
+        ConfirmationService,
+        MessageService,
+        DynamicDialogRef,
+        DialogService,
+    ],
 })
 export class ListarRecolectoresComponent implements OnInit {
     token = this.auth.token();
@@ -25,7 +31,10 @@ export class ListarRecolectoresComponent implements OnInit {
         private router: Router,
         private ref: DynamicDialogRef,
         private dialogService: DialogService,
-        private ubicar: UbicacionService
+        private ubicar: UbicacionService,
+        private deleteservice: DeleteService,
+        private messageService: MessageService,
+        private confirmationService: ConfirmationService
     ) {}
     async ngOnInit(): Promise<void> {
         await this.fetchDevices();
@@ -100,5 +109,76 @@ export class ListarRecolectoresComponent implements OnInit {
                 this.listar_asignacion();
             });
         }
+    }
+    confirm(event: Event, register: any) {
+        this.confirmationService.confirm({
+            target: event.target as EventTarget,
+            header: 'Eliminación de registro',
+            message:
+                'Confirma la eliminación: ' +
+                register.dateOnly +
+                '/' +
+                this.getDeviceGPS(register.deviceId) +
+                '/' +
+                register.funcionario.name +
+                ' ' +
+                register.funcionario.last_name,
+            icon: 'pi pi-exclamation-circle',
+            acceptIcon: 'pi pi-check mr-1',
+            rejectIcon: 'pi pi-times mr-1',
+            acceptLabel: 'Aceptar',
+            rejectLabel: 'Cancelar',
+            rejectButtonStyleClass: 'p-button-outlined p-button-sm',
+            acceptButtonStyleClass: 'p-button-sm',
+            accept: () => {
+                this.removeRegister(register);
+            },
+            reject: () => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Cancelación',
+                    detail: 'Se cancelo la eliminación.',
+                    life: 3000,
+                });
+            },
+        });
+    }
+
+    removeRegister(register: any) {
+        this.deleteservice
+            .RemoveRecolectores(this.token, register._id)
+            .subscribe(
+                (response) => {
+                    console.log(response);
+                    if (response.data) {
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Eliminación',
+                            detail:
+                                'Asignación: ' +
+                                register.dateOnly +
+                                ' eliminada.',
+                        });
+                        this.listar_asignacion();
+                    }
+                },
+                (erro) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'ERROR',
+                        detail: 'Ocurrio algo malo al eliminar el registro.',
+                    });
+                }
+            );
+    }
+
+    register: any;
+    capacidadOpciones = [
+        { label: 'Lleno', value: 'Lleno' },
+        { label: 'Medio', value: 'Medio' },
+        { label: 'Vacío', value: 'Vacío' },
+    ];
+    showoverlay(regi: any) {
+        this.register=regi.puntos_recoleccion.filter(e => e.retorno === true);
     }
 }
