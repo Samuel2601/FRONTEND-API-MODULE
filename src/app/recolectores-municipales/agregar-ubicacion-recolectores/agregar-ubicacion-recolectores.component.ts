@@ -137,6 +137,12 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                             await this.ubicacionService.loadInitialLocations();
                             await this.seguimientoLocations();
                             await this.ubicacionService.initializeNetworkListener();
+                        }else{
+                            this.messageService.add({
+                                severity: 'warn',
+                                summary: 'Asignación',
+                                detail: 'Parece que no tiene ninguna asignación todavía.',
+                            });
                         }
                     },
                     error: (error) => {

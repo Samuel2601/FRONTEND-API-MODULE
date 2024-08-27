@@ -42,7 +42,9 @@ export class ListarRecolectoresComponent implements OnInit {
     devices: any[] = [];
     async fetchDevices() {
         this.ubicar.obtenerDeviceGPS().subscribe((response) => {
-            //console.log(response);
+            console.log(response);
+            const aux = response.map(e=>{return {id:e.id, name:e.name, plate: e.plate, capacidad: 0}});
+            console.log(JSON.stringify(aux));
             this.devices = response;
             this.listar_asignacion();
         });
@@ -178,10 +180,40 @@ export class ListarRecolectoresComponent implements OnInit {
         { label: 'Medio', value: 'Medio' },
         { label: 'Vacío', value: 'Vacío' },
     ];
+
     showoverlay(regi: any) {
-        this.register=regi.puntos_recoleccion.filter(e => e.retorno === true);
+        regi.puntos_recoleccion = regi.puntos_recoleccion.filter(
+            (e) => e.retorno === true
+        );
+        this.register = regi;
     }
-    isMobil(){
+    isMobil() {
         return this.helper.isMobil();
     }
+    updateCapacidad(register: any) {
+        /*register.capacidad_retorno = register.capacidad_retorno.map(
+            (element: any) => element.value
+        );*/
+
+        console.log(register);
+        const token = this.auth.token();
+
+        // Verificamos que el datatoken sea de tipo string
+        if (!token || typeof token !== 'string') {
+            console.error('Token inválido o no encontrado.');
+            return;
+        }
+
+        this.ubicar
+            .updateRutaRecolector(token, register._id, {
+                capacidad_retorno: register.capacidad_retorno,
+            })
+            .subscribe(response=>{
+                console.log(response);
+            }, error=>{
+                console.log(error);
+            });
+    }
+    visible:boolean=false;
+    viewregister:any;
 }

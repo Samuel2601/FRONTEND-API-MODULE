@@ -1,0 +1,54 @@
+<p *ngIf="cargando">Cargando datos...</p>
+
+<div *ngIf="!cargando">
+    <h2>Estadísticas Generales</h2>
+
+    <p-table [value]="datosRecolectores">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Fecha</th>
+                <th>Recolector</th>
+                <th>Ruta</th>
+                <th>Puntos de Recolección</th>
+                <th>Capacidad Retorno</th>
+                <th>Velocidad Máxima</th> <!-- Nueva columna -->
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-recolector>
+            <tr>
+                <td>{{ recolector.dateOnly }}</td>
+                <td>{{ recolector.deviceId }}</td>
+                <td>{{ recolector.ruta.length }}</td>
+                <td>{{ recolector.puntos_recoleccion.length }}</td>
+                <td>{{ recolector.capacidad_retorno[0]?.value }}</td>
+                <td>{{ calcularVelocidadMaxima(recolector.ruta) }} km/h</td> <!-- Nueva columna con la velocidad máxima -->
+            </tr>
+        </ng-template>
+    </p-table>
+    
+
+    <p-chart type="bar" [data]="dataVelocidadPromedio"></p-chart>
+    <p-chart type="bar" [data]="dataDistribucionVelocidades"></p-chart>
+    <p-chart type="bar" [data]="dataPuntosRecoleccion"></p-chart>
+    <p-chart type="bar" [data]="dataCapacidadRetorno"></p-chart>
+    <p-table [value]="tabla_info" [tableStyle]="{'min-width': '50rem'}">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Placa</th>
+                <th>Capacidad (Toneladas)</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+            <tr>
+                <td>{{ item.id }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.plate }}</td>
+                <td>{{ item.capacidad }}</td>
+            </tr>
+        </ng-template>
+    </p-table>
+    <p-chart type="line" [data]="dataDistanciaRecorrida"></p-chart>
+    
+</div>

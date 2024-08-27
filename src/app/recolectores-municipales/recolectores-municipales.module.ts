@@ -8,6 +8,7 @@ import { AgregarRecolectorComponent } from './agregar-recolector/agregar-recolec
 import { AgregarUbicacionRecolectoresComponent } from './agregar-ubicacion-recolectores/agregar-ubicacion-recolectores.component';
 import { FormularioSocioeconomicoComponent } from './formulario-socioeconomico/formulario-socioeconomico.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { RecolectorEstadisticasComponent } from './recolector-estadisticas/recolector-estadisticas.component';
 
 @NgModule({
     declarations: [
@@ -15,6 +16,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
         AgregarRecolectorComponent,
         AgregarUbicacionRecolectoresComponent,
         FormularioSocioeconomicoComponent,
+        RecolectorEstadisticasComponent
     ],
     imports: [RecolectoresMunicipioRoutingModule, CommonModule, ImportsModule,FormsModule,ReactiveFormsModule],
 })

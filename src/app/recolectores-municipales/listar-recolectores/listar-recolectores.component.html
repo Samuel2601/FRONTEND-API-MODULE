@@ -4,48 +4,116 @@
         label="Añadir"
         (onClick)="llamar_asignacion_Form()"
     ></p-button>
-    <p-table [value]="arr_asignacion" [tableStyle]="{ 'min-width': '50rem' }">
+    <p-table [value]="arr_asignacion">
         <ng-template pTemplate="header">
             <tr>
+                <th>#</th>
                 <th>Fecha de Registro</th>
                 <th>Recolector</th>
                 <th>Funcionario</th>
-                <th>Ruta</th>
+                <th *ngIf="!isMobil()">Acciones</th>
             </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-product>
-            <tr>
-                <td>{{ product.dateOnly }}</td>
-                <td>{{ getDeviceGPS(product.deviceId) }}</td>
-                <td>
-                    {{ product.funcionario.name }}
-                    {{ product.funcionario.last_name }}
-                </td>
-                <td>
-                    <p-button
-                        class="mx-2"
-                        (onClick)="op.toggle($event); showoverlay(product)"
-                        icon="pi pi-receipt"
-                        [label]="isMobil()?'':'Capacidad'"
-                    ></p-button>
-                    <p-button
-                        class="mx-2"
-                        icon="pi pi-map"
-                        [label]="isMobil()?'':'Ver'"
-                        (onClick)="verRuta(product)"
-                    ></p-button>
 
-                    <p-button
-                        class="mx-2"
-                        icon="pi pi-eraser"
-                        [label]="isMobil()?'':'Eliminar'"
-                        (onClick)="confirm($event, product)"
-                    ></p-button>
+        <ng-template pTemplate="body" let-product let-rowIndex="rowIndex">
+            <tr (click)="viewregister = product; visible = true">
+                <!-- Mostrar el número de fila en orden descendente -->
+                <td>{{ arr_asignacion.length - rowIndex }}</td>
+
+                <!-- Mostrar la fecha -->
+                <td>{{ product.dateOnly | date : "shortDate" }}</td>
+
+                <!-- Mostrar el recolector -->
+                <td>{{ getDeviceGPS(product.deviceId) }}</td>
+
+                <!-- Mostrar el nombre completo del funcionario -->
+                <td>
+                    {{ product.funcionario?.name }}
+                    {{ product.funcionario?.last_name }}
+                </td>
+
+                <!-- Columna de acciones con botones -->
+                <td *ngIf="!isMobil()">
+                    <div class="action-buttons">
+                        <p-button
+                            class="mx-2"
+                            (onClick)="op.toggle($event); showoverlay(product)"
+                            icon="pi pi-receipt"
+                            label="Capacidad"
+                        ></p-button>
+
+                        <p-button
+                            class="mx-2"
+                            icon="pi pi-map"
+                            label="Ver"
+                            (onClick)="verRuta(product)"
+                        ></p-button>
+
+                        <p-button
+                            class="mx-2"
+                            icon="pi pi-eraser"
+                            label="Eliminar"
+                            (onClick)="confirm($event, product)"
+                        ></p-button>
+                    </div>
                 </td>
             </tr>
         </ng-template>
     </p-table>
 </p-card>
+<p-dialog
+    *ngIf="isMobil()&&viewregister"
+    [header]="
+        'Acciones sobre:' +
+        viewregister.dateOnly +
+        '/' +
+        getDeviceGPS(viewregister.deviceId) +
+        '/' +
+        viewregister.funcionario?.name +
+        ' ' +
+        viewregister.funcionario?.last_name
+    "
+    [modal]="true"
+    [(visible)]="visible"
+    [style]="{ width: '25rem' }"
+    dismissableMask="true"
+>
+    <span class="p-text-secondary block mb-5"
+        >Selecciona que deseas hacer:
+    </span>
+    <div class="flex align-items-center gap-3 mb-3" style="justify-content: center;">
+        <p-button
+            class="mx-2"
+            (onClick)="op.toggle($event); showoverlay(viewregister)"
+            icon="pi pi-receipt"
+            label="Capacidad"
+        ></p-button>
+    </div>
+    <div class="flex align-items-center gap-3 mb-3" style="justify-content: center;">
+        <p-button
+            class="mx-2"
+            icon="pi pi-map"
+            label="Ver"
+            (onClick)="verRuta(viewregister)"
+        ></p-button>
+    </div>
+    <div class="flex align-items-center gap-3 mb-3" style="justify-content: center;">
+        <p-button
+            class="mx-2"
+            icon="pi pi-eraser"
+            label="Eliminar"
+            (onClick)="confirm($event, viewregister)"
+        ></p-button>
+    </div>
+    <div class="flex justify-content-end gap-2">
+        <p-button
+            label="Cerrar"
+            severity="secondary"
+            (onClick)="visible = false"
+        />
+    </div>
+</p-dialog>
+
 <p-toast />
 <p-confirmPopup>
     <ng-template pTemplate="content" let-message>
@@ -66,7 +134,7 @@
             >
             <div class="flex">
                 <p-table
-                    [value]="register"
+                    [value]="register.puntos_recoleccion"
                     selectionMode="single"
                     [paginator]="true"
                     [rows]="5"
@@ -96,9 +164,13 @@
                                 <p-dropdown
                                     appendTo="body"
                                     [options]="capacidadOpciones"
-                                    [(ngModel)]="product.capacidad_retorno"
+                                    [(ngModel)]="
+                                        register.capacidad_retorno[index]
+                                    "
+                                    (onChange)="updateCapacidad(register)"
                                     placeholder="Selecciona capacidad"
                                     optionLabel="label"
+                                    dataKey="value"
                                 ></p-dropdown>
                             </td>
                         </tr>

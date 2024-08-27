@@ -21,6 +21,7 @@
     </div>
     <div class="velocidad-container m-5" *ngIf="!ruta && asignacion">
         <p-button
+            icon="pi pi-shop"
             label="Retorno a la Estación"
             (click)="confirmReturnToStation()"
             [disabled]="isReturnButtonDisabled"
@@ -35,7 +36,11 @@
         </div>
     </div>
     <div class="velocidad-container m-5" *ngIf="!ruta && asignacion">
-        <p-button label="Enviar Información" (click)="envioupdate()"></p-button>
+        <p-button
+            icon="pi pi-telegram"
+            label="Enviar Información"
+            (click)="envioupdate()"
+        ></p-button>
     </div>
     <div class="velocidad-container" *ngIf="ruta && !asignacion">
         <p-button
@@ -51,6 +56,15 @@
             *ngIf="ruta && !asignacion"
             icon="pi pi-gauge"
             label="Control de Recorrido"
+        ></p-button>
+    </div>
+    <div class="velocidad-container m-5" *ngIf="!asignacion && !id">
+        <label> ¿Crees que ya te dieron una asignación?</label> <br />
+        <p-button
+            class="m-5"
+            (onClick)="consultaAsig()"
+            icon="pi pi-bolt"
+            label="Consultar asignación"
         ></p-button>
     </div>
 </div>

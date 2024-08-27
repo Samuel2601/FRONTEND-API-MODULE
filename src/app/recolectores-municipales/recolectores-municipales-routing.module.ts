@@ -4,6 +4,7 @@ import { AgregarRecolectorComponent } from './agregar-recolector/agregar-recolec
 import { AgregarUbicacionRecolectoresComponent } from './agregar-ubicacion-recolectores/agregar-ubicacion-recolectores.component';
 import { ListarRecolectoresComponent } from './listar-recolectores/listar-recolectores.component';
 import { FormularioSocioeconomicoComponent } from './formulario-socioeconomico/formulario-socioeconomico.component';
+import { RecolectorEstadisticasComponent } from './recolector-estadisticas/recolector-estadisticas.component';
 @NgModule({
     imports: [
         RouterModule.forChild([
@@ -15,6 +16,11 @@ import { FormularioSocioeconomicoComponent } from './formulario-socioeconomico/f
                 path: 'formulario',
                 component: FormularioSocioeconomicoComponent,
             },
+            {
+                path: 'status',
+                component: RecolectorEstadisticasComponent,
+            }
+            
         ]),
     ],
     exports: [RouterModule],
