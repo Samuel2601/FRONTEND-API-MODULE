@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { HelperService } from 'src/app/demo/services/helper.service';
 import { ListService } from 'src/app/demo/services/list.service';
 
 @Component({
@@ -9,13 +10,78 @@ import { ListService } from 'src/app/demo/services/list.service';
     styleUrl: './recolector-estadisticas.component.scss',
 })
 export class RecolectorEstadisticasComponent {
+    dialogVisible = false;
+    dialogChartData: any;
+    dialogTableData: any[] = [];
+    tableHeaders: string[] = [];
+    headers_dialog: string = 'Datos del Gráfico';
+    tipo_chart: 'line' | 'bar' | 'pie' = 'bar';
+    load_char_dialog: boolean = false;
     datosRecolectores: any[] = [];
     cargando: boolean = true;
 
     constructor(
         private recolectorService: ListService,
-        private auth: AuthService
+        private auth: AuthService,
+        private helper: HelperService
     ) {}
+
+    openDialog(
+        title: string,
+        chartData: any,
+        titleRow: string,
+        tipo_chart: 'line' | 'bar' | 'pie'
+    ) {
+        this.tipo_chart = tipo_chart;
+        this.load_char_dialog = false;
+        this.dialogChartData = chartData;
+        this.headers_dialog = title;
+        // Transformar datos del gráfico a formato de tabla
+        this.dialogTableData = this.transformChartDataToTableData(
+            chartData,
+            titleRow
+        );
+        this.tableHeaders = this.getTableHeaders(chartData, titleRow);
+
+        this.dialogVisible = true;
+        setTimeout(() => {
+            this.load_char_dialog = true;
+        }, 1000);
+    }
+
+    transformChartDataToTableData(chartData: any, titleRow: string): any[] {
+        const labels = chartData.labels;
+        const datasets = chartData.datasets;
+
+        // Inicializar la tabla con los labels como filas
+        const tableData = labels.map((label, index) => {
+            // Crear una fila para cada label
+            const row: any = { [titleRow]: label }; // Usar titleRow como nombre de la primera columna
+
+            // Añadir columnas para cada dataset
+            datasets.forEach((dataset) => {
+                row[dataset.label] = dataset.data[index];
+            });
+
+            return row;
+        });
+
+        return tableData;
+    }
+
+    getTableHeaders(chartData: any, titleRow: string): string[] {
+        const headers = [titleRow];
+
+        // Obtener todos los nombres de los datasets como encabezados de columna
+        chartData.datasets.forEach((dataset) => {
+            headers.push(dataset.label);
+        });
+
+        return headers;
+    }
+    isMobil() {
+        return this.helper.isMobil();
+    }
 
     ngOnInit(): void {
         this.obtenerDatosRecolectores();
@@ -67,7 +133,7 @@ export class RecolectorEstadisticasComponent {
             datasets: [
                 {
                     label: 'Distribución de Velocidad',
-                    data: histogram.map((h) => h.count),
+                    data: histogram.map((h) => parseFloat(h.count.toFixed(2))), // Redondear a 2 decimales
                     backgroundColor: '#42A5F5',
                 },
             ],
@@ -75,46 +141,136 @@ export class RecolectorEstadisticasComponent {
     }
     dataVelocidadPromedio: any | undefined;
     // En tu componente .ts 2
+
     generarVelocidadPromedio() {
-        const recolectores = this.datosRecolectores.map((d) => d.deviceId);
-        const velocidades = this.datosRecolectores.map(
-            (d) =>
-                d.ruta
-                    .filter((punto) => punto.speed > 1)
-                    .reduce((acc, punto) => acc + punto.speed, 1) /
-                d.ruta.length
-        );
+        // Paso 1: Preparar la estructura de datos inicial
+        const velocidadesPorFechaYRecolector = {};
+        const fechasSet = new Set();
+
+        this.datosRecolectores.forEach((recolector) => {
+            const { deviceId, dateOnly, ruta } = recolector;
+
+            // Inicializar el objeto para el deviceId si no existe
+            if (!velocidadesPorFechaYRecolector[deviceId]) {
+                velocidadesPorFechaYRecolector[deviceId] = {};
+            }
+
+            // Inicializar el objeto para la fecha si no existe
+            if (!velocidadesPorFechaYRecolector[deviceId][dateOnly]) {
+                velocidadesPorFechaYRecolector[deviceId][dateOnly] = [];
+            }
+
+            // Calcular las velocidades y agregarlas a la estructura de datos
+            const velocidades = ruta
+                .filter((punto) => punto.speed > 1)
+                .map((punto) => punto.speed);
+
+            velocidadesPorFechaYRecolector[deviceId][dateOnly].push(
+                velocidades.length > 0
+                    ? velocidades.reduce((acc, v) => acc + v, 0) /
+                          velocidades.length
+                    : 0
+            );
+
+            // Agregar las fechas al conjunto
+            fechasSet.add(dateOnly);
+        });
+
+        // Paso 2: Preparar los datos para los gráficos
+        const datasets = [];
+        const fechasArray = [...fechasSet]; // Convertir el conjunto a un array
+
+        Object.keys(velocidadesPorFechaYRecolector).forEach((deviceId) => {
+            const data = fechasArray.map((fecha) => {
+                const velocidades =
+                    velocidadesPorFechaYRecolector[deviceId][fecha];
+                return velocidades && velocidades.length > 0
+                    ? parseFloat(
+                          (
+                              velocidades.reduce((acc, v) => acc + v, 0) /
+                              velocidades.length
+                          ).toFixed(2)
+                      )
+                    : 0; // Usar 0 si no hay datos
+            });
+
+            const color = this.getRandomColor();
+            const opacoColor = this.hexToRgba(color, 0.2); // Ajusta la opacidad aquí (0.2 = 20% opacidad)
+
+            datasets.push({
+                label: deviceId,
+                data: data,
+                tension: 0.4,
+                fill: true,
+                backgroundColor: opacoColor, // Método para obtener colores aleatorios
+                borderColor: color,
+            });
+        });
 
         this.dataVelocidadPromedio = {
-            labels: recolectores,
-            datasets: [
-                {
-                    label: 'Velocidad Promedio',
-                    data: velocidades,
-                    backgroundColor: '#42A5F5',
-                },
-            ],
+            labels: fechasArray, // Las fechas son las etiquetas del gráfico
+            datasets: datasets,
         };
     }
+
     dataPuntosRecoleccion: any | undefined;
     // En tu componente .ts 3
     generarPuntosRecoleccion() {
-        const recolectores = this.datosRecolectores.map((d) => d.deviceId);
-        const puntos = this.datosRecolectores.map(
-            (d) => d.puntos_recoleccion.filter((e) => e.retorno == false).length
-        );
-
+        // Paso 1: Preparar la estructura de datos inicial
+        const puntosPorFechaYRecolector = {};
+        const fechasSet = new Set();
+    
+        // Procesar los datos recolectores
+        this.datosRecolectores.forEach((recolector) => {
+            const { deviceId, dateOnly, puntos_recoleccion } = recolector;
+    
+            // Inicializar el objeto para el deviceId si no existe
+            if (!puntosPorFechaYRecolector[deviceId]) {
+                puntosPorFechaYRecolector[deviceId] = {};
+            }
+    
+            // Inicializar el objeto para la fecha si no existe
+            if (!puntosPorFechaYRecolector[deviceId][dateOnly]) {
+                puntosPorFechaYRecolector[deviceId][dateOnly] = 0;
+            }
+    
+            // Contar los puntos de recolección que no tienen retorno
+            const puntos = puntos_recoleccion.filter((e) => e.retorno === false).length;
+    
+            puntosPorFechaYRecolector[deviceId][dateOnly] = puntos;
+    
+            // Agregar las fechas al conjunto
+            fechasSet.add(dateOnly);
+        });
+    
+        // Paso 2: Preparar los datos para los gráficos
+        const datasets = [];
+        const fechasArray = [...fechasSet]; // Convertir el conjunto a un array
+    
+        Object.keys(puntosPorFechaYRecolector).forEach((deviceId) => {
+            const data = fechasArray.map(
+                (fecha) => puntosPorFechaYRecolector[deviceId][fecha] || 0 // Usar 0 si no hay datos
+            );
+    
+            const color = this.getRandomColor();
+            const opacoColor = this.hexToRgba(color, 0.2); // Ajusta la opacidad aquí (0.2 = 20% opacidad)
+    
+            datasets.push({
+                label: deviceId,
+                data: data,
+                tension: 0.4,
+                fill: true,
+                backgroundColor: opacoColor, // Método para obtener colores aleatorios
+                borderColor: color,
+            });
+        });
+    
         this.dataPuntosRecoleccion = {
-            labels: recolectores,
-            datasets: [
-                {
-                    label: 'Puntos de Recolección',
-                    data: puntos,
-                    backgroundColor: '#FF7043',
-                },
-            ],
+            labels: fechasArray, // Las fechas son las etiquetas del gráfico
+            datasets: datasets,
         };
     }
+    
     dataCapacidadRetorno: any | undefined;
     tabla_info = [
         { id: 1840, name: 'RECL - 04 HIGIENE', plate: '', capacidad: 12 },
@@ -143,16 +299,32 @@ export class RecolectorEstadisticasComponent {
     mapaCapacidades = new Map<number, number>();
     // En tu componente .ts 4
     generarCapacidadRetorno() {
+        // Paso 1: Preparar la estructura de datos inicial
+        const capacidadesPorFechaYRecolector = {};
+        const fechasSet = new Set();
+    
+        // Inicializar el mapa de capacidades por ID
         this.tabla_info.forEach((item) => {
             this.mapaCapacidades.set(item.id, item.capacidad);
         });
-        console.log(this.mapaCapacidades);
-        const recolectores = this.datosRecolectores.map((d) => d.deviceId);
-        console.log(recolectores);
-        const capacidades = this.datosRecolectores.map((d) => {
-            const capacidadReal =
-                this.mapaCapacidades.get(parseInt(d.deviceId)) || 0;
-            const capacidadRetorno = d.capacidad_retorno
+    
+        // Procesar los datos recolectores
+        this.datosRecolectores.forEach((recolector) => {
+            const { deviceId, dateOnly, capacidad_retorno } = recolector;
+    
+            // Inicializar el objeto para el deviceId si no existe
+            if (!capacidadesPorFechaYRecolector[deviceId]) {
+                capacidadesPorFechaYRecolector[deviceId] = {};
+            }
+    
+            // Inicializar el objeto para la fecha si no existe
+            if (!capacidadesPorFechaYRecolector[deviceId][dateOnly]) {
+                capacidadesPorFechaYRecolector[deviceId][dateOnly] = 0;
+            }
+    
+            // Calcular la capacidad de retorno
+            const capacidadReal = this.mapaCapacidades.get(parseInt(deviceId)) || 0;
+            const capacidadRetorno = capacidad_retorno
                 .map((cr) => {
                     switch (cr.value) {
                         case 'Lleno':
@@ -166,22 +338,41 @@ export class RecolectorEstadisticasComponent {
                     }
                 })
                 .reduce((acc, curr) => acc + curr, 0);
-
-            return capacidadRetorno;
+    
+            capacidadesPorFechaYRecolector[deviceId][dateOnly] = parseFloat(capacidadRetorno.toFixed(2));
+    
+            // Agregar las fechas al conjunto
+            fechasSet.add(dateOnly);
         });
-
+    
+        // Paso 2: Preparar los datos para los gráficos
+        const datasets = [];
+        const fechasArray = [...fechasSet]; // Convertir el conjunto a un array
+    
+        Object.keys(capacidadesPorFechaYRecolector).forEach((deviceId) => {
+            const data = fechasArray.map(
+                (fecha) => capacidadesPorFechaYRecolector[deviceId][fecha] || 0 // Usar 0 si no hay datos
+            );
+    
+            const color = this.getRandomColor();
+            const opacoColor = this.hexToRgba(color, 0.2); // Ajusta la opacidad aquí (0.2 = 20% opacidad)
+    
+            datasets.push({
+                label: deviceId,
+                data: data,
+                tension: 0.4,
+                fill: true,
+                backgroundColor: opacoColor, // Método para obtener colores aleatorios
+                borderColor: color,
+            });
+        });
+    
         this.dataCapacidadRetorno = {
-            labels: recolectores,
-            datasets: [
-                {
-                    label: 'Capacidad de Retorno',
-                    data: capacidades,
-                    backgroundColor: '#66BB6A',
-                },
-            ],
+            labels: fechasArray, // Las fechas son las etiquetas del gráfico
+            datasets: datasets,
         };
-        console.log(this.dataCapacidadRetorno);
     }
+    
 
     dataDistanciaRecorrida: any | undefined;
     // En tu componente .ts 5
@@ -228,7 +419,12 @@ export class RecolectorEstadisticasComponent {
 
         Object.keys(distanciasPorFecha).forEach((deviceId) => {
             const data = fechasArray.map(
-                (fecha) => distanciasPorFecha[deviceId][fecha] || 0 // Usar 0 si no hay datos
+                (fecha) =>
+                    distanciasPorFecha[deviceId][fecha]
+                        ? parseFloat(
+                              distanciasPorFecha[deviceId][fecha].toFixed(2)
+                          )
+                        : 0 // Usar 0 si no hay datos
             );
             const color = this.getRandomColor();
             const opacoColor = this.hexToRgba(color, 0.2); // Ajusta la opacidad aquí (0.2 = 20% opacidad)
