@@ -4,33 +4,115 @@
     <div class="card">
         <h2>Estadísticas Generales</h2>
 
-        <p-table [value]="datosRecolectores">
+        <p-table
+            #dt1
+            [value]="datosRecolectores"
+            dataKey="_id"
+            styleClass="p-datatable-striped"
+            [rows]="10"
+            [rowsPerPageOptions]="[5, 10, 20]"
+            [showCurrentPageReport]="true"
+            [loading]="datosRecolectores.length < 0"
+            sortMode="multiple"
+            [paginator]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+            [globalFilterFields]="[
+                'date',
+                'deviceId',
+                'ruta.length',
+                'puntos_recoleccion.length',
+                'velocidad_maxima'
+            ]"
+            onchange="onSort($event, dt1)"
+            (filter)="generarEstadisticas(dt1)"
+            (sort)="onSort($event, dt1)"
+        >
+            <ng-template pTemplate="caption">
+                <div class="flex">
+                    <p-button
+                        label="Clear"
+                        [outlined]="true"
+                        icon="pi pi-filter-slash"
+                        (onClick)="clear(dt1)"
+                    />
+                    <button
+                        pButton
+                        pRipple
+                        icon="pi pi-search"
+                        label="Generar Gráficos"
+                        (click)="generarEstadisticas(dt1)"
+                        class="p-input-icon-left ml-auto"
+                    ></button>
+                </div>
+            </ng-template>
             <ng-template pTemplate="header">
                 <tr>
-                    <th style="text-align: center;">Fecha</th>
-                    <th style="text-align: center;">Recolector</th>
-                    <th style="text-align: center;">Ruta</th>
-                    <th style="text-align: center;">Puntos de Recolección</th>
+                    <th style="text-align: center" pSortableColumn="date">
+                        <p-columnFilter
+                            type="date"
+                            field="date"
+                            display="menu"
+                        />
+                        Fecha
+
+                        <p-sortIcon field="date" />
+                    </th>
+                    <th style="text-align: center" pSortableColumn="deviceId">
+                        Recolector <p-sortIcon field="deviceId" />
+                    </th>
+                    <th
+                        style="text-align: center"
+                        pSortableColumn="ruta.length"
+                    >
+                        Ruta <p-sortIcon field="ruta.length" />
+                    </th>
+                    <th
+                        style="text-align: center"
+                        pSortableColumn="puntos_recoleccion.length"
+                    >
+                        Puntos de Recolección
+                        <p-sortIcon field="puntos_recoleccion.length" />
+                    </th>
                     <!--
                     <th>Capacidad Retorno</th>
                     -->
-                    
-                    <th style="text-align: center;">Velocidad Máxima</th>
+
+                    <th
+                        style="text-align: center"
+                        pSortableColumn="velocidad_maxima"
+                    >
+                        Velocidad Máxima <p-sortIcon field="velocidad_maxima" />
+                    </th>
                     <!-- Nueva columna -->
                 </tr>
             </ng-template>
             <ng-template pTemplate="body" let-recolector>
                 <tr>
-                    <td style="text-align: center;">{{ recolector.dateOnly }}</td>
-                    <td style="text-align: center;">{{ recolector.deviceId }}</td>
-                    <td style="text-align: center;">{{ recolector.ruta.length }}</td>
-                    <td style="text-align: center;">{{ recolector.puntos_recoleccion.length }}</td>
+                    <td style="text-align: center">
+                        {{ recolector.dateOnly }}
+                    </td>
+                    <td style="text-align: center">
+                        {{ recolector.deviceId }}
+                    </td>
+                    <td style="text-align: center">
+                        {{ recolector.ruta.length }}
+                    </td>
+                    <td style="text-align: center">
+                        {{ recolector.puntos_recoleccion.length }}
+                    </td>
                     <!--
                      <td>{{ recolector.capacidad_retorno[0]?.value }}</td>
                     -->
 
-                    <td style="text-align: center;">{{ calcularVelocidadMaxima(recolector.ruta) }} km/h</td>
+                    <td style="text-align: center">
+                        {{ recolector.velocidad_maxima }} km/h
+                    </td>
                     <!-- Nueva columna con la velocidad máxima -->
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="5">No se encontraron fichas.</td>
                 </tr>
             </ng-template>
         </p-table>
@@ -103,7 +185,9 @@
                 </div>
             </div>
             <div class="card">
-                <label class="font-bold block mb-2">Desechos Recolectados</label>
+                <label class="font-bold block mb-2"
+                    >Desechos Recolectados</label
+                >
                 <p-chart type="line" [data]="dataCapacidadRetorno"></p-chart>
                 <div style="display: flex; justify-content: space-between">
                     <p-button
@@ -204,12 +288,20 @@
         >
             <ng-template pTemplate="header">
                 <tr *ngIf="dialogTableData && dialogTableData.length > 0">
-                    <th *ngFor="let header of tableHeaders" style="text-align: center;">{{ header }}</th>
+                    <th
+                        *ngFor="let header of tableHeaders"
+                        style="text-align: center"
+                    >
+                        {{ header }}
+                    </th>
                 </tr>
             </ng-template>
             <ng-template pTemplate="body" let-row>
                 <tr>
-                    <td *ngFor="let header of tableHeaders" style="text-align: center;">
+                    <td
+                        *ngFor="let header of tableHeaders"
+                        style="text-align: center"
+                    >
                         {{ row[header] }}
                     </td>
                 </tr>

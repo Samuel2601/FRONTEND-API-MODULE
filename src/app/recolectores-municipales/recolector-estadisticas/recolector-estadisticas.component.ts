@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Table } from 'primeng/table';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ListService } from 'src/app/demo/services/list.service';
@@ -99,6 +100,15 @@ export class RecolectorEstadisticasComponent {
         this.recolectorService.listarAsignacionRecolectores(token).subscribe({
             next: (data) => {
                 this.datosRecolectores = data.data;
+                this.datosRecolectores.map((e) => {
+                    e.date = new Date(e.dateOnly);
+                    /*e.dateOnly = new Date(e.dateOnly).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                    });*/
+                    e.velocidad_maxima = this.calcularVelocidadMaxima(e.ruta);
+                });
                 console.log(this.datosRecolectores);
                 this.cargando = false;
                 this.generarEstadisticas();
@@ -106,19 +116,32 @@ export class RecolectorEstadisticasComponent {
             error: (err) => console.error('Error al obtener datos', err),
         });
     }
-    generarEstadisticas() {
-        this.generarDistribucionVelocidades();
-        this.generarVelocidadPromedio();
-        this.generarPuntosRecoleccion();
-        this.generarCapacidadRetorno();
-        this.generarDistanciaRecorrida();
+    onSort(event: any, dt1: any) {
+        console.log('Orden aplicado:', event);
+        console.log('Datos ordenados:', dt1.filteredValue || dt1.value);
+    
+        // Llama a la función para generar estadísticas con los datos ordenados
+        //this.generarEstadisticas(dt1);
+    }
+
+    generarEstadisticas(dt1?: any) {
+        console.log(dt1, dt1?.filteredValue);
+        console.log('Datos ordenados:', dt1?.filteredValue || dt1?.value);
+        // Acceder a los datos filtrados
+        const datosFiltrados = dt1?.filteredValue || dt1?.value || this.datosRecolectores;
+
+        this.generarDistribucionVelocidades(datosFiltrados);
+        this.generarVelocidadPromedio(datosFiltrados);
+        this.generarPuntosRecoleccion(datosFiltrados);
+        this.generarCapacidadRetorno(datosFiltrados);
+        this.generarDistanciaRecorrida(datosFiltrados);
     }
     dataDistribucionVelocidades: any | undefined;
     // En tu componente .ts 1
-    generarDistribucionVelocidades() {
-        const recolectores = this.datosRecolectores.map((d) => d.deviceId);
-        const velocidades = this.datosRecolectores
-            .map((d) => d.ruta.map((punto) => punto.speed))
+    generarDistribucionVelocidades(datosRecolectores:any) {
+        const recolectores = datosRecolectores.map((d:any) => d.deviceId);
+        const velocidades = datosRecolectores
+            .map((d:any) => d.ruta.map((punto:any) => punto.speed))
             .flat();
 
         // Crear histogramas de velocidades
@@ -142,12 +165,12 @@ export class RecolectorEstadisticasComponent {
     dataVelocidadPromedio: any | undefined;
     // En tu componente .ts 2
 
-    generarVelocidadPromedio() {
+    generarVelocidadPromedio(datosRecolectores:any) {
         // Paso 1: Preparar la estructura de datos inicial
         const velocidadesPorFechaYRecolector = {};
         const fechasSet = new Set();
 
-        this.datosRecolectores.forEach((recolector) => {
+        datosRecolectores.forEach((recolector:any) => {
             const { deviceId, dateOnly, ruta } = recolector;
 
             // Inicializar el objeto para el deviceId si no existe
@@ -162,8 +185,8 @@ export class RecolectorEstadisticasComponent {
 
             // Calcular las velocidades y agregarlas a la estructura de datos
             const velocidades = ruta
-                .filter((punto) => punto.speed > 1)
-                .map((punto) => punto.speed);
+                .filter((punto:any) => punto.speed > 1)
+                .map((punto:any) => punto.speed);
 
             velocidadesPorFechaYRecolector[deviceId][dateOnly].push(
                 velocidades.length > 0
@@ -215,46 +238,48 @@ export class RecolectorEstadisticasComponent {
 
     dataPuntosRecoleccion: any | undefined;
     // En tu componente .ts 3
-    generarPuntosRecoleccion() {
+    generarPuntosRecoleccion(datosRecolectores:any) {
         // Paso 1: Preparar la estructura de datos inicial
         const puntosPorFechaYRecolector = {};
         const fechasSet = new Set();
-    
+
         // Procesar los datos recolectores
-        this.datosRecolectores.forEach((recolector) => {
+        datosRecolectores.forEach((recolector:any) => {
             const { deviceId, dateOnly, puntos_recoleccion } = recolector;
-    
+
             // Inicializar el objeto para el deviceId si no existe
             if (!puntosPorFechaYRecolector[deviceId]) {
                 puntosPorFechaYRecolector[deviceId] = {};
             }
-    
+
             // Inicializar el objeto para la fecha si no existe
             if (!puntosPorFechaYRecolector[deviceId][dateOnly]) {
                 puntosPorFechaYRecolector[deviceId][dateOnly] = 0;
             }
-    
+
             // Contar los puntos de recolección que no tienen retorno
-            const puntos = puntos_recoleccion.filter((e) => e.retorno === false).length;
-    
+            const puntos = puntos_recoleccion.filter(
+                (e:any) => e.retorno === false
+            ).length;
+
             puntosPorFechaYRecolector[deviceId][dateOnly] = puntos;
-    
+
             // Agregar las fechas al conjunto
             fechasSet.add(dateOnly);
         });
-    
+
         // Paso 2: Preparar los datos para los gráficos
         const datasets = [];
         const fechasArray = [...fechasSet]; // Convertir el conjunto a un array
-    
+
         Object.keys(puntosPorFechaYRecolector).forEach((deviceId) => {
             const data = fechasArray.map(
                 (fecha) => puntosPorFechaYRecolector[deviceId][fecha] || 0 // Usar 0 si no hay datos
             );
-    
+
             const color = this.getRandomColor();
             const opacoColor = this.hexToRgba(color, 0.2); // Ajusta la opacidad aquí (0.2 = 20% opacidad)
-    
+
             datasets.push({
                 label: deviceId,
                 data: data,
@@ -264,13 +289,13 @@ export class RecolectorEstadisticasComponent {
                 borderColor: color,
             });
         });
-    
+
         this.dataPuntosRecoleccion = {
             labels: fechasArray, // Las fechas son las etiquetas del gráfico
             datasets: datasets,
         };
     }
-    
+
     dataCapacidadRetorno: any | undefined;
     tabla_info = [
         { id: 1840, name: 'RECL - 04 HIGIENE', plate: '', capacidad: 12 },
@@ -298,32 +323,33 @@ export class RecolectorEstadisticasComponent {
     ];
     mapaCapacidades = new Map<number, number>();
     // En tu componente .ts 4
-    generarCapacidadRetorno() {
+    generarCapacidadRetorno(datosRecolectores:any) {
         // Paso 1: Preparar la estructura de datos inicial
         const capacidadesPorFechaYRecolector = {};
         const fechasSet = new Set();
-    
+
         // Inicializar el mapa de capacidades por ID
         this.tabla_info.forEach((item) => {
             this.mapaCapacidades.set(item.id, item.capacidad);
         });
-    
+
         // Procesar los datos recolectores
-        this.datosRecolectores.forEach((recolector) => {
+        datosRecolectores.forEach((recolector) => {
             const { deviceId, dateOnly, capacidad_retorno } = recolector;
-    
+
             // Inicializar el objeto para el deviceId si no existe
             if (!capacidadesPorFechaYRecolector[deviceId]) {
                 capacidadesPorFechaYRecolector[deviceId] = {};
             }
-    
+
             // Inicializar el objeto para la fecha si no existe
             if (!capacidadesPorFechaYRecolector[deviceId][dateOnly]) {
                 capacidadesPorFechaYRecolector[deviceId][dateOnly] = 0;
             }
-    
+
             // Calcular la capacidad de retorno
-            const capacidadReal = this.mapaCapacidades.get(parseInt(deviceId)) || 0;
+            const capacidadReal =
+                this.mapaCapacidades.get(parseInt(deviceId)) || 0;
             const capacidadRetorno = capacidad_retorno
                 .map((cr) => {
                     switch (cr.value) {
@@ -338,25 +364,27 @@ export class RecolectorEstadisticasComponent {
                     }
                 })
                 .reduce((acc, curr) => acc + curr, 0);
-    
-            capacidadesPorFechaYRecolector[deviceId][dateOnly] = parseFloat(capacidadRetorno.toFixed(2));
-    
+
+            capacidadesPorFechaYRecolector[deviceId][dateOnly] = parseFloat(
+                capacidadRetorno.toFixed(2)
+            );
+
             // Agregar las fechas al conjunto
             fechasSet.add(dateOnly);
         });
-    
+
         // Paso 2: Preparar los datos para los gráficos
         const datasets = [];
         const fechasArray = [...fechasSet]; // Convertir el conjunto a un array
-    
+
         Object.keys(capacidadesPorFechaYRecolector).forEach((deviceId) => {
             const data = fechasArray.map(
                 (fecha) => capacidadesPorFechaYRecolector[deviceId][fecha] || 0 // Usar 0 si no hay datos
             );
-    
+
             const color = this.getRandomColor();
             const opacoColor = this.hexToRgba(color, 0.2); // Ajusta la opacidad aquí (0.2 = 20% opacidad)
-    
+
             datasets.push({
                 label: deviceId,
                 data: data,
@@ -366,22 +394,21 @@ export class RecolectorEstadisticasComponent {
                 borderColor: color,
             });
         });
-    
+
         this.dataCapacidadRetorno = {
             labels: fechasArray, // Las fechas son las etiquetas del gráfico
             datasets: datasets,
         };
     }
-    
 
     dataDistanciaRecorrida: any | undefined;
     // En tu componente .ts 5
-    generarDistanciaRecorrida() {
+    generarDistanciaRecorrida(datosRecolectores:any) {
         // Paso 1: Preparar la estructura de datos inicial
         const distanciasPorFecha = {};
         const fechasSet = new Set();
 
-        this.datosRecolectores.forEach((recolector) => {
+        datosRecolectores.forEach((recolector:any) => {
             const { deviceId, dateOnly, ruta } = recolector;
 
             // Inicializar el objeto para el deviceId si no existe
@@ -508,5 +535,10 @@ export class RecolectorEstadisticasComponent {
             (max, punto) => (punto.speed > max ? punto.speed : max),
             0
         );
+    }
+    searchValue: string | undefined;
+    clear(table: Table) {
+        table.clear();
+        this.searchValue = '';
     }
 }
