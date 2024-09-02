@@ -325,7 +325,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         iconElement.style.height = '80px';
         iconElement.style.backgroundImage = location.retorno
             ? 'url(https://i.postimg.cc/wM5tfphk/flag.png)'
-            : 'url(https://i.postimg.cc/5NqvpwgM/trash3.png)';
+            : 'url(https://i.postimg.cc/qRSvZQBk/trash-verde.png)';
         iconElement.style.backgroundSize = 'cover';
         iconElement.style.backgroundPosition = 'center';
         iconElement.style.borderRadius = '50%'; // Opcional: para hacerlo circular

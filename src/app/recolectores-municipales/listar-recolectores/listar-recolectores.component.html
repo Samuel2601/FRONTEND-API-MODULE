@@ -40,6 +40,7 @@
                             (onClick)="op.toggle($event); showoverlay(product)"
                             icon="pi pi-receipt"
                             label="Capacidad"
+                            [badge]="getBadgeValue(product)"
                         ></p-button>
 
                         <p-button
@@ -62,7 +63,7 @@
     </p-table>
 </p-card>
 <p-dialog
-    *ngIf="isMobil()&&viewregister"
+    *ngIf="isMobil() && viewregister"
     [header]="
         'Acciones sobre:' +
         viewregister.dateOnly +
@@ -81,7 +82,10 @@
     <span class="p-text-secondary block mb-5"
         >Selecciona que deseas hacer:
     </span>
-    <div class="flex align-items-center gap-3 mb-3" style="justify-content: center;">
+    <div
+        class="flex align-items-center gap-3 mb-3"
+        style="justify-content: center"
+    >
         <p-button
             class="mx-2"
             (onClick)="op.toggle($event); showoverlay(viewregister)"
@@ -89,7 +93,10 @@
             label="Capacidad"
         ></p-button>
     </div>
-    <div class="flex align-items-center gap-3 mb-3" style="justify-content: center;">
+    <div
+        class="flex align-items-center gap-3 mb-3"
+        style="justify-content: center"
+    >
         <p-button
             class="mx-2"
             icon="pi pi-map"
@@ -97,7 +104,10 @@
             (onClick)="verRuta(viewregister)"
         ></p-button>
     </div>
-    <div class="flex align-items-center gap-3 mb-3" style="justify-content: center;">
+    <div
+        class="flex align-items-center gap-3 mb-3"
+        style="justify-content: center"
+    >
         <p-button
             class="mx-2"
             icon="pi pi-eraser"
