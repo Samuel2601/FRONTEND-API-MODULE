@@ -1,10 +1,24 @@
 <p-card header="Lista de Asignaciones de Recolectores a Funcionarios">
-    <p-button
-        icon="pi pi-plus-circle"
-        label="Añadir"
-        (onClick)="llamar_asignacion_Form()"
-    ></p-button>
-    <p-table [value]="arr_asignacion">
+    <div style="display: flex; justify-content: flex-end">
+        <p-button
+            *ngIf="check_create"
+            icon="pi pi-plus-circle"
+            label="Añadir"
+            (onClick)="llamar_asignacion_Form()"
+        ></p-button>
+    </div>
+
+    <p-table
+        [value]="arr_asignacion"
+        styleClass="p-datatable-striped"
+        [rows]="10"
+        [rowsPerPageOptions]="[5, 10, 20]"
+        [showCurrentPageReport]="true"
+        [loading]="load_list"
+        sortMode="multiple"
+        [paginator]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+    >
         <ng-template pTemplate="header">
             <tr>
                 <th>#</th>
@@ -18,7 +32,20 @@
         <ng-template pTemplate="body" let-product let-rowIndex="rowIndex">
             <tr (click)="viewregister = product; visible = true">
                 <!-- Mostrar el número de fila en orden descendente -->
-                <td>{{ arr_asignacion.length - rowIndex }}</td>
+                <td>
+                    {{ arr_asignacion.length - rowIndex }}
+                    <i
+                        *ngIf="isMobil() && getBadgeValue(product) > 0"
+                        class="pi pi-bell text-3xl"
+                        pBadge
+                        [value]="getBadgeValue(product)"
+                        [severity]="
+                            getBadgeValue(product) && getBadgeValue(product) > 0
+                                ? 'danger'
+                                : 'success'
+                        "
+                    ></i>
+                </td>
 
                 <!-- Mostrar la fecha -->
                 <td>{{ product.dateOnly | date : "shortDate" }}</td>
@@ -40,7 +67,17 @@
                             (onClick)="op.toggle($event); showoverlay(product)"
                             icon="pi pi-receipt"
                             label="Capacidad"
-                            [badge]="getBadgeValue(product)"
+                            [badge]="
+                                getBadgeValue(product)
+                                    ? getBadgeValue(product).toString()
+                                    : null
+                            "
+                            [severity]="
+                                getBadgeValue(product) &&
+                                getBadgeValue(product) > 0
+                                    ? 'danger'
+                                    : 'success'
+                            "
                         ></p-button>
 
                         <p-button
@@ -53,6 +90,7 @@
                         <p-button
                             class="mx-2"
                             icon="pi pi-eraser"
+                            severity="warning"
                             label="Eliminar"
                             (onClick)="confirm($event, product)"
                         ></p-button>
@@ -88,33 +126,49 @@
     >
         <p-button
             class="mx-2"
+            styleClass="p-button-lg"
+            size="large"
             (onClick)="op.toggle($event); showoverlay(viewregister)"
             icon="pi pi-receipt"
             label="Capacidad"
+            [badge]="getBadgeValue(viewregister).toString()"
+            [severity]="
+                getBadgeValue(viewregister) && getBadgeValue(viewregister) > 0
+                    ? 'danger'
+                    : 'success'
+            "
         ></p-button>
     </div>
+
     <div
         class="flex align-items-center gap-3 mb-3"
         style="justify-content: center"
     >
         <p-button
             class="mx-2"
+            styleClass="p-button-lg"
+            size="large"
             icon="pi pi-map"
             label="Ver"
             (onClick)="verRuta(viewregister)"
         ></p-button>
     </div>
+
     <div
         class="flex align-items-center gap-3 mb-3"
         style="justify-content: center"
     >
         <p-button
             class="mx-2"
+            styleClass="p-button-lg"
+            size="large"
             icon="pi pi-eraser"
             label="Eliminar"
+            severity="warning"
             (onClick)="confirm($event, viewregister)"
         ></p-button>
     </div>
+
     <div class="flex justify-content-end gap-2">
         <p-button
             label="Cerrar"

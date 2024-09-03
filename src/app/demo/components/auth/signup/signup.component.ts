@@ -118,11 +118,11 @@ export class SignupComponent {
             ],*/
             name: [
                 '',
-                [Validators.required, Validators.pattern('^[a-zA-Záéíóú ]+$')],
+                [Validators.required, Validators.pattern('^[a-zA-ZáéíóúÑñ ]+$')],
             ],
             last_name: [
                 '',
-                [Validators.required, Validators.pattern('^[a-zA-Záéíóú ]+$')],
+                [Validators.required, Validators.pattern('^[a-zA-ZáéíóúÑñ ]+$')],
             ],
             telf: [
                 '',

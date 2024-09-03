@@ -35,16 +35,38 @@ export class ListarRecolectoresComponent implements OnInit {
         private deleteservice: DeleteService,
         private messageService: MessageService,
         private confirmationService: ConfirmationService
-    ) {}
+    ) {
+        this.auth.permissions$.subscribe((permissions) => {
+            if (permissions.length > 0) {
+                this.permisos_arr = permissions;
+            }
+            this.loadPermissions(); // Llama a loadPermissions cuando hay cambios en los permisos
+        });
+    }
+    permisos_arr: any[] = [];
+    async boolPermiss(permission: any, method: any) {
+        const hasPermissionBOL =
+            this.permisos_arr.length > 0
+                ? this.permisos_arr.some(
+                      (e) => e.name === permission && e.method === method
+                  )
+                : false;
+        return hasPermissionBOL;
+    }
+    async loadPermissions() {
+        this.check_create =
+            (await this.boolPermiss('/recolector/:id', 'get')) || false;
+    }
+    check_create: boolean = false;
     async ngOnInit(): Promise<void> {
         await this.fetchDevices();
     }
     devices: any[] = [];
     async fetchDevices() {
         this.ubicar.obtenerDeviceGPS().subscribe((response) => {
-            console.log(response);
-            const aux = response.map(e=>{return {id:e.id, name:e.name, plate: e.plate, capacidad: 0}});
-            console.log(JSON.stringify(aux));
+            const aux = response.map((e) => {
+                return { id: e.id, name: e.name, plate: e.plate, capacidad: 0 };
+            });
             this.devices = response;
             this.listar_asignacion();
         });
@@ -60,14 +82,16 @@ export class ListarRecolectoresComponent implements OnInit {
         return nameDevice;
     }
     arr_asignacion: any[] = [];
+    load_list: boolean = true;
     listar_asignacion() {
+        this.load_list = true;
         this.list
             .listarAsignacionRecolectores(this.token, {}, true)
             .subscribe((response) => {
                 if (response.data) {
                     this.arr_asignacion = response.data;
-                    console.log(this.arr_asignacion);
                 }
+                this.load_list = false;
             });
     }
     llamar_asignacion_Form() {
@@ -107,9 +131,9 @@ export class ListarRecolectoresComponent implements OnInit {
             App.addListener('backButton', (data) => {
                 this.ref.close();
             });
-            this.ref.onClose.subscribe(() => {
+            /*this.ref.onClose.subscribe(() => {
                 this.listar_asignacion();
-            });
+            });*/
         }
     }
     confirm(event: Event, register: any) {
@@ -151,7 +175,6 @@ export class ListarRecolectoresComponent implements OnInit {
             .RemoveRecolectores(this.token, register._id)
             .subscribe(
                 (response) => {
-                    console.log(response);
                     if (response.data) {
                         this.messageService.add({
                             severity: 'success',
@@ -165,6 +188,7 @@ export class ListarRecolectoresComponent implements OnInit {
                     }
                 },
                 (erro) => {
+                    console.error(erro);
                     this.messageService.add({
                         severity: 'error',
                         summary: 'ERROR',
@@ -194,8 +218,6 @@ export class ListarRecolectoresComponent implements OnInit {
         /*register.capacidad_retorno = register.capacidad_retorno.map(
             (element: any) => element.value
         );*/
-
-        console.log(register);
         const token = this.auth.token();
 
         // Verificamos que el datatoken sea de tipo string
@@ -208,23 +230,38 @@ export class ListarRecolectoresComponent implements OnInit {
             .updateRutaRecolector(token, register._id, {
                 capacidad_retorno: register.capacidad_retorno,
             })
-            .subscribe(response=>{
-                console.log(response);
-            }, error=>{
-                console.log(error);
-            });
+            .subscribe(
+                (response) => {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Actualización',
+                        detail: 'Retorno Actualizado',
+                    });
+                    console.log(response);
+                },
+                (error) => {
+                    console.error(error);
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'ERROR',
+                        detail: 'Ocurrio algo malo al eliminar el registro.',
+                    });
+                }
+            );
     }
-    visible:boolean=false;
-    viewregister:any;
+    visible: boolean = false;
+    viewregister: any;
 
-    getBadgeValue(product: any): string | null {
-        const arr_capcidad=product.capacidad_retorno.filter((e:any)=>e.value)||[]
+    getBadgeValue(product: any): number | null {
+        const arr_capcidad =
+            product.capacidad_retorno.filter((e: any) => e.value) || [];
         const capacidadRetornoLength = arr_capcidad.length || 0;
-        const puntos_retornos=product.puntos_recoleccion.filter((e:any)=>e.retorno===true)||[];
+        const puntos_retornos =
+            product.puntos_recoleccion.filter((e: any) => e.retorno === true) ||
+            [];
         const puntosRecoleccionLength = puntos_retornos.length || 0;
         const difference = puntosRecoleccionLength - capacidadRetornoLength;
-    
-        return difference > 0 ? difference.toString() : null;
+
+        return difference > 0 ? difference : null;
     }
-    
 }

@@ -17,42 +17,45 @@ export class AppMenuComponent implements OnInit {
     constructor(
         public layoutService: LayoutService,
         private auth: AuthService
-    ) {}
-    permisos_arr: any[];
-    ngOnInit() {
-        this.permisos_arr = this.auth.getPermisosSubject();
-        this.auth.permissions$.subscribe((permissions) => {
-            this.permisos_arr = this.auth.getPermisosSubject();
-            //console.log(this.permisos_arr);
-            this.loadPermissions(); // Llama a loadPermissions cuando hay cambios en los permisos
+    ) {
+        this.auth.permissions$.subscribe(async (permissions) => {
+            if(permissions.length>0){
+                this.permisos_arr=permissions;
+            }
+            await this.loadPermissions(); // Llama a loadPermissions cuando hay cambios en los permisos
         });
 
-        this.loadPermissions();
     }
-    boolPermiss(permission: any, method: any) {
-        const hasPermissionBOL = this.permisos_arr.some(
+    permisos_arr: any[]=[];
+    async ngOnInit() {
+        //this.permisos_arr = this.auth.getPermisosSubject();
+        await this.loadPermissions();
+    }
+    async boolPermiss(permission: any, method: any) {
+        const hasPermissionBOL = this.permisos_arr.length>0?
+        this.permisos_arr.some(
             (e) => e.name === permission && e.method === method
-        );
+        ):false;
         return hasPermissionBOL;
     }
 
     async loadPermissions() {
         const permissions = {
-            canViewRecolector: this.boolPermiss('/recolector_ruta/:id', 'get'),
-            canTrashRecolector: this.boolPermiss('/recolector/:id', 'get'),
-            canViewMapa: this.boolPermiss('/incidentes_denuncia', 'get'),
-            canViewCategoria: this.boolPermiss('/categoria', 'get'),
-            canViewCategoriaCrear: this.boolPermiss('/categoria', 'post'),
-            canViewSubCategoriaCrear: this.boolPermiss('/subcategoria', 'post'),
-            canViewIncidente: this.boolPermiss('/incidentes_denuncia', 'get'),
-            canViewIncidenteReporte: this.boolPermiss(
+            canViewRecolector: await this.boolPermiss('/recolector_ruta/:id', 'get'),
+            canTrashRecolector: await this.boolPermiss('/recolector/:id', 'get'),
+            canViewMapa: await this.boolPermiss('/incidentes_denuncia', 'get'),
+            canViewCategoria: await this.boolPermiss('/categoria', 'get'),
+            canViewCategoriaCrear: await this.boolPermiss('/categoria', 'post'),
+            canViewSubCategoriaCrear: await this.boolPermiss('/subcategoria', 'post'),
+            canViewIncidente: await this.boolPermiss('/incidentes_denuncia', 'get'),
+            canViewIncidenteReporte: await this.boolPermiss(
                 'reporteincidente',
                 'get'
             ),
             //canViewFicha: (this.boolPermiss('/ficha_sectorial', 'get')),
-            canViewFichaReporte: this.boolPermiss('reporteficha', 'get'),
-            canViewAdministracion: this.boolPermiss('/categoria', 'post'),
-            canViewPanelControl: this.boolPermiss('dashboard', 'get'),
+            canViewFichaReporte: await this.boolPermiss('reporteficha', 'get'),
+            canViewAdministracion: await this.boolPermiss('/categoria', 'post'),
+            canViewPanelControl: await this.boolPermiss('dashboard', 'get'),
         };
 
         this.model = [
@@ -71,6 +74,12 @@ export class AppMenuComponent implements OnInit {
                         icon: 'pi pi-fw pi-map-marker',
                         routerLink: ['/recolectores/map'],
                         visible: permissions.canTrashRecolector,
+                    },
+                    {
+                        label: 'Recolectores Estadística',
+                        icon: 'pi pi-fw pi-wave-pulse',
+                        routerLink: ['/recolectores/status'],
+                        visible: permissions.canViewRecolector,
                     },
                 ],
             },

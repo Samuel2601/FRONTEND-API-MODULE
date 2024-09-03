@@ -492,6 +492,21 @@ export class HomeComponent implements OnInit {
                                     );
                                 },
                             },
+                            {
+                                label: '¿Quieres WIFI en tu barrio?',
+                                info: 'Esta es una encuesta para saber en qué lugares desean tener WiFi por parte de la alcaldía.',
+                                icon: 'https://i.postimg.cc/Cx0YHVKp/Iconos-disen-o-10.png',
+                                showInfo: false,
+                                style: false,
+                                command: async () => {
+                                    window.open(
+                                        'https://docs.google.com/forms/d/e/1FAIpQLSdZT_1XTiaHWSx5BCw1wZwAcr_FqpcQlsZHg6amCT-crdBtug/viewform',
+                                        '_blank'
+                                    );
+                                },
+                            }
+                            
+                            
                         ],
                     },
                     /*{
