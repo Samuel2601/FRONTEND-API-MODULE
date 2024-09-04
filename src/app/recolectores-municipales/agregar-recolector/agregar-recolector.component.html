@@ -5,6 +5,17 @@
     <div class="p-fluid">
         <form [formGroup]="formulario" (ngSubmit)="onSubmit()">
             <div class="p-field p-5">
+                <label for="role">Seleccionar Funcionario o Externo</label>
+                <p-checkbox
+                    name="role"
+                    binary="true"
+                    label="Externo"
+                    [(ngModel)]="isExterno"
+                    formControlName="isExterno"
+                ></p-checkbox>
+            </div>
+        
+            <div *ngIf="!isExterno" class="p-field p-5">
                 <label for="funcionario">Funcionario</label>
                 <p-dropdown
                     id="funcionario"
@@ -14,7 +25,54 @@
                     placeholder="Seleccione un funcionario"
                 ></p-dropdown>
             </div>
-
+        
+            <div *ngIf="isExterno" class="p-field p-5">
+                <ng-container *ngIf="externos.length > 0; else noExternos">
+                    <label for="externo">Externo</label>
+                    <p-dropdown
+                        id="externo"
+                        [options]="externos"
+                        formControlName="externo"
+                        optionLabel="name"
+                        placeholder="Seleccione un externo"
+                    ></p-dropdown>
+                    <button pButton type="button" label="Añadir Externo" (click)="showExternoForm = true"></button>
+                </ng-container>
+                <ng-template #noExternos>
+                    <label for="externo">Registrar Externo</label>
+                    <!-- Aquí se renderiza el formulario para un nuevo externo -->
+                    <input
+                        id="externoName"
+                        type="text"
+                        pInputText
+                        formControlName="externoName"
+                        placeholder="Nombre del Externo"
+                    />
+                    <!-- Agregar otros campos necesarios para el externo -->
+                    <input
+                        id="externoDni"
+                        type="text"
+                        pInputText
+                        formControlName="externoDni"
+                        placeholder="DNI del Externo"
+                    />
+                    <input
+                        id="externoPhone"
+                        type="text"
+                        pInputText
+                        formControlName="externoPhone"
+                        placeholder="Teléfono del Externo"
+                    />
+                    <input
+                        id="externoAddress"
+                        type="text"
+                        pInputText
+                        formControlName="externoAddress"
+                        placeholder="Dirección del Externo"
+                    />
+                </ng-template>
+            </div>
+        
             <div class="p-field p-5">
                 <label for="deviceId">Recolectores</label>
                 <p-dropdown
@@ -25,42 +83,125 @@
                     placeholder="Seleccione un dispositivo"
                 ></p-dropdown>
             </div>
-
+        
             <div class="p-field">
                 <button pButton type="submit" label="Registrar"></button>
             </div>
         </form>
+        
     </div>
 </div>
 
 <div class="p-fluid" *ngIf="!isMobil()">
-    <form [formGroup]="formulario" (ngSubmit)="onSubmit()">
-        <div class="p-field p-5">
-            <label for="funcionario">Funcionario</label>
+    <form [formGroup]="formulario" (ngSubmit)="onSubmit()" class="p-fluid">
+        <div *ngIf="!isExterno" class="p-field p-5">
+            <label for="funcionario" class="p-d-flex p-ai-center">
+                <i class="pi pi-user p-mr-2"></i> Funcionario
+            </label>
             <p-dropdown
-                appendTo="body"
                 id="funcionario"
                 [options]="funcionarios"
                 formControlName="funcionario"
                 optionLabel="fullName"
                 placeholder="Seleccione un funcionario"
+                class="p-inputtext-lg p-d-block"
+                [style]="{width: '100%'}"
             ></p-dropdown>
         </div>
-
         <div class="p-field p-5">
-            <label for="deviceId">Recolectores</label>
+            <label for="role" class="p-d-flex p-ai-center">
+                <i class="pi pi-users p-mr-2"></i> No está en lista? puedes ingresarlo como un chofer externo
+            </label>
+            <p-checkbox
+                name="role"
+                binary="true"
+                label="Externo"
+                [(ngModel)]="isExterno"
+                formControlName="isExterno"
+                class="p-d-block"
+            ></p-checkbox>
+        </div>
+    
+        <div *ngIf="isExterno" class="p-field p-5">
+            <ng-container *ngIf="externos.length > 0; else noExternos">
+                <label for="externo" class="p-d-flex p-ai-center">
+                    <i class="pi pi-user-plus p-mr-2"></i> Externo
+                </label>
+                <p-dropdown
+                    id="externo"
+                    [options]="externos"
+                    formControlName="externo"
+                    optionLabel="name"
+                    placeholder="Seleccione un externo"
+                    class="p-inputtext-lg p-d-block"
+                    [style]="{width: '100%'}"
+                ></p-dropdown>
+                <button
+                    pButton
+                    type="button"
+                    label="Añadir Externo"
+                    icon="pi pi-plus"
+                    class="p-button-secondary p-mt-2"
+                    (click)="showExternoForm = true"
+                ></button>
+            </ng-container>
+            <ng-template #noExternos>
+                <label for="externo" class="p-d-flex p-ai-center">
+                    <i class="pi pi-user-edit p-mr-2"></i> Registrar Externo
+                </label>
+                <input
+                    id="externoName"
+                    type="text"
+                    pInputText
+                    formControlName="externoName"
+                    placeholder="Nombre del Externo"
+                    class="p-inputtext-lg p-mb-3"
+                />
+                <input
+                    id="externoDni"
+                    type="text"
+                    pInputText
+                    formControlName="externoDni"
+                    placeholder="DNI del Externo"
+                    class="p-inputtext-lg p-mb-3"
+                />
+                <input
+                    id="externoPhone"
+                    type="text"
+                    pInputText
+                    formControlName="externoPhone"
+                    placeholder="Teléfono del Externo"
+                    class="p-inputtext-lg p-mb-3"
+                />
+                <input
+                    id="externoAddress"
+                    type="text"
+                    pInputText
+                    formControlName="externoAddress"
+                    placeholder="Dirección del Externo"
+                    class="p-inputtext-lg"
+                />
+            </ng-template>
+        </div>
+    
+        <div class="p-field p-5">
+            <label for="deviceId" class="p-d-flex p-ai-center">
+                <i class="pi pi-tablet p-mr-2"></i> Recolectores
+            </label>
             <p-dropdown
-                appendTo="body"
                 id="deviceId"
                 [options]="devices"
                 formControlName="deviceId"
                 optionLabel="name"
                 placeholder="Seleccione un dispositivo"
+                class="p-inputtext-lg p-d-block"
+                [style]="{width: '100%'}"
             ></p-dropdown>
         </div>
-
-        <div class="p-field">
-            <button pButton type="submit" label="Registrar"></button>
+    
+        <div class="p-field p-d-flex p-jc-end">
+            <button pButton type="submit" label="Registrar" icon="pi pi-check" class="p-button-primary"></button>
         </div>
     </form>
+    
 </div>

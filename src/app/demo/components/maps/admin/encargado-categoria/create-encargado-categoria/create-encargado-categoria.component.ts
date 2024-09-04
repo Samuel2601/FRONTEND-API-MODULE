@@ -55,13 +55,14 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
             .subscribe(async (response) => {
                 if (response.data) {
                     this.roles = response.data;
-                    //console.log(this.roles);
+                    console.log(this.roles);
                     const list_user = await Promise.all(
-                        this.roles.map(async (user: any) => {
-                            if (user.orden == 3 || user.orden > 4) {
+                        this.roles.map(async (role: any) => {
+                            console.log(role);
+                            if (role.orden == 3 || role.orden > 4) {
                                 const listusuarios = await this.listService
                                     .listarUsuarios(this.token, {
-                                        role: '65c505bc9c664a1238b47f1a',
+                                        role: role._id,
                                     })
                                     .toPromise();
                                 return listusuarios;

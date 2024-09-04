@@ -692,8 +692,7 @@
                 <p-button
                     class="m-3"
                     *ngIf="
-                        (option.estado && option.estado.orden == 1) ||
-                        check.BorrarIncidente == true
+                        option.estado && option.estado.orden == 1
                     "
                     label="Borrar"
                     icon="pi pi-images"

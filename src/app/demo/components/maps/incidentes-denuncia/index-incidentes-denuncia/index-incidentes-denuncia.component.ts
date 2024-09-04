@@ -148,7 +148,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
     checkstatus = ['danger', 'warning', 'danger', 'success'];
 
     @ViewChild('contentimage') modalContent: TemplateRef<any> | undefined;
-    incidentesDenuncias: any = [];
+    incidentesDenuncias: any[] = [];
 
     check: any = {};
     token = this.auth.token();
@@ -265,6 +265,9 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                     //console.log(response);
                     if (response.data) {
                         this.incidentesDenuncias = response.data;
+                        if(!this.check.TotalFilterIncidente){
+                            this.incidentesDenuncias=this.incidentesDenuncias.filter(e=>e.view==true);
+                        }
                         if (
                             this.filtro &&
                             this.valor &&
@@ -549,8 +552,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
         if (this.iddelete) {
            // console.log(this.check.BorrarIncidente);
             if (
-                this.id == this.iddelete.ciudadano._id ||
-                this.check.BorrarIncidente
+                this.id == this.iddelete.ciudadano._id
             ) {
                // console.log('eliminando');
                 this.deleteser

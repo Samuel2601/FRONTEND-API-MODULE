@@ -23,6 +23,9 @@ export class AgregarRecolectorComponent {
     selectedFuncionario: any;
     selectedDevice: any;
 
+    isExterno = false; // Controla si se seleccionó Externo
+    showExternoForm = false; // Controla la visibilidad del formulario de Externo
+    externos:any[] = [];
     constructor(
         private fb: FormBuilder,
         private messageService: MessageService,
@@ -35,8 +38,14 @@ export class AgregarRecolectorComponent {
         @Optional() public ref: DynamicDialogRef // Inyecta DynamicDialogConfig para acceder a la configuración del diálogo
     ) {
         this.formulario = this.fb.group({
-            funcionario: [null, Validators.required],
+            funcionario: [null],
+            externo: [null],
+            isExterno: [false], // El valor por defecto es Funcionario
             deviceId: [null, Validators.required],
+            externoName: [''],
+            externoDni: [''],
+            externoPhone: [''],
+            externoAddress: [''],
         });
     }
     isMobil() {
@@ -65,7 +74,7 @@ export class AgregarRecolectorComponent {
     async fetchDevices() {
         this.ubicar.obtenerDeviceGPS().subscribe(async (response) => {
             console.log(response);
-            this.devices = response.filter(e=>e.status=="online");
+            this.devices = response.filter((e) => e.status == 'online');
             await this.checkExistingRegistrations();
         });
     }
