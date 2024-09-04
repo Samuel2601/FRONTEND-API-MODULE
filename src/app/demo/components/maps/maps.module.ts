@@ -146,9 +146,11 @@ import { EditDireccionGeoComponent } from './direccion-geo/edit-direccion-geo/ed
 import { EditFichaSectorialComponent } from './ficha-sectorial/edit-ficha-sectorial/edit-ficha-sectorial.component';
 import { EditIncidentesDenunciaComponent } from './incidentes-denuncia/edit-incidentes-denuncia/edit-incidentes-denuncia.component';
 import { EditActividadProyectoComponent } from './ficha-sectorial/actividad-proyecto/edit-actividad-proyecto/edit-actividad-proyecto.component';
+import { MapaMostrarFichasComponent } from '../static-page/mapa-mostrar-fichas/mapa-mostrar-fichas.component';
 
 @NgModule({  
   imports: [
+    MapaMostrarFichasComponent,
     NgbModule,
     CommonModule,
     MapsRoutingModule,

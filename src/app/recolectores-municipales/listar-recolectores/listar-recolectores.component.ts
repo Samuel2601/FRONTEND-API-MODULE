@@ -91,9 +91,26 @@ export class ListarRecolectoresComponent implements OnInit {
                 if (response.data) {
                     this.arr_asignacion = response.data;
                 }
+                console.log(this.arr_asignacion);
                 this.load_list = false;
             });
     }
+    calculateTimeDifference(startTime: Date, endTime: Date): string {
+        // Obtener la diferencia en milisegundos
+        const difference = new Date(endTime).getTime() - new Date(startTime).getTime();
+      
+        // Convertir la diferencia a horas, minutos y segundos
+        const hours = Math.floor(difference / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+      
+        // Formatear en HH:mm:ss
+        const formattedHours = hours.toString().padStart(2, '0');
+        const formattedMinutes = minutes.toString().padStart(2, '0');
+        //const formattedSeconds = seconds.toString().padStart(2, '0');
+      
+        return `${formattedHours}H:${formattedMinutes}`;
+      }
     llamar_asignacion_Form() {
         if (this.helper.isMobil()) {
             this.router.navigate(['/recolectores/register']);
@@ -105,8 +122,10 @@ export class ListarRecolectoresComponent implements OnInit {
             App.addListener('backButton', (data) => {
                 this.ref.close();
             });
-            this.ref.onClose.subscribe(() => {
-                this.listar_asignacion();
+            this.ref.onClose.subscribe((result: any) => {
+                if (result) {
+                    this.listar_asignacion();
+                }
             });
         }
     }

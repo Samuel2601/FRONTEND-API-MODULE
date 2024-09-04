@@ -25,6 +25,8 @@
                 <th>Fecha de Registro</th>
                 <th>Recolector</th>
                 <th>Funcionario</th>
+                <th *ngIf="!isMobil()">Horas Registradas</th>
+                <th *ngIf="!isMobil()">Puntos de Recolección</th>
                 <th *ngIf="!isMobil()">Acciones</th>
             </tr>
         </ng-template>
@@ -38,7 +40,11 @@
                         *ngIf="isMobil() && getBadgeValue(product) > 0"
                         class="pi pi-bell text-3xl"
                         pBadge
-                        [value]="getBadgeValue(product)"
+                        [value]="
+                            getBadgeValue(product)
+                                ? getBadgeValue(product).toString()
+                                : product.capacidad_retorno.length
+                        "
                         [severity]="
                             getBadgeValue(product) && getBadgeValue(product) > 0
                                 ? 'danger'
@@ -58,6 +64,25 @@
                     {{ product.funcionario?.name }}
                     {{ product.funcionario?.last_name }}
                 </td>
+                <td *ngIf="!isMobil()">
+                    <ng-container *ngIf="product.ruta.length > 1">{{
+                        calculateTimeDifference(
+                            product.ruta[0].fixTime,
+                            product.ruta[product.ruta.length - 1].fixTime
+                        )
+                    }}</ng-container>
+                    <ng-container *ngIf="product.ruta.length <= 1"
+                        >Sin Registro</ng-container
+                    >
+                </td>
+                <td *ngIf="!isMobil()">
+                    <ng-container *ngIf="product.puntos_recoleccion.length > 0">{{
+                        product.puntos_recoleccion.length
+                    }}</ng-container>
+                    <ng-container *ngIf="product.puntos_recoleccion.length == 0"
+                        >Sin Registro</ng-container
+                    >
+                </td>
 
                 <!-- Columna de acciones con botones -->
                 <td *ngIf="!isMobil()">
@@ -70,7 +95,7 @@
                             [badge]="
                                 getBadgeValue(product)
                                     ? getBadgeValue(product).toString()
-                                    : null
+                                    : product.capacidad_retorno.length
                             "
                             [severity]="
                                 getBadgeValue(product) &&
@@ -120,6 +145,27 @@
     <span class="p-text-secondary block mb-5"
         >Selecciona que deseas hacer:
     </span>
+    <span class="p-text-secondary block mb-5"
+        >Horas de Registros:
+        <ng-container *ngIf="viewregister.ruta.length > 1">{{
+            calculateTimeDifference(
+                viewregister.ruta[0].fixTime,
+                viewregister.ruta[viewregister.ruta.length - 1].fixTime
+            )
+        }}</ng-container>
+        <ng-container *ngIf="viewregister.ruta.length <= 1"
+            >Sin Registro</ng-container
+        >
+    </span>
+    <span class="p-text-secondary block mb-5"
+        >Número de Puntos de Recolección:
+        <ng-container *ngIf="viewregister.puntos_recoleccion.length > 0">{{
+            viewregister.puntos_recoleccion.length
+        }}</ng-container>
+        <ng-container *ngIf="viewregister.puntos_recoleccion.length == 0"
+            >Sin Registro</ng-container
+        >
+    </span>
     <div
         class="flex align-items-center gap-3 mb-3"
         style="justify-content: center"
@@ -131,7 +177,11 @@
             (onClick)="op.toggle($event); showoverlay(viewregister)"
             icon="pi pi-receipt"
             label="Capacidad"
-            [badge]="getBadgeValue(viewregister).toString()"
+            [badge]="
+                getBadgeValue(viewregister)
+                    ? getBadgeValue(viewregister).toString()
+                    : viewregister.capacidad_retorno.length
+            "
             [severity]="
                 getBadgeValue(viewregister) && getBadgeValue(viewregister) > 0
                     ? 'danger'

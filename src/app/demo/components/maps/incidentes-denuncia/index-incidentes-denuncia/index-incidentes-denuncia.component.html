@@ -549,13 +549,21 @@
         </p-table>
     </div>
 </div>
+<!---->
+
+<!--
+Gallería de Imagenes
+-->
 <p-dialog
     [(visible)]="displayBasic"
     [modal]="true"
     [responsive]="true"
     [baseZIndex]="99999"
     [dismissableMask]="true"
-    [style]="{ 'max-width': isMobil()?'100%':'80%', 'max-height':isMobil()?'80vh':'50vh'}"
+    [style]="{
+        'max-width': isMobil() ? '100%' : '80%',
+        'max-height': isMobil() ? '80vh' : '50vh'
+    }"
 >
     <ng-template pTemplate="headless">
         <p-galleria
@@ -572,7 +580,7 @@
             <ng-template pTemplate="item" let-item>
                 <img
                     [src]="url + 'obtener_imagen/incidentes_denuncia/' + item"
-                    style="width: 100%; display: block; max-height: 60vh;"
+                    style="width: 100%; display: block; max-height: 60vh"
                 />
             </ng-template>
             <ng-template pTemplate="thumbnail" let-item>
@@ -643,6 +651,7 @@
             }}</ng-container>
             <ng-container *ngIf="!option.respuesta">--</ng-container>
         </p>
+        <app-mapa-mostrar-fichas *ngIf="visible&&option" [ficha]="option"></app-mapa-mostrar-fichas>
         <div class="flex justify-content-between">
             <div class="justify-content-between">
                 <p-button
@@ -691,9 +700,7 @@
                 ></p-button>
                 <p-button
                     class="m-3"
-                    *ngIf="
-                        option.estado && option.estado.orden == 1
-                    "
+                    *ngIf="option.estado && option.estado.orden == 1"
                     label="Borrar"
                     icon="pi pi-images"
                     (click)="eliminarModal(option)"

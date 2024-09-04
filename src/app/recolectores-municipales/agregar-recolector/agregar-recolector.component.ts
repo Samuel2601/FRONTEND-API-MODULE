@@ -129,7 +129,7 @@ export class AgregarRecolectorComponent {
                     });
                     if (!this.isMobil()) {
                         // Si es móvil, cierra el diálogo
-                        this.ref.close(); // Usa `ref` de DynamicDialogConfig
+                        this.ref.close(true); // Usa `ref` de DynamicDialogConfig
                     } else {
                         // Si no es móvil, redirige a /recolectores/listar
                         this.router.navigate(['/recolectores/listar']);
