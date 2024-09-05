@@ -1061,7 +1061,7 @@ export class MapaFichaComponent implements OnInit, OnDestroy {
     async getLocation() {
         if (this.isMobil()) {
             const permission = await Geolocation['requestPermissions']();
-            console.log(permission);
+            //console.log(permission);
             if (permission !== 'granted') {
                 try {
                     const coordinates = await Geolocation['getCurrentPosition']();

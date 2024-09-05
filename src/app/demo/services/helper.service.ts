@@ -29,7 +29,7 @@ export class HelperService {
     constructor(private dialogService: DialogService, private router: Router) {}
 
     isMobil():boolean{
-        return window.innerWidth <= 575; // Capacitor.isNativePlatform();
+        return Capacitor.isNativePlatform(); //window.innerWidth <= 575; // 
     }
     
     async isAndroid(): Promise<boolean> {
@@ -109,7 +109,7 @@ export class HelperService {
     }
 
     llamarspinner(id: any) {
-        console.log('LLAMO', id);
+        //console.log('LLAMO', id);
         if (this.llamadasActivas === 0 && this.spiner == null) {
             // Verifica si el spinner no está ya abierto
             this.spiner = this.dialogService.open(SpinnerComponent, {
@@ -247,7 +247,7 @@ export class HelperService {
         filtroServicio: string[],
         valorServicio: any[]
     ): { [key: string]: any } {
-        console.log(filtroServicio, valorServicio);
+        //console.log(filtroServicio, valorServicio);
         // Construir el objeto de filtros
         const filtros: { [key: string]: any } = {};
         try {
@@ -267,7 +267,7 @@ export class HelperService {
             for (let i = 0; i < filtroServicio.length; i++) {
                 filtros[filtroServicio[i]] = valorServicio[i];
             }
-            console.log(filtros);
+            //console.log(filtros);
             return filtros;
         } catch (error) {
             console.error(error);

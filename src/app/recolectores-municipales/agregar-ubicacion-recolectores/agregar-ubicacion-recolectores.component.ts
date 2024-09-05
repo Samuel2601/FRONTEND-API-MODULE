@@ -199,7 +199,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         this.filter.obtenerRutaRecolector(this.token, this.id).subscribe(
             async (response) => {
                 if (response.data) {
-                    console.log(response);
+                    //console.log(response);
                     this.ruta = response.data;
                     this.table = this.ruta.puntos_recoleccion;
                     if (this.ruta.ruta.length > 0) {
@@ -550,7 +550,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     segmentos: any[] = [];
     drawSegment(segment: any, color: any) {
         this.segmentos.push(segment);
-        console.log('Segmentos: ', this.segmentos);
+        //console.log('Segmentos: ', this.segmentos);
         const path = segment.map((segment:any) => ({
             lat: segment.lat,
             lng: segment.lng,

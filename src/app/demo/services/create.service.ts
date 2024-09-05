@@ -73,9 +73,9 @@ export class CreateService {
     formData.append('destacado', data.destacado);
     
     // Iterar sobre los valores de FormData y mostrarlos en la consola
-    formData.forEach((value, key) => {
+    /*formData.forEach((value, key) => {
       console.log(`${key}: ${value}`);
-    });
+    });*/
     // Llama a la función compressor para comprimir cada imagen
     return new Observable((observer) => {
       const compressedFilesPromises = fotos.map((foto) => this.compressor(foto));
@@ -165,7 +165,7 @@ export class CreateService {
       'Content-Type': 'application/json',
       Authorization: token,
     });
-    console.log(data);
+    //console.log(data);
     return this.http.post(this.url + 'registrarrolesmasivo', data, { headers: headers });
   }
 

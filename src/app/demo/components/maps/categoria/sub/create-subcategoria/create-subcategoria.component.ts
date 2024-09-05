@@ -89,7 +89,7 @@ export class CreateSubcategoriaComponent implements OnInit {
                     }
                 );
         } else {
-            console.log(this.subcategoriaForm);
+            //console.log(this.subcategoriaForm);
             this.messageService.add({
                 severity: 'error',
                 summary: 'Error',

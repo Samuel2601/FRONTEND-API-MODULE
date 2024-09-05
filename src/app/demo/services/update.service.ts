@@ -118,10 +118,10 @@ export class UpdateService {
                                 compressedFile
                             );
                         });
-                        console.log('Con imagenes');
-                        formData.forEach((value, key) => {
+                        //console.log('Con imagenes');
+                        /*formData.forEach((value, key) => {
                             console.log(`${key}: ${value}`);
-                        });
+                        });*/
                         this.http
                             .put(
                                 this.url + 'incidentes_denuncia/' + id,
@@ -140,10 +140,10 @@ export class UpdateService {
                     })
                     .catch((error) => observer.error(error));
             } else {
-                console.log('Sin imagenes');
+                /*console.log('Sin imagenes');
                 formData.forEach((value, key) => {
                     console.log(`${key}: ${value}`);
-                });
+                });*/
                 this.http
                     .put(this.url + 'incidentes_denuncia/' + id, formData, {
                         headers: headers,

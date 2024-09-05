@@ -85,7 +85,6 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
         const estado = this.filterForm.get('estado').value;
         const direccion = this.filterForm.get('direccion').value;
         const view = this.filterForm.get('view').value;
-        console.log("FECHAS: ",fechaFin,fechaFin);
         const elementosFiltrados = this.constIncidente.filter((elemento) => {
             // Filtrar por fecha de inicio y fin
             const fechaElemento = new Date(elemento.createdAt);
@@ -135,7 +134,6 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
                 viewValida
             );
         });
-        console.log(elementosFiltrados);
         this.incidente = elementosFiltrados;
         // Mostrar totales y porcentajes en la tabla
         this.totales = this.obtenerTotales(this.incidente);
@@ -150,10 +148,8 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
             }
         }
         this.totales = this.sortTotalesByRegistros(this.totales);
-        console.log(this.totales);
         this.dataForm = this.sortDataAndLabels(this.dataForm);
         this.table_items = this.convertirObjetoEnArreglo(this.dataForm);
-        console.log(this.table_items);
         this.load_table = true;
         setTimeout(() => {
             this.load_map = true;
@@ -220,7 +216,6 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
             dataForm.subcategorias.datasets,
             dataForm.subcategorias.labels
         );
-        console.log(dataForm);
 
         return dataForm;
     }

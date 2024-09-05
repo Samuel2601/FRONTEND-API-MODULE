@@ -21,6 +21,7 @@ export class ListService {
             'Content-Type': 'application/json',
             Authorization: token,
         });
+        //console.log(campos);
         const params = this.paramsf(campos, all);
         return this.http.get(this.url + 'obteneruserporcriterio', {
             headers: headers,
@@ -50,12 +51,13 @@ export class ListService {
         campos: any = {},
         all: boolean = true
     ): Observable<any> {
+        //console.log(campos);
         let headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
         });
         //const { start, end } = this.diaEntero();
-
+        //console.log(campos);
         const params = this.paramsf(campos, all);
         return this.http.get(this.url + 'recolector', {
             headers: headers,
@@ -68,6 +70,7 @@ export class ListService {
         campos: any = {},
         all: boolean = true
     ): Observable<any> {
+        //console.log(campos);
         let headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
@@ -140,6 +143,7 @@ export class ListService {
         campos: any = {},
         all: boolean = true
     ): Observable<any> {
+        //console.log(campos);
         let headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
@@ -158,6 +162,7 @@ export class ListService {
         campos: any = {},
         all: boolean = true
     ): Observable<any> {
+        //console.log(campos);
         let headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
@@ -174,6 +179,7 @@ export class ListService {
         campos: any = {},
         all: boolean = true
     ): Observable<any> {
+        //console.log(campos);
         let headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
@@ -190,6 +196,7 @@ export class ListService {
         campos: any = {},
         all: boolean = true
     ): Observable<any> {
+        //console.log(campos);
         let headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
@@ -206,6 +213,7 @@ export class ListService {
         campos: any = {},
         all: boolean = true
     ): Observable<any> {
+        //console.log(campos);
         let headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
@@ -222,6 +230,7 @@ export class ListService {
         campos: any = {},
         all: boolean = true
     ): Observable<any> {
+        //console.log(campos);
         let headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
@@ -238,6 +247,7 @@ export class ListService {
         campos: any = {},
         all: boolean = true
     ): Observable<any> {
+        //console.log(campos);
         let headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
@@ -254,6 +264,7 @@ export class ListService {
         campos: any = {},
         all: boolean = true
     ): Observable<any> {
+        //console.log(campos);
         let headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
@@ -270,6 +281,7 @@ export class ListService {
         campos: any = {},
         all: boolean = true
     ): Observable<any> {
+        //console.log(campos);
         let headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
@@ -285,6 +297,7 @@ export class ListService {
         campos: any = {},
         all: boolean = true
     ): Observable<any> {
+        //console.log(campos);
         let headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,

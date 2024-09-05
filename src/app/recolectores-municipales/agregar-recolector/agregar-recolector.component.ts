@@ -73,7 +73,7 @@ export class AgregarRecolectorComponent {
 
     async fetchDevices() {
         this.ubicar.obtenerDeviceGPS().subscribe(async (response) => {
-            console.log(response);
+            //console.log(response);
             this.devices = response.filter((e) => e.status == 'online');
             await this.checkExistingRegistrations();
         });

@@ -109,7 +109,7 @@ export class RecolectorEstadisticasComponent {
                     });*/
                     e.velocidad_maxima = this.calcularVelocidadMaxima(e.ruta);
                 });
-                console.log(this.datosRecolectores);
+                //console.log(this.datosRecolectores);
                 this.cargando = false;
                 this.generarEstadisticas();
             },

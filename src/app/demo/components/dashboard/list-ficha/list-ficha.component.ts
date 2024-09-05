@@ -265,7 +265,6 @@ export class ListFichaComponent implements OnInit {
                             };
                         });
                         this.ficha = this.constFicha;
-                        console.log(this.constFicha);
                         this.obtenerValoresUnicosDireccionGeo();
                     }
                 });

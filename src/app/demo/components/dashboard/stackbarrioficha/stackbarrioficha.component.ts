@@ -49,7 +49,6 @@ export class StackbarriofichaComponent {
                 return;
             }
         }
-        console.log(this.constFicha);
         // Agrupar y contar los incidentes por nombre de dirección
         const incidentesPorDireccion = this.constFicha.reduce(
             (acc: any, incidente: any) => {
@@ -81,7 +80,6 @@ export class StackbarriofichaComponent {
             },
             {}
           );
-        console.log(incidentesPorDireccion);
         // Ordenar las direcciones por cantidad de incidentes (de mayor a menor)
         const direccionesOrdenadas = Object.entries(incidentesPorDireccion)
             .sort((a: any, b: any) => b[1] - a[1])
@@ -132,7 +130,6 @@ export class StackbarriofichaComponent {
         this.longLabels = direccionesOrdenadas;
         const longLabels = this.longLabels
         const indices = this.longLabels.map((_, index) => index + 1);
-        console.log(longLabels);
         this.basicData.labels = indices//direccionesOrdenadas;
         this.optionsbar = {
             maintainAspectRatio: false,
@@ -386,7 +383,6 @@ export class StackbarriofichaComponent {
             this.lista_feature = this.lista_feature.filter((element: any) => {
                 return element.properties.nombre;
             });
-            console.log(this.lista_feature);
             return data;
         } catch (error) {
             this.messageService.add({

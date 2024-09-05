@@ -91,7 +91,7 @@ export class ListarRecolectoresComponent implements OnInit {
                 if (response.data) {
                     this.arr_asignacion = response.data;
                 }
-                console.log(this.arr_asignacion);
+                //console.log(this.arr_asignacion);
                 this.load_list = false;
             });
     }
@@ -117,7 +117,7 @@ export class ListarRecolectoresComponent implements OnInit {
         } else {
             this.ref = this.dialogService.open(AgregarRecolectorComponent, {
                 header: 'Asignación de Recolectores',
-                width: '50%',
+                width: '30%',
             });
             App.addListener('backButton', (data) => {
                 this.ref.close();
@@ -256,7 +256,7 @@ export class ListarRecolectoresComponent implements OnInit {
                         summary: 'Actualización',
                         detail: 'Retorno Actualizado',
                     });
-                    console.log(response);
+                    //console.log(response);
                 },
                 (error) => {
                     console.error(error);

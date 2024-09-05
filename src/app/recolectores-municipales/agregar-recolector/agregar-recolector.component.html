@@ -14,10 +14,11 @@
                     formControlName="isExterno"
                 ></p-checkbox>
             </div>
-        
+
             <div *ngIf="!isExterno" class="p-field p-5">
                 <label for="funcionario">Funcionario</label>
                 <p-dropdown
+                    appendTo="body"
                     id="funcionario"
                     [options]="funcionarios"
                     formControlName="funcionario"
@@ -25,7 +26,7 @@
                     placeholder="Seleccione un funcionario"
                 ></p-dropdown>
             </div>
-        
+
             <div *ngIf="isExterno" class="p-field p-5">
                 <ng-container *ngIf="externos.length > 0; else noExternos">
                     <label for="externo">Externo</label>
@@ -36,7 +37,12 @@
                         optionLabel="name"
                         placeholder="Seleccione un externo"
                     ></p-dropdown>
-                    <button pButton type="button" label="Añadir Externo" (click)="showExternoForm = true"></button>
+                    <button
+                        pButton
+                        type="button"
+                        label="Añadir Externo"
+                        (click)="showExternoForm = true"
+                    ></button>
                 </ng-container>
                 <ng-template #noExternos>
                     <label for="externo">Registrar Externo</label>
@@ -72,10 +78,11 @@
                     />
                 </ng-template>
             </div>
-        
+
             <div class="p-field p-5">
                 <label for="deviceId">Recolectores</label>
                 <p-dropdown
+                    appendTo="body"
                     id="deviceId"
                     [options]="devices"
                     formControlName="deviceId"
@@ -83,11 +90,11 @@
                     placeholder="Seleccione un dispositivo"
                 ></p-dropdown>
             </div>
-        
+
             <div class="p-field">
                 <button pButton type="submit" label="Registrar"></button>
             </div>
-        </form>        
+        </form>
     </div>
 </div>
 
@@ -104,14 +111,16 @@
                 optionLabel="fullName"
                 placeholder="Seleccione un funcionario"
                 class="p-inputtext-lg p-d-block"
-                [style]="{width: '100%'}"
+                [style]="{ width: '100%' }"
             ></p-dropdown>
         </div>
         <div class="p-field p-5">
             <label for="role" class="p-d-flex p-ai-center">
-                <i class="pi pi-users p-mr-2"></i> No está en lista? puedes ingresarlo como un chofer externo
+                <i class="pi pi-users p-mr-2"></i> No está en lista? puedes
+                ingresarlo como un chofer externo
             </label>
             <p-checkbox
+                appendTo="body"
                 name="role"
                 binary="true"
                 label="Externo"
@@ -120,7 +129,7 @@
                 class="p-d-block"
             ></p-checkbox>
         </div>
-    
+
         <div *ngIf="isExterno" class="p-field p-5">
             <ng-container *ngIf="externos.length > 0; else noExternos">
                 <label for="externo" class="p-d-flex p-ai-center">
@@ -133,7 +142,7 @@
                     optionLabel="name"
                     placeholder="Seleccione un externo"
                     class="p-inputtext-lg p-d-block"
-                    [style]="{width: '100%'}"
+                    [style]="{ width: '100%' }"
                 ></p-dropdown>
                 <button
                     pButton
@@ -182,25 +191,31 @@
                 />
             </ng-template>
         </div>
-    
+
         <div class="p-field p-5">
             <label for="deviceId" class="p-d-flex p-ai-center">
                 <i class="pi pi-tablet p-mr-2"></i> Recolectores
             </label>
             <p-dropdown
+                appendTo="body"
                 id="deviceId"
                 [options]="devices"
                 formControlName="deviceId"
                 optionLabel="name"
                 placeholder="Seleccione un dispositivo"
                 class="p-inputtext-lg p-d-block"
-                [style]="{width: '100%'}"
+                [style]="{ width: '100%' }"
             ></p-dropdown>
         </div>
-    
+
         <div class="p-field p-d-flex p-jc-end">
-            <button pButton type="submit" label="Registrar" icon="pi pi-check" class="p-button-primary"></button>
+            <button
+                pButton
+                type="submit"
+                label="Registrar"
+                icon="pi pi-check"
+                class="p-button-primary"
+            ></button>
         </div>
     </form>
-    
 </div>

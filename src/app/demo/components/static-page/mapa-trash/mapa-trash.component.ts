@@ -272,7 +272,7 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
                     if (aux && aux.features) {
                         this.rutas = aux.features;
                         this.rutas.forEach((element) => {
-                            console.log('mostrar ruta');
+                           // console.log('mostrar ruta');
                             this.pathpush(element);
                         });
                     } else {
@@ -444,7 +444,7 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
                 if (aux && aux.features) {
                     this.rutas = aux.features;
                     this.rutas.forEach((element) => {
-                        console.log('mostrar ruta');
+                        //console.log('mostrar ruta');
                         this.pathpush(element);
                     });
                     this.visiblepath = true;
@@ -1041,7 +1041,7 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
     async getLocation() {
         if (this.isMobil()) {
             const permission = await Geolocation['requestPermissions']();
-            console.log(permission);
+            //console.log(permission);
             if (permission !== 'granted') {
                 try {
                     const coordinates = await Geolocation['getCurrentPosition']();

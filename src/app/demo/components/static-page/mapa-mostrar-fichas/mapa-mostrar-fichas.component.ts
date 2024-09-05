@@ -62,7 +62,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
                     } else {
                         this.fichas_sectoriales_arr = [this.ficha];
                     }
-                    console.log(this.fichas_sectoriales_arr);
+                    //console.log(this.fichas_sectoriales_arr);
                     await this.marcadoresmapa();
                 } else {
                     await this.listarFichaSectorialMapa();
