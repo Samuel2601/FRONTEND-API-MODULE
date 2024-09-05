@@ -471,4 +471,15 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
     navigateToFicha(id: string): void {
         this.router.navigate(['/ver-ficha', id]);
     }
+    load_map:boolean=false;
+    row:number=-1;
+    dialog_view(register:any,num:number){
+        this.row=num;
+        this.load_map=false;
+        this.visible = true;
+        this.option = register;
+        setTimeout(() => {
+            this.load_map=true;
+        }, 300);
+    }
 }

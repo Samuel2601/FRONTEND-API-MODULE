@@ -34,6 +34,17 @@ import { forkJoin } from 'rxjs';
 })
 export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
     public url = GLOBAL.url;
+    load_map:boolean=false;
+    row:number=-1;
+    dialog_view(register:any,num:number){
+        this.row=num;
+        this.load_map=false;
+        this.visible = true;
+        this.option = register;
+        setTimeout(() => {
+            this.load_map=true;
+        }, 300);
+    }
     constructor(
         private ref: DynamicDialogRef,
         private router: Router,

@@ -46,8 +46,9 @@ export class ListFichaComponent implements OnInit {
         { name: 'Visibles', value: true },
         { name: 'Ocultos', value: false },
     ];
-
+    load_map: boolean = false;
     filtro() {
+        this.load_map = false;
         this.helper.llamarspinner('Filtro lista de fichas');
         this.load_table = false;
         try {
@@ -110,6 +111,7 @@ export class ListFichaComponent implements OnInit {
         } catch (error) {
             console.error(error);
         } finally {
+            this.load_map = true;
             this.load_table = true;
             this.helper.cerrarspinner('Filtro lista de fichas');
         }

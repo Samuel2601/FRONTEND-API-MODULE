@@ -34,8 +34,10 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { MessagesModule } from 'primeng/messages';
+import { MapaMostrarFichasComponent } from '../static-page/mapa-mostrar-fichas/mapa-mostrar-fichas.component';
 @NgModule({
     imports: [
+        MapaMostrarFichasComponent,
         CommonModule,
         FormsModule,
         ChartModule,

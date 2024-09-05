@@ -462,6 +462,7 @@
             </tr>
         </ng-template>
     </p-table>
+    <app-mapa-mostrar-fichas *ngIf="load_map" [ficha]="incidente" [incidente]="true"></app-mapa-mostrar-fichas>
 </div>
 
 <ng-container *ngIf="load_table && incidente.length > 0">

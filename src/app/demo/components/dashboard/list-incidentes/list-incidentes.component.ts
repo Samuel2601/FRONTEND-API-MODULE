@@ -40,15 +40,28 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
         private router: Router,
         private auth: AuthService
     ) {
+        const currentDate = new Date();
+        const firstDayOfMonth = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            1
+        );
+        const lastDayOfMonth = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth() + 1,
+            0
+        );
+
         this.filterForm = this.formBuilder.group({
-            fecha_inicio: [''],
-            fecha_fin: [''],
+            fecha_inicio: [firstDayOfMonth],
+            fecha_fin: [lastDayOfMonth], 
             categoria: [[], [Validators.minLength(1)]],
             subcategoria: [[], [Validators.minLength(1)]],
             estado: [[], [Validators.minLength(1)]],
             direccion: [[], [Validators.minLength(1)]],
             view: [true],
         });
+        
     }
     viewmentOptions: any[] = [
         { name: 'Todos', value: null },
@@ -60,7 +73,9 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
         // Deshabilitar autofocus en el campo fecha_inicio
         //this.fechaInicio.nativeElement.querySelector('input').blur();
     }
+    load_map: boolean = false;
     filtro() {
+        this.load_map = false;
         this.helper.llamarspinner('filtro lista incidente');
         this.load_table = false;
         const fechaInicio = this.filterForm.get('fecha_inicio').value;
@@ -70,7 +85,7 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
         const estado = this.filterForm.get('estado').value;
         const direccion = this.filterForm.get('direccion').value;
         const view = this.filterForm.get('view').value;
-
+        console.log("FECHAS: ",fechaFin,fechaFin);
         const elementosFiltrados = this.constIncidente.filter((elemento) => {
             // Filtrar por fecha de inicio y fin
             const fechaElemento = new Date(elemento.createdAt);
@@ -120,9 +135,9 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
                 viewValida
             );
         });
+        console.log(elementosFiltrados);
         this.incidente = elementosFiltrados;
         // Mostrar totales y porcentajes en la tabla
-        // Obtener totales y porcentajes
         this.totales = this.obtenerTotales(this.incidente);
         this.totales = this.obtenerPorcentajes(
             this.totales,
@@ -137,10 +152,11 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
         this.totales = this.sortTotalesByRegistros(this.totales);
         console.log(this.totales);
         this.dataForm = this.sortDataAndLabels(this.dataForm);
-        this.table_items=this.convertirObjetoEnArreglo(this.dataForm);
+        this.table_items = this.convertirObjetoEnArreglo(this.dataForm);
         console.log(this.table_items);
         this.load_table = true;
         setTimeout(() => {
+            this.load_map = true;
             this.helper.cerrarspinner('filtro lista incidente');
         }, 500);
     }
@@ -153,16 +169,18 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
                 if (typeof item === 'object') {
                     // Convertir el objeto en un array de pares [clave, valor]
                     const entriesArray = Object.entries(item);
-    
+
                     // Ordenar el array en función de `registros` de mayor a menor
-                    entriesArray.sort((a: any, b: any) => b[1].registros - a[1].registros);
-    
+                    entriesArray.sort(
+                        (a: any, b: any) => b[1].registros - a[1].registros
+                    );
+
                     // Convertir de nuevo el array ordenado a un objeto
                     totales[key] = Object.fromEntries(entriesArray);
                 }
             }
         }
-        
+
         return totales;
     }
     sortDataAndLabels(dataForm: any) {
@@ -203,10 +221,10 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
             dataForm.subcategorias.labels
         );
         console.log(dataForm);
-        
+
         return dataForm;
     }
-    table_items:any[]=[];
+    table_items: any[] = [];
     convertirObjetoEnArreglo(objeto: any): any[] {
         return Object.keys(objeto).map((key) => ({
             clave: key,

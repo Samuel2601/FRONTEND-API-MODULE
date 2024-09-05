@@ -444,7 +444,7 @@
                 </tr>
             </ng-template>
             <ng-template pTemplate="body" let-incidente let-rowIndex="rowIndex">
-                <tr (click)="visible = true; option = incidente">
+                <tr (click)="dialog_view(incidente,rowIndex + 1)">
                     <td>
                         {{ rowIndex + 1 }}
                     </td>
@@ -599,7 +599,7 @@ Gallería de Imagenes
 </p-dialog>
 
 <p-dialog
-    header="Detalles de la Incidencia"
+    [header]="'Detalles de la Incidencia: '+row"
     [(visible)]="visible"
     [modal]="false"
     [style]="{ width: isMobil() ? '100%' : '40vw' }"
@@ -651,7 +651,7 @@ Gallería de Imagenes
             }}</ng-container>
             <ng-container *ngIf="!option.respuesta">--</ng-container>
         </p>
-        <app-mapa-mostrar-fichas *ngIf="visible&&option" [ficha]="option"></app-mapa-mostrar-fichas>
+        <app-mapa-mostrar-fichas *ngIf="visible&&option&&load_map" [ficha]="option" [incidente]="true"></app-mapa-mostrar-fichas>
         <div class="flex justify-content-between">
             <div class="justify-content-between">
                 <p-button

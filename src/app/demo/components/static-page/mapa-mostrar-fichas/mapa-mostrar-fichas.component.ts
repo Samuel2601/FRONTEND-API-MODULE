@@ -18,6 +18,7 @@ import { ListService } from 'src/app/demo/services/list.service';
 })
 export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
     @Input() ficha!: any;
+    @Input() incidente!: boolean;
     url: string = GLOBAL.url;
     mapCustom: google.maps.Map;
     load_fullscreen: boolean = false;
@@ -55,9 +56,13 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
             this.initFullscreenControl();
             setTimeout(async () => {
-                // console.log('FICHA QUE RECIBE:', this.ficha);
                 if (this.ficha) {
-                    this.fichas_sectoriales_arr = [this.ficha];
+                    if (Array.isArray(this.ficha)) {
+                        this.fichas_sectoriales_arr = this.ficha;
+                    } else {
+                        this.fichas_sectoriales_arr = [this.ficha];
+                    }
+                    console.log(this.fichas_sectoriales_arr);
                     await this.marcadoresmapa();
                 } else {
                     await this.listarFichaSectorialMapa();
@@ -80,6 +85,9 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
         const bounds = new google.maps.LatLngBounds(); // Crear objeto para los límites de los marcadores
 
         this.fichas_sectoriales_arr.forEach((item: any) => {
+            if (!item.direccion_geo || !item.direccion_geo.latitud || !item.direccion_geo.longitud) {
+                return; // Saltar al siguiente elemento
+            }
             //console.log(item);
             const position = new google.maps.LatLng(
                 item.direccion_geo.latitud,
@@ -94,15 +102,17 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
                     url: item.icono_marcador
                         ? item.icono_marcador
                         : 'https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png', // URL de la imagen del icono del marcador
-                    scaledSize: new Date(item.fecha_evento).getTime() < new Date().getTime()
-                        ? new google.maps.Size(50, 50) // Si la fecha del evento ya pasó, el tamaño será 30
-                        : (item.icono_marcador &&
-                           item.icono_marcador != 'https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png'
+                    scaledSize:
+                        new Date(item.fecha_evento).getTime() <
+                        new Date().getTime()
+                            ? new google.maps.Size(50, 50) // Si la fecha del evento ya pasó, el tamaño será 30
+                            : item.icono_marcador &&
+                              item.icono_marcador !=
+                                  'https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png'
                             ? new google.maps.Size(120, 120) // Si tiene un icono personalizado, tamaño 120
-                            : new google.maps.Size(50, 50)), // Icono por defecto, tamaño 50
+                            : new google.maps.Size(50, 50), // Icono por defecto, tamaño 50
                 },
             });
-            
 
             // Añadir la posición del marcador a los límites
             bounds.extend(position);
@@ -110,7 +120,9 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
             // Contenido del InfoWindow
             let infoContent = `
                 <div>
-                    <h5>${item.title_marcador}</h5>                          
+                    <h5>${
+                        this.incidente ? 'Incidente' : item.title_marcador
+                    }</h5>                          
             `;
 
             // Añadir imagen si está disponible
@@ -121,7 +133,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
             // Añadir botón si es un artículo
             const formattedDate = this.datePipe.transform(
-                item.fecha_evento,
+                this.incidente ? item.createdAt : item.fecha_evento,
                 'short'
             );
             if (
@@ -130,6 +142,10 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
             ) {
                 infoContent += `
                 <a href="/ver-ficha/${item._id}" class="btn-ver-articulo">Ver Artículo</a> <br> Fecha del evento: ${formattedDate}
+                `;
+            } else if (this.incidente) {
+                infoContent += `
+                Fecha: ${formattedDate}
                 `;
             } else {
                 infoContent += `
@@ -161,7 +177,10 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
             });
 
             // Verificar si la URL actual coincide con el marcador
-            if (this.router.url === `/ver-ficha/${item._id}`) {
+            if (
+                (this.router.url === `/ver-ficha/${item._id}` ||
+                this.incidente)&&this.fichas_sectoriales_arr.length<=5
+            ) {
                 infoWindow.open(this.mapCustom, marker);
                 this.mapCustom.setZoom(15); // Ajusta el nivel de zoom según tus necesidades
                 this.mapCustom.setCenter(marker.getPosition());
@@ -171,6 +190,9 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
         if (this.mapCustom) {
             // Ajustar el centro y zoom del mapa para mostrar todos los marcadores
             this.mapCustom.fitBounds(bounds);
+            if (this.incidente&&this.fichas_sectoriales_arr.length<=5) {
+                this.mapCustom.setZoom(16);
+            }
         }
     }
 

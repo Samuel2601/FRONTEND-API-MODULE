@@ -1041,28 +1041,19 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
     async getLocation() {
         if (this.isMobil()) {
             const permission = await Geolocation['requestPermissions']();
+            console.log(permission);
             if (permission !== 'granted') {
-                const coordinates = await Geolocation['getCurrentPosition']();
-            }
-        } else {
-            this.messageService.add({
-                severity: 'info',
-                summary: 'Info',
-                detail: 'Tu ubicación puede ser no exacta',
-            });
-        }
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                async (position) => {
-                    this.latitud = position.coords.latitude;
-                    this.longitud = position.coords.longitude;
+                try {
+                    const coordinates = await Geolocation['getCurrentPosition']();
+                    this.latitud = coordinates.coords.latitude;
+                    this.longitud = coordinates.coords.longitude;
                     this.addMarker(
                         { lat: this.latitud, lng: this.longitud },
                         'Ubicación',
                         'Tu ubicación Actual'
                     );
-                },
-                (error) => {
+                    this.poligonoposition();
+                } catch (error) {
                     console.error('Error getting location: ' + error.message);
                     this.messageService.add({
                         severity: 'error',
@@ -1070,14 +1061,48 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
                         detail: error.message || 'Sin conexión',
                     });
                 }
-            );
+            } else {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Permiso Denegado',
+                    detail: 'No se pudo obtener el permiso de ubicación.',
+                });
+            }
         } else {
-            console.error('Geolocation is not supported by this browser.');
             this.messageService.add({
-                severity: 'error',
-                summary: 'ERROR',
-                detail: 'Geolocation is not supported by this browser.',
+                severity: 'info',
+                summary: 'Info',
+                detail: 'Tu ubicación puede ser no exacta',
             });
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        this.latitud = position.coords.latitude;
+                        this.longitud = position.coords.longitude;
+                        this.addMarker(
+                            { lat: this.latitud, lng: this.longitud },
+                            'Ubicación',
+                            'Tu ubicación Actual'
+                        );
+                        this.poligonoposition();
+                    },
+                    (error) => {
+                        console.error('Error getting location: ' + error.message);
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: '404',
+                            detail: error.message || 'Sin conexión',
+                        });
+                    }
+                );
+            } else {
+                console.error('Geolocation is not supported by this browser.');
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'ERROR',
+                    detail: 'Geolocation is not supported by this browser.',
+                });
+            }
         }
     }
 
