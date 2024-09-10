@@ -152,4 +152,14 @@ export class DeleteService {
             headers: headers,
         });
     }
+    RemoveRecolectoresExterno(token: any, id: string): Observable<any> {
+        let headers = new HttpHeaders({
+            'Content-Type': 'application/json',
+            Authorization: token,
+        });
+        //const { start, end } = this.diaEntero();
+        return this.http.delete(this.url + 'externo/' + id, {
+            headers: headers,
+        });
+    }
 }

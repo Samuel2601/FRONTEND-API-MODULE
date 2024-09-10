@@ -28,15 +28,15 @@ export class HelperService {
 
     constructor(private dialogService: DialogService, private router: Router) {}
 
-    isMobil():boolean{
-        return Capacitor.isNativePlatform(); //window.innerWidth <= 575; // 
+    isMobil(): boolean {
+        return window.innerWidth <= 575; //Capacitor.isNativePlatform(); // //
     }
-    
+
     async isAndroid(): Promise<boolean> {
         const info = await Device.getInfo();
         return info.platform === 'android';
     }
-    
+
     applySafeAreaCSS(): void {
         // Agrega una clase específica al body para aplicar los estilos de safe area en iOS
         document.body.classList.add('safe-area-ios');

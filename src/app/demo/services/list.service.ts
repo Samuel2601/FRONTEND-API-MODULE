@@ -321,4 +321,21 @@ export class ListService {
         });
         return params;
     }
+
+    listarRecolectorExterno(
+        token: any,
+        campos: any = {},
+        all: boolean = true
+    ): Observable<any> {
+        //console.log(campos);
+        let headers = new HttpHeaders({
+            'Content-Type': 'application/json',
+            Authorization: token,
+        });
+        const params = this.paramsf(campos, all);
+        return this.http.get(this.url + 'externo', {
+            headers: headers,
+            params: params,
+        });
+    }
 }

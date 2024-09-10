@@ -18,7 +18,7 @@ export class StackbarriofichaComponent {
         private messageService: MessageService,
         private helper: HelperService,
         private listar: ListService,
-        private auth:AuthService
+        private auth: AuthService
     ) {}
 
     @Input() modal: any = false;
@@ -31,7 +31,7 @@ export class StackbarriofichaComponent {
     token = this.auth.token();
     constFicha: any = [];
     loading = true;
-    longLabels:any[]=[];
+    longLabels: any[] = [];
     async rankin() {
         this.loading = true;
         // Obtener todos los incidentes si aún no se han cargado
@@ -52,34 +52,37 @@ export class StackbarriofichaComponent {
         // Agrupar y contar los incidentes por nombre de dirección
         const incidentesPorDireccion = this.constFicha.reduce(
             (acc: any, incidente: any) => {
-              let nombreDireccion: string;
-          
-              // Verifica si `direccion_geo` es un string o un objeto
-              if (typeof incidente.direccion_geo === 'string') {
-                try {
-                  // Intenta parsear el string como JSON
-                  const parsedDireccion = JSON.parse(incidente.direccion_geo);
-          
-                  // Si el parseo tiene éxito y tiene la propiedad `nombre`, úsala
-                  nombreDireccion = parsedDireccion.nombre || incidente.direccion_geo;
-                } catch (e) {
-                  // Si no se puede parsear, asumimos que es un string plano y lo usamos
-                  nombreDireccion = incidente.direccion_geo;
+                let nombreDireccion: string;
+
+                // Verifica si `direccion_geo` es un string o un objeto
+                if (typeof incidente.direccion_geo === 'string') {
+                    try {
+                        // Intenta parsear el string como JSON
+                        const parsedDireccion = JSON.parse(
+                            incidente.direccion_geo
+                        );
+
+                        // Si el parseo tiene éxito y tiene la propiedad `nombre`, úsala
+                        nombreDireccion =
+                            parsedDireccion.nombre || incidente.direccion_geo;
+                    } catch (e) {
+                        // Si no se puede parsear, asumimos que es un string plano y lo usamos
+                        nombreDireccion = incidente.direccion_geo;
+                    }
+                } else if (typeof incidente.direccion_geo === 'object') {
+                    // Si ya es un objeto, simplemente accede a la propiedad `nombre`
+                    nombreDireccion = incidente.direccion_geo.nombre;
                 }
-              } else if (typeof incidente.direccion_geo === 'object') {
-                // Si ya es un objeto, simplemente accede a la propiedad `nombre`
-                nombreDireccion = incidente.direccion_geo.nombre;
-              }
-          
-              // Suma la incidencia en `acc` para la dirección correspondiente
-              acc[nombreDireccion] = acc[nombreDireccion]
-                ? acc[nombreDireccion] + 1
-                : 1;
-          
-              return acc;
+
+                // Suma la incidencia en `acc` para la dirección correspondiente
+                acc[nombreDireccion] = acc[nombreDireccion]
+                    ? acc[nombreDireccion] + 1
+                    : 1;
+
+                return acc;
             },
             {}
-          );
+        );
         // Ordenar las direcciones por cantidad de incidentes (de mayor a menor)
         const direccionesOrdenadas = Object.entries(incidentesPorDireccion)
             .sort((a: any, b: any) => b[1] - a[1])
@@ -112,14 +115,14 @@ export class StackbarriofichaComponent {
 
         // Actualizar basicData con los datos ordenados
         this.basicData.datasets = [dataset];
-        
+
         //console.log(this.basicData);
         // Actualizar la vista
         this.canvas();
         ////console.log(this.encontrarMaximo());
         this.loading = false;
         this.helper.setStbarrioficha(this);
-        
+
         const textColor = documentStyle.getPropertyValue('--text-color');
         const textColorSecondary = documentStyle.getPropertyValue(
             '--text-color-secondary'
@@ -128,9 +131,9 @@ export class StackbarriofichaComponent {
             documentStyle.getPropertyValue('--surface-border');
 
         this.longLabels = direccionesOrdenadas;
-        const longLabels = this.longLabels
+        const longLabels = this.longLabels;
         const indices = this.longLabels.map((_, index) => index + 1);
-        this.basicData.labels = indices//direccionesOrdenadas;
+        this.basicData.labels = indices; //direccionesOrdenadas;
         this.optionsbar = {
             maintainAspectRatio: false,
             aspectRatio: 0.8,
@@ -142,7 +145,9 @@ export class StackbarriofichaComponent {
                         label: function (context) {
                             // Muestra el label largo en el tooltip
                             const index = context.dataIndex;
-                            return longLabels[index]+': '+dataset.data[index];
+                            return (
+                                longLabels[index] + ': ' + dataset.data[index]
+                            );
                         },
                     },
                 },
@@ -212,6 +217,7 @@ export class StackbarriofichaComponent {
     encontrarMaximo(): { label: string; valor: number } {
         let maximoValor = 0;
         let maximoLabel = '';
+        let indexmax = -1;
         // Obtener todos los valores de los datasets combinados en un solo array
         // Obtener la suma de los valores de los datasets
         const sumaValores = this.basicData.datasets[0].data;
@@ -221,15 +227,15 @@ export class StackbarriofichaComponent {
             if (valor > maximoValor) {
                 maximoValor = valor;
                 maximoLabel = this.basicData.labels[index];
+                indexmax = index;
             }
         });
-
-        return { label: maximoLabel, valor: maximoValor };
+        return { label: this.longLabels[indexmax], valor: maximoValor };
     }
-    getTotales(arreglo:any){
-        let total=0;
-        arreglo.forEach((element:number) => {
-            total+=element;
+    getTotales(arreglo: any) {
+        let total = 0;
+        arreglo.forEach((element: number) => {
+            total += element;
         });
         return total;
     }

@@ -53,6 +53,7 @@
                         pInputText
                         formControlName="externoName"
                         placeholder="Nombre del Externo"
+                        style="margin-top: 2rem; margin-bottom: 2rem"
                     />
                     <!-- Agregar otros campos necesarios para el externo -->
                     <input
@@ -61,6 +62,7 @@
                         pInputText
                         formControlName="externoDni"
                         placeholder="DNI del Externo"
+                        style="margin-top: 2rem; margin-bottom: 2rem"
                     />
                     <input
                         id="externoPhone"
@@ -68,6 +70,7 @@
                         pInputText
                         formControlName="externoPhone"
                         placeholder="Teléfono del Externo"
+                        style="margin-top: 2rem; margin-bottom: 2rem"
                     />
                     <input
                         id="externoAddress"
@@ -75,6 +78,7 @@
                         pInputText
                         formControlName="externoAddress"
                         placeholder="Dirección del Externo"
+                        style="margin-top: 2rem; margin-bottom: 2rem"
                     />
                 </ng-template>
             </div>
@@ -117,7 +121,8 @@
         <div class="p-field p-5">
             <label for="role" class="p-d-flex p-ai-center">
                 <i class="pi pi-users p-mr-2"></i> No está en lista? puedes
-                ingresarlo como un chofer externo
+                ingresarlo como un chofer externo: <br />
+                <br />
             </label>
             <p-checkbox
                 appendTo="body"
@@ -125,13 +130,16 @@
                 binary="true"
                 label="Externo"
                 [(ngModel)]="isExterno"
+                (onChange)="showExternoForm = false"
                 formControlName="isExterno"
                 class="p-d-block"
             ></p-checkbox>
         </div>
 
         <div *ngIf="isExterno" class="p-field p-5">
-            <ng-container *ngIf="externos.length > 0; else noExternos">
+            <ng-container
+                *ngIf="externos.length > 0 && !showExternoForm; else noExternos"
+            >
                 <label for="externo" class="p-d-flex p-ai-center">
                     <i class="pi pi-user-plus p-mr-2"></i> Externo
                 </label>
@@ -143,7 +151,21 @@
                     placeholder="Seleccione un externo"
                     class="p-inputtext-lg p-d-block"
                     [style]="{ width: '100%' }"
-                ></p-dropdown>
+                >
+                    <ng-template let-externo pTemplate="item">
+                        <div class="flex align-items-center gap-2">
+                            <div>
+                                {{ externo.name }} ({{ externo.dni }})
+                                <!--
+                                 <p-button
+                                    (click)="ondeleteExterno(externo._id)"
+                                    label="Eliminar"
+                                ></p-button>
+                                -->
+                            </div>
+                        </div>
+                    </ng-template>
+                </p-dropdown>
                 <button
                     pButton
                     type="button"
@@ -153,41 +175,49 @@
                     (click)="showExternoForm = true"
                 ></button>
             </ng-container>
-            <ng-template #noExternos>
+            <ng-template #noExternos formGroupName="externo_register">
                 <label for="externo" class="p-d-flex p-ai-center">
                     <i class="pi pi-user-edit p-mr-2"></i> Registrar Externo
                 </label>
                 <input
-                    id="externoName"
+                    id="name"
                     type="text"
                     pInputText
-                    formControlName="externoName"
+                    formControlName="name"
                     placeholder="Nombre del Externo"
-                    class="p-inputtext-lg p-mb-3"
+                    class="p-inputtext-lg p-mb-3 my-5"
                 />
+                <p-inputGroup class="p-inputtext-lg p-mb-3 my-5">
+                    <button
+                        type="button"
+                        pButton
+                        label="Consultar"
+                        (click)="getCiudadano()"
+                    ></button>
+                    <input
+                        id="dni"
+                        type="text"
+                        pInputText
+                        formControlName="dni"
+                        placeholder="DNI del Externo"
+                    />
+                </p-inputGroup>
+
                 <input
-                    id="externoDni"
+                    id="phone"
                     type="text"
                     pInputText
-                    formControlName="externoDni"
-                    placeholder="DNI del Externo"
-                    class="p-inputtext-lg p-mb-3"
-                />
-                <input
-                    id="externoPhone"
-                    type="text"
-                    pInputText
-                    formControlName="externoPhone"
+                    formControlName="phone"
                     placeholder="Teléfono del Externo"
-                    class="p-inputtext-lg p-mb-3"
+                    class="p-inputtext-lg p-mb-3 my-5"
                 />
                 <input
-                    id="externoAddress"
+                    id="address"
                     type="text"
                     pInputText
-                    formControlName="externoAddress"
+                    formControlName="address"
                     placeholder="Dirección del Externo"
-                    class="p-inputtext-lg"
+                    class="p-inputtext-lg my-5"
                 />
             </ng-template>
         </div>

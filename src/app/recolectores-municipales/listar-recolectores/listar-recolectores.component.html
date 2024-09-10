@@ -61,8 +61,14 @@
 
                 <!-- Mostrar el nombre completo del funcionario -->
                 <td>
-                    {{ product.funcionario?.name }}
-                    {{ product.funcionario?.last_name }}
+                    <ng-container *ngIf="product.externo">
+                        {{ product.externo.name }}
+                        <p-tag icon="pi pi-user" value="(Externo)" />
+                    </ng-container>
+                    <ng-container *ngIf="!product.externo">
+                        {{ product.funcionario?.name }}
+                        {{ product.funcionario?.last_name }}
+                    </ng-container>
                 </td>
                 <td *ngIf="!isMobil()">
                     <ng-container *ngIf="product.ruta.length > 1">{{
@@ -76,9 +82,10 @@
                     >
                 </td>
                 <td *ngIf="!isMobil()">
-                    <ng-container *ngIf="product.puntos_recoleccion.length > 0">{{
-                        product.puntos_recoleccion.length
-                    }}</ng-container>
+                    <ng-container
+                        *ngIf="product.puntos_recoleccion.length > 0"
+                        >{{ product.puntos_recoleccion.length }}</ng-container
+                    >
                     <ng-container *ngIf="product.puntos_recoleccion.length == 0"
                         >Sin Registro</ng-container
                     >

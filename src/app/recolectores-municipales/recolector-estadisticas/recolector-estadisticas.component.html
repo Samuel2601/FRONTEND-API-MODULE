@@ -248,7 +248,9 @@
 
         <div class="col-12 xl:col-6">
             <div class="card">
-                <label class="font-bold block mb-2">Distancia Recorrida</label>
+                <label class="font-bold block mb-2"
+                    >Distancia Recorrida (Km)</label
+                >
                 <p-chart type="line" [data]="dataDistanciaRecorrida"></p-chart>
                 <div style="display: flex; justify-content: flex-end">
                     <p-button
@@ -256,7 +258,7 @@
                         label="ver"
                         (onClick)="
                             openDialog(
-                                'Distancia Recorrida',
+                                'Distancia Recorrida (Km)',
                                 dataDistanciaRecorrida,
                                 'Fecha/Recolector',
                                 'line'
@@ -285,6 +287,14 @@
             *ngIf="load_char_dialog"
             [value]="dialogTableData"
             [tableStyle]="{ 'min-width': '20rem' }"
+            styleClass="p-datatable-striped"
+            [rows]="10"
+            [rowsPerPageOptions]="[5, 10, 20]"
+            [showCurrentPageReport]="true"
+            [loading]="datosRecolectores.length < 0"
+            sortMode="multiple"
+            [paginator]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
         >
             <ng-template pTemplate="header">
                 <tr *ngIf="dialogTableData && dialogTableData.length > 0">

@@ -43,15 +43,21 @@ export class FilterService {
     }
 
     actualizarFichaCompartido(id_ficha: string) {
-        return this.http.put(`${this.url}actualizar_ficha_compartido/${id_ficha}`, {});
+        return this.http.put(
+            `${this.url}actualizar_ficha_compartido/${id_ficha}`,
+            {}
+        );
     }
 
-    actualizarFichaMeGusta(token:any,id_ficha: string, id_user: string) {
+    actualizarFichaMeGusta(token: any, id_ficha: string, id_user: string) {
         const headers = this.getHeaders(token);
-        return this.http.put(`${this.url}actualizar_ficha_megusta/${id_ficha}`, {
-            headers,
-            id_user: id_user,
-        });
+        return this.http.put(
+            `${this.url}actualizar_ficha_megusta/${id_ficha}`,
+            {
+                headers,
+                id_user: id_user,
+            }
+        );
     }
 
     obtenerIncidenteDenuncia(token: any, id: string): Observable<any> {
@@ -143,7 +149,10 @@ export class FilterService {
         });
     }
 
-    async ActualizarRutaRecolector(token: any, id: string): Promise<Observable<any>> {
+    async ActualizarRutaRecolector(
+        token: any,
+        id: string
+    ): Promise<Observable<any>> {
         const headers = this.getHeaders(token);
         let params = new HttpParams();
         params = params.append('populate', 'all');
@@ -163,4 +172,7 @@ export class FilterService {
         });
     }
 
+    getciudadano(id: string) {
+        return this.http.get(this.url + 'getciudadano/' + id);
+    }
 }

@@ -18,11 +18,11 @@ export class StackBarriosComponent implements OnInit {
         private messageService: MessageService,
         private helper: HelperService,
         private listar: ListService,
-        private auth:AuthService
+        private auth: AuthService
     ) {}
 
     @Input() modal: any = false;
-    basicData: any = {labels:[]};
+    basicData: any = { labels: [] };
     basicOptions: any;
     async ngOnInit() {
         await this.getWFSgeojson(this.urlgeoser);
@@ -31,7 +31,7 @@ export class StackBarriosComponent implements OnInit {
     token = this.auth.token();
     constIncidente: any = [];
     loading = true;
-    longLabels:any[]=[];
+    longLabels: any[] = [];
     async rankin() {
         this.loading = true;
         // Obtener todos los incidentes si aún no se han cargado
@@ -73,7 +73,7 @@ export class StackBarriosComponent implements OnInit {
                 (a: number, b: number) => b - a
             ),
             backgroundColor: [],
-            borderColor:[],
+            borderColor: [],
             hoverBackgroundColor: [],
             label: 'Incidentes o Denuncias',
             borderWidth: 1,
@@ -81,10 +81,14 @@ export class StackBarriosComponent implements OnInit {
         const documentStyle = getComputedStyle(document.documentElement);
         dataset.data.forEach((element) => {
             const color = this.generarColor();
-            dataset.backgroundColor.push(documentStyle.getPropertyValue(color+'-300'));
-            dataset.borderColor.push(documentStyle.getPropertyValue(color+'-500'));
+            dataset.backgroundColor.push(
+                documentStyle.getPropertyValue(color + '-300')
+            );
+            dataset.borderColor.push(
+                documentStyle.getPropertyValue(color + '-500')
+            );
             dataset.hoverBackgroundColor.push(
-                documentStyle.getPropertyValue(color+'-700')
+                documentStyle.getPropertyValue(color + '-700')
             );
         });
 
@@ -96,7 +100,7 @@ export class StackBarriosComponent implements OnInit {
         this.canvas();
         this.loading = false;
         this.helper.setStbarrioComponent(this);
-        
+
         const textColor = documentStyle.getPropertyValue('--text-color');
         const textColorSecondary = documentStyle.getPropertyValue(
             '--text-color-secondary'
@@ -105,9 +109,9 @@ export class StackBarriosComponent implements OnInit {
             documentStyle.getPropertyValue('--surface-border');
 
         this.longLabels = direccionesOrdenadas;
-        const longLabels = this.longLabels
+        const longLabels = this.longLabels;
         const indices = this.longLabels.map((_, index) => index + 1);
-        this.basicData.labels = indices//direccionesOrdenadas;
+        this.basicData.labels = indices; //direccionesOrdenadas;
         this.optionsbar = {
             maintainAspectRatio: false,
             aspectRatio: 0.8,
@@ -119,7 +123,9 @@ export class StackBarriosComponent implements OnInit {
                         label: function (context) {
                             // Muestra el label largo en el tooltip
                             const index = context.dataIndex;
-                            return longLabels[index]+': '+dataset.data[index];
+                            return (
+                                longLabels[index] + ': ' + dataset.data[index]
+                            );
                         },
                     },
                 },
@@ -200,6 +206,7 @@ export class StackBarriosComponent implements OnInit {
     encontrarMaximo(): { label: string; valor: number } {
         let maximoValor = 0;
         let maximoLabel = '';
+        let indexmax = -1;
         // Obtener todos los valores de los datasets combinados en un solo array
         // Obtener la suma de los valores de los datasets
         ////console.log("DAtaset",this.basicData.datasets,this.basicData);
@@ -210,10 +217,11 @@ export class StackBarriosComponent implements OnInit {
             if (valor > maximoValor) {
                 maximoValor = valor;
                 maximoLabel = this.basicData.labels[index];
+                indexmax = index;
             }
         });
 
-        return { label: maximoLabel, valor: maximoValor };
+        return { label: this.longLabels[indexmax], valor: maximoValor };
     }
 
     async cargar() {
@@ -241,11 +249,9 @@ export class StackBarriosComponent implements OnInit {
                     aux.push(ci.length);
                 } else {
                     const response: any = await this.listar
-                        .listarIncidentesDenuncias(
-                            this.token,
-                            {'direccion_geo.nombre':
-                            element.properties.nombre}                            
-                        )
+                        .listarIncidentesDenuncias(this.token, {
+                            'direccion_geo.nombre': element.properties.nombre,
+                        })
                         .toPromise();
                     if (response.data) {
                         aux.push(response.data.length);
@@ -439,12 +445,11 @@ export class StackBarriosComponent implements OnInit {
                 return 'secondary'; // Asegúrate de retornar un valor válido por defecto
         }
     }
-    getTotales(arreglo:any){
-        let total=0;
-        arreglo.forEach((element:number) => {
-            total+=element;
+    getTotales(arreglo: any) {
+        let total = 0;
+        arreglo.forEach((element: number) => {
+            total += element;
         });
         return total;
     }
-
 }
