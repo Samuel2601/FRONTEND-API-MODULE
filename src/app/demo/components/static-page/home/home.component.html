@@ -1,6 +1,7 @@
 <div class="surface-section px-4 py-8 md:px-6 lg:px-8 overflow-hidden">
     <div class="flex flex-wrap">
-        <article *ngIf="!isMobil()||(isMobil()&&!token)"
+        <article
+            *ngIf="!isMobil() || (isMobil() && !token)"
             class="w-full mt-8 xl:mt-0 xl:mb-0 xl:w-8 flex flex-column flex-order-1 xl:flex-order-0 justify-content-center align-items-center xl:align-items-start"
         >
             <span
@@ -347,8 +348,13 @@
     </div>
 </div>
 <div *ngIf="visible_fichas_mostrar">
-    <h3>Eventos:</h3> 
-    <p-button *ngIf="!isMobil()" label="Añadir Todos al Calendario" icon="pi pi-calendar" (click)="addAllEventsToCalendar()"></p-button>
+    <h3>Eventos:</h3>
+    <p-button
+        *ngIf="!isMobil()"
+        label="Añadir Todos al Calendario"
+        icon="pi pi-calendar"
+        (click)="addAllEventsToCalendar()"
+    ></p-button>
     <app-mapa-mostrar-fichas
         *ngIf="visible_fichas_mostrar"
     ></app-mapa-mostrar-fichas>
@@ -366,95 +372,97 @@
         <hr class="section-divider" />
 
         <div class="button-container">
-            <div
-                class="cube"
-                *ngFor="let button of buttons.items; let i = index"
-            >
-                <div class="cube-face cube-front">
-                    <div
-                        class="white-grad"
-                        style="--b: 0px 3px 8px 3px; --r: 50% 50% 50% 50%"
-                        *ngIf="button.style == true"
-                        [ngClass]="{ 'z-index-99': !button.dev }"
-                    >
+            <ng-container *ngFor="let button of buttons.items; let i = index">
+                <div class="cube" *ngIf="button.view !== false">
+                    <div class="cube-face cube-front">
+                        <div
+                            class="white-grad"
+                            style="--b: 0px 3px 8px 3px; --r: 50% 50% 50% 50%"
+                            *ngIf="button.style == true"
+                            [ngClass]="{ 'z-index-99': !button.dev }"
+                        >
+                            <img
+                                style="border-radius: 50%"
+                                [src]="button.icon"
+                                alt="{{ button.label }}"
+                                class="custom-icon"
+                            />
+                        </div>
+
                         <img
-                            style="border-radius: 50%"
+                            *ngIf="button.style == false"
                             [src]="button.icon"
                             alt="{{ button.label }}"
                             class="custom-icon"
                         />
+                        <p>{{ button.label }}</p>
                     </div>
-
-                    <img
-                        *ngIf="button.style == false"
-                        [src]="button.icon"
-                        alt="{{ button.label }}"
-                        class="custom-icon"
-                    />
-                    <p>{{ button.label }}</p>
-                </div>
-                <div class="cube-face cube-back">
-                    <p>{{ button.info }}</p>
-                    <p-button
-                        class="mt-3"
-                        *ngIf="button"
-                        (click)="
-                            button.items
-                                ? (button.showInfo = true)
-                                : button.command()
-                        "
-                        [label]="button.label"
-                    >
-                    </p-button>
-                </div>
-                <p-dialog
-                    [header]="button.label"
-                    *ngIf="button.items && button.items.length > 0"
-                    [(visible)]="button.showInfo"
-                    [modal]="true"
-                    [style]="{ width: isMobil() ? '90vw' : '50vw' }"
-                    appendTo="body"
-                >
-                    <div class="button-container">
-                        <div
-                            class="cube"
-                            *ngFor="let items of button.items; let i = index"
+                    <div class="cube-face cube-back">
+                        <p>{{ button.info }}</p>
+                        <p-button
+                            class="mt-3"
+                            *ngIf="button"
+                            (click)="
+                                button.items
+                                    ? (button.showInfo = true)
+                                    : button.command()
+                            "
+                            [label]="button.label"
                         >
-                            <div class="cube-face cube-front">
-                                <div
-                                    class="white-grad"
-                                    style="
-                                        --b: 0px 3px 8px 3px;
-                                        --r: 50% 50% 50% 50%;
-                                    "
-                                >
-                                    <img
-                                        [ngStyle]=" {
+                        </p-button>
+                    </div>
+                    <p-dialog
+                        [header]="button.label"
+                        *ngIf="button.items && button.items.length > 0"
+                        [(visible)]="button.showInfo"
+                        [modal]="true"
+                        [style]="{ width: isMobil() ? '90vw' : '50vw' }"
+                        appendTo="body"
+                    >
+                        <div class="button-container">
+                            <div
+                                class="cube"
+                                *ngFor="
+                                    let items of button.items;
+                                    let i = index
+                                "
+                            >
+                                <div class="cube-face cube-front">
+                                    <div
+                                        class="white-grad"
+                                        style="
+                                            --b: 0px 3px 8px 3px;
+                                            --r: 50% 50% 50% 50%;
+                                        "
+                                    >
+                                        <img
+                                            [ngStyle]=" {
                                                       'border-radius': '50%',
                                                   }
                                         "
-                                        [src]="items.icon"
-                                        alt="{{ button.label }}"
-                                        class="custom-icon"
-                                    />
-                                </div>
+                                            [src]="items.icon"
+                                            alt="{{ button.label }}"
+                                            class="custom-icon"
+                                        />
+                                    </div>
 
-                                <p>{{ items.label }}</p>
-                            </div>
-                            <div class="cube-face cube-back">
-                                <p>{{ items.info }}</p>
-                                <p-button
-                                    class="mt-3"
-                                    *ngIf="items"
-                                    (click)="items.command()"
-                                    [label]="items.label"
-                                >
-                                </p-button>
+                                    <p>{{ items.label }}</p>
+                                </div>
+                                <div class="cube-face cube-back">
+                                    <p>{{ items.info }}</p>
+                                    <p-button
+                                        class="mt-3"
+                                        *ngIf="items"
+                                        (click)="items.command()"
+                                        [label]="items.label"
+                                    >
+                                    </p-button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </p-dialog>
-            </div>
+                    </p-dialog>
+                </div>
+            </ng-container>
         </div>
     </div>
 </ng-container>

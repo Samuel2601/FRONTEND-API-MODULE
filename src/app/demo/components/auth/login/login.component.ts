@@ -281,11 +281,45 @@ export class LoginComponent implements OnInit {
                 this.handleLoginError(error);
             }
         } else {
-            this.messageService.add({
-                severity: 'error',
-                summary: 'Aviso',
-                detail: 'Completa los datos',
-            });
+            console.log(this.loginForm.value);
+            if (this.loginForm.value.correo && this.loginForm.value.pass) {
+                const correo = this.loginForm.value.correo;
+
+                if (/^\d{10}$/.test(correo)) {
+                    // Si es una cadena numérica
+                    console.log('Correo es numérico:', correo);
+                    const user = {
+                        email: this.loginForm.get('correo').value,
+                        password: this.loginForm.get('pass').value,
+                        time: this.loginForm.get('save').value ? 60 : 3,
+                        tipo: this.loginForm.get('save').value
+                            ? 'days'
+                            : 'hours',
+                    };
+                    this.authService
+                        .login_externo(user)
+                        .subscribe(async (response) => {
+                            console.log(response);
+                            const storage = this.loginForm.get('save').value
+                                ? localStorage
+                                : sessionStorage;
+                            storage.setItem('token', response.token);
+                            this.router.navigate(['/recolectores/map']);
+                        });
+                } else {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Aviso',
+                        detail: 'Datos erroneos',
+                    });
+                }
+            } else {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Aviso',
+                    detail: 'Completa los datos',
+                });
+            }
         }
     }
 

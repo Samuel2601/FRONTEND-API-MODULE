@@ -111,14 +111,28 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             const dateOnly = `${date.getFullYear()}-${
                 date.getMonth() + 1
             }-${date.getDate()}`;
-            const funcionario = this.auth.idUserToken();
+            let externo: any = null;
+            let funcionario: any = null;
 
+            // Condicionalmente asignamos 'externo' o 'funcionario'
+            if (this.auth.roleUserToken() === undefined) {
+                externo = this.auth.idUserToken();
+            } else {
+                funcionario = this.auth.idUserToken();
+            }
+
+            // Construimos el objeto de parámetros dinámicamente
+            const params: any = { dateOnly };
+
+            if (funcionario) {
+                params.funcionario = funcionario;
+            }
+
+            if (externo) {
+                params.externo = externo;
+            }
             this.list
-                .listarAsignacionRecolectores(
-                    this.token,
-                    { dateOnly, funcionario },
-                    false
-                )
+                .listarAsignacionRecolectores(this.token, params, false)
                 .subscribe({
                     next: async (response) => {
                         if (response.data.length > 0) {
@@ -137,7 +151,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                             await this.ubicacionService.loadInitialLocations();
                             await this.seguimientoLocations();
                             await this.ubicacionService.initializeNetworkListener();
-                        }else{
+                        } else {
                             this.messageService.add({
                                 severity: 'warn',
                                 summary: 'Asignación',
@@ -428,9 +442,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             // Crear un segmento basado en el rango de timestamps
             const segmentLocations = locations.filter((location) => {
                 const locationTimestamp = new Date(location.fixTime).getTime();
-                return (
-                    locationTimestamp <= retornoTimestampActual
-                );
+                return locationTimestamp <= retornoTimestampActual;
             });
 
             // Si hay puntos en el segmento, dibujar la línea
@@ -440,7 +452,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                         id: point.id,
                         lat: point.latitude,
                         lng: point.longitude,
-                        fixTime: point.fixTime
+                        fixTime: point.fixTime,
                     });
                 });
 
@@ -468,7 +480,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                     id: point.id,
                     lat: point.latitude,
                     lng: point.longitude,
-                    fixTime: point.fixTime
+                    fixTime: point.fixTime,
                 });
             });
 
@@ -551,7 +563,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     drawSegment(segment: any, color: any) {
         this.segmentos.push(segment);
         //console.log('Segmentos: ', this.segmentos);
-        const path = segment.map((segment:any) => ({
+        const path = segment.map((segment: any) => ({
             lat: segment.lat,
             lng: segment.lng,
         }));

@@ -97,6 +97,11 @@ export class HomeComponent implements OnInit {
             }
         );
     }
+    validateDateView(date_view: Date | string): boolean {
+        const now = new Date();
+        date_view = new Date(date_view);
+        return now.getTime() <= date_view.getTime();
+    }
 
     async ngOnInit(): Promise<void> {
         this.productos.push({
@@ -504,9 +509,21 @@ export class HomeComponent implements OnInit {
                                         '_blank'
                                     );
                                 },
-                            }
-                            
-                            
+                            },
+                            {
+                                label: 'Concurso "TU EXPERIENCIA ME ILUMINA"',
+                                info: 'Esta es una inscripción para enviar tu mejor Fotografía y una Carta dirigida a tu familiar adulto mayor.',
+                                icon: 'https://i.postimg.cc/xTkjbBjr/imagen-concurso-01.png',
+                                showInfo: false,
+                                view: this.validateDateView('2024-09-20'),
+                                style: true,
+                                command: async () => {
+                                    window.open(
+                                        'https://forms.gle/EyPxWSuznKB4DsA49',
+                                        '_blank'
+                                    );
+                                },
+                            },
                         ],
                     },
                     /*{
@@ -722,32 +739,32 @@ export class HomeComponent implements OnInit {
     openLink(url: string) {
         // Verificar si es un dispositivo móvil
         const isMobile = this.isMobil();
-    
+
         // Verificar si la URL es interna (contiene this.url)
         const isSameAppUrl = url.startsWith(this.url);
-    
+
         // Extraer la ruta relativa si es interna
         let relativeUrl = url;
         if (isSameAppUrl) {
-          relativeUrl = url.replace(this.url, ''); // Remover la base de la URL
-          //alert('Te redirijeremos a:'+'/'+relativeUrl);
-          this.router.navigate(['/'+relativeUrl]);
-          return;
+            relativeUrl = url.replace(this.url, ''); // Remover la base de la URL
+            //alert('Te redirijeremos a:'+'/'+relativeUrl);
+            this.router.navigate(['/' + relativeUrl]);
+            return;
         }
-    
+
         // Verificar si la URL es una ruta relativa dentro de la app
         const isRelativeUrl = relativeUrl.startsWith('/');
-    
+
         if (isMobile) {
-          // Si es móvil y la URL es interna, navegar dentro de la aplicación
-          //alert('Te redirijeremos a:'+relativeUrl);
-          this.router.navigate([relativeUrl]);
+            // Si es móvil y la URL es interna, navegar dentro de la aplicación
+            //alert('Te redirijeremos a:'+relativeUrl);
+            this.router.navigate([relativeUrl]);
         } else {
             //alert('Crearemos una nueva ventana: '+url);
-          // En otros casos, abrir la URL en una nueva pestaña
-          window.open(url, '_blank');
+            // En otros casos, abrir la URL en una nueva pestaña
+            window.open(url, '_blank');
         }
-      }
+    }
     isMobil(): boolean {
         return this.helperService.isMobil();
     }

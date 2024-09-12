@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { Router } from '@angular/router';
@@ -283,6 +283,14 @@ export class AuthService {
         return this.http.post(this.url + 'login', data, { headers });
     }
 
+    login_externo(data: any): Observable<any> {
+        const headers = new HttpHeaders().set(
+            'Content-Type',
+            'application/json'
+        );
+        return this.http.post(this.url + 'auth/externo', data, { headers });
+    }
+
     validcode(data: any): Observable<any> {
         const headers = new HttpHeaders().set(
             'Content-Type',
@@ -331,31 +339,29 @@ export class AuthService {
         try {
             // Si no se pasa un token, se obtiene el token predeterminado.
             const datatoken = token || this.token();
-    
+
             // Verificamos que el datatoken sea de tipo string
             if (!datatoken || typeof datatoken !== 'string') {
                 console.error('Token inválido o no encontrado.');
                 return;
             }
-    
+
             // Si el usuario está autenticado, decodificamos el token
             if (this.isAuthenticated()) {
                 const helper = new JwtHelperService();
                 return helper.decodeToken(datatoken);
             }
-    
         } catch (error) {
             console.error('Error al decodificar el token:', error);
             return '';
         }
     }
-    
 
     roleUserToken(token?: string) {
         try {
             // Si no se pasa un token, se obtiene el token predeterminado.
             const datatoken = token || this.token();
-    
+
             // Verificamos que el datatoken sea de tipo string
             if (!datatoken || typeof datatoken !== 'string') {
                 console.error('Token inválido o no encontrado.');
@@ -376,7 +382,7 @@ export class AuthService {
         try {
             // Si no se pasa un token, se obtiene el token predeterminado.
             const datatoken = token || this.token();
-    
+
             // Verificamos que el datatoken sea de tipo string
             if (!datatoken || typeof datatoken !== 'string') {
                 console.error('Token inválido o no encontrado.');
@@ -434,15 +440,27 @@ export class AuthService {
 
     getUserRole(userRole: any): Observable<any> {
         let id: string;
-        if (typeof userRole === 'object' && userRole !== null && userRole._id) {
-            id = userRole._id;
-        } else if (typeof userRole === 'string') {
-            id = userRole;
-        } else {
-            throw new Error('Invalid userRole type');
+
+        try {
+            // Intentamos obtener el ID del rol del usuario
+            if (
+                typeof userRole === 'object' &&
+                userRole !== null &&
+                userRole._id
+            ) {
+                id = userRole._id;
+            } else if (typeof userRole === 'string') {
+                id = userRole;
+            } else {
+                throw new Error('El rol de usuario no es válido.');
+            }
+        } catch (error) {
+            // Si hay un error en la obtención del ID, devolvemos false
+            return of(false);
         }
+
         const token = this.token();
-        let headers = new HttpHeaders({
+        const headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
         });
@@ -451,16 +469,14 @@ export class AuthService {
             .get(`${GLOBAL.url}obtenerRole?id=${id}`, { headers })
             .pipe(
                 map((response: any) => {
-                    // console.log('LLAMADO PARA OBTENER ROL', response);
                     this.rolesSubject.next(response.data.permisos);
-                    if (this.permissionsSubject.getValue().length == 0) {
-                        this.permissionsSubject.next([
-                            ...response.data.permisos,
-                        ]);
+
+                    if (this.permissionsSubject.getValue().length === 0) {
+                        this.permissionsSubject.next(response.data.permisos);
                     } else {
                         this.permissionsSubject.next([
                             ...response.data.permisos,
-                            this.permissionsSubject.getValue(),
+                            ...this.permissionsSubject.getValue(),
                         ]);
                     }
 
@@ -468,7 +484,13 @@ export class AuthService {
                         'roles',
                         JSON.stringify(response.data.permisos)
                     );
+
                     return response.data.permisos;
+                }),
+                catchError((error) => {
+                    // Captura cualquier error durante la solicitud HTTP y devuelve false
+                    console.error('Error obteniendo el rol:', error);
+                    return of(false); // Devuelve false en lugar de lanzar el error
                 })
             );
     }

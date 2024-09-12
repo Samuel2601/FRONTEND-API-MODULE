@@ -5,10 +5,10 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "ec.gob.esmeraldas.labella"
-        minSdkVersion rootProject.ext.minSdkVersion
+        minSdkVersion compileSdk
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 29
-        versionName '1.29'
+        versionCode 30
+        versionName '1.30'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

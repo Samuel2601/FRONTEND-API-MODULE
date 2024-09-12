@@ -19,35 +19,50 @@ export class AppMenuComponent implements OnInit {
         private auth: AuthService
     ) {
         this.auth.permissions$.subscribe(async (permissions) => {
-            if(permissions.length>0){
-                this.permisos_arr=permissions;
+            if (permissions.length > 0) {
+                this.permisos_arr = permissions;
             }
             await this.loadPermissions(); // Llama a loadPermissions cuando hay cambios en los permisos
         });
-
     }
-    permisos_arr: any[]=[];
+    permisos_arr: any[] = [];
     async ngOnInit() {
         //this.permisos_arr = this.auth.getPermisosSubject();
         await this.loadPermissions();
     }
     async boolPermiss(permission: any, method: any) {
-        const hasPermissionBOL = this.permisos_arr.length>0?
-        this.permisos_arr.some(
-            (e) => e.name === permission && e.method === method
-        ):false;
+        const hasPermissionBOL =
+            this.permisos_arr.length > 0
+                ? this.permisos_arr.some(
+                      (e) => e.name === permission && e.method === method
+                  )
+                : false;
         return hasPermissionBOL;
     }
 
     async loadPermissions() {
         const permissions = {
-            canViewRecolector: await this.boolPermiss('/recolector_ruta/:id', 'get'),
-            canTrashRecolector: await this.boolPermiss('/recolector/:id', 'get'),
+            canViewRecolector: await this.boolPermiss(
+                '/recolector_ruta/:id',
+                'get'
+            ),
+            canTrashRecolector: await this.boolPermiss(
+                '/recolector/:id',
+                'get'
+            ),
+            canRecolectorExterno: this.auth.token(),
+            RecolecternoExterno: this.auth.roleUserToken() == undefined,
             canViewMapa: await this.boolPermiss('/incidentes_denuncia', 'get'),
             canViewCategoria: await this.boolPermiss('/categoria', 'get'),
             canViewCategoriaCrear: await this.boolPermiss('/categoria', 'post'),
-            canViewSubCategoriaCrear: await this.boolPermiss('/subcategoria', 'post'),
-            canViewIncidente: await this.boolPermiss('/incidentes_denuncia', 'get'),
+            canViewSubCategoriaCrear: await this.boolPermiss(
+                '/subcategoria',
+                'post'
+            ),
+            canViewIncidente: await this.boolPermiss(
+                '/incidentes_denuncia',
+                'get'
+            ),
             canViewIncidenteReporte: await this.boolPermiss(
                 'reporteincidente',
                 'get'
@@ -61,7 +76,11 @@ export class AppMenuComponent implements OnInit {
         this.model = [
             {
                 label: 'Recolectores',
-                visible: permissions.canViewRecolector || permissions.canTrashRecolector,
+                visible:
+                    permissions.canViewRecolector ||
+                    permissions.canTrashRecolector ||
+                    (permissions.canRecolectorExterno &&
+                        permissions.RecolecternoExterno),
                 items: [
                     {
                         label: 'Recolectores',
@@ -73,7 +92,10 @@ export class AppMenuComponent implements OnInit {
                         label: 'Recolectores Mapa',
                         icon: 'pi pi-fw pi-map-marker',
                         routerLink: ['/recolectores/map'],
-                        visible: permissions.canTrashRecolector,
+                        visible:
+                            permissions.canTrashRecolector ||
+                            (permissions.canRecolectorExterno &&
+                                permissions.RecolecternoExterno),
                     },
                     {
                         label: 'Recolectores Estadística',
@@ -120,17 +142,13 @@ export class AppMenuComponent implements OnInit {
                     {
                         label: 'Nuevo',
                         icon: 'pi pi-fw pi-folder-open',
-                        routerLink: [
-                            '/maps/categoria/create-categoria',
-                        ],
+                        routerLink: ['/maps/categoria/create-categoria'],
                         visible: permissions.canViewCategoriaCrear,
                     },
                     {
                         label: 'Subcategoría',
                         icon: 'pi pi-fw pi-folder-open',
-                        routerLink: [
-                            '/maps/subcategoria/create-subcategoria',
-                        ],
+                        routerLink: ['/maps/subcategoria/create-subcategoria'],
                         visible: permissions.canViewSubCategoriaCrear,
                     },
                 ].filter((item) => item.visible !== false),

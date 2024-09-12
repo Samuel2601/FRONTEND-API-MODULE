@@ -66,8 +66,33 @@
                         <p-tag icon="pi pi-user" value="(Externo)" />
                     </ng-container>
                     <ng-container *ngIf="!product.externo">
-                        {{ product.funcionario?.name }}
-                        {{ product.funcionario?.last_name }}
+                        <div
+                            style="
+                                display: flex;
+                                flex-direction: row;
+                                justify-content: flex-start;
+                                align-items: center;
+                            "
+                        >
+                            <p-avatar
+                                (click)="
+                                    onAvatarClick(
+                                        $event,
+                                        product.funcionario?.photo
+                                    )
+                                "
+                                [image]="
+                                    url +
+                                    'obtener_imagen/usuario/' +
+                                    product.funcionario?.photo
+                                "
+                                styleClass="mr-2"
+                                size="large"
+                                shape="circle"
+                            ></p-avatar>
+                            {{ product.funcionario?.name }}
+                            {{ product.funcionario?.last_name }}
+                        </div>
                     </ng-container>
                 </td>
                 <td *ngIf="!isMobil()">
@@ -132,6 +157,50 @@
         </ng-template>
     </p-table>
 </p-card>
+
+<p-dialog
+    appendTo="body"
+    [(visible)]="displayBasic"
+    [modal]="true"
+    [responsive]="true"
+    [baseZIndex]="99999"
+    [dismissableMask]="true"
+    [style]="{
+        'max-width': isMobil() ? '100%' : '80%',
+        'max-height': isMobil() ? '80vh' : '50vh'
+    }"
+>
+    <ng-template pTemplate="headless">
+        <p-galleria
+            [value]="imagenModal"
+            [(visible)]="displayBasic"
+            [responsiveOptions]="responsiveOptions"
+            [containerStyle]="{ 'max-width': '100%' }"
+            [numVisible]="9"
+            [circular]="true"
+            [fullScreen]="false"
+            [showItemNavigators]="true"
+            baseZIndex="99999"
+        >
+            <ng-template pTemplate="item" let-item>
+                <img
+                    [src]="item"
+                    style="width: 100%; display: block; max-height: 60vh"
+                />
+            </ng-template>
+            <ng-template pTemplate="thumbnail" let-item>
+                <div class="grid grid-nogutter justify-content-center">
+                    <img
+                        [src]="item"
+                        style="display: block"
+                        style="width: 30%; max-height: 20vh"
+                    />
+                </div>
+            </ng-template>
+        </p-galleria>
+    </ng-template>
+</p-dialog>
+
 <p-dialog
     *ngIf="isMobil() && viewregister"
     [header]="

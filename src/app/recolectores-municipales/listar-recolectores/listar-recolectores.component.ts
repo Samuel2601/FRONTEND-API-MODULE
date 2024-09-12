@@ -10,6 +10,7 @@ import { App } from '@capacitor/app';
 import { UbicacionService } from '../service/ubicacion.service';
 import { AgregarUbicacionRecolectoresComponent } from '../agregar-ubicacion-recolectores/agregar-ubicacion-recolectores.component';
 import { DeleteService } from 'src/app/demo/services/delete.service';
+import { GLOBAL } from '../../demo/services/GLOBAL';
 
 @Component({
     selector: 'app-listar-recolectores',
@@ -24,6 +25,7 @@ import { DeleteService } from 'src/app/demo/services/delete.service';
 })
 export class ListarRecolectoresComponent implements OnInit {
     token = this.auth.token();
+    public url: string;
     constructor(
         private list: ListService,
         private auth: AuthService,
@@ -42,6 +44,7 @@ export class ListarRecolectoresComponent implements OnInit {
             }
             this.loadPermissions(); // Llama a loadPermissions cuando hay cambios en los permisos
         });
+        this.url = GLOBAL.url;
     }
     permisos_arr: any[] = [];
     async boolPermiss(permission: any, method: any) {
@@ -91,7 +94,7 @@ export class ListarRecolectoresComponent implements OnInit {
                 if (response.data) {
                     this.arr_asignacion = response.data;
                 }
-                console.log(this.arr_asignacion);
+                //console.log(this.arr_asignacion);
                 this.load_list = false;
             });
     }
@@ -289,5 +292,34 @@ export class ListarRecolectoresComponent implements OnInit {
         const difference = puntosRecoleccionLength - capacidadRetornoLength;
 
         return difference > 0 ? difference : null;
+    }
+
+    displayBasic: boolean = false;
+    imagenModal: any;
+    responsiveOptions: any[] = [
+        {
+            breakpoint: '1500px',
+            numVisible: 5,
+        },
+        {
+            breakpoint: '1024px',
+            numVisible: 3,
+        },
+        {
+            breakpoint: '768px',
+            numVisible: 2,
+        },
+        {
+            breakpoint: '560px',
+            numVisible: 1,
+        },
+    ];
+    onAvatarClick(event: Event, photo: string | undefined): void {
+        // Detener la propagación del evento click
+        event.stopPropagation();
+
+        // Tu lógica para abrir el modal y asignar la imagen
+        this.displayBasic = true;
+        this.imagenModal = [this.url + 'obtener_imagen/usuario/' + photo];
     }
 }

@@ -159,19 +159,26 @@ export class AgregarRecolectorComponent {
 
     onSubmit() {
         if (this.formulario.valid) {
-            console.log(this.formulario.get('funcionario').value);
+            console.log(this.formulario.value);
             if (this.formulario.get('funcionario').value) {
                 this.formulario
                     .get('funcionario')
                     .setValue(this.formulario.get('funcionario').value._id);
+            }
+            if (this.formulario.get('externo').value) {
+                this.formulario
+                    .get('externo')
+                    .setValue(this.formulario.get('externo').value._id);
             }
 
             this.formulario
                 .get('deviceId')
                 .setValue(this.formulario.get('deviceId').value.id);
 
-            if (this.formulario.get('isExterno').value) {
-                console.log(this.formulario.get('externo_register').value);
+            if (
+                this.formulario.get('isExterno').value &&
+                !this.formulario.get('externo').value
+            ) {
                 this.create
                     .registrarRecolectorExterno(
                         this.token,

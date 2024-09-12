@@ -57,8 +57,8 @@ export class ListService {
             Authorization: token,
         });
         //const { start, end } = this.diaEntero();
-        //console.log(campos);
         const params = this.paramsf(campos, all);
+
         return this.http.get(this.url + 'recolector', {
             headers: headers,
             params: params,
