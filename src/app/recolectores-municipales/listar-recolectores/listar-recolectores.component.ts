@@ -94,7 +94,7 @@ export class ListarRecolectoresComponent implements OnInit {
                 if (response.data) {
                     this.arr_asignacion = response.data;
                 }
-                //console.log(this.arr_asignacion);
+                console.log(this.arr_asignacion);
                 this.load_list = false;
             });
     }

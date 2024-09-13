@@ -19,12 +19,14 @@ import { ListService } from 'src/app/demo/services/list.service';
 })
 export class AgregarUbicacionRecolectoresComponent implements OnInit {
     mapCustom: google.maps.Map;
-    public locationSubscription: Subscription;
+
+    ubicaciones$ = this.ubicacionService.getUbicaciones().ubicaciones;
+    retornos$ = this.ubicacionService.getUbicaciones().retorno;
 
     isReturnButtonDisabled = false;
     returnTimeLeft: number;
     returnInterval: any;
-    returnDelay = 15 * 60 * 1000; // 10 minutes in milliseconds
+    returnDelay = 5 * 60 * 1000; // 10 minutes in milliseconds
 
     table: any[] = [];
     inicial: google.maps.marker.AdvancedMarkerElement;
@@ -76,11 +78,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             }
         }, 500);
     }
-    ngOnDestroy(): void {
-        if (this.locationSubscription) {
-            this.locationSubscription.unsubscribe();
-        }
-    }
+    ngOnDestroy(): void {}
     isMobil(): boolean {
         return this.helper.isMobil();
     }
@@ -238,29 +236,33 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
 
     //------------------------Captura de Location guardado en Almacenamiento del dispositivo---------------------
     async seguimientoLocations() {
-        this.locationSubscription = this.ubicacionService
-            .getUbicaciones()
-            .subscribe((locations) => {
-                this.table = locations;
-                this.table.forEach((element) => {
-                    this.addMarker(element, false);
-                });
-                const last_retorno = this.table.filter(
-                    (element) => element.retorno === true
-                );
-                if (last_retorno.length > 0) {
-                    // Ordenar por timestamp en orden descendente
-                    last_retorno.sort(
-                        (a, b) =>
-                            new Date(b.timestamp).getTime() -
-                            new Date(a.timestamp).getTime()
-                    );
-                    const lastReturnDate = new Date(
-                        last_retorno[0].timestamp
-                    ).getTime();
-                    this.checkReturnButtonStatus(lastReturnDate);
-                }
+        // Puedes suscribirte a los observables si necesitas hacer algo cuando cambian
+        this.ubicaciones$.subscribe((ubicaciones) => {
+            this.table = ubicaciones;
+
+            this.table.forEach((element) => {
+                this.addMarker(element, false);
             });
+            const last_retorno = this.table.filter(
+                (element) => element.retorno === true
+            );
+            if (last_retorno.length > 0) {
+                // Ordenar por timestamp en orden descendente
+                last_retorno.sort(
+                    (a, b) =>
+                        new Date(b.timestamp).getTime() -
+                        new Date(a.timestamp).getTime()
+                );
+                const lastReturnDate = new Date(
+                    last_retorno[0].timestamp
+                ).getTime();
+                this.checkReturnButtonStatus(lastReturnDate);
+            }
+        });
+
+        this.retornos$.subscribe((retornos) => {
+            this.capcidad_retorno_arr = retornos;
+        });
     }
     async checkReturnButtonStatus(time: any) {
         if (time) {
@@ -786,9 +788,24 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             moveVehicle();
         }
     }
-
+    capcidad_retorno_arr: any;
+    capcidad_retorno:
+        | { label: 'Lleno'; value: 'Lleno' }
+        | { label: 'Medio'; value: 'Medio' }
+        | { label: 'Vacío'; value: 'Vacío' };
+    capacidadOpciones = [
+        { label: 'Lleno', value: 'Lleno' },
+        { label: 'Medio', value: 'Medio' },
+        { label: 'Vacío', value: 'Vacío' },
+    ];
+    updateCapacidad() {
+        console.log(this.capcidad_retorno);
+    }
     //------------------------------------ACCIONES DEL USUARIO---------------------------------------
     async addManualLocation(status_destacado: boolean, retorno: boolean) {
+        if (retorno) {
+            this.updateCapacidad();
+        }
         const currentLocation = await Geolocation.getCurrentPosition();
         if (currentLocation) {
             const aux = {

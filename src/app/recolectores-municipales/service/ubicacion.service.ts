@@ -27,6 +27,8 @@ export class UbicacionService {
     private ubicaciones = new BehaviorSubject<
         { lat: number; lng: number; timestamp: string }[]
     >([]);
+    private retornos = new BehaviorSubject<any[]>([]);
+
     private velocidadActual = new BehaviorSubject<number>(0);
     private DistanciaRecorrida = new BehaviorSubject<number>(0);
 
@@ -124,7 +126,6 @@ export class UbicacionService {
 
         const now = now1 ? now1 : Date.now();
         const lastUbicacion = this.ubicaciones.getValue().slice(-1)[0];
-
         // Verifica si es la primera ubicación
         if (!lastUbicacion) {
             this.lastUpdateTimestamp = now;
@@ -273,12 +274,16 @@ export class UbicacionService {
         try {
             // Obtener las ubicaciones guardadas
             const locations = await Preferences.get({ key: 'locations' });
+            const capacidad_retorno = await Preferences.get({
+                key: 'capacidad_retorno',
+            });
             // Obtener el ID de asignación
             const asignID = await this.getAsignacion();
 
             // Verificar si se encontró alguna ubicación
             if (locations.value) {
                 const parsedLocations = JSON.parse(locations.value);
+                const paserCapcidad = JSON.parse(capacidad_retorno.value);
 
                 // Verificar si alguna ubicación contiene el ID de asignación
                 const containsAsignID = parsedLocations.some(
@@ -290,22 +295,27 @@ export class UbicacionService {
                         asignID._id
                     );
                     this.ubicaciones.next(parsedLocations);
+                    this.retornos.next(paserCapcidad);
                 } else {
                     // Si no contiene el ID de asignación, borrar todas las ubicaciones
                     console.log(
                         'No se ha encontrado ninguna ubicación con el ID de asignación. Borrando ubicaciones.'
                     );
                     await Preferences.remove({ key: 'locations' });
+                    await Preferences.remove({ key: 'capacidad_retorno' });
                     this.ubicaciones.next([]);
+                    this.retornos.next([]);
                 }
             } else {
                 // Si no hay ubicaciones, establecer la lista como vacía
                 console.log('No se encontraron ubicaciones guardadas.');
                 this.ubicaciones.next([]);
+                this.retornos.next([]);
             }
         } catch (error) {
             console.error('Error loading locations:', error);
             this.ubicaciones.next([]); // Asegurar que la lista esté vacía en caso de error
+            this.retornos.next([]);
         }
     }
 
@@ -335,6 +345,26 @@ export class UbicacionService {
             this.ubicaciones.next([...this.ubicaciones.getValue(), location]);
         }
     }
+    async saveRetorno(
+        retorno:
+            | { label: 'Lleno'; value: 'Lleno' }
+            | { label: 'Medio'; value: 'Medio' }
+            | { label: 'Vacío'; value: 'Vacío' }
+    ) {
+        const capacidad_retorno = await Preferences.get({
+            key: 'capacidad_retorno',
+        });
+        const parsedRetornos = capacidad_retorno.value
+            ? JSON.parse(capacidad_retorno.value)
+            : [];
+        parsedRetornos.push(retorno);
+        await Preferences.set({
+            key: 'capacidad_retorno',
+            value: JSON.stringify(parsedRetornos),
+        });
+
+        this.retornos.next([...this.retornos.getValue(), retorno]);
+    }
     async saveAsignacion(asign: any): Promise<boolean> {
         try {
             await Preferences.set({
@@ -352,8 +382,14 @@ export class UbicacionService {
         return JSON.parse(value);
     };
 
-    getUbicaciones() {
-        return this.ubicaciones.asObservable();
+    getUbicaciones(): {
+        ubicaciones: Observable<any[]>;
+        retorno: Observable<any[]>;
+    } {
+        return {
+            ubicaciones: this.ubicaciones.asObservable(),
+            retorno: this.retornos.asObservable(),
+        };
     }
 
     getVelocidadActual() {

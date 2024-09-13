@@ -103,7 +103,7 @@
                             pInputText
                             id="phone"
                             type="tel"
-                            [(ngModel)]="datauser.telefono"
+                            [(ngModel)]="datauser.telf"
                             placeholder="Ingresa tu teléfono"
                             type="tel"
                         />
@@ -145,9 +145,9 @@
                     <div class="field col-12 md:col-3" *ngIf="!editing">
                         <label htmlFor="zip">Estado</label>
                         <p-inputSwitch
-                            [ngModel]="datauser.estado === 'On'"
+                            [ngModel]="datauser.status === 'On'"
                             (ngModelChange)="
-                                datauser.estado = $event ? 'On' : 'Off'
+                                datauser.status = $event ? 'On' : 'Off'
                             "
                         ></p-inputSwitch>
                     </div>
@@ -305,7 +305,7 @@
                                 pInputText
                                 id="phone"
                                 type="tel"
-                                [(ngModel)]="datauser.telefono"
+                                [(ngModel)]="datauser.telf"
                                 placeholder="Ingresa tu teléfono"
                                 type="tel"
                             />
@@ -346,9 +346,9 @@
                         <div class="field col-12 md:col-3" *ngIf="!editing">
                             <label htmlFor="zip">Estado</label>
                             <p-inputSwitch
-                                [ngModel]="datauser.estado === 'On'"
+                                [ngModel]="datauser.status === 'On'"
                                 (ngModelChange)="
-                                    datauser.estado = $event ? 'On' : 'Off'
+                                    datauser.status = $event ? 'On' : 'Off'
                                 "
                             ></p-inputSwitch>
                         </div>

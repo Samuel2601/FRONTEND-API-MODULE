@@ -34,11 +34,8 @@ export class UpdateService {
                 }
             }
         }
-
+        console.log(file);
         // Agregar la foto seleccionada si existe
-        if (file) {
-            formData.append('photo', file);
-        }
 
         // Iterar y mostrar valores de FormData
         /*     formData.forEach((value, key) => {
@@ -46,9 +43,39 @@ export class UpdateService {
         });
         */
         const params = new HttpParams().set('id', id);
-        return this.http.put(this.url + 'actualizaruser', data, {
+        /*return this.http.put(this.url + 'actualizaruser', formData, {
             headers: headers,
             params: params,
+        });*/
+        if (!file) {
+            // Envía la imagen comprimida al servidor
+            return this.http.put(this.url + 'actualizaruser', formData, {
+                headers: headers,
+                params: params,
+            });
+        }
+        // Llama a la función compressor para comprimir la imagen
+        return new Observable((observer) => {
+            this.compressor(file).then(
+                (compressedFile) => {
+                    formData.append('photo', compressedFile);
+
+                    // Envía la imagen comprimida al servidor
+                    this.http
+                        .put(this.url + 'actualizaruser', formData, {
+                            headers: headers,
+                            params: params,
+                        })
+                        .subscribe(
+                            (response) => {
+                                observer.next(response);
+                                observer.complete();
+                            },
+                            (error) => observer.error(error)
+                        );
+                },
+                (error) => observer.error(error)
+            );
         });
     }
 
@@ -314,5 +341,4 @@ export class UpdateService {
             throw error;
         }
     }
-    
 }

@@ -230,15 +230,43 @@
     [closable]="false"
     [draggable]="false"
 >
-    <p>¿Nesecitas retornar a estáción?</p>
-    <p-tag
-        icon="pi pi-info-circle"
-        severity="info"
-        [value]="
-            'Tiempo de espera después de usar Retorno a estación: ' +
-            formatTime(returnDelay)
+    <div
+        class="mb-5"
+        style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         "
-    ></p-tag>
+    >
+        <p>¿Nesecitas retornar a estáción?</p>
+        <p-tag
+            icon="pi pi-info-circle"
+            severity="info"
+            [value]="
+                'Tiempo de espera después de usar Retorno a estación: ' +
+                formatTime(returnDelay)
+            "
+        ></p-tag>
+    </div>
+    <div
+        style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        "
+    >
+        <p>¿Quieres decirnos como te va?</p>
+        <p-dropdown
+            appendTo="body"
+            [options]="capacidadOpciones"
+            [(ngModel)]="capcidad_retorno"
+            placeholder="Selecciona capacidad"
+            optionLabel="label"
+            dataKey="value"
+        ></p-dropdown>
+    </div>
 
     <p-footer>
         <p-button label="Sí" (click)="addManualLocation(true, true)"></p-button>
