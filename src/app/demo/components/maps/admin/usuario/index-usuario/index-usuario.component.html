@@ -97,9 +97,12 @@
                     <td>
                         <p-avatar
                             [image]="
-                                url +
-                                'obtener_imagen/usuario/' +
-                                user.photo
+                                user.photo && user.photo.startsWith('http')
+                                    ? user.photo
+                                    : url +
+                                          'obtener_imagen/usuario/' +
+                                          user.photo ||
+                                      'assets/icon/silueta.png'
                             "
                             styleClass="mr-2"
                             size="xlarge"

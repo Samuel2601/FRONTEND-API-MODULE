@@ -1,19 +1,16 @@
 <div class="layout-topbar">
-    
     <!--
         
         -->
-        
-           <a class="layout-topbar-logo" routerLink="">
+
+    <a class="layout-topbar-logo" routerLink="">
         <img
             class="layout-topbar-logo"
             src="/assets/icon/ESMERALDAS_LA_BELLA.png"
             class="png-image"
             alt="logo"
         />
-       
     </a>
-
 
     <button
         #menubutton
@@ -51,7 +48,12 @@
             <i class="pi pi-user" *ngIf="!foto"></i>
             <p-avatar *ngIf="foto" size="large" shape="circle">
                 <img
-                    [src]="url + 'obtener_imagen/usuario/' + foto"
+                    [src]="
+                        foto && foto.startsWith('http')
+                            ? foto
+                            : url + 'obtener_imagen/usuario/' + foto ||
+                              'assets/icon/silueta.png'
+                    "
                     width="40"
                     height="50"
                     alt="Your profile picture"
@@ -70,7 +72,12 @@
             <i class="pi pi-user" *ngIf="!foto"></i>
             <p-avatar *ngIf="foto" size="large" shape="circle">
                 <img
-                    [src]="url + 'obtener_imagen/usuario/' + foto"
+                    [src]="
+                        foto && foto.startsWith('http')
+                            ? foto
+                            : url + 'obtener_imagen/usuario/' + foto ||
+                              'assets/icon/silueta.png'
+                    "
                     width="40"
                     height="50"
                     alt="Your profile picture"
