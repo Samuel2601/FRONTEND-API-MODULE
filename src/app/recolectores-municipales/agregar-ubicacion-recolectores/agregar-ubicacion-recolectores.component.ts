@@ -26,7 +26,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     isReturnButtonDisabled = false;
     returnTimeLeft: number;
     returnInterval: any;
-    returnDelay = 5 * 60 * 1000; // 10 minutes in milliseconds
+    returnDelay = 15 * 60 * 1000; // 10 minutes in milliseconds
 
     table: any[] = [];
     inicial: google.maps.marker.AdvancedMarkerElement;
@@ -239,7 +239,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         // Puedes suscribirte a los observables si necesitas hacer algo cuando cambian
         this.ubicaciones$.subscribe((ubicaciones) => {
             this.table = ubicaciones;
-
+            console.log(this.table);
             this.table.forEach((element) => {
                 this.addMarker(element, false);
             });
@@ -262,6 +262,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
 
         this.retornos$.subscribe((retornos) => {
             this.capcidad_retorno_arr = retornos;
+            console.log(this.capcidad_retorno_arr);
         });
     }
     async checkReturnButtonStatus(time: any) {
@@ -788,23 +789,33 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             moveVehicle();
         }
     }
-    capcidad_retorno_arr: any;
+    capcidad_retorno_arr: any[] = [];
     capcidad_retorno:
         | { label: 'Lleno'; value: 'Lleno' }
         | { label: 'Medio'; value: 'Medio' }
-        | { label: 'Vacío'; value: 'Vacío' };
+        | { label: 'Vacío'; value: 'Vacío' } = {
+        label: 'Vacío',
+        value: 'Vacío',
+    };
     capacidadOpciones = [
         { label: 'Lleno', value: 'Lleno' },
         { label: 'Medio', value: 'Medio' },
         { label: 'Vacío', value: 'Vacío' },
     ];
-    updateCapacidad() {
+    async updateCapacidad() {
         console.log(this.capcidad_retorno);
+        if (this.capcidad_retorno) {
+            await this.ubicacionService.saveRetorno(this.capcidad_retorno);
+            this.capcidad_retorno = {
+                label: 'Vacío',
+                value: 'Vacío',
+            };
+        }
     }
     //------------------------------------ACCIONES DEL USUARIO---------------------------------------
     async addManualLocation(status_destacado: boolean, retorno: boolean) {
         if (retorno) {
-            this.updateCapacidad();
+            await this.updateCapacidad();
         }
         const currentLocation = await Geolocation.getCurrentPosition();
         if (currentLocation) {

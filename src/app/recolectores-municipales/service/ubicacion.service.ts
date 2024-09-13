@@ -218,13 +218,16 @@ export class UbicacionService {
         try {
             const locations = await Preferences.get({ key: 'locations' });
             const asign = await Preferences.get({ key: 'asign' });
-
+            const capacidad_retorno = await Preferences.get({
+                key: 'capacidad_retorno',
+            });
             console.log('locations:', JSON.stringify(locations));
             console.log('asign:', JSON.stringify(asign));
 
             if (locations.value && asign.value) {
                 const parsedLocations = JSON.parse(locations.value);
                 const parsedAsign = JSON.parse(asign.value);
+                const parseCapcidad = JSON.parse(capacidad_retorno.value);
                 const token = this.auth.token();
 
                 // Verificamos que el datatoken sea de tipo string
@@ -235,8 +238,32 @@ export class UbicacionService {
                 const result = await this.updateRutaRecolector(
                     token,
                     parsedAsign._id,
-                    { puntos_recoleccion: parsedLocations }
+                    {
+                        puntos_recoleccion: parsedLocations,
+                        //capacidad_retorno: paserCapcidad,
+                    }
                 ).toPromise();
+                console.log('ANTES DE ENVIAR RETORNOS', result);
+
+                // Cortar los nuevos registros que no están en los registros viejos
+                const nuevosSolo = parseCapcidad.slice(
+                    result.data.capacidad_retorno.length
+                );
+
+                // Concatenar los registros antiguos con los nuevos
+                const capacidadCombinada = [
+                    ...result.data.capacidad_retorno,
+                    ...nuevosSolo,
+                ];
+                const result2 = await this.updateRutaRecolector(
+                    token,
+                    parsedAsign._id,
+                    {
+                        //puntos_recoleccion: parsedLocations,
+                        capacidad_retorno: capacidadCombinada,
+                    }
+                ).toPromise();
+                console.log('DESPUES DE ENVIAR RETORNOS', result2);
 
                 // Si deseas, puedes notificar al usuario sobre la sincronización exitosa
                 alert('Tu información ha sido enviada exitosamente.');
@@ -244,6 +271,27 @@ export class UbicacionService {
         } catch (error) {
             console.error('Error al sincronizar datos:', JSON.stringify(error));
         }
+    }
+
+    mergeCapacidades(viejos, nuevos) {
+        // Recorremos los nuevos registros
+        nuevos.forEach((nuevoRegistro) => {
+            // Verificamos si existe un registro con el mismo label en los registros viejos
+            const registroExistente = viejos.find(
+                (viejoRegistro) => viejoRegistro.label === nuevoRegistro.label
+            );
+
+            if (registroExistente) {
+                // Si existe, actualizamos los valores del registro viejo con el nuevo
+                registroExistente.value = nuevoRegistro.value;
+                registroExistente.verificacion = nuevoRegistro.verificacion;
+            } else {
+                // Si no existe, añadimos el nuevo registro a la lista de viejos
+                viejos.push(nuevoRegistro);
+            }
+        });
+
+        return viejos;
     }
 
     private getHeaders(token: string): HttpHeaders {
@@ -362,8 +410,12 @@ export class UbicacionService {
             key: 'capacidad_retorno',
             value: JSON.stringify(parsedRetornos),
         });
-
-        this.retornos.next([...this.retornos.getValue(), retorno]);
+        console.log(this.retornos.getValue());
+        if (this.retornos.getValue()) {
+            this.retornos.next([...this.retornos.getValue(), retorno]);
+        } else {
+            this.retornos.next([retorno]);
+        }
     }
     async saveAsignacion(asign: any): Promise<boolean> {
         try {

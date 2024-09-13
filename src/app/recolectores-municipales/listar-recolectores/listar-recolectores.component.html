@@ -333,12 +333,8 @@
                     <ng-template pTemplate="header">
                         <tr>
                             <th>N°</th>
-                            <th pSortableColumn="timestamp">
-                                Retorno <p-sortIcon field="timestamp" />
-                            </th>
-                            <th pSortableColumn="capacidad">
-                                Capacidad <p-sortIcon field="capacidad" />
-                            </th>
+                            <th>Retorno</th>
+                            <th>Capacidad</th>
                         </tr>
                     </ng-template>
 
@@ -348,16 +344,49 @@
                         let-index="rowIndex"
                     >
                         <tr>
-                            <td>{{ index + 1 }}</td>
+                            <td>
+                                <p-tag
+                                    icon="pi pi-times"
+                                    severity="danger"
+                                    [value]="index + 1"
+                                    *ngIf="
+                                        !register.capacidad_retorno[index]
+                                            .verificacion
+                                    "
+                                    (click)="
+                                        register.capacidad_retorno[
+                                            index
+                                        ].verificacion = true;
+                                        updateCapacidad(register)
+                                    "
+                                />
+                                <ng-container
+                                    *ngIf="
+                                        register.capacidad_retorno[index]
+                                            .verificacion
+                                    "
+                                >
+                                    {{ index + 1 }}
+                                </ng-container>
+                            </td>
                             <td>{{ product.timestamp | date : "medium" }}</td>
                             <td>
                                 <p-dropdown
+                                    [disabled]="
+                                        register.capacidad_retorno[index]
+                                            .verificacion
+                                    "
                                     appendTo="body"
                                     [options]="capacidadOpciones"
                                     [(ngModel)]="
                                         register.capacidad_retorno[index]
                                     "
-                                    (onChange)="updateCapacidad(register)"
+                                    (onChange)="
+                                        register.capacidad_retorno[
+                                            index
+                                        ].verificacion = true;
+                                        updateCapacidad(register)
+                                    "
                                     placeholder="Selecciona capacidad"
                                     optionLabel="label"
                                     dataKey="value"
