@@ -47,18 +47,129 @@
             </ng-template>
             <ng-template pTemplate="header">
                 <tr>
-                    <th style="text-align: center" pSortableColumn="date">
+                    <th
+                        style="width: 22%"
+                        style="text-align: center"
+                        pSortableColumn="date"
+                    >
+                        Fecha <p-sortIcon field="date" />
+                    </th>
+                    <th
+                        style="width: 22%"
+                        style="text-align: center"
+                        pSortableColumn="deviceId"
+                    >
+                        Recolector
+                    </th>
+                    <th
+                        style="width: 22%"
+                        style="text-align: center"
+                        pSortableColumn="fullname"
+                    >
+                        Funcionario
+                    </th>
+                    <th
+                        style="width: 22%"
+                        style="text-align: center"
+                        pSortableColumn="externo"
+                    >
+                        Externo
+                    </th>
+                    <th
+                        style="width: 22%"
+                        style="text-align: center"
+                        pSortableColumn="ruta.length"
+                    >
+                        Ruta
+                    </th>
+                    <th
+                        style="width: 22%"
+                        style="text-align: center"
+                        pSortableColumn="puntos_recoleccion.length"
+                    >
+                        Puntos de Recolección
+                    </th>
+                    <th
+                        style="width: 12%"
+                        style="text-align: center"
+                        pSortableColumn="velocidad_maxima"
+                    >
+                        Velocidad Máxima
+                    </th>
+                </tr>
+                <tr>
+                    <th style="text-align: center">
                         <p-columnFilter
+                            matchMode="in"
                             type="date"
                             field="date"
                             display="menu"
                         />
-                        Fecha
-
-                        <p-sortIcon field="date" />
                     </th>
-                    <th style="text-align: center" pSortableColumn="deviceId">
-                        Recolector <p-sortIcon field="deviceId" />
+                    <th style="text-align: center">
+                        <p-columnFilter
+                            field="deviceId"
+                            matchMode="in"
+                            [showMenu]="false"
+                        >
+                            <ng-template
+                                pTemplate="filter"
+                                let-value
+                                let-filter="filterCallback"
+                            >
+                                <p-multiSelect
+                                    [ngModel]="value"
+                                    [options]="recolectoresId"
+                                    placeholder="Todos"
+                                    (onChange)="filter($event.value)"
+                                    optionLabel=""
+                                >
+                                    <ng-template let-option pTemplate="item">
+                                        <div
+                                            class="inline-block vertical-align-middle"
+                                        >
+                                            <span class="ml-1 mt-1">
+                                                {{ option }}
+                                            </span>
+                                        </div>
+                                    </ng-template>
+                                </p-multiSelect>
+                            </ng-template>
+                        </p-columnFilter>
+                    </th>
+                    <th>
+                        <p-columnFilter
+                            field="fullname"
+                            matchMode="in"
+                            [showMenu]="false"
+                        >
+                            <ng-template
+                                pTemplate="filter"
+                                let-value
+                                let-filter="filterCallback"
+                            >
+                                <p-multiSelect
+                                    [ngModel]="value"
+                                    [options]="representatives"
+                                    placeholder="Todos"
+                                    (onChange)="filter($event.value)"
+                                    optionLabel=""
+                                >
+                                    <ng-template let-option pTemplate="item">
+                                        <div
+                                            class="inline-block vertical-align-middle"
+                                        >
+                                            <span class="ml-1 mt-1">
+                                                {{ option }}
+                                            </span>
+                                        </div>
+                                    </ng-template>
+                                </p-multiSelect>
+                            </ng-template>
+                        </p-columnFilter>
+                    </th>
+                    <th style="text-align: center">
+                        <p-columnFilter type="boolean" field="externo" />
                     </th>
                     <th
                         style="text-align: center"
@@ -94,6 +205,43 @@
                     <td style="text-align: center">
                         {{ recolector.deviceId }}
                     </td>
+                    <td>
+                        <p-avatar
+                            *ngIf="recolector.funcionario?.photo"
+                            (click)="
+                                onAvatarClick(
+                                    $event,
+                                    recolector.funcionario?.photo
+                                )
+                            "
+                            [image]="
+                                recolector.funcionario.photo &&
+                                recolector.funcionario.photo.startsWith('http')
+                                    ? recolector.funcionario.photo
+                                    : url +
+                                          'obtener_imagen/usuario/' +
+                                          recolector.funcionario.photo ||
+                                      'assets/icon/silueta.png'
+                            "
+                            styleClass="mr-2"
+                            size="large"
+                            shape="circle"
+                        ></p-avatar>
+                        <span class="ml-1 vertical-align-middle">
+                            {{ recolector.fullname }}
+                        </span>
+                    </td>
+                    <td style="text-align: center">
+                        <i
+                            class="pi"
+                            [ngClass]="{
+                                'text-green-500 pi-check-circle':
+                                    !recolector.externo,
+                                'text-red-500 pi-times-circle':
+                                    recolector.externo
+                            }"
+                        ></i>
+                    </td>
                     <td style="text-align: center">
                         {{ recolector.ruta.length }}
                     </td>
@@ -117,6 +265,49 @@
             </ng-template>
         </p-table>
     </div>
+
+    <p-dialog
+        appendTo="body"
+        [(visible)]="displayBasic"
+        [modal]="true"
+        [responsive]="true"
+        [baseZIndex]="99999"
+        [dismissableMask]="true"
+        [style]="{
+            'max-width': isMobil() ? '100%' : '80%',
+            'max-height': isMobil() ? '80vh' : '50vh'
+        }"
+    >
+        <ng-template pTemplate="headless">
+            <p-galleria
+                [value]="imagenModal"
+                [(visible)]="displayBasic"
+                [responsiveOptions]="responsiveOptions"
+                [containerStyle]="{ 'max-width': '100%' }"
+                [numVisible]="9"
+                [circular]="true"
+                [fullScreen]="false"
+                [showItemNavigators]="true"
+                baseZIndex="99999"
+            >
+                <ng-template pTemplate="item" let-item>
+                    <img
+                        [src]="item"
+                        style="width: 100%; display: block; max-height: 60vh"
+                    />
+                </ng-template>
+                <ng-template pTemplate="thumbnail" let-item>
+                    <div class="grid grid-nogutter justify-content-center">
+                        <img
+                            [src]="item"
+                            style="display: block"
+                            style="width: 30%; max-height: 20vh"
+                        />
+                    </div>
+                </ng-template>
+            </p-galleria>
+        </ng-template>
+    </p-dialog>
 
     <div class="grid">
         <div class="col-12 xl:col-6">

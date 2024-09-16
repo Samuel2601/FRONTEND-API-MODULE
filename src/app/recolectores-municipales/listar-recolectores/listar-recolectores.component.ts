@@ -11,6 +11,7 @@ import { UbicacionService } from '../service/ubicacion.service';
 import { AgregarUbicacionRecolectoresComponent } from '../agregar-ubicacion-recolectores/agregar-ubicacion-recolectores.component';
 import { DeleteService } from 'src/app/demo/services/delete.service';
 import { GLOBAL } from '../../demo/services/GLOBAL';
+import { FilterService } from 'src/app/demo/services/filter.service';
 
 @Component({
     selector: 'app-listar-recolectores',
@@ -36,7 +37,8 @@ export class ListarRecolectoresComponent implements OnInit {
         private ubicar: UbicacionService,
         private deleteservice: DeleteService,
         private messageService: MessageService,
-        private confirmationService: ConfirmationService
+        private confirmationService: ConfirmationService,
+        private filterservice: FilterService
     ) {
         this.auth.permissions$.subscribe((permissions) => {
             if (permissions.length > 0) {
@@ -56,13 +58,19 @@ export class ListarRecolectoresComponent implements OnInit {
                 : false;
         return hasPermissionBOL;
     }
+    check_create: boolean = false;
+    deleteRegister: boolean = false;
+
     async loadPermissions() {
         this.check_create =
             (await this.boolPermiss('/recolector/:id', 'get')) || false;
+        this.deleteRegister =
+            (await this.boolPermiss('/recolector/:id', 'delete')) || false;
     }
-    check_create: boolean = false;
+
     async ngOnInit(): Promise<void> {
         await this.fetchDevices();
+        this.listar_asignacion();
     }
     devices: any[] = [];
     async fetchDevices() {
@@ -71,7 +79,6 @@ export class ListarRecolectoresComponent implements OnInit {
                 return { id: e.id, name: e.name, plate: e.plate, capacidad: 0 };
             });
             this.devices = response;
-            this.listar_asignacion();
         });
     }
     getDeviceGPS(id: string) {
@@ -81,6 +88,8 @@ export class ListarRecolectoresComponent implements OnInit {
                 (element) => element.id === parseInt(id)
             );
             nameDevice = aux ? aux.name : 'No encontrado';
+        } else {
+            nameDevice = id;
         }
         return nameDevice;
     }
@@ -164,39 +173,73 @@ export class ListarRecolectoresComponent implements OnInit {
         }
     }
     confirm(event: Event, register: any) {
-        this.confirmationService.confirm({
-            target: event.target as EventTarget,
-            header: 'Eliminación de registro',
-            message:
-                'Confirma la eliminación: ' +
-                register.dateOnly +
-                '/' +
-                this.getDeviceGPS(register.deviceId) +
-                '/' +
-                (register.externo
-                    ? register.externo.name
-                    : register.funcionario.name +
-                      ' ' +
-                      register.funcionario.last_name),
-            icon: 'pi pi-exclamation-circle',
-            acceptIcon: 'pi pi-check mr-1',
-            rejectIcon: 'pi pi-times mr-1',
-            acceptLabel: 'Aceptar',
-            rejectLabel: 'Cancelar',
-            rejectButtonStyleClass: 'p-button-outlined p-button-sm',
-            acceptButtonStyleClass: 'p-button-sm',
-            accept: () => {
-                this.removeRegister(register);
-            },
-            reject: () => {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Cancelación',
-                    detail: 'Se cancelo la eliminación.',
-                    life: 3000,
+        this.filterservice
+            .obtenerRutaRecolector(this.token, register._id)
+            .subscribe((response) => {
+                // Verificar si han pasado más de 30 minutos desde la creación del registro
+                const now = new Date();
+                const createdAt = new Date(response.data.createdAt); // Asumiendo que 'register.date' es la fecha de creación
+                const diffInMinutes =
+                    (now.getTime() - createdAt.getTime()) / 60000;
+
+                if (diffInMinutes > 30) {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'Error',
+                        detail: 'No se puede eliminar. Han pasado más de 30 minutos desde la creación.',
+                        life: 3000,
+                    });
+                    return; // Cancelamos la eliminación si han pasado más de 30 minutos
+                }
+
+                const puntosRecoleccion = response.data.puntos_recoleccion;
+
+                // Verificar que 'puntos_recoleccion.length' no sea mayor a 0
+                if (puntosRecoleccion.length > 0) {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'Error',
+                        detail: 'No se puede eliminar. Hay puntos de recolección registrados.',
+                        life: 3000,
+                    });
+                    return; // Cancelamos la eliminación si hay puntos de recolección
+                }
+
+                // Si las dos condiciones se cumplen, mostramos el diálogo de confirmación
+                this.confirmationService.confirm({
+                    target: event.target as EventTarget,
+                    header: 'Eliminación de registro',
+                    message:
+                        'Confirma la eliminación: ' +
+                        register.dateOnly +
+                        '/' +
+                        this.getDeviceGPS(register.deviceId) +
+                        '/' +
+                        (register.externo
+                            ? register.externo.name
+                            : register.funcionario.name +
+                              ' ' +
+                              register.funcionario.last_name),
+                    icon: 'pi pi-exclamation-circle',
+                    acceptIcon: 'pi pi-check mr-1',
+                    rejectIcon: 'pi pi-times mr-1',
+                    acceptLabel: 'Aceptar',
+                    rejectLabel: 'Cancelar',
+                    rejectButtonStyleClass: 'p-button-outlined p-button-sm',
+                    acceptButtonStyleClass: 'p-button-sm',
+                    accept: () => {
+                        this.removeRegister(register);
+                    },
+                    reject: () => {
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Cancelación',
+                            detail: 'Se canceló la eliminación.',
+                            life: 3000,
+                        });
+                    },
                 });
-            },
-        });
+            });
     }
 
     removeRegister(register: any) {

@@ -82,14 +82,19 @@
                                     )
                                 "
                                 [image]="
-                                    url +
-                                    'obtener_imagen/usuario/' +
-                                    product.funcionario?.photo
+                                    product.funcionario.photo &&
+                                    product.funcionario.photo.startsWith('http')
+                                        ? product.funcionario.photo
+                                        : url +
+                                              'obtener_imagen/usuario/' +
+                                              product.funcionario.photo ||
+                                          'assets/icon/silueta.png'
                                 "
                                 styleClass="mr-2"
                                 size="large"
                                 shape="circle"
                             ></p-avatar>
+
                             {{ product.funcionario?.name }}
                             {{ product.funcionario?.last_name }}
                         </div>
@@ -145,6 +150,7 @@
                         ></p-button>
 
                         <p-button
+                            *ngIf="deleteRegister"
                             class="mx-2"
                             icon="pi pi-eraser"
                             severity="warning"
@@ -285,6 +291,7 @@
         style="justify-content: center"
     >
         <p-button
+            *ngIf="deleteRegister"
             class="mx-2"
             styleClass="p-button-lg"
             size="large"

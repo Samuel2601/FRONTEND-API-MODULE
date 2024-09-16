@@ -61,7 +61,7 @@
             'direccion_geo.nombre',
             'categoria.nombre',
             'subcategoria.nombre',
-            'ciudadano.name',
+            'ciudadano.fullname',
             'estado.nombre'
         ]"
         [sortMode]="'multiple'"
@@ -247,7 +247,7 @@
                 'direccion_geo.nombre',
                 'categoria.nombre',
                 'subcategoria.nombre',
-                'ciudadano.name',
+                'ciudadano.fullname',
                 'estado.nombre'
             ]"
             [sortMode]="'multiple'"
@@ -340,14 +340,16 @@
                             Ciudadano
                             <p-columnFilter
                                 type="text"
-                                field="ciudadano.name"
+                                field="ciudadano.fullname"
                                 display="menu"
                             ></p-columnFilter>
                             <th
-                                pSortableColumn="ciudadano.name"
+                                pSortableColumn="ciudadano.fullname"
                                 style="width: 20%"
                             >
-                                <p-sortIcon field="ciudadano.name"></p-sortIcon>
+                                <p-sortIcon
+                                    field="ciudadano.fullname"
+                                ></p-sortIcon>
                             </th>
                         </div>
                     </th>
@@ -444,7 +446,7 @@
                 </tr>
             </ng-template>
             <ng-template pTemplate="body" let-incidente let-rowIndex="rowIndex">
-                <tr (click)="dialog_view(incidente,rowIndex + 1)">
+                <tr (click)="dialog_view(incidente, rowIndex + 1)">
                     <td>
                         {{ rowIndex + 1 }}
                     </td>
@@ -464,7 +466,7 @@
                         {{ incidente.subcategoria.nombre }}
                     </td>
                     <td>
-                        {{ incidente.ciudadano.name }}
+                        {{ incidente.ciudadano.fullname }}
                     </td>
                     <td *ngIf="incidente.estado">
                         <p-tag
@@ -599,7 +601,7 @@ Gallería de Imagenes
 </p-dialog>
 
 <p-dialog
-    [header]="'Detalles de la Incidencia: '+row"
+    [header]="'Detalles de la Incidencia: ' + row"
     [(visible)]="visible"
     [modal]="false"
     [style]="{ width: isMobil() ? '100%' : '40vw' }"
@@ -631,7 +633,7 @@ Gallería de Imagenes
         </p>
         <p>
             <strong>Ciudadano:</strong>
-            {{ option.ciudadano.name }}
+            {{ option.ciudadano.fullname }}
         </p>
         <p>
             <strong>Descripción:</strong>
@@ -651,7 +653,11 @@ Gallería de Imagenes
             }}</ng-container>
             <ng-container *ngIf="!option.respuesta">--</ng-container>
         </p>
-        <app-mapa-mostrar-fichas *ngIf="visible&&option&&load_map" [ficha]="option" [incidente]="true"></app-mapa-mostrar-fichas>
+        <app-mapa-mostrar-fichas
+            *ngIf="visible && option && load_map"
+            [ficha]="option"
+            [incidente]="true"
+        ></app-mapa-mostrar-fichas>
         <div class="flex justify-content-between">
             <div class="justify-content-between">
                 <p-button

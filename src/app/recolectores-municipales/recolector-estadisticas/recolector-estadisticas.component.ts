@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Table } from 'primeng/table';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ListService } from 'src/app/demo/services/list.service';
+import { GLOBAL } from '../../demo/services/GLOBAL';
 
 @Component({
     selector: 'app-recolector-estadisticas',
@@ -10,7 +11,7 @@ import { ListService } from 'src/app/demo/services/list.service';
     templateUrl: './recolector-estadisticas.component.html',
     styleUrl: './recolector-estadisticas.component.scss',
 })
-export class RecolectorEstadisticasComponent {
+export class RecolectorEstadisticasComponent implements OnInit {
     dialogVisible = false;
     dialogChartData: any;
     dialogTableData: any[] = [];
@@ -20,6 +21,7 @@ export class RecolectorEstadisticasComponent {
     load_char_dialog: boolean = false;
     datosRecolectores: any[] = [];
     cargando: boolean = true;
+    url = GLOBAL.url;
 
     constructor(
         private recolectorService: ListService,
@@ -87,7 +89,8 @@ export class RecolectorEstadisticasComponent {
     ngOnInit(): void {
         this.obtenerDatosRecolectores();
     }
-
+    representatives: any[] = [];
+    recolectoresId: any[] = [];
     obtenerDatosRecolectores() {
         const token = this.auth.token();
 
@@ -107,9 +110,20 @@ export class RecolectorEstadisticasComponent {
                         month: '2-digit',
                         day: '2-digit',
                     });*/
+                    e.fullname = e.funcionario
+                        ? e.funcionario.name + ' ' + e.funcionario.last_name
+                        : e.externo.name;
+                    e.externo = e.funcionario ? true : false;
                     e.velocidad_maxima = this.calcularVelocidadMaxima(e.ruta);
                 });
-                //console.log(this.datosRecolectores);
+                console.log(this.datosRecolectores);
+                this.representatives = [
+                    ...new Set(this.datosRecolectores.map((e) => e.fullname)),
+                ];
+                this.recolectoresId = [
+                    ...new Set(this.datosRecolectores.map((e) => e.deviceId)),
+                ];
+                console.log(this.datosRecolectores);
                 this.cargando = false;
                 this.generarEstadisticas();
             },
@@ -119,16 +133,23 @@ export class RecolectorEstadisticasComponent {
     onSort(event: any, dt1: any) {
         console.log('Orden aplicado:', event);
         console.log('Datos ordenados:', dt1.filteredValue || dt1.value);
-    
+
         // Llama a la función para generar estadísticas con los datos ordenados
         //this.generarEstadisticas(dt1);
+        this.representatives = [
+            ...new Set(this.datosRecolectores.map((e) => e.fullname)),
+        ];
+        this.recolectoresId = [
+            ...new Set(this.datosRecolectores.map((e) => e.deviceId)),
+        ];
     }
 
     generarEstadisticas(dt1?: any) {
-        console.log(dt1, dt1?.filteredValue);
-        console.log('Datos ordenados:', dt1?.filteredValue || dt1?.value);
+        //console.log(dt1, dt1?.filteredValue);
+        //console.log('Datos ordenados:', dt1?.filteredValue || dt1?.value);
         // Acceder a los datos filtrados
-        const datosFiltrados = dt1?.filteredValue || dt1?.value || this.datosRecolectores;
+        const datosFiltrados =
+            dt1?.filteredValue || dt1?.value || this.datosRecolectores;
 
         this.generarDistribucionVelocidades(datosFiltrados);
         this.generarVelocidadPromedio(datosFiltrados);
@@ -138,10 +159,10 @@ export class RecolectorEstadisticasComponent {
     }
     dataDistribucionVelocidades: any | undefined;
     // En tu componente .ts 1
-    generarDistribucionVelocidades(datosRecolectores:any) {
-        const recolectores = datosRecolectores.map((d:any) => d.deviceId);
+    generarDistribucionVelocidades(datosRecolectores: any) {
+        const recolectores = datosRecolectores.map((d: any) => d.deviceId);
         const velocidades = datosRecolectores
-            .map((d:any) => d.ruta.map((punto:any) => punto.speed))
+            .map((d: any) => d.ruta.map((punto: any) => punto.speed))
             .flat();
 
         // Crear histogramas de velocidades
@@ -165,12 +186,12 @@ export class RecolectorEstadisticasComponent {
     dataVelocidadPromedio: any | undefined;
     // En tu componente .ts 2
 
-    generarVelocidadPromedio(datosRecolectores:any) {
+    generarVelocidadPromedio(datosRecolectores: any) {
         // Paso 1: Preparar la estructura de datos inicial
         const velocidadesPorFechaYRecolector = {};
         const fechasSet = new Set();
 
-        datosRecolectores.forEach((recolector:any) => {
+        datosRecolectores.forEach((recolector: any) => {
             const { deviceId, dateOnly, ruta } = recolector;
 
             // Inicializar el objeto para el deviceId si no existe
@@ -185,8 +206,8 @@ export class RecolectorEstadisticasComponent {
 
             // Calcular las velocidades y agregarlas a la estructura de datos
             const velocidades = ruta
-                .filter((punto:any) => punto.speed > 1)
-                .map((punto:any) => punto.speed);
+                .filter((punto: any) => punto.speed > 1)
+                .map((punto: any) => punto.speed);
 
             velocidadesPorFechaYRecolector[deviceId][dateOnly].push(
                 velocidades.length > 0
@@ -238,13 +259,13 @@ export class RecolectorEstadisticasComponent {
 
     dataPuntosRecoleccion: any | undefined;
     // En tu componente .ts 3
-    generarPuntosRecoleccion(datosRecolectores:any) {
+    generarPuntosRecoleccion(datosRecolectores: any) {
         // Paso 1: Preparar la estructura de datos inicial
         const puntosPorFechaYRecolector = {};
         const fechasSet = new Set();
 
         // Procesar los datos recolectores
-        datosRecolectores.forEach((recolector:any) => {
+        datosRecolectores.forEach((recolector: any) => {
             const { deviceId, dateOnly, puntos_recoleccion } = recolector;
 
             // Inicializar el objeto para el deviceId si no existe
@@ -259,7 +280,7 @@ export class RecolectorEstadisticasComponent {
 
             // Contar los puntos de recolección que no tienen retorno
             const puntos = puntos_recoleccion.filter(
-                (e:any) => e.retorno === false
+                (e: any) => e.retorno === false
             ).length;
 
             puntosPorFechaYRecolector[deviceId][dateOnly] = puntos;
@@ -323,7 +344,7 @@ export class RecolectorEstadisticasComponent {
     ];
     mapaCapacidades = new Map<number, number>();
     // En tu componente .ts 4
-    generarCapacidadRetorno(datosRecolectores:any) {
+    generarCapacidadRetorno(datosRecolectores: any) {
         // Paso 1: Preparar la estructura de datos inicial
         const capacidadesPorFechaYRecolector = {};
         const fechasSet = new Set();
@@ -403,12 +424,12 @@ export class RecolectorEstadisticasComponent {
 
     dataDistanciaRecorrida: any | undefined;
     // En tu componente .ts 5
-    generarDistanciaRecorrida(datosRecolectores:any) {
+    generarDistanciaRecorrida(datosRecolectores: any) {
         // Paso 1: Preparar la estructura de datos inicial
         const distanciasPorFecha = {};
         const fechasSet = new Set();
 
-        datosRecolectores.forEach((recolector:any) => {
+        datosRecolectores.forEach((recolector: any) => {
             const { deviceId, dateOnly, ruta } = recolector;
 
             // Inicializar el objeto para el deviceId si no existe
@@ -540,5 +561,33 @@ export class RecolectorEstadisticasComponent {
     clear(table: Table) {
         table.clear();
         this.searchValue = '';
+    }
+    displayBasic: boolean = false;
+    imagenModal: any;
+    responsiveOptions: any[] = [
+        {
+            breakpoint: '1500px',
+            numVisible: 5,
+        },
+        {
+            breakpoint: '1024px',
+            numVisible: 3,
+        },
+        {
+            breakpoint: '768px',
+            numVisible: 2,
+        },
+        {
+            breakpoint: '560px',
+            numVisible: 1,
+        },
+    ];
+    onAvatarClick(event: Event, photo: string | undefined): void {
+        // Detener la propagación del evento click
+        event.stopPropagation();
+
+        // Tu lógica para abrir el modal y asignar la imagen
+        this.displayBasic = true;
+        this.imagenModal = [this.url + 'obtener_imagen/usuario/' + photo];
     }
 }

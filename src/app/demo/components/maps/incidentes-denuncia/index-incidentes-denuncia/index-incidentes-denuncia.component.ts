@@ -34,15 +34,15 @@ import { forkJoin } from 'rxjs';
 })
 export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
     public url = GLOBAL.url;
-    load_map:boolean=false;
-    row:number=-1;
-    dialog_view(register:any,num:number){
-        this.row=num;
-        this.load_map=false;
+    load_map: boolean = false;
+    row: number = -1;
+    dialog_view(register: any, num: number) {
+        this.row = num;
+        this.load_map = false;
         this.visible = true;
         this.option = register;
         setTimeout(() => {
-            this.load_map=true;
+            this.load_map = true;
         }, 300);
     }
     constructor(
@@ -166,7 +166,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
     id = this.auth.idUserToken();
 
     async ngOnInit(): Promise<void> {
-       // console.log(this.id);
+        // console.log(this.id);
         if (!this.modal)
             this.helperservice.llamarspinner('init index incidente');
         const checkObservables = {
@@ -204,6 +204,10 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
             TotalFilter: await this.auth.hasPermissionComponent(
                 'mostra_todas_incidente',
                 'get'
+            ),
+            TotalDelete: await this.auth.hasPermissionComponent(
+                'delete_incidente',
+                'delete'
             ),
         };
 
@@ -251,18 +255,18 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
 
         let filtroServicio: any[] = [];
         let valorServicio: any[] = [];
-       // console.log(filtroServicio, valorServicio);
+        // console.log(filtroServicio, valorServicio);
         if (this.filtro && this.valor) {
             filtroServicio.push(this.filtro);
             valorServicio.push(this.valor);
             this.itemh.push({ label: this.valor });
         }
-      //  console.log(filtroServicio, valorServicio);
+        //  console.log(filtroServicio, valorServicio);
         if (!this.check.TotalFilterIncidente && this.encargos.length == 0) {
             filtroServicio.push('ciudadano');
             valorServicio.push(this.id);
         }
-       // console.log(filtroServicio, valorServicio, this.encargos);
+        // console.log(filtroServicio, valorServicio, this.encargos);
         this.listService
             .listarIncidentesDenuncias(
                 this.token,
@@ -276,8 +280,11 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                     //console.log(response);
                     if (response.data) {
                         this.incidentesDenuncias = response.data;
-                        if(!this.check.TotalFilterIncidente){
-                            this.incidentesDenuncias=this.incidentesDenuncias.filter(e=>e.view==true);
+                        if (!this.check.TotalFilterIncidente) {
+                            this.incidentesDenuncias =
+                                this.incidentesDenuncias.filter(
+                                    (e) => e.view == true
+                                );
                         }
                         if (
                             this.filtro &&
@@ -381,6 +388,13 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                                 }
                             }
                         });
+                        this.incidentesDenuncias.map(
+                            (e) =>
+                                (e.ciudadano.fullname =
+                                    e.ciudadano.name +
+                                    ' ' +
+                                    e.ciudadano.last_name)
+                        );
                         //console.log(this.incidentesDenuncias);
                     }
                 },
@@ -420,7 +434,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
             )
         ) {
             editor = true;
-          //  console.log(this.encargos, edit, this.option);
+            //  console.log(this.encargos, edit, this.option);
         }
         this.ref = this.dialogService.open(EditIncidentesDenunciaComponent, {
             header: 'Editar Incidente',
@@ -561,16 +575,17 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
 
     eliminarIncidente() {
         if (this.iddelete) {
-           // console.log(this.check.BorrarIncidente);
+            // console.log(this.check.BorrarIncidente);
             if (
-                this.id == this.iddelete.ciudadano._id
+                this.id == this.iddelete.ciudadano._id ||
+                this.check.TotalDelete
             ) {
-               // console.log('eliminando');
+                // console.log('eliminando');
                 this.deleteser
                     .eliminarIncidenteDenuncia(this.token, this.iddelete._id)
                     .subscribe(
                         (response) => {
-                          //  console.log(response);
+                            //  console.log(response);
                             if (response) {
                                 this.messageService.add({
                                     severity: 'success',
@@ -596,7 +611,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                         }
                     );
             } else {
-               // console.log('actualziando');
+                // console.log('actualziando');
                 this.iddelete.view = false;
                 this.iddelete.view_id = this.id;
                 this.iddelete.view_date = new Date();
