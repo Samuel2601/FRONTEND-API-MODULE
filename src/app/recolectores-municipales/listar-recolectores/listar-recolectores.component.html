@@ -183,49 +183,66 @@
         'max-width': isMobil() ? '100%' : '80%',
         'max-height': isMobil() ? '80vh' : '50vh'
     }"
-    *ngIf="registerObservacion"
 >
-    <form [formGroup]="observacion">
-        <div class="p-fluid">
-            <div class="p-field mb-3">
-                <label for="chofer">¿El chofer concuerda?</label>
-                <div class="p-field-checkbox my-3">
-                    <p-checkbox
-                        binary="true"
-                        formControlName="verificacion"
-                        [label]="
-                            observacion.value.verificacion
-                                ? 'Si es el chofer'
-                                : 'No es el chofer'
-                        "
-                    ></p-checkbox>
+    <ng-container *ngIf="loader_verificador">
+        <form [formGroup]="observacion">
+            <div class="p-fluid">
+                <div class="p-field mb-3">
+                    <label for="chofer">¿El chofer concuerda?</label>
+                    <div class="p-field-checkbox my-3">
+                        <p-checkbox
+                            binary="true"
+                            formControlName="verificacion"
+                            [label]="
+                                observacion.value.verificacion
+                                    ? 'Si es el chofer'
+                                    : 'No es el chofer'
+                            "
+                        ></p-checkbox>
+                    </div>
+                </div>
+
+                <div class="p-field my-3">
+                    <label for="comentario">Observación</label>
+                    <p-editor
+                        *ngIf="!registerObservacion.observacion.verificador"
+                        formControlName="comentario"
+                        [style]="{ height: '320px' }"
+                    ></p-editor>
+                    <div [innerHTML]="observacion.value.comentario"></div>
                 </div>
             </div>
-
-            <div class="p-field my-3">
-                <label for="comentario">Observación</label>
-                <p-editor
-                    formControlName="comentario"
-                    [style]="{ height: '320px' }"
-                ></p-editor>
-            </div>
-        </div>
-    </form>
+        </form>
+    </ng-container>
+    <ng-container *ngIf="!loader_verificador">
+        <p-skeleton styleClass="mb-2" borderRadius="16px" />
+        <p-skeleton width="10rem" styleClass="mb-2" borderRadius="16px" />
+        <p-skeleton width="5rem" styleClass="mb-2" borderRadius="16px" />
+        <p-skeleton height="2rem" styleClass="mb-2" borderRadius="16px" />
+        <p-skeleton width="10rem" height="4rem" borderRadius="16px" />
+    </ng-container>
 
     <ng-template pTemplate="footer">
-        <p-button
-            label="Aceptar"
-            icon="pi pi-check"
-            type="submit"
-            (click)="guardarObservacion()"
-        ></p-button>
-        <p-button
-            label="Cancelar"
-            icon="pi pi-times"
-            class="p-button-secondary"
-            (click)="displayVerificador = false"
-        ></p-button
-    ></ng-template>
+        <div *ngIf="loader_verificador">
+            <p-button
+                label="Aceptar"
+                icon="pi pi-check"
+                type="submit"
+                (click)="guardarObservacion()"
+                [disabled]="registerObservacion.observacion.verificador"
+            ></p-button>
+            <p-button
+                [label]="
+                    registerObservacion.observacion.verificador
+                        ? 'Cerrar'
+                        : 'Cancelar'
+                "
+                icon="pi pi-times"
+                class="p-button-secondary"
+                (click)="displayVerificador = false"
+            ></p-button>
+        </div>
+    </ng-template>
 </p-dialog>
 
 <p-dialog

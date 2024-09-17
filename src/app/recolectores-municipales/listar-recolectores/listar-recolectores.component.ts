@@ -375,15 +375,84 @@ export class ListarRecolectoresComponent implements OnInit {
         this.imagenModal = [this.url + 'obtener_imagen/usuario/' + photo];
     }
     registerObservacion: any = undefined;
+    loader_verificador: boolean = false;
     observacionDialog(register: any) {
+        this.loader_verificador = false;
         this.displayVerificador = true;
-        this.registerObservacion = register;
-        this.observacion
-            .get('verificacion')
-            .setValue(register.observacion.verificacion);
-        console.log(this.observacion.get('verificacion').value);
+        this.limpiarForm();
+
+        setTimeout(() => {
+            this.registerObservacion = register;
+            this.observacion
+                .get('verificacion')
+                .setValue(register.observacion.verificacion);
+            if (this.registerObservacion.observacion.verificador) {
+                this.observacion
+                    .get('verificacion')
+                    .setValue(
+                        this.registerObservacion.observacion.verificacion
+                    );
+                this.observacion
+                    .get('comentario')
+                    .setValue(this.registerObservacion.observacion.comentario);
+                this.observacion
+                    .get('verificador')
+                    .setValue(this.registerObservacion.observacion.verificador);
+                this.observacion.get('verificacion').disable();
+                this.observacion.get('comentario').disable();
+                this.observacion.get('verificador').disable();
+            }
+            this.loader_verificador = true;
+        }, 500);
+    }
+    limpiarForm() {
+        this.registerObservacion = undefined;
+        this.observacion.reset({
+            verificacion: true, // Si quieres mantener verificacion como true por defecto
+            comentario: '',
+            verificador: this.auth.idUserToken(), // Mantener el verificador con el valor actual
+        });
+        this.observacion.get('verificacion').enable();
+        this.observacion.get('comentario').enable();
+        this.observacion.get('verificador').enable();
     }
     guardarObservacion() {
         console.log(this.observacion.value);
+
+        const token = this.auth.token();
+
+        // Verificamos que el datatoken sea de tipo string
+        if (!token || typeof token !== 'string') {
+            console.error('Token inválido o no encontrado.');
+            return;
+        }
+
+        this.ubicar
+            .updateRutaRecolector(token, this.registerObservacion._id, {
+                observacion: this.observacion.value,
+            })
+            .subscribe(
+                (response) => {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Verificación de choferes',
+                        detail: 'Observación enviada',
+                    });
+                    this.displayVerificador = false;
+                    this.limpiarForm();
+                    //console.log(response);
+                    this.loader_verificador = false;
+                },
+                (error) => {
+                    console.error(error);
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'ERROR',
+                        detail: 'Ocurrio algo malo al mandar la observación.',
+                    });
+                    this.limpiarForm();
+                    this.loader_verificador = false;
+                }
+            );
     }
 }
