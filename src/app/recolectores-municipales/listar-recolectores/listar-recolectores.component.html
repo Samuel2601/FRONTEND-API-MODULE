@@ -189,11 +189,15 @@
         <div class="p-fluid">
             <div class="p-field mb-3">
                 <label for="chofer">¿El chofer concuerda?</label>
-                <div class="p-field-checkbox">
+                <div class="p-field-checkbox my-3">
                     <p-checkbox
                         binary="true"
                         formControlName="verificacion"
-                        label="Verificación realizada"
+                        [label]="
+                            observacion.value.verificacion
+                                ? 'Si es el chofer'
+                                : 'No es el chofer'
+                        "
                     ></p-checkbox>
                 </div>
             </div>

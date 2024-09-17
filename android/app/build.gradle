@@ -5,8 +5,8 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "ec.gob.esmeraldas.labella"
-        minSdkVersion compileSdk
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        minSdk 29
+        targetSdk 35
         versionCode 30
         versionName '1.30'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
