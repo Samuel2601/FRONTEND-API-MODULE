@@ -335,15 +335,12 @@ export class ListarRecolectoresComponent implements OnInit {
 
     getBadgeValue(product: any): number | null {
         const arr_capcidad =
-            product.capacidad_retorno.filter((e: any) => e.value) || [];
+            product.capacidad_retorno.filter(
+                (e: any) => e.verificacion == false
+            ) || [];
         const capacidadRetornoLength = arr_capcidad.length || 0;
-        const puntos_retornos =
-            product.puntos_recoleccion.filter((e: any) => e.retorno === true) ||
-            [];
-        const puntosRecoleccionLength = puntos_retornos.length || 0;
-        const difference = puntosRecoleccionLength - capacidadRetornoLength;
 
-        return difference > 0 ? difference : null;
+        return capacidadRetornoLength > 0 ? capacidadRetornoLength : null;
     }
 
     displayBasic: boolean = false;

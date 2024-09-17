@@ -832,6 +832,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             if (valid.resp || retorno) {
                 if (status_destacado) {
                     this.addMarker(aux, false);
+                    this.getMarker(this.markers.length - 1);
                 }
                 await this.ubicacionService.saveLocation(aux, true);
                 if (retorno) {
