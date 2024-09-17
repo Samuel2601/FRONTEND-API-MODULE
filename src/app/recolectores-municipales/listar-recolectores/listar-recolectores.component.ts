@@ -12,6 +12,7 @@ import { AgregarUbicacionRecolectoresComponent } from '../agregar-ubicacion-reco
 import { DeleteService } from 'src/app/demo/services/delete.service';
 import { GLOBAL } from '../../demo/services/GLOBAL';
 import { FilterService } from 'src/app/demo/services/filter.service';
+import { FormBuilder, FormGroup } from '@angular/forms';
 
 @Component({
     selector: 'app-listar-recolectores',
@@ -27,6 +28,8 @@ import { FilterService } from 'src/app/demo/services/filter.service';
 export class ListarRecolectoresComponent implements OnInit {
     token = this.auth.token();
     public url: string;
+    public displayVerificador: boolean = false;
+    public observacion: FormGroup;
     constructor(
         private list: ListService,
         private auth: AuthService,
@@ -38,7 +41,8 @@ export class ListarRecolectoresComponent implements OnInit {
         private deleteservice: DeleteService,
         private messageService: MessageService,
         private confirmationService: ConfirmationService,
-        private filterservice: FilterService
+        private filterservice: FilterService,
+        private formBuilder: FormBuilder
     ) {
         this.auth.permissions$.subscribe((permissions) => {
             if (permissions.length > 0) {
@@ -47,6 +51,11 @@ export class ListarRecolectoresComponent implements OnInit {
             this.loadPermissions(); // Llama a loadPermissions cuando hay cambios en los permisos
         });
         this.url = GLOBAL.url;
+        this.observacion = this.formBuilder.group({
+            verificacion: true,
+            comentario: '',
+            verificador: auth.idUserToken(),
+        });
     }
     permisos_arr: any[] = [];
     async boolPermiss(permission: any, method: any) {
@@ -364,5 +373,17 @@ export class ListarRecolectoresComponent implements OnInit {
         // Tu lógica para abrir el modal y asignar la imagen
         this.displayBasic = true;
         this.imagenModal = [this.url + 'obtener_imagen/usuario/' + photo];
+    }
+    registerObservacion: any = undefined;
+    observacionDialog(register: any) {
+        this.displayVerificador = true;
+        this.registerObservacion = register;
+        this.observacion
+            .get('verificacion')
+            .setValue(register.observacion.verificacion);
+        console.log(this.observacion.get('verificacion').value);
+    }
+    guardarObservacion() {
+        console.log(this.observacion.value);
     }
 }

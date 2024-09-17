@@ -150,6 +150,14 @@
                         ></p-button>
 
                         <p-button
+                            class="mx-2"
+                            icon="pi pi-search"
+                            severity="info"
+                            label="Observación"
+                            (onClick)="observacionDialog(product)"
+                        ></p-button>
+
+                        <p-button
                             *ngIf="deleteRegister"
                             class="mx-2"
                             icon="pi pi-eraser"
@@ -163,6 +171,58 @@
         </ng-template>
     </p-table>
 </p-card>
+<p-dialog
+    appendTo="body"
+    header="Verificación y Observación"
+    [(visible)]="displayVerificador"
+    [modal]="true"
+    [responsive]="true"
+    [baseZIndex]="99999"
+    [dismissableMask]="true"
+    [style]="{
+        'max-width': isMobil() ? '100%' : '80%',
+        'max-height': isMobil() ? '80vh' : '50vh'
+    }"
+    *ngIf="registerObservacion"
+>
+    <form [formGroup]="observacion">
+        <div class="p-fluid">
+            <div class="p-field mb-3">
+                <label for="chofer">¿El chofer concuerda?</label>
+                <div class="p-field-checkbox">
+                    <p-checkbox
+                        binary="true"
+                        formControlName="verificacion"
+                        label="Verificación realizada"
+                    ></p-checkbox>
+                </div>
+            </div>
+
+            <div class="p-field my-3">
+                <label for="comentario">Observación</label>
+                <p-editor
+                    formControlName="comentario"
+                    [style]="{ height: '320px' }"
+                ></p-editor>
+            </div>
+        </div>
+    </form>
+
+    <ng-template pTemplate="footer">
+        <p-button
+            label="Aceptar"
+            icon="pi pi-check"
+            type="submit"
+            (click)="guardarObservacion()"
+        ></p-button>
+        <p-button
+            label="Cancelar"
+            icon="pi pi-times"
+            class="p-button-secondary"
+            (click)="displayVerificador = false"
+        ></p-button
+    ></ng-template>
+</p-dialog>
 
 <p-dialog
     appendTo="body"
@@ -283,6 +343,18 @@
             icon="pi pi-map"
             label="Ver"
             (onClick)="verRuta(viewregister)"
+        ></p-button>
+    </div>
+    <div
+        class="flex align-items-center gap-3 mb-3"
+        style="justify-content: center"
+    >
+        <p-button
+            class="mx-2"
+            icon="pi pi-search"
+            severity="info"
+            label="Observación"
+            (onClick)="observacionDialog(viewregister)"
         ></p-button>
     </div>
 
