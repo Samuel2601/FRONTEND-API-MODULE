@@ -60,6 +60,7 @@
                         pSortableColumn="deviceId"
                     >
                         Recolector
+                        <p-sortIcon field="deviceId" />
                     </th>
                     <th
                         style="width: 22%"
@@ -67,6 +68,7 @@
                         pSortableColumn="fullname"
                     >
                         Funcionario
+                        <p-sortIcon field="fullname" />
                     </th>
                     <th
                         style="width: 22%"
@@ -74,6 +76,7 @@
                         pSortableColumn="externo"
                     >
                         Externo
+                        <p-sortIcon field="externo" />
                     </th>
                     <th
                         style="width: 22%"
@@ -81,6 +84,7 @@
                         pSortableColumn="ruta.length"
                     >
                         Ruta
+                        <p-sortIcon field="ruta.length" />
                     </th>
                     <th
                         style="width: 22%"
@@ -88,6 +92,7 @@
                         pSortableColumn="puntos_recoleccion.length"
                     >
                         Puntos de Recolección
+                        <p-sortIcon field="puntos_recoleccion.length" />
                     </th>
                     <th
                         style="width: 12%"
@@ -95,6 +100,7 @@
                         pSortableColumn="velocidad_maxima"
                     >
                         Velocidad Máxima
+                        <p-sortIcon field="velocidad_maxima" />
                     </th>
                 </tr>
                 <tr>
@@ -171,7 +177,10 @@
                     <th style="text-align: center">
                         <p-columnFilter type="boolean" field="externo" />
                     </th>
-                    <th
+                    <th colspan="3"></th>
+
+                    <!--
+                                        <th
                         style="text-align: center"
                         pSortableColumn="ruta.length"
                     >
@@ -184,17 +193,13 @@
                         Puntos de Recolección
                         <p-sortIcon field="puntos_recoleccion.length" />
                     </th>
-                    <!--
-                    <th>Capacidad Retorno</th>
-                    -->
-
-                    <th
+                     <th
                         style="text-align: center"
                         pSortableColumn="velocidad_maxima"
                     >
                         Velocidad Máxima <p-sortIcon field="velocidad_maxima" />
                     </th>
-                    <!-- Nueva columna -->
+                    -->
                 </tr>
             </ng-template>
             <ng-template pTemplate="body" let-recolector>
@@ -237,8 +242,7 @@
                             [ngClass]="{
                                 'text-green-500 pi-check-circle':
                                     !recolector.externo,
-                                'text-red-500 pi-times-circle':
-                                    recolector.externo
+                                
                             }"
                         ></i>
                     </td>
@@ -254,6 +258,12 @@
 
                     <td style="text-align: center">
                         {{ recolector.velocidad_maxima }} km/h
+                        <p-button
+                            class="mx-2"
+                            icon="pi pi-map"
+                            label="Ver"
+                            (onClick)="verRuta(recolector)"
+                        ></p-button>
                     </td>
                     <!-- Nueva columna con la velocidad máxima -->
                 </tr>

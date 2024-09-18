@@ -824,7 +824,8 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 lat: currentLocation.coords.latitude,
                 lng: currentLocation.coords.longitude,
                 timestamp: new Date().toISOString(),
-                speed: 0,
+                speed: currentLocation.coords.speed,
+                accuracy: currentLocation.coords.accuracy,
                 destacado: status_destacado,
                 retorno: retorno,
             };

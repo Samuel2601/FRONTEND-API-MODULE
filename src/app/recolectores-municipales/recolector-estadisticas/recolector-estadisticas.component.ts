@@ -4,12 +4,24 @@ import { AuthService } from 'src/app/demo/services/auth.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ListService } from 'src/app/demo/services/list.service';
 import { GLOBAL } from '../../demo/services/GLOBAL';
+import { Router } from '@angular/router';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { AgregarUbicacionRecolectoresComponent } from '../agregar-ubicacion-recolectores/agregar-ubicacion-recolectores.component';
+import { UbicacionService } from '../service/ubicacion.service';
+import { App } from '@capacitor/app';
 
 @Component({
     selector: 'app-recolector-estadisticas',
     standalone: false,
     templateUrl: './recolector-estadisticas.component.html',
     styleUrl: './recolector-estadisticas.component.scss',
+    providers: [
+        ConfirmationService,
+        MessageService,
+        DynamicDialogRef,
+        DialogService,
+    ],
 })
 export class RecolectorEstadisticasComponent implements OnInit {
     dialogVisible = false;
@@ -26,7 +38,11 @@ export class RecolectorEstadisticasComponent implements OnInit {
     constructor(
         private recolectorService: ListService,
         private auth: AuthService,
-        private helper: HelperService
+        private helper: HelperService,
+        private router: Router,
+        private ref: DynamicDialogRef,
+        private dialogService: DialogService,
+        private ubicar: UbicacionService
     ) {}
 
     openDialog(
@@ -589,5 +605,48 @@ export class RecolectorEstadisticasComponent implements OnInit {
         // Tu lógica para abrir el modal y asignar la imagen
         this.displayBasic = true;
         this.imagenModal = [this.url + 'obtener_imagen/usuario/' + photo];
+    }
+
+    verRuta(register: any) {
+        console.log(register);
+        this.ref = this.dialogService.open(
+            AgregarUbicacionRecolectoresComponent,
+            {
+                header:
+                    'Seguimiento de ruta del vehiculo: ' +
+                    this.getDeviceGPS(register.deviceId) +
+                    ' a cargo de: ' +
+                    register.fullname,
+                width: '90vw',
+                data: { id: register._id },
+            }
+        );
+        App.addListener('backButton', (data) => {
+            this.ref.close();
+        });
+        /*this.ref.onClose.subscribe(() => {
+                this.listar_asignacion();
+            });*/
+    }
+    devices: any[] = [];
+    async fetchDevices() {
+        this.ubicar.obtenerDeviceGPS().subscribe((response) => {
+            const aux = response.map((e) => {
+                return { id: e.id, name: e.name, plate: e.plate, capacidad: 0 };
+            });
+            this.devices = response;
+        });
+    }
+    getDeviceGPS(id: string) {
+        let nameDevice = '';
+        if (this.devices.length > 0) {
+            let aux = this.devices.find(
+                (element) => element.id === parseInt(id)
+            );
+            nameDevice = aux ? aux.name : 'No encontrado';
+        } else {
+            nameDevice = id;
+        }
+        return nameDevice;
     }
 }

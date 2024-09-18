@@ -40,7 +40,6 @@ export class UbicacionService {
         //this.iniciarWatcher();
     }
     private lastUpdateTimestamp: number | null = null;
-    private readonly MAX_DISTANCE_KM = 0.001; // Distancia máxima permitida entre puntos consecutivos en kilómetros
     private readonly MIN_SPEED_KMH = 90 * 1000; // Velocidad mínima en km/h para considerar la ubicación como válida
 
     /*iniciarWatcher() {
@@ -110,61 +109,53 @@ export class UbicacionService {
                 console.error('Error al iniciar el watcher', err);
             });
     }*/
-    isValidLocation(
-        nuevaUbicacion: {
-            lat: number;
-            lng: number;
-            timestamp: string;
-            speed?: number;
-        },
-        now1?: number
-    ): { resp: boolean; message: string } {
+
+    isValidLocation(nuevaUbicacion: {
+        lat: number;
+        lng: number;
+        timestamp: string;
+        speed?: number;
+        accuracy?: number;
+    }): { resp: boolean; message: string } {
         const respuesta = {
             resp: false,
             message: '',
         };
 
-        const now = now1 ? now1 : Date.now();
         const lastUbicacion = this.ubicaciones.getValue().slice(-1)[0];
         // Verifica si es la primera ubicación
         if (!lastUbicacion) {
-            this.lastUpdateTimestamp = now;
             respuesta.resp = true;
             respuesta.message = 'Primera ubicación registrada';
             return respuesta;
         }
 
+        if (nuevaUbicacion.accuracy && nuevaUbicacion.accuracy > 100) {
+            respuesta.message =
+                'La precisión de la ubicación es muy baja. Intenta nuevamente.';
+            return respuesta;
+        }
+
         const distancia = this.calculateDistance(lastUbicacion, nuevaUbicacion);
-        this.DistanciaRecorrida.next(this.DistanciaRecorrida.value + distancia);
-
-        const tiempo =
-            (now - new Date(lastUbicacion.timestamp).getTime()) / 1000 / 3600; // Convertir tiempo a horas
-
-        // Verifica que la distancia no sea demasiado grande en relación con la velocidad
-        const maxPossibleDistance = this.MIN_SPEED_KMH * tiempo;
-
         if (distancia <= 20) {
             respuesta.message =
-                'Parece que no se ha detectado movimiento. Intenta moverte un poco y vuelve a intentarlo.';
+                'No se ha detectado movimiento suficiente. Intenta moverte.';
             return respuesta;
         }
 
+        const tiempo =
+            (Date.now() - new Date(lastUbicacion.timestamp).getTime()) /
+            1000 /
+            3600;
+        const maxPossibleDistance = this.MIN_SPEED_KMH * tiempo;
         if (distancia > maxPossibleDistance) {
             respuesta.message =
-                'El movimiento parece ser un poco rápido. Asegúrate de que la ubicación es correcta y vuelve a intentarlo.';
+                'El movimiento es demasiado rápido para ser real. Verifica tu ubicación.';
             return respuesta;
         }
-        /*
-        if (distancia > this.MAX_DISTANCE_KM * 1000) {
-            respuesta.message = 'La ubicación parece estar más lejos de lo esperado. Verifica tu posición e inténtalo nuevamente.';
-            return respuesta;
-        }
-        */
 
-        // Si todas las condiciones se cumplen, la ubicación es válida
         respuesta.resp = true;
         respuesta.message = 'Ubicación válida';
-
         return respuesta;
     }
 
