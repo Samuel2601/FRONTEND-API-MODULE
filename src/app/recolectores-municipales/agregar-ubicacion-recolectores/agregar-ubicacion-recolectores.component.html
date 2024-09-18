@@ -11,6 +11,20 @@
         style="min-height: 50vh; margin-left: -18px; margin-right: -18px"
     ></div>
     <!-- velocidad.component.html -->
+    <div
+        class="velocidad-container mb-5"
+        *ngIf="!ruta && asignacion && isMobil()"
+    >
+        <p-button
+            icon="pi pi-car"
+            [label]="drivingMode ? 'Stop Driving Mode' : 'Start Driving Mode'"
+            [style]="{ padding: '20px' }"
+            [severity]="drivingMode ? 'info' : 'help'"
+            (click)="toggleDrivingMode()"
+        ></p-button>
+    </div>
+
+    <!-- velocidad.component.html -->
     <div class="velocidad-container" *ngIf="!ruta && asignacion">
         <p-button
             icon="pi pi-plus"

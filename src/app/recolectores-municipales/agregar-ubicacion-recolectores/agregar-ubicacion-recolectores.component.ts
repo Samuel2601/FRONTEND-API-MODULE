@@ -2,7 +2,11 @@ import { Component, OnInit, Optional } from '@angular/core';
 import { Subscription, filter } from 'rxjs';
 import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 import { UbicacionService } from '../service/ubicacion.service';
-import { Geolocation } from '@capacitor/geolocation';
+import {
+    CallbackID,
+    ClearWatchOptions,
+    Geolocation,
+} from '@capacitor/geolocation';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ActivatedRoute } from '@angular/router';
 import { FilterService } from 'src/app/demo/services/filter.service';
@@ -817,15 +821,34 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         if (retorno) {
             await this.updateCapacidad();
         }
-        const currentLocation = await Geolocation.getCurrentPosition();
+        const maxTimeDiff = 5 * 60 * 1000; // Diferencia máxima de 5 minutos en milisegundos
+        const now = Date.now();
+
+        let currentLocation = this.lastPosition;
+
+        // Si no hay una posición reciente, solicita una nueva ubicación
+        if (!currentLocation || now - currentLocation.timestamp > maxTimeDiff) {
+            currentLocation = await Geolocation.getCurrentPosition();
+            if (currentLocation) {
+                currentLocation = {
+                    latitude: currentLocation.coords.latitude,
+                    longitude: currentLocation.coords.longitude,
+                    speed: currentLocation.coords.speed,
+                    accuracy: currentLocation.coords.accuracy,
+                    timestamp: Date.now(), // Actualiza el timestamp
+                };
+                this.lastPosition = currentLocation; // Actualiza lastPosition con la nueva ubicación
+            }
+        }
+        console.log(currentLocation);
         if (currentLocation) {
             const aux = {
                 _id: this.asignacion._id,
-                lat: currentLocation.coords.latitude,
-                lng: currentLocation.coords.longitude,
+                lat: currentLocation.latitude,
+                lng: currentLocation.longitude,
                 timestamp: new Date().toISOString(),
-                speed: currentLocation.coords.speed,
-                accuracy: currentLocation.coords.accuracy,
+                speed: currentLocation.speed,
+                accuracy: currentLocation.accuracy,
                 destacado: status_destacado,
                 retorno: retorno,
             };
@@ -895,5 +918,131 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
 
     async envioupdate() {
         await this.ubicacionService.syncData();
+    }
+
+    //------------------------------------------------------SEGUIMIENTO DEL MAPA --------------------------------------
+    currentMarker: any; // Marcador que sigue la ubicación del usuario
+    watchId: string; // ID del watcher para controlarlo
+    drivingMode: boolean = false; // Estado del modo de conducción
+    // Alternar el modo de conducción
+    async toggleDrivingMode() {
+        if (this.drivingMode) {
+            await this.stopWatchingPosition(); // Detener la observación
+        } else {
+            await this.startWatchingPosition(); // Iniciar la observación
+        }
+        this.drivingMode = !this.drivingMode; // Cambiar el estado
+    }
+
+    // Inicia el seguimiento de la ubicación del usuario
+    lastPosition = null;
+    async startWatchingPosition() {
+        const options = {
+            enableHighAccuracy: true, // Activa la mayor precisión posible
+            timeout: 10000, // Tiempo de espera máximo en milisegundos
+            maximumAge: 0, // No utilizar posiciones en caché
+            distanceFilter: 10, // Mínima distancia en metros para disparar el callback
+        };
+
+        if (this.watchId) {
+            // Si ya hay un watch activo, lo detienes antes de empezar uno nuevo
+            await this.stopWatchingPosition();
+        }
+
+        this.watchId = await Geolocation.watchPosition(
+            options,
+            (position, err) => {
+                if (err) {
+                    console.error('Error obteniendo la posición', err);
+                    return;
+                }
+
+                if (position) {
+                    console.log(JSON.stringify(position));
+                    const { latitude, longitude, speed, accuracy } =
+                        position.coords;
+                    const timestamp = Date.now(); // Guarda el timestamp actual
+
+                    // Si no existe una posición anterior, guarda la actual
+                    if (!this.lastPosition) {
+                        this.lastPosition = {
+                            latitude,
+                            longitude,
+                            speed,
+                            accuracy,
+                            timestamp,
+                        };
+                        this.updateMapLocation(latitude, longitude);
+                        return;
+                    }
+
+                    // Calcula la distancia entre la nueva posición y la anterior
+                    const distance = this.ubicacionService.calculateDistance(
+                        {
+                            lat: this.lastPosition.latitude,
+                            lng: this.lastPosition.longitude,
+                        },
+                        { lat: latitude, lng: longitude }
+                    );
+
+                    // Si la distancia es significativa (mayor al umbral, por ejemplo 10 metros), actualiza la ubicación
+                    if (distance >= 10) {
+                        this.lastPosition = {
+                            latitude,
+                            longitude,
+                            speed,
+                            accuracy,
+                            timestamp,
+                        };
+                        this.updateMapLocation(latitude, longitude);
+                    }
+                }
+            }
+        );
+        console.log('CONTENIDO DE WACHID: ', this.watchId);
+    }
+
+    // Detiene el seguimiento de la ubicación del usuario
+    async stopWatchingPosition() {
+        if (this.watchId) {
+            const clear: ClearWatchOptions = {
+                id: this.watchId,
+            };
+            await Geolocation.clearWatch(clear)
+                .then(() => {
+                    this.watchId = null; // Limpiar watchId después de detener el seguimiento
+                    // Eliminar el marcador del mapa
+                    if (this.currentMarker) {
+                        this.currentMarker.setMap(null); // Quita el marcador del mapa
+                        this.currentMarker = null; // Reinicia la referencia del marcador
+                    }
+                })
+                .catch((error) => {
+                    console.error(
+                        'Error al detener el seguimiento de la ubicación:',
+                        error
+                    );
+                });
+        }
+    }
+
+    // Actualiza el mapa con la nueva ubicación del usuario
+    updateMapLocation(lat: number, lng: number) {
+        const newPosition = { lat, lng };
+
+        // Centrar el mapa en la nueva ubicación
+        this.mapCustom.setCenter(newPosition);
+
+        // Si ya existe un marcador, actualiza su posición
+        if (this.currentMarker) {
+            this.currentMarker.setPosition(newPosition);
+        } else {
+            // Si no existe, crea un nuevo marcador
+            this.currentMarker = new google.maps.Marker({
+                position: newPosition,
+                map: this.mapCustom,
+                title: 'Tu ubicación',
+            });
+        }
     }
 }
