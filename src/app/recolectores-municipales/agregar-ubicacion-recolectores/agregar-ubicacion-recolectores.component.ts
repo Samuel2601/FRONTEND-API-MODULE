@@ -941,7 +941,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             enableHighAccuracy: true, // Activa la mayor precisión posible
             timeout: 10000, // Tiempo de espera máximo en milisegundos
             maximumAge: 0, // No utilizar posiciones en caché
-            distanceFilter: 10, // Mínima distancia en metros para disparar el callback
+            distanceFilter: 20, // Mínima distancia en metros para disparar el callback
         };
 
         if (this.watchId) {
@@ -965,14 +965,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
 
                     // Si no existe una posición anterior, guarda la actual
                     if (!this.lastPosition) {
-                        this.lastPosition = {
-                            latitude,
-                            longitude,
-                            speed,
-                            accuracy,
-                            timestamp,
-                        };
-                        this.updateMapLocation(latitude, longitude);
+                        this.updateMapLocation(position.coords);
                         return;
                     }
 
@@ -986,20 +979,12 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                     );
 
                     // Si la distancia es significativa (mayor al umbral, por ejemplo 10 metros), actualiza la ubicación
-                    if (distance >= 10) {
-                        this.lastPosition = {
-                            latitude,
-                            longitude,
-                            speed,
-                            accuracy,
-                            timestamp,
-                        };
-                        this.updateMapLocation(latitude, longitude);
+                    if (distance >= 20) {
+                        this.updateMapLocation(position.coords);
                     }
                 }
             }
         );
-        console.log('CONTENIDO DE WACHID: ', this.watchId);
     }
 
     // Detiene el seguimiento de la ubicación del usuario
@@ -1025,24 +1010,131 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 });
         }
     }
+    MAX_ACCURACY = 20; // Máxima precisión permitida (en metros)
 
     // Actualiza el mapa con la nueva ubicación del usuario
-    updateMapLocation(lat: number, lng: number) {
-        const newPosition = { lat, lng };
+    updateMapLocation(coords: any) {
+        const { latitude, longitude, speed, heading, accuracy } = coords;
+        const timestamp = Date.now(); // Guarda el timestamp actual
+
+        const newPosition: google.maps.LatLngLiteral = {
+            lat: latitude,
+            lng: longitude,
+        };
+
+        // Filtrar posiciones con precisión menor a 10 metros
+        if (accuracy > this.MAX_ACCURACY && this.currentMarker) {
+            console.warn('Precisión insuficiente:', accuracy);
+            return;
+        }
+
+        this.lastPosition = {
+            latitude,
+            longitude,
+            speed,
+            accuracy,
+            timestamp,
+        };
+
+        // Round the heading to the nearest 15°
+        const nearestAngle = this.getNearestAngle(heading);
+
+        // Get the correct truck sprite based on the nearest angle
+        const sprite = this.getTruckSpriteForAngle(nearestAngle);
 
         // Centrar el mapa en la nueva ubicación
         this.mapCustom.setCenter(newPosition);
 
         // Si ya existe un marcador, actualiza su posición
         if (this.currentMarker) {
-            this.currentMarker.setPosition(newPosition);
+            // Smooth transition for marker's position
+            this.animateMarkerTransition(this.currentMarker, newPosition);
+
+            // Cambiar el sprite del marcador si cambia el ángulo (heading)
+            this.currentMarker.setIcon({
+                url: sprite,
+                scaledSize: new google.maps.Size(50, 50), // Tamaño ajustado del sprite
+                //rotation: nearestAngle, // Optional: if rotation is needed
+            });
         } else {
             // Si no existe, crea un nuevo marcador
             this.currentMarker = new google.maps.Marker({
                 position: newPosition,
                 map: this.mapCustom,
                 title: 'Tu ubicación',
+                icon: {
+                    url: sprite,
+                    scaledSize: new google.maps.Size(50, 50), // Ajustar tamaño del ícono
+                },
             });
         }
+    }
+
+    // Function to round the heading to the nearest multiple of 15°
+    getNearestAngle(heading: number) {
+        heading = ((heading % 360) + 360) % 360; // Normaliza el ángulo entre 0 y 360
+        return Math.round(heading / 15) * 15;
+    }
+    imageTruck: string = undefined;
+    // Function to get the corresponding truck sprite for the direction
+    getTruckSpriteForAngle(angle: number) {
+        // Map angles to positions in the sprite sheet
+        const spriteMap = {
+            0: 'tile000.png', // Replace with your sprite path
+            15: 'tile001.png',
+            30: 'tile002.png',
+            45: 'tile003.png',
+            60: 'tile004.png',
+            75: 'tile005.png',
+            90: 'tile006.png',
+            105: 'tile007.png',
+            120: 'tile008.png',
+            135: 'tile009.png',
+            150: 'tile010.png',
+            165: 'tile011.png',
+            180: 'tile012.png',
+            195: 'tile013.png',
+            210: 'tile014.png',
+            225: 'tile015.png',
+            240: 'tile016.png',
+            255: 'tile017.png',
+            270: 'tile018.png',
+            285: 'tile019.png',
+            300: 'tile020.png',
+            315: 'tile021.png',
+            330: 'tile022.png',
+            345: 'tile023.png',
+        };
+        console.log('ANGULO: ', angle, 'STRIPE: ', spriteMap[angle]);
+        this.imageTruck = 'assets/icon-truc-set-24/' + spriteMap[angle];
+        return this.imageTruck;
+    }
+
+    // Función para animar la transición del marcador
+    animateMarkerTransition(
+        marker: google.maps.Marker,
+        newPosition: google.maps.LatLngLiteral
+    ) {
+        const animationDuration = 1000; // Duración en milisegundos (1 segundo)
+        const intervalTime = 10; // Tiempo entre cada paso de la animación (ms)
+        const steps = animationDuration / intervalTime;
+        let stepCount = 0;
+
+        const startPos = marker.getPosition();
+        const deltaLat = (newPosition.lat - startPos.lat()) / steps;
+        const deltaLng = (newPosition.lng - startPos.lng()) / steps;
+
+        const moveMarker = () => {
+            stepCount++;
+            const newLat = startPos.lat() + deltaLat * stepCount;
+            const newLng = startPos.lng() + deltaLng * stepCount;
+            marker.setPosition({ lat: newLat, lng: newLng });
+
+            if (stepCount < steps) {
+                setTimeout(moveMarker, intervalTime);
+            }
+        };
+
+        moveMarker(); // Inicia la animación
     }
 }
