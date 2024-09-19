@@ -122,7 +122,17 @@ export class UbicacionService {
             message: '',
         };
 
-        const lastUbicacion = this.ubicaciones.getValue().slice(-1)[0];
+        // Obtener el valor de ubicaciones
+        const ubicaciones = this.ubicaciones.getValue();
+
+        // Filtrar los objetos que tienen retorno en true
+        const filteredUbicaciones = ubicaciones.filter(
+            (ubicacion: any) => ubicacion.retorno === false
+        );
+
+        const lastUbicacion =
+            filteredUbicaciones[filteredUbicaciones.length - 1];
+
         // Verifica si es la primera ubicación
         if (!lastUbicacion) {
             respuesta.resp = true;
