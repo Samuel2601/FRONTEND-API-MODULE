@@ -72,7 +72,7 @@ export class ListarRecolectoresComponent implements OnInit {
 
     async loadPermissions() {
         this.check_create =
-            (await this.boolPermiss('/recolector/:id', 'get')) || false;
+            (await this.boolPermiss('/recolector', 'post')) || false;
         this.deleteRegister =
             (await this.boolPermiss('/recolector/:id', 'delete')) || false;
     }
