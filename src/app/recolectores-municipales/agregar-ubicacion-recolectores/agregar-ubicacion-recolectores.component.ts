@@ -959,9 +959,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
 
                 if (position) {
                     console.log(JSON.stringify(position));
-                    const { latitude, longitude, speed, accuracy } =
-                        position.coords;
-                    const timestamp = Date.now(); // Guarda el timestamp actual
+                    const { latitude, longitude } = position.coords;
 
                     // Si no existe una posición anterior, guarda la actual
                     if (!this.lastPosition) {
@@ -1000,6 +998,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                     if (this.currentMarker) {
                         this.currentMarker.setMap(null); // Quita el marcador del mapa
                         this.currentMarker = null; // Reinicia la referencia del marcador
+                        this.lastPosition = null;
                     }
                 })
                 .catch((error) => {
