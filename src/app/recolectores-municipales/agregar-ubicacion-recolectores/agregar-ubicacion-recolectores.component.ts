@@ -941,7 +941,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             enableHighAccuracy: true, // Activa la mayor precisión posible
             timeout: 10000, // Tiempo de espera máximo en milisegundos
             maximumAge: 0, // No utilizar posiciones en caché
-            distanceFilter: 20, // Mínima distancia en metros para disparar el callback
+            distanceFilter: 5, // Mínima distancia en metros para disparar el callback
         };
 
         if (this.watchId) {
@@ -977,7 +977,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                     );
 
                     // Si la distancia es significativa (mayor al umbral, por ejemplo 10 metros), actualiza la ubicación
-                    if (distance >= 20) {
+                    if (distance >= 5) {
                         this.updateMapLocation(position.coords);
                     }
                 }
@@ -1009,7 +1009,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 });
         }
     }
-    MAX_ACCURACY = 20; // Máxima precisión permitida (en metros)
+    MAX_ACCURACY = 50; // Máxima precisión permitida (en metros)
 
     // Actualiza el mapa con la nueva ubicación del usuario
     updateMapLocation(coords: any) {
