@@ -59,60 +59,54 @@ export class AgregarRecolectorComponent {
     }
     token = this.auth.token();
     async ngOnInit() {
-        //await this.fetchFuncionarios();
-        //await this.fetchDevices();
-        //await this.listarExterno();
-        await this.cedula_validator();
+        await this.fetchFuncionarios();
+        await this.fetchDevices();
+        await this.listarExterno();
+        //await this.cedula_validator();
     }
 
     async cedula_validator() {
         console.log(
             'Función: esIdentificacionValida()',
-            'Valor enviado: 0891793106001',
+            'Valor enviado: 0803768530',
             ': ',
-            ValidacionCedulaRucService.esIdentificacionValida('0891793106001')
+            ValidacionCedulaRucService.esIdentificacionValida('0803768530')
         );
         console.log(
             'Función: esIdentificacionValida()',
-            'Valor enviado: 0891793106001',
+            'Valor enviado: 0803768530',
             ': ',
-            ValidacionCedulaRucService.esIdentificacionValida('0891793106001')
+            ValidacionCedulaRucService.esIdentificacionValida('0803768530')
         );
         console.log(
             'Función: esCedulaValida()',
-            'Valor enviado: 0891793106001',
+            'Valor enviado: 0803768530',
             ': ',
-            ValidacionCedulaRucService.esCedulaValida('0891793106001')
+            ValidacionCedulaRucService.esCedulaValida('0803768530')
         );
         console.log(
             'Función: esRucValido()',
-            'Valor enviado: 0891793106001',
+            'Valor enviado: 0803768530',
             ': ',
-            ValidacionCedulaRucService.esRucValido('0891793106001')
+            ValidacionCedulaRucService.esRucValido('0803768530')
         );
         console.log(
             'Función: esRucPersonaNaturalValido()',
-            'Valor enviado: 0891793106001',
+            'Valor enviado: 0803768530',
             ': ',
-            ValidacionCedulaRucService.esRucPersonaNaturalValido(
-                '0891793106001'
-            )
+            ValidacionCedulaRucService.esRucPersonaNaturalValido('0803768530')
         );
         console.log(
             'Función: esRucSociedadPrivadaValido()',
-            'Valor enviado: 0891793106001',
+            'Valor enviado: 0803768530',
             ': ',
-            ValidacionCedulaRucService.esRucSociedadPrivadaValido(
-                '0891793106001'
-            )
+            ValidacionCedulaRucService.esRucSociedadPrivadaValido('0803768530')
         );
         console.log(
             'Función: esRucSociedadPublicaValido()',
-            'Valor enviado: 0891793106001',
+            'Valor enviado: 0803768530',
             ': ',
-            ValidacionCedulaRucService.esRucSociedadPublicaValido(
-                '0891793106001'
-            )
+            ValidacionCedulaRucService.esRucSociedadPublicaValido('0803768530')
         );
     }
     getCiudadano() {

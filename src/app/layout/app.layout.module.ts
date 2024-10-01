@@ -15,11 +15,12 @@ import { RouterModule } from '@angular/router';
 import { AppTopBarComponent } from './app.topbar.component';
 import { AppFooterComponent } from './app.footer.component';
 import { AppConfigModule } from './config/config.module';
-import { AppSidebarComponent } from "./app.sidebar.component";
-import { AppLayoutComponent } from "./app.layout.component";
+import { AppSidebarComponent } from './app.sidebar.component';
+import { AppLayoutComponent } from './app.layout.component';
 import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
 import { ImageModule } from 'primeng/image';
+import { ButtonPanicComponent } from '../button-panic/button-panic/button-panic.component';
 @NgModule({
     declarations: [
         AppMenuitemComponent,
@@ -44,8 +45,9 @@ import { ImageModule } from 'primeng/image';
         RouterModule,
         AppConfigModule,
         AvatarModule,
-        AvatarGroupModule
+        AvatarGroupModule,
+        ButtonPanicComponent,
     ],
-    exports: [AppLayoutComponent]
+    exports: [AppLayoutComponent],
 })
-export class AppLayoutModule { }
+export class AppLayoutModule {}

@@ -1,0 +1,46 @@
+<p-toast position="top-right"></p-toast>
+<p-speedDial
+    [model]="speedDialActions"
+    buttonClassName="p-button-danger"
+    [radius]="80"
+    direction="up"
+    type="quarter-circle"
+    position="bottom-right"
+    [style]="{ 'z-index': 99999 }"
+></p-speedDial>
+<p-dialog
+    header="Mantenga la calma"
+    [(visible)]="showDialog"
+    [modal]="true"
+    [closable]="false"
+    [style]="{ width: '50vw' }"
+>
+    <p>
+        Estamos procesando su solicitud de emergencia. Por favor, mantenga la
+        calma y siga estas recomendaciones:
+    </p>
+    <ul>
+        <li>Respire profundamente y trate de mantener la calma.</li>
+        <li>Si es posible, busque un lugar seguro.</li>
+        <li>
+            No cuelgue el teléfono, los servicios de emergencia pueden necesitar
+            más información.
+        </li>
+        <li>
+            Siga las instrucciones de los profesionales de emergencia cuando
+            lleguen.
+        </li>
+    </ul>
+    <p>
+        Los servicios de emergencia han sido notificados y están en camino. Su
+        seguridad es nuestra prioridad.
+    </p>
+    <ng-template pTemplate="footer">
+        <p-button
+            icon="pi pi-check"
+            (click)="showDialog = false"
+            label="Entendido"
+            styleClass="p-button-text"
+        ></p-button>
+    </ng-template>
+</p-dialog>

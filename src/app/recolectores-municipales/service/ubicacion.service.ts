@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable, throwError } from 'rxjs';
+import { catchError, map, Observable, of, tap, throwError } from 'rxjs';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
@@ -452,13 +452,40 @@ export class UbicacionService {
         return this.DistanciaRecorrida.asObservable();
     }
 
+    private storageKey = 'deviceGPSData'; // Clave para almacenar en sessionStorage
+
     obtenerDeviceGPS(): Observable<any> {
+        // Intentar obtener datos del sessionStorage
+        const cachedData = sessionStorage.getItem(this.storageKey);
+
+        if (cachedData) {
+            // Retornar un Observable con los datos en caché
+            return of(JSON.parse(cachedData));
+        }
+
+        // Si no hay caché, realizar la solicitud HTTP
         let headers = new HttpHeaders()
             .set('Content-Type', 'application/json')
             .set('Authorization', 'Basic ' + btoa('CIUDADANIA:123456789'));
-        return this._http.get('https://inteligenciavehicular.com/api/devices', {
-            headers: headers,
-        });
+
+        return this._http
+            .get('https://inteligenciavehicular.com/api/devices', {
+                headers: headers,
+            })
+            .pipe(
+                tap((data) => {
+                    // Almacenar la respuesta en sessionStorage
+                    sessionStorage.setItem(
+                        this.storageKey,
+                        JSON.stringify(data)
+                    );
+                })
+            );
+    }
+
+    // Método para invalidar la caché si es necesario
+    invalidateCache(): void {
+        sessionStorage.removeItem(this.storageKey); // Limpiar la caché
     }
 
     async fetchRouteData(deviceId: string, from: string, to: string) {
