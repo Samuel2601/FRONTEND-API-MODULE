@@ -51,6 +51,7 @@ export class AgregarRecolectorComponent {
                 dni: [''],
                 phone: [''],
                 address: [''],
+                email: [''],
             }),
         });
     }
@@ -225,6 +226,7 @@ export class AgregarRecolectorComponent {
                 this.formulario.get('isExterno').value &&
                 !this.formulario.get('externo').value
             ) {
+                //console.log(this.formulario.get('externo_register').value);
                 this.create
                     .registrarRecolectorExterno(
                         this.token,

@@ -281,13 +281,13 @@ export class LoginComponent implements OnInit {
                 this.handleLoginError(error);
             }
         } else {
-            console.log(this.loginForm.value);
+            //console.log(this.loginForm.value);
             if (this.loginForm.value.correo && this.loginForm.value.pass) {
                 const correo = this.loginForm.value.correo;
 
                 if (/^\d{10}$/.test(correo)) {
                     // Si es una cadena numérica
-                    console.log('Correo es numérico:', correo);
+                    //console.log('Correo es numérico:', correo);
                     const user = {
                         email: this.loginForm.get('correo').value,
                         password: this.loginForm.get('pass').value,
@@ -299,7 +299,7 @@ export class LoginComponent implements OnInit {
                     this.authService
                         .login_externo(user)
                         .subscribe(async (response) => {
-                            console.log(response);
+                            //console.log(response);
                             const storage = this.loginForm.get('save').value
                                 ? localStorage
                                 : sessionStorage;
@@ -376,9 +376,7 @@ export class LoginComponent implements OnInit {
                     storedCredentials.username === currentUsername &&
                     storedCredentials.password === currentPassword
                 ) {
-                    console.log(
-                        'Las credenciales ya están guardadas y son las mismas.'
-                    );
+                    //console.log(             'Las credenciales ya están guardadas y son las mismas.'  );
                     return;
                 }
 
@@ -396,7 +394,7 @@ export class LoginComponent implements OnInit {
                             maxAttempts: 5,
                         })
                             .then((state) => {
-                                console.log();
+                                //console.log();
                                 return true;
                             })
                             .catch((err) => {
@@ -537,7 +535,7 @@ export class LoginComponent implements OnInit {
             })
             .subscribe(
                 async (response) => {
-                    //console.log(response);
+                    ////console.log(response);
                     if (response.message === 'Bienvenido.') {
                         this.messageService.add({
                             severity: 'success',

@@ -21,7 +21,7 @@ export class PasswordRecoveryComponent implements OnInit {
         private recaptchaV3Service: ReCaptchaV3Service,
         private admin: AdminService,
         private messageService: MessageService,
-        private router: Router,
+        private router: Router
     ) {}
 
     ngOnInit() {
@@ -50,14 +50,14 @@ export class PasswordRecoveryComponent implements OnInit {
         const formData = this.recoveryForm.value;
         this.admin.recoverPassword(formData).subscribe(
             (response) => {
-                console.log(response);
+                //console.log(response);
                 this.messageService.add({
                     severity: 'success',
                     summary: 'Clave Temporal',
                     detail: response.message,
                 });
                 setTimeout(() => {
-                    this.router.navigate(['/auth/login']); 
+                    this.router.navigate(['/auth/login']);
                 }, 2000);
             },
             (error) => {

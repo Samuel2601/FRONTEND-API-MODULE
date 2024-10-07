@@ -34,7 +34,7 @@ export class UpdateService {
                 }
             }
         }
-        console.log(file);
+        //console.log(file);
         // Agregar la foto seleccionada si existe
 
         // Iterar y mostrar valores de FormData

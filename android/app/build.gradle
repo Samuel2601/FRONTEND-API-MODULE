@@ -1,20 +1,26 @@
 apply plugin: 'com.android.application'
 
 android {
+
+
+    compileSdk 34
+    ndkVersion '33'
+    buildToolsVersion '34.0.0'
     namespace "ec.gob.esmeraldas.labella"
-    compileSdk rootProject.ext.compileSdkVersion
+    compileSdkVersion 34
     defaultConfig {
         applicationId "ec.gob.esmeraldas.labella"
-        minSdk 29
-        targetSdk 35
-        versionCode 30
-        versionName '1.30'
+        minSdkVersion 29
+        targetSdkVersion targetSdkVersion
+        versionCode 31
+        versionName '1.31'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
+        signingConfig signingConfigs.debug
     }
     buildTypes {
         release {
@@ -31,7 +37,6 @@ repositories {
 }
 
 dependencies {
-    implementation "com.google.android.gms:play-services-auth:${gmsPlayServicesAuthVersion}"
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"

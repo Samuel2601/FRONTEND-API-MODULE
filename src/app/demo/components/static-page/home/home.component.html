@@ -347,6 +347,7 @@
         -->
     </div>
 </div>
+
 <div *ngIf="visible_fichas_mostrar">
     <h3>Eventos:</h3>
     <p-button
@@ -638,6 +639,7 @@
     #dialog1
     (onShow)="isMobil() ? dialog1.maximize() : ''"
     class="safe-margin-top"
+    (onHide)="visible_fichas_mostrar = true"
 >
     <app-mapa
         *ngIf="visible_incidente"
@@ -653,6 +655,7 @@
     [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
     #dialog11
     (onShow)="isMobil() ? dialog11.maximize() : ''"
+    (onHide)="visible_fichas_mostrar = true"
     class="safe-margin-top"
 >
     <app-list-incidentes
@@ -685,6 +688,7 @@
     #dialog22
     (onShow)="isMobil() ? dialog22.maximize() : ''"
     class="safe-margin-top"
+    (onHide)="visible_fichas_mostrar = true"
 >
     <app-list-ficha *ngIf="visible_ficha"></app-list-ficha>
 </p-dialog>
@@ -698,6 +702,7 @@
     #dialog22
     (onShow)="isMobil() ? dialog22.maximize() : ''"
     class="safe-margin-top"
+    (onHide)="visible_fichas_mostrar = true"
 >
     <app-mostrar-fichas-articulos></app-mostrar-fichas-articulos>
 </p-dialog>
@@ -711,6 +716,7 @@
     #dialog22
     (onShow)="isMobil() ? dialog22.maximize() : ''"
     class="safe-margin-top"
+    (onHide)="visible_fichas_mostrar = true"
 >
     <app-list-ficha *ngIf="visible_ficha_table"></app-list-ficha>
 </p-dialog>
@@ -724,6 +730,7 @@
     #dialog22
     (onShow)="isMobil() ? dialog22.maximize() : ''"
     class="safe-margin-top"
+    (onHide)="visible_fichas_mostrar = true"
 >
     <app-mapa-trash *ngIf="visible_trash_mirror"></app-mapa-trash>
 </p-dialog>
@@ -735,6 +742,7 @@
     [style]="{ width: '50rem' }"
     [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
     [maximizable]="true"
+    (onHide)="visible_fichas_mostrar = true"
 >
     <ng-container *ngIf="imageselecte">
         <img [src]="imageselecte.image" style="width: 100%; display: block" />

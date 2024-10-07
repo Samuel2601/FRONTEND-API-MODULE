@@ -132,14 +132,14 @@ export class RecolectorEstadisticasComponent implements OnInit {
                     e.externo = e.funcionario ? true : false;
                     e.velocidad_maxima = this.calcularVelocidadMaxima(e.ruta);
                 });
-                console.log(this.datosRecolectores);
+                //console.log(this.datosRecolectores);
                 this.representatives = [
                     ...new Set(this.datosRecolectores.map((e) => e.fullname)),
                 ];
                 this.recolectoresId = [
                     ...new Set(this.datosRecolectores.map((e) => e.deviceId)),
                 ];
-                console.log(this.datosRecolectores);
+                //console.log(this.datosRecolectores);
                 this.cargando = false;
                 this.generarEstadisticas();
             },
@@ -608,7 +608,7 @@ export class RecolectorEstadisticasComponent implements OnInit {
     }
 
     verRuta(register: any) {
-        console.log(register);
+        //console.log(register);
         this.ref = this.dialogService.open(
             AgregarUbicacionRecolectoresComponent,
             {

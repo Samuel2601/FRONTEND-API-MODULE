@@ -118,11 +118,17 @@ export class SignupComponent {
             ],*/
             name: [
                 '',
-                [Validators.required, Validators.pattern('^[a-zA-ZáéíóúÑñ ]+$')],
+                [
+                    Validators.required,
+                    Validators.pattern('^[a-zA-ZáéíóúÑñ ]+$'),
+                ],
             ],
             last_name: [
                 '',
-                [Validators.required, Validators.pattern('^[a-zA-ZáéíóúÑñ ]+$')],
+                [
+                    Validators.required,
+                    Validators.pattern('^[a-zA-ZáéíóúÑñ ]+$'),
+                ],
             ],
             telf: [
                 '',
@@ -135,7 +141,10 @@ export class SignupComponent {
             ],
             email: ['', [Validators.required, this.customEmailValidator()]],
             password: ['', [Validators.required, Validators.minLength(4)]],
-            passwordConfirmation: ['', [Validators.required, Validators.minLength(4)]],
+            passwordConfirmation: [
+                '',
+                [Validators.required, Validators.minLength(4)],
+            ],
             checked: [false],
         });
 
@@ -146,14 +155,14 @@ export class SignupComponent {
         });
         // Eliminar espacios en blanco del email electrónico
         this.formulario.get('email').valueChanges.subscribe((value) => {
-          const correoSinEspacios = value.replace(/\s/g, '');
-          const correoMinusculas = correoSinEspacios.toLowerCase();
-          this.formulario.patchValue(
-              { email: correoMinusculas },
-              { emitEvent: false }
-          );
-      });
-       /* this.formulario.get('email')?.valueChanges.subscribe((value: any) => {
+            const correoSinEspacios = value.replace(/\s/g, '');
+            const correoMinusculas = correoSinEspacios.toLowerCase();
+            this.formulario.patchValue(
+                { email: correoMinusculas },
+                { emitEvent: false }
+            );
+        });
+        /* this.formulario.get('email')?.valueChanges.subscribe((value: any) => {
             if (this.formulario.get('email')?.valid) {
                 this.consultarcorreo(value);
             }
@@ -187,7 +196,7 @@ export class SignupComponent {
     }
 
     ver() {
-        //console.log(this.formulario.get('checked'));
+        ////console.log(this.formulario.get('checked'));
     }
     checked: boolean | null = null;
     visible: boolean = false;
@@ -195,13 +204,11 @@ export class SignupComponent {
         this.visible = true;
         this.admin.getCiudadano(id).subscribe(
             (response) => {
-                //console.log(response);
+                ////console.log(response);
                 setTimeout(() => {
                     this.visible = false;
                     if (response.name) {
-                        this.formulario
-                            .get('name')
-                            ?.setValue(response.name);
+                        this.formulario.get('name')?.setValue(response.name);
                         //this.formulario.get('email')?.setErrors({ 'status': "VALID" });
                         this.formulario.get('name')?.disable();
                     }
@@ -218,8 +225,7 @@ export class SignupComponent {
                     detail:
                         error.error.message +
                             ': ' +
-                            this.formulario.get('dni')?.value ||
-                        'Sin conexión',
+                            this.formulario.get('dni')?.value || 'Sin conexión',
                 });
                 this.formulario.get('dni')?.setValue('');
             }
@@ -238,7 +244,7 @@ export class SignupComponent {
     consultarcorreo(email: any) {
         this.visible = true;
         this.admin.verificarCorreo(email).subscribe((response) => {
-            //console.log(response);
+            ////console.log(response);
             if (response) {
                 this.messageService.add({
                     severity: 'error',
@@ -248,7 +254,7 @@ export class SignupComponent {
                 this.formulario
                     .get('email')
                     ?.setErrors({ invalido: true, type: 'duplicidad' });
-                //console.log(this.formulario.get('email'));
+                ////console.log(this.formulario.get('email'));
             }
             setTimeout(() => {
                 this.visible = false;
@@ -261,7 +267,7 @@ export class SignupComponent {
             this.formulario.get('name')?.enable();
             this.create.registrarUsuario(this.formulario.value).subscribe(
                 (response) => {
-                    console.log(response);
+                    //console.log(response);
                     this.messageService.add({
                         severity: 'success',
                         summary: 'Excelente',
@@ -286,10 +292,9 @@ export class SignupComponent {
                     });
                 }
             );
-            
         } else {
-            //console.log(this.formulario.valid);
-            //console.log(this.formulario);
+            ////console.log(this.formulario.valid);
+            ////console.log(this.formulario);
             this.messageService.add({
                 severity: 'error',
                 summary: 'Invalido',
@@ -308,7 +313,7 @@ export class SignupComponent {
     imagenesSeleccionadas: any;
     load_imagen: boolean = true;
     onFilesSelected(event: any): void {
-        //console.log(event);
+        ////console.log(event);
         if (event.files.length > 0) {
             const file = event.files[0];
             const objectURL = URL.createObjectURL(file);

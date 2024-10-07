@@ -191,11 +191,11 @@ export class UbicacionService {
 
     async initializeNetworkListener() {
         const status = await Network.getStatus();
-        console.log('Initial Network Status:', JSON.stringify(status));
+        //console.log('Initial Network Status:', JSON.stringify(status));
         this.lastStatus = status.connected;
 
         Network.addListener('networkStatusChange', async (status) => {
-            console.log('Network status changed:', JSON.stringify(status));
+            //console.log('Network status changed:', JSON.stringify(status));
 
             // Verifica si el estado de la red ha cambiado de desconectado a conectado
             if (!this.lastStatus && status.connected) {
@@ -222,8 +222,8 @@ export class UbicacionService {
             const capacidad_retorno = await Preferences.get({
                 key: 'capacidad_retorno',
             });
-            console.log('locations:', JSON.stringify(locations));
-            console.log('asign:', JSON.stringify(asign));
+            //console.log('locations:', JSON.stringify(locations));
+            //console.log('asign:', JSON.stringify(asign));
 
             if (locations.value && asign.value) {
                 const parsedLocations = JSON.parse(locations.value);
@@ -244,7 +244,7 @@ export class UbicacionService {
                         //capacidad_retorno: paserCapcidad,
                     }
                 ).toPromise();
-                console.log('ANTES DE ENVIAR RETORNOS', result);
+                //console.log('ANTES DE ENVIAR RETORNOS', result);
 
                 // Cortar los nuevos registros que no están en los registros viejos
                 const nuevosSolo = parseCapcidad.slice(
@@ -264,7 +264,7 @@ export class UbicacionService {
                         capacidad_retorno: capacidadCombinada,
                     }
                 ).toPromise();
-                console.log('DESPUES DE ENVIAR RETORNOS', result2);
+                //console.log('DESPUES DE ENVIAR RETORNOS', result2);
 
                 // Si deseas, puedes notificar al usuario sobre la sincronización exitosa
                 alert('Tu información ha sido enviada exitosamente.');
@@ -339,17 +339,12 @@ export class UbicacionService {
                     (location: any) => location._id === asignID._id
                 );
                 if (containsAsignID) {
-                    console.log(
-                        'Se ha encontrado una ubicación con el ID de asignación:',
-                        asignID._id
-                    );
+                    //console.log(                     'Se ha encontrado una ubicación con el ID de asignación:',                        asignID._id                    );
                     this.ubicaciones.next(parsedLocations);
                     this.retornos.next(paserCapcidad);
                 } else {
                     // Si no contiene el ID de asignación, borrar todas las ubicaciones
-                    console.log(
-                        'No se ha encontrado ninguna ubicación con el ID de asignación. Borrando ubicaciones.'
-                    );
+                    //console.log(                        'No se ha encontrado ninguna ubicación con el ID de asignación. Borrando ubicaciones.'                    );
                     await Preferences.remove({ key: 'locations' });
                     await Preferences.remove({ key: 'capacidad_retorno' });
                     this.ubicaciones.next([]);
@@ -490,7 +485,7 @@ export class UbicacionService {
 
     async fetchRouteData(deviceId: string, from: string, to: string) {
         const url = `https://inteligenciavehicular.com/api/reports/route?deviceId=${deviceId}&type=allEvents&from=${from}&to=${to}`;
-        console.log('LLAMADO: ', url);
+        //console.log('LLAMADO: ', url);
         let headers = new HttpHeaders()
             .set('Content-Type', 'application/json')
             .set('Authorization', 'Basic ' + btoa('CIUDADANIA:123456789'));
