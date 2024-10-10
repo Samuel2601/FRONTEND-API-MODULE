@@ -8,6 +8,7 @@ import { Preferences } from '@capacitor/preferences';
 import { AuthService } from 'src/app/demo/services/auth.service';
 
 interface Incident {
+    ciudadano: string;
     direccion_geo: {
         nombre: string;
         latitud: number;

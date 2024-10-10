@@ -7,8 +7,10 @@ import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
+import { AuthService } from 'src/app/demo/services/auth.service';
 
 interface Incident {
+    ciudadano: string;
     direccion_geo: {
         nombre: string;
         latitud: number;
@@ -34,7 +36,8 @@ export class ButtonPanicComponent {
 
     constructor(
         private networkService: NetworkService,
-        private messageService: MessageService
+        private messageService: MessageService,
+        private auth: AuthService
     ) {
         this.speedDialActions = [
             {
@@ -73,6 +76,7 @@ export class ButtonPanicComponent {
             const position = await Geolocation.getCurrentPosition();
 
             const incident: Incident = {
+                ciudadano: this.auth.idUserToken(),
                 direccion_geo: {
                     nombre: 'Ubicación actual',
                     latitud: position.coords.latitude,

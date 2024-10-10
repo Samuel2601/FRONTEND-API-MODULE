@@ -115,7 +115,12 @@
                     <td>{{ user.email }}</td>
                     <td>{{ user.telf }}</td>
                     <td>{{ user.dni }}</td>
-                    <td>{{ user.createdAt }}</td>
+                    <td>
+                        {{
+                            user.createdAt
+                                | date : "yyyy-MM-dd HH:mm:ss" : "UTC-5"
+                        }}
+                    </td>
                     <td>
                         <p-button
                             icon="pi pi-user-edit"

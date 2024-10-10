@@ -166,7 +166,7 @@ export class LayersComponent implements OnInit {
         private list: ListService,
         private appRef: ApplicationRef,
         private auth: AuthService,
-        private googlemaps: GoogleMapsService,
+        private googlemaps: GoogleMapsService
     ) {
         this.subscription = this.layoutService.configUpdate$
             .pipe(debounceTime(25))
@@ -221,13 +221,25 @@ export class LayersComponent implements OnInit {
         this.helperService.llamarspinner('init index layer');
         const checkObservables = {
             IndexFichaSectorialComponent:
-                await this.auth.hasPermissionComponent('/ficha_sectorial', 'get'),
+                await this.auth.hasPermissionComponent(
+                    '/ficha_sectorial',
+                    'get'
+                ),
             IndexIncidentesDenunciaComponent:
-                await this.auth.hasPermissionComponent('/incidentes_denuncia', 'get'),
+                await this.auth.hasPermissionComponent(
+                    '/incidentes_denuncia',
+                    'get'
+                ),
             CreateIncidentesDenunciaComponent:
-                await this.auth.hasPermissionComponent('/incidentes_denuncia', 'post'),
+                await this.auth.hasPermissionComponent(
+                    '/incidentes_denuncia',
+                    'post'
+                ),
             CreateFichaSectorialComponent:
-                await this.auth.hasPermissionComponent('/ficha_sectorial', 'post'),
+                await this.auth.hasPermissionComponent(
+                    '/ficha_sectorial',
+                    'post'
+                ),
             CreateDireccionGeoComponent: await this.auth.hasPermissionComponent(
                 '/direccion_geo',
                 'post'
@@ -243,7 +255,9 @@ export class LayersComponent implements OnInit {
                 App.addListener('backButton', (data) => {
                     this.sidebarVisible ? (this.sidebarVisible = false) : '';
                     this.mostrarficha ? (this.mostrarficha = false) : '';
-                    this.mostrarincidente ? (this.mostrarincidente = false) : '';
+                    this.mostrarincidente
+                        ? (this.mostrarincidente = false)
+                        : '';
                 });
 
                 this.updateItem();
@@ -265,7 +279,7 @@ export class LayersComponent implements OnInit {
         this.list.listarCategorias(this.token).subscribe((response) => {
             if (response.data) {
                 this.categorias = response.data;
-               // console.log(this.categorias);
+                // console.log(this.categorias);
             }
         });
     }
@@ -918,6 +932,7 @@ export class LayersComponent implements OnInit {
         try {
             const response = await fetch(url);
             const data = await response.json();
+            console.log(data);
             this.guardarfeature(data);
             if (this.lista_feature.length == 0) {
                 //this.reloadmap(data);
@@ -1231,7 +1246,7 @@ export class LayersComponent implements OnInit {
             });
             this.capaActiva = false;
         } else {
-           // console.log(this.arr_polygon);
+            // console.log(this.arr_polygon);
             this.arr_polygon.forEach((polygon: google.maps.Polygon) => {
                 polygon.setMap(this.mapCustom);
             });
@@ -1260,7 +1275,7 @@ export class LayersComponent implements OnInit {
             // Obtener el centro y el nivel de zoom adecuado para incluir todos los polígonos
             const center = bounds.getCenter();
             const zoom = this.calculateZoomLevel(bounds);
-           // console.log(center, zoom);
+            // console.log(center, zoom);
             // Ajustar el mapa para que abarque todos los polígonos
             this.mapCustom.setCenter({ lat: 0.935233, lng: -79.681929 });
             this.mapCustom.setZoom(zoom);
@@ -1515,7 +1530,9 @@ export class LayersComponent implements OnInit {
             //console.log(permission);
             if (permission !== 'granted') {
                 try {
-                    const coordinates = await Geolocation['getCurrentPosition']();
+                    const coordinates = await Geolocation[
+                        'getCurrentPosition'
+                    ]();
                     this.latitud = coordinates.coords.latitude;
                     this.longitud = coordinates.coords.longitude;
                     this.addMarker(
@@ -1558,7 +1575,9 @@ export class LayersComponent implements OnInit {
                         this.poligonoposition();
                     },
                     (error) => {
-                        console.error('Error getting location: ' + error.message);
+                        console.error(
+                            'Error getting location: ' + error.message
+                        );
                         this.messageService.add({
                             severity: 'error',
                             summary: '404',

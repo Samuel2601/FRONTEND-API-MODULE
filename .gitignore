@@ -1,8 +1,8 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
 # Compiled output
-/android
-/dist
+/android/
+/dist/
 /tmp
 /out-tsc
 /bazel-out
