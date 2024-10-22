@@ -239,7 +239,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
         this.listService
             .listarEncargadosCategorias(this.token, { encargado: this.id })
             .subscribe((response) => {
-                //console.log(response);
+                console.log(response);
                 if (response.data) {
                     this.encargos = response.data;
                 }
@@ -311,7 +311,6 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                                     }
                                 );
                         }
-                        //console.log(this.incidentesDenuncias);
                         if (
                             !this.check.TotalFilterIncidente &&
                             this.encargos.length > 0
@@ -326,7 +325,6 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                                     )
                                 );
                         }
-
                         if (this.categoria) {
                             this.itemh.push({ label: this.categoria });
                             this.incidentesDenuncias =
@@ -344,22 +342,6 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                                         ficha.subcategoria.nombre ===
                                         this.subcategoria
                                 );
-                        }
-                        if (this.encargos.length > 0) {
-                            this.encargos.forEach((element) => {
-                                if (element.categoria) {
-                                    this.itemh.push({
-                                        label: element.categoria.nombre,
-                                    });
-                                    this.incidentesDenuncias =
-                                        this.incidentesDenuncias.filter(
-                                            (ficha: any) =>
-                                                ficha.categoria.nombre ===
-                                                    element.categoria.nombre ||
-                                                ficha.ciudadano._id === this.id
-                                        );
-                                }
-                            });
                         }
                         if (!this.check.ViewIncidente) {
                             this.incidentesDenuncias =
@@ -395,7 +377,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                                     ' ' +
                                     e.ciudadano.last_name)
                         );
-                        //console.log(this.incidentesDenuncias);
+                        //console.log('Final', this.incidentesDenuncias);
                     }
                 },
                 (error) => {
