@@ -130,10 +130,15 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
         const bounds = new google.maps.LatLngBounds();
 
         // Limpiar marcadores y grupos existentes
-        this.markers.forEach((marker) => marker.setMap(null));
+        this.markers.forEach((marker) => {
+            marker.setMap(null);
+            marker = null;
+        });
+        if (this.markerCluster) {
+            this.markerCluster.clearMarkers();
+        }
         this.markers = [];
         this.markerGroups = [];
-
         // Agrupar marcadores por posición
         this.fichas_sectoriales_arr.forEach((item: any) => {
             if (
@@ -265,10 +270,9 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
             this.incidente ? item.createdAt : item.fecha_evento,
             'short'
         );
-
+        //<h5>${this.incidente ? 'Incidente' : item.title_marcador}</h5>;
         let infoContent = `
             <div class="info-window-content">
-                <h5>${this.incidente ? 'Incidente' : item.title_marcador}</h5>
                 ${
                     item.es_articulo &&
                     this.router.url !== `/ver-ficha/${item._id}`
@@ -289,6 +293,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
         `;
 
         return new google.maps.InfoWindow({
+            headerContent: this.incidente ? 'Incidente' : item.title_marcador,
             content: infoContent,
             maxWidth: 400,
         });
@@ -333,7 +338,6 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
         // Crear contenido para múltiples marcadores
         const content = this.createGroupInfoWindowContent(group);
         const infoWindow = new google.maps.InfoWindow({
-            headerContent: content.title,
             content: content.content,
             maxWidth: 400,
         });
@@ -341,7 +345,6 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
         infoWindow.setPosition(group.position);
         infoWindow.open(this.mapCustom);
         this.activeInfoWindow = infoWindow;
-
         if (this.mapCustom) {
             this.mapCustom.setCenter(group.position);
         }
@@ -349,18 +352,9 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
     private createGroupInfoWindowContent(group: MarkerGroup): {
         content: string;
-        title: string;
     } {
         let content = '<div class="marker-group-content">';
-        let title = '';
         group.markers.forEach(({ item }, index) => {
-            title =
-                index === 0
-                    ? this.incidente
-                        ? 'Incidente'
-                        : item.title_marcador
-                    : '';
-
             const formattedDate = this.datePipe.transform(
                 this.incidente ? item.createdAt : item.fecha_evento,
                 'short'
@@ -372,13 +366,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
                     ? 'style="border-top: 1px solid #ccc; margin-top: 10px; padding-top: 10px;"'
                     : ''
             }>
-                <h5>${
-                    title
-                        ? this.incidente
-                            ? 'Incidente'
-                            : item.title_marcador
-                        : ''
-                }</h5>
+                <h5>${this.incidente ? 'Incidente' : item.title_marcador}</h5>
                 <p>Fecha: ${formattedDate}</p>
                 ${
                     item.es_articulo &&
@@ -396,7 +384,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
         `;
         });
 
-        return { content: content + '</div>', title };
+        return { content: content + '</div>' };
     }
 
     private setupSingleMarkerListeners(
@@ -404,18 +392,17 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
         infoWindow: google.maps.InfoWindow,
         position: google.maps.LatLng
     ) {
-        marker.addListener('click', () => {
-            if (this.activeInfoWindow) {
-                this.activeInfoWindow.close();
-            }
-            infoWindow.open(this.mapCustom, marker);
-            this.activeInfoWindow = infoWindow;
+        if (this.activeInfoWindow) {
+            this.activeInfoWindow.close();
+        }
+        infoWindow.open(this.mapCustom, marker);
+        this.activeInfoWindow = infoWindow;
 
-            if (this.mapCustom) {
-                this.mapCustom.setCenter(position);
-            }
-        });
+        if (this.mapCustom) {
+            this.mapCustom.setCenter(position);
+        }
     }
+
     verArticulo(fichaId: string): void {
         // Redirigir a la página de detalle de la ficha sectorial como artículo
         this.router.navigate(['/ver-ficha', fichaId]);
