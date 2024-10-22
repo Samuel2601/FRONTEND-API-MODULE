@@ -62,7 +62,8 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
                     } else {
                         this.fichas_sectoriales_arr = [this.ficha];
                     }
-                    //console.log(this.fichas_sectoriales_arr);
+                    console.log(this.fichas_sectoriales_arr);
+                    await this.getcategorias();
                     await this.marcadoresmapa();
                 } else {
                     await this.listarFichaSectorialMapa();
@@ -77,15 +78,59 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
             .subscribe(async (response: any) => {
                 if (response.data && response.data.length > 0) {
                     this.fichas_sectoriales_arr = response.data;
+                    console.log(this.fichas_sectoriales_arr);
+                    await this.getcategorias();
                     await this.marcadoresmapa();
                 }
             });
     }
+    actividades: any[] = [];
+    actividad_select: any[] = [];
+    async getcategorias() {
+        this.actividades = [];
+        this.fichas_sectoriales_arr.forEach((item: any) => {
+            if (!item.actividad) {
+                return; // Saltar al siguiente elemento
+            }
+            // Verificar si la actividad ya existe en el array
+            if (
+                !this.actividades.find(
+                    (actividad) => actividad._id === item.actividad._id
+                )
+            ) {
+                this.actividades.push(item.actividad);
+            }
+        });
+        this.actividad_select.push(
+            this.actividades.find(
+                (act: any) => act.nombre === 'Festividades'
+            ) || this.actividades[0]
+        );
+
+        console.log(this.actividad_select);
+    }
+
+    // Array para almacenar los marcadores
+    private markers: google.maps.Marker[] = [];
+
     async marcadoresmapa() {
         const bounds = new google.maps.LatLngBounds(); // Crear objeto para los límites de los marcadores
+        // Primero, eliminar los marcadores existentes del mapa
+        this.markers.forEach((marker) => {
+            marker.setMap(null); // Eliminar el marcador del mapa
+        });
+        this.markers = []; // Reiniciar el array de marcadores
 
         this.fichas_sectoriales_arr.forEach((item: any) => {
-            if (!item.direccion_geo || !item.direccion_geo.latitud || !item.direccion_geo.longitud) {
+            if (
+                !item.direccion_geo ||
+                !item.direccion_geo.latitud ||
+                !item.direccion_geo.longitud ||
+                (this.actividad_select.length > 0 &&
+                    !this.actividad_select.find(
+                        (act: any) => act._id === item.actividad._id
+                    ))
+            ) {
                 return; // Saltar al siguiente elemento
             }
             //console.log(item);
@@ -109,10 +154,13 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
                             : item.icono_marcador &&
                               item.icono_marcador !=
                                   'https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png'
-                            ? new google.maps.Size(120, 120) // Si tiene un icono personalizado, tamaño 120
-                            : new google.maps.Size(50, 50), // Icono por defecto, tamaño 50
+                            ? new google.maps.Size(80, 80) // Si tiene un icono personalizado, tamaño 120
+                            : new google.maps.Size(60, 60), // Icono por defecto, tamaño 50
                 },
             });
+
+            // Añadir el marcador al array
+            this.markers.push(marker);
 
             // Añadir la posición del marcador a los límites
             bounds.extend(position);
@@ -179,7 +227,8 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
             // Verificar si la URL actual coincide con el marcador
             if (
                 (this.router.url === `/ver-ficha/${item._id}` ||
-                this.incidente)&&this.fichas_sectoriales_arr.length<=5
+                    this.incidente) &&
+                this.fichas_sectoriales_arr.length <= 5
             ) {
                 infoWindow.open(this.mapCustom, marker);
                 this.mapCustom.setZoom(15); // Ajusta el nivel de zoom según tus necesidades
@@ -190,7 +239,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
         if (this.mapCustom) {
             // Ajustar el centro y zoom del mapa para mostrar todos los marcadores
             this.mapCustom.fitBounds(bounds);
-            if (this.incidente&&this.fichas_sectoriales_arr.length<=5) {
+            if (this.incidente && this.fichas_sectoriales_arr.length <= 5) {
                 this.mapCustom.setZoom(16);
             }
         }

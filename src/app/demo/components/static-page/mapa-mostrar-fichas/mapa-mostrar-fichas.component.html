@@ -1,4 +1,21 @@
-<div id="map2" style="height: 400px;"></div>
+<p-selectButton
+    *ngIf="actividades.length > 0 && actividades.length < 5"
+    [options]="actividades"
+    [(ngModel)]="actividad_select"
+    [multiple]="true"
+    optionLabel="nombre"
+    (onChange)="marcadoresmapa()"
+/>
+<p-multiSelect
+    *ngIf="actividades.length > 0 && actividades.length >= 5"
+    [options]="actividades"
+    [(ngModel)]="actividad_select"
+    optionLabel="nombre"
+    placeholder="Select Cities"
+    (onChange)="marcadoresmapa()"
+/>
+
+<div id="map2" style="height: 400px"></div>
 <div [style.display]="'none'">
     <div class="controls fullscreen-control">
         <button title="Toggle Fullscreen" class="fullscreen-button">
