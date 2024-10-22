@@ -1,0 +1,41 @@
+<script>
+    // Inicializa el cliente de Google
+    window.onload = function () {
+        google.accounts.id.initialize({
+            client_id:
+                "700625404417-apcets2tvdf368bquike6ip6hcckgthb.apps.googleusercontent.com", // Reemplaza con tu Client ID de Google
+            callback: handleCredentialResponse, // La función que maneja el token
+        });
+        google.accounts.id.prompt(); // Muestra el popup de One Tap
+    };
+
+    // Función que maneja la respuesta de One Tap
+    function handleCredentialResponse(response) {
+        console.log("JWT Token:", response.credential);
+
+        // Aquí puedes enviar el token al backend para autenticar al usuario
+        fetch("http://localhost:3000/auth/google/one-tap", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json", // Asegura que el contenido es JSON
+            },
+            body: JSON.stringify({
+                credential: response.credential, // El token JWT que obtienes
+            }),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(
+                        "Error en la solicitud: " + response.status
+                    );
+                }
+                return response.json(); // Convierte la respuesta en JSON
+            })
+            .then((data) => {
+                console.log("Server response:", data); // Respuesta del backend
+            })
+            .catch((err) => {
+                console.error("Error:", err); // Maneja cualquier error
+            });
+    }
+</script>

@@ -7,6 +7,16 @@ import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ImportsModule } from 'src/app/demo/services/import';
 import { ListService } from 'src/app/demo/services/list.service';
+import { MarkerClusterer } from '@googlemaps/markerclusterer';
+
+interface MarkerGroup {
+    position: google.maps.LatLng;
+    markers: {
+        marker: google.maps.Marker;
+        item: any;
+        infoWindow: google.maps.InfoWindow;
+    }[];
+}
 
 @Component({
     selector: 'app-mapa-mostrar-fichas',
@@ -62,7 +72,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
                     } else {
                         this.fichas_sectoriales_arr = [this.ficha];
                     }
-                    console.log(this.fichas_sectoriales_arr);
+                    //console.log(this.fichas_sectoriales_arr);
                     await this.getcategorias();
                     await this.marcadoresmapa();
                 } else {
@@ -78,7 +88,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
             .subscribe(async (response: any) => {
                 if (response.data && response.data.length > 0) {
                     this.fichas_sectoriales_arr = response.data;
-                    console.log(this.fichas_sectoriales_arr);
+                    //console.log(this.fichas_sectoriales_arr);
                     await this.getcategorias();
                     await this.marcadoresmapa();
                 }
@@ -107,20 +117,24 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
             ) || this.actividades[0]
         );
 
-        console.log(this.actividad_select);
+        //console.log(this.actividad_select);
     }
 
-    // Array para almacenar los marcadores
     private markers: google.maps.Marker[] = [];
+    private markerGroups: MarkerGroup[] = [];
+    private activeInfoWindow: google.maps.InfoWindow | null = null;
+    private markerCluster: MarkerClusterer | undefined;
+    private readonly GROUPING_RADIUS_METERS = 20; // Radio de agrupación en metros
 
     async marcadoresmapa() {
-        const bounds = new google.maps.LatLngBounds(); // Crear objeto para los límites de los marcadores
-        // Primero, eliminar los marcadores existentes del mapa
-        this.markers.forEach((marker) => {
-            marker.setMap(null); // Eliminar el marcador del mapa
-        });
-        this.markers = []; // Reiniciar el array de marcadores
+        const bounds = new google.maps.LatLngBounds();
 
+        // Limpiar marcadores y grupos existentes
+        this.markers.forEach((marker) => marker.setMap(null));
+        this.markers = [];
+        this.markerGroups = [];
+
+        // Agrupar marcadores por posición
         this.fichas_sectoriales_arr.forEach((item: any) => {
             if (
                 !item.direccion_geo ||
@@ -133,118 +147,275 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
             ) {
                 return; // Saltar al siguiente elemento
             }
-            //console.log(item);
+
             const position = new google.maps.LatLng(
                 item.direccion_geo.latitud,
                 item.direccion_geo.longitud
             );
 
-            const marker = new google.maps.Marker({
-                position: position,
+            const marker = this.createMarker(position, item);
+            const infoWindow = this.createInfoWindow(item);
+
+            // Buscar grupo cercano existente o crear uno nuevo
+            let nearestGroup = this.findNearestGroup(position);
+
+            if (nearestGroup) {
+                // Si encontramos un grupo cercano, añadimos el marcador a ese grupo
+                nearestGroup.markers.push({ marker, item, infoWindow });
+                // Recalcular el centro del grupo (promedio de todas las posiciones)
+                this.updateGroupCenter(nearestGroup);
+            } else {
+                // Si no hay grupo cercano, crear uno nuevo
+                const newGroup = {
+                    position: position,
+                    markers: [{ marker, item, infoWindow }],
+                };
+                this.markerGroups.push(newGroup);
+            }
+
+            this.markers.push(marker);
+            bounds.extend(position);
+        });
+
+        // Configurar listeners para cada grupo
+        this.markerGroups.forEach((group) => {
+            // Actualizar la posición de los marcadores en el grupo
+            group.markers.forEach(({ marker }) => {
+                if (group.markers.length > 1) {
+                    // Si hay múltiples marcadores en el grupo, ajustar sus posiciones
+                    marker.setPosition(group.position);
+                }
+
+                marker.addListener('click', () => {
+                    if (group.markers.length > 1) {
+                        this.handleGroupClick(group);
+                    } else {
+                        this.setupSingleMarkerListeners(
+                            marker,
+                            group.markers[0].infoWindow,
+                            group.position
+                        );
+                    }
+                });
+            });
+        });
+
+        if (this.mapCustom) {
+            this.markerCluster = new MarkerClusterer({
                 map: this.mapCustom,
-                title: item.direccion_geo.nombre,
-                icon: {
-                    url: item.icono_marcador
-                        ? item.icono_marcador
-                        : 'https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png', // URL de la imagen del icono del marcador
-                    scaledSize:
-                        new Date(item.fecha_evento).getTime() <
-                        new Date().getTime()
-                            ? new google.maps.Size(50, 50) // Si la fecha del evento ya pasó, el tamaño será 30
-                            : item.icono_marcador &&
-                              item.icono_marcador !=
-                                  'https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png'
-                            ? new google.maps.Size(80, 80) // Si tiene un icono personalizado, tamaño 120
-                            : new google.maps.Size(60, 60), // Icono por defecto, tamaño 50
-                },
+                markers: this.markers,
             });
 
-            // Añadir el marcador al array
-            this.markers.push(marker);
+            this.mapCustom.fitBounds(bounds);
+        }
+    }
 
-            // Añadir la posición del marcador a los límites
-            bounds.extend(position);
+    private updateGroupCenter(group: MarkerGroup) {
+        // Calcular el centro promedio del grupo
+        let totalLat = 0;
+        let totalLng = 0;
+        const count = group.markers.length;
 
-            // Contenido del InfoWindow
-            let infoContent = `
-                <div>
-                    <h5>${
-                        this.incidente ? 'Incidente' : item.title_marcador
-                    }</h5>                          
-            `;
+        group.markers.forEach(({ marker }) => {
+            totalLat += marker.getPosition()!.lat();
+            totalLng += marker.getPosition()!.lng();
+        });
 
-            // Añadir imagen si está disponible
-            /* if (item.foto && item.foto[0]) {
-                const url_foto=this.url + 'obtener_imagen/ficha_sectorial/' + item.foto[0];
-                infoContent += `<img src="${url_foto}" style="max-width: 200px; max-height: 150px;" />`;
-            }*/
+        group.position = new google.maps.LatLng(
+            totalLat / count,
+            totalLng / count
+        );
+    }
 
-            // Añadir botón si es un artículo
+    private findNearestGroup(position: google.maps.LatLng): MarkerGroup | null {
+        for (const group of this.markerGroups) {
+            const distance = this.calculateDistance(position, group.position);
+            if (distance <= this.GROUPING_RADIUS_METERS) {
+                return group;
+            }
+        }
+        return null;
+    }
+    private calculateDistance(
+        pos1: google.maps.LatLng,
+        pos2: google.maps.LatLng
+    ): number {
+        // Usar la fórmula haversine para calcular la distancia en metros
+        const R = 6371000; // Radio de la Tierra en metros
+        const φ1 = this.toRadians(pos1.lat());
+        const φ2 = this.toRadians(pos2.lat());
+        const Δφ = this.toRadians(pos2.lat() - pos1.lat());
+        const Δλ = this.toRadians(pos2.lng() - pos1.lng());
+
+        const a =
+            Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c; // Distancia en metros
+    }
+
+    private toRadians(degrees: number): number {
+        return (degrees * Math.PI) / 180;
+    }
+
+    private createInfoWindow(item: any): google.maps.InfoWindow {
+        const formattedDate = this.datePipe.transform(
+            this.incidente ? item.createdAt : item.fecha_evento,
+            'short'
+        );
+
+        let infoContent = `
+            <div class="info-window-content">
+                <h5>${this.incidente ? 'Incidente' : item.title_marcador}</h5>
+                ${
+                    item.es_articulo &&
+                    this.router.url !== `/ver-ficha/${item._id}`
+                        ? `<a href="/ver-ficha/${item._id}" class="btn-ver-articulo">Ver Artículo</a><br>`
+                        : ''
+                }
+                <p>Fecha${
+                    this.incidente ? '' : ' del evento'
+                }: ${formattedDate}</p>
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${
+                    item.direccion_geo.latitud
+                },${
+            item.direccion_geo.longitud
+        }" target="_blank" class="btn-direcciones">
+                    Cómo llegar
+                </a>
+            </div>
+        `;
+
+        return new google.maps.InfoWindow({
+            content: infoContent,
+            maxWidth: 400,
+        });
+    }
+
+    private createMarker(
+        position: google.maps.LatLng,
+        item: any
+    ): google.maps.Marker {
+        return new google.maps.Marker({
+            title: this.incidente ? 'Incidente' : item.title_marcador,
+            position: position,
+            map: this.mapCustom,
+            icon: {
+                url:
+                    item.icono_marcador ||
+                    'https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png',
+                scaledSize: this.getMarkerSize(item),
+            },
+        });
+    }
+
+    private getMarkerSize(item: any): google.maps.Size {
+        const isPast =
+            new Date(item.fecha_evento).getTime() < new Date().getTime();
+        const hasCustomIcon =
+            item.icono_marcador &&
+            item.icono_marcador !==
+                'https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png';
+
+        if (isPast) return new google.maps.Size(50, 50);
+        if (hasCustomIcon) return new google.maps.Size(80, 80);
+        return new google.maps.Size(60, 60);
+    }
+
+    private handleGroupClick(group: MarkerGroup) {
+        // Cerrar InfoWindow activo si existe
+        if (this.activeInfoWindow) {
+            this.activeInfoWindow.close();
+        }
+
+        // Crear contenido para múltiples marcadores
+        const content = this.createGroupInfoWindowContent(group);
+        const infoWindow = new google.maps.InfoWindow({
+            headerContent: content.title,
+            content: content.content,
+            maxWidth: 400,
+        });
+
+        infoWindow.setPosition(group.position);
+        infoWindow.open(this.mapCustom);
+        this.activeInfoWindow = infoWindow;
+
+        if (this.mapCustom) {
+            this.mapCustom.setCenter(group.position);
+        }
+    }
+
+    private createGroupInfoWindowContent(group: MarkerGroup): {
+        content: string;
+        title: string;
+    } {
+        let content = '<div class="marker-group-content">';
+        let title = '';
+        group.markers.forEach(({ item }, index) => {
+            title =
+                index === 0
+                    ? this.incidente
+                        ? 'Incidente'
+                        : item.title_marcador
+                    : '';
+
             const formattedDate = this.datePipe.transform(
                 this.incidente ? item.createdAt : item.fecha_evento,
                 'short'
             );
-            if (
-                item.es_articulo &&
-                this.router.url !== `/ver-ficha/${item._id}`
-            ) {
-                infoContent += `
-                <a href="/ver-ficha/${item._id}" class="btn-ver-articulo">Ver Artículo</a> <br> Fecha del evento: ${formattedDate}
-                `;
-            } else if (this.incidente) {
-                infoContent += `
-                Fecha: ${formattedDate}
-                `;
-            } else {
-                infoContent += `
-                Fecha del evento: ${formattedDate}
-                `;
-            }
-            // Añadir botón para abrir Google Maps
-            infoContent += `
-                <br>
-                <a href="https://www.google.com/maps/dir/?api=1&destination=${item.direccion_geo.latitud},${item.direccion_geo.longitud}" target="_blank" class="btn-direcciones">Cómo llegar</a>
-            `;
 
-            infoContent += `</div>`;
-
-            const infoWindow = new google.maps.InfoWindow({
-                headerContent: item.direccion_geo.nombre,
-                content: infoContent,
-                maxWidth: 400,
-            });
-
-            marker.addListener('click', () => {
-                infoWindow.open(this.mapCustom, marker);
-                //this.mapCustom.setZoom(15); // Ajusta el nivel de zoom según tus necesidades
-                this.mapCustom.setCenter(marker.getPosition());
-            });
-            infoWindow.addListener('closeclick', () => {
-                //this.mapCustom.setZoom(15); // Ajusta el nivel de zoom según tus necesidades
-                //this.mapCustom.setCenter(marker.getPosition());
-            });
-
-            // Verificar si la URL actual coincide con el marcador
-            if (
-                (this.router.url === `/ver-ficha/${item._id}` ||
-                    this.incidente) &&
-                this.fichas_sectoriales_arr.length <= 5
-            ) {
-                infoWindow.open(this.mapCustom, marker);
-                this.mapCustom.setZoom(15); // Ajusta el nivel de zoom según tus necesidades
-                this.mapCustom.setCenter(marker.getPosition());
-            }
+            content += `
+            <div class="marker-item" ${
+                index > 0
+                    ? 'style="border-top: 1px solid #ccc; margin-top: 10px; padding-top: 10px;"'
+                    : ''
+            }>
+                <h5>${
+                    title
+                        ? this.incidente
+                            ? 'Incidente'
+                            : item.title_marcador
+                        : ''
+                }</h5>
+                <p>Fecha: ${formattedDate}</p>
+                ${
+                    item.es_articulo &&
+                    this.router.url !== `/ver-ficha/${item._id}`
+                        ? `<a href="/ver-ficha/${item._id}" class="btn-ver-articulo">Ver Artículo</a>`
+                        : ''
+                }
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${
+                    item.direccion_geo.latitud
+                },${item.direccion_geo.longitud}" 
+                   target="_blank" class="btn-direcciones">
+                    Cómo llegar
+                </a>
+            </div>
+        `;
         });
 
-        if (this.mapCustom) {
-            // Ajustar el centro y zoom del mapa para mostrar todos los marcadores
-            this.mapCustom.fitBounds(bounds);
-            if (this.incidente && this.fichas_sectoriales_arr.length <= 5) {
-                this.mapCustom.setZoom(16);
-            }
-        }
+        return { content: content + '</div>', title };
     }
 
+    private setupSingleMarkerListeners(
+        marker: google.maps.Marker,
+        infoWindow: google.maps.InfoWindow,
+        position: google.maps.LatLng
+    ) {
+        marker.addListener('click', () => {
+            if (this.activeInfoWindow) {
+                this.activeInfoWindow.close();
+            }
+            infoWindow.open(this.mapCustom, marker);
+            this.activeInfoWindow = infoWindow;
+
+            if (this.mapCustom) {
+                this.mapCustom.setCenter(position);
+            }
+        });
+    }
     verArticulo(fichaId: string): void {
         // Redirigir a la página de detalle de la ficha sectorial como artículo
         this.router.navigate(['/ver-ficha', fichaId]);

@@ -42,6 +42,7 @@
     "@fullcalendar/interaction": "^6.1.15",
     "@fullcalendar/timegrid": "^6.1.15",
     "@googlemaps/js-api-loader": "^1.16.8",
+    "@googlemaps/markerclusterer": "^2.5.3",
     "@ng-bootstrap/ng-bootstrap": "^17.0.0",
     "@ngx-translate/core": "^15.0.0",
     "@popperjs/core": "^2.11.8",
