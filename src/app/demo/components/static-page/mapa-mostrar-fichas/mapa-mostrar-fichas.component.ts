@@ -145,7 +145,8 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
                 !item.direccion_geo ||
                 !item.direccion_geo.latitud ||
                 !item.direccion_geo.longitud ||
-                (this.actividad_select.length > 0 &&
+                (item.actividad &&
+                    this.actividad_select.length > 0 &&
                     !this.actividad_select.find(
                         (act: any) => act._id === item.actividad._id
                     ))
