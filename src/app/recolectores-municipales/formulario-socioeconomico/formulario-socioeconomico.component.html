@@ -1,839 +1,428 @@
-<div>
-    <input
-        type="number"
-        pInputText
-        [(ngModel)]="displayoption"
-        class="w-full mb-3"
-        max="30"
-        min="0"
-    />
-    <p-slider [(ngModel)]="displayoption" class="w-full" max="30" min="0" />
-</div>
-<form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
-    <p-stepper>
-        <p-stepperPanel header="Información de Registro">
-            <ng-template
-                pTemplate="content"
-                let-nextCallback="nextCallback"
-                let-index="index"
-            >
-                <div
-                    class="flex flex-wrap gap-3 p-fluid"
-                    formGroupName="informacionRegistro"
-                >
-                    <div class="flex-auto">
-                        <label for="date">Fecha</label>
-                        <p-calendar
-                            formControlName="date"
-                            [showTime]="true"
-                            [required]="true"
-                        >
-                        </p-calendar>
-                    </div>
-                    <div class="flex-auto">
-                        <label for="encuestador">Encuestador</label>
-                        <input
-                            type="text"
-                            pInputText
-                            formControlName="encuestador"
-                            [required]="true"
-                        />
-                    </div>
-                </div>
-                <div class="flex pt-4 justify-content-end">
-                    <p-button
-                        label="Next"
-                        icon="pi pi-arrow-right"
-                        iconPos="right"
-                        (onClick)="nextCallback.emit()"
-                    />
-                </div>
+<p-panel header="Información de Registro">
+    <div class="p-field">
+        <label for="date">Fecha</label>
+        <input id="date" pInputText type="date" formControlName="date" />
+    </div>
+    <div class="p-field">
+        <label for="encuestador">Encuestador</label>
+        <input id="encuestador" pInputText formControlName="encuestador" />
+    </div>
+</p-panel>
+
+<p-panel header="Información Personal">
+    <div class="p-field">
+        <label for="entrevistado">Entrevistado</label>
+        <input id="entrevistado" pInputText formControlName="entrevistado" />
+    </div>
+    <div class="p-field">
+        <label for="dni">DNI</label>
+        <input id="dni" pInputText formControlName="dni" />
+    </div>
+    <div class="p-field">
+        <label for="edad">Edad</label>
+        <input id="edad" pInputText type="number" formControlName="edad" />
+    </div>
+    <div class="p-field">
+        <label for="nacionalidad">Nacionalidad</label>
+        <input id="nacionalidad" pInputText formControlName="nacionalidad" />
+    </div>
+    <div class="p-field">
+        <label for="phone">Teléfono</label>
+        <input id="phone" pInputText formControlName="phone" />
+    </div>
+</p-panel>
+
+<p-panel header="Información de Ubicación">
+    <div class="p-field">
+        <label for="posesionTime">Tiempo de Posesión</label>
+        <input id="posesionTime" pInputText formControlName="posesionTime" />
+    </div>
+    <div class="p-field">
+        <label for="sector">Sector</label>
+        <input id="sector" pInputText formControlName="sector" />
+    </div>
+    <div class="p-field">
+        <label for="barrio">Barrio</label>
+        <input id="barrio" pInputText formControlName="barrio" />
+    </div>
+    <div class="p-field">
+        <label for="manzana">Manzana</label>
+        <input id="manzana" pInputText formControlName="manzana" />
+    </div>
+    <div class="p-field">
+        <label for="lotenumero">Lote Número</label>
+        <input id="lotenumero" pInputText formControlName="lotenumero" />
+    </div>
+    <div class="p-field">
+        <label for="familyCount">Cantidad de Familiares</label>
+        <input
+            id="familyCount"
+            pInputText
+            type="number"
+            formControlName="familyCount"
+        />
+    </div>
+    <div class="p-field">
+        <label for="peopleCount">Cantidad de Personas</label>
+        <input
+            id="peopleCount"
+            pInputText
+            type="number"
+            formControlName="peopleCount"
+        />
+    </div>
+    <div class="p-field">
+        <label for="houseState">Estado de la Casa</label>
+        <p-dropdown
+            [options]="houseStateOptions"
+            formControlName="houseState"
+            placeholder="Seleccione el estado"
+        ></p-dropdown>
+    </div>
+</p-panel>
+<p-panel header="Información de Salud">
+    <div class="p-field">
+        <label for="estadoSalud">Estado de Salud</label>
+        <p-dropdown
+            [options]="estadoSaludOptions"
+            formControlName="estadoSalud"
+            placeholder="Seleccione el estado"
+        ></p-dropdown>
+    </div>
+    <div class="p-field">
+        <label for="causasSalud">Causas de Salud</label>
+        <p-multiSelect
+            [options]="causasSaludOptions"
+            formControlName="causasSalud"
+            placeholder="Seleccione las causas"
+        ></p-multiSelect>
+    </div>
+    <div class="p-field">
+        <label for="conexionHigienico">Conexión Higiénica</label>
+        <p-dropdown
+            [options]="conexionHigienicoOptions"
+            formControlName="conexionHigienico"
+            placeholder="Seleccione la conexión"
+        ></p-dropdown>
+    </div>
+</p-panel>
+
+<p-panel header="Información de Vivienda">
+    <div class="p-field">
+        <label for="estructuraVivienda">Estructura de Vivienda</label>
+        <p-dropdown
+            [options]="estructuraViviendaOptions"
+            formControlName="estructuraVivienda"
+            placeholder="Seleccione la estructura"
+        ></p-dropdown>
+    </div>
+    <div class="p-field">
+        <label for="serviciosBasicos">Servicios Básicos</label>
+        <p-multiSelect
+            [options]="serviciosBasicosOptions"
+            formControlName="serviciosBasicos"
+            placeholder="Seleccione los servicios"
+        ></p-multiSelect>
+    </div>
+    <div class="p-field">
+        <label for="tenenciaVivienda">Tenencia de Vivienda</label>
+        <p-dropdown
+            [options]="tenenciaViviendaOptions"
+            formControlName="tenenciaVivienda"
+            placeholder="Seleccione la tenencia"
+        ></p-dropdown>
+    </div>
+    <div class="p-field">
+        <label for="documentosPropiedad">Documentos de Propiedad</label>
+        <p-multiSelect
+            [options]="documentosPropiedadOptions"
+            formControlName="documentosPropiedad"
+            placeholder="Seleccione los documentos"
+        ></p-multiSelect>
+    </div>
+    <div class="p-field">
+        <label for="numPisos">Número de Pisos</label>
+        <input
+            type="number"
+            pInputText
+            formControlName="numPisos"
+            placeholder="Ingrese el número de pisos"
+        />
+    </div>
+    <div class="p-field">
+        <label for="numHabitaciones">Número de Habitaciones</label>
+        <input
+            type="number"
+            pInputText
+            formControlName="numHabitaciones"
+            placeholder="Ingrese el número de habitaciones"
+        />
+    </div>
+    <div class="p-field">
+        <label for="tipoAlumbrado">Tipo de Alumbrado</label>
+        <p-dropdown
+            [options]="tipoAlumbradoOptions"
+            formControlName="tipoAlumbrado"
+            placeholder="Seleccione el tipo de alumbrado"
+        ></p-dropdown>
+    </div>
+    <div class="p-field">
+        <label for="abastecimientoAgua">Abastecimiento de Agua</label>
+        <p-multiSelect
+            [options]="abastecimientoAguaOptions"
+            formControlName="abastecimientoAgua"
+            placeholder="Seleccione el abastecimiento de agua"
+        ></p-multiSelect>
+    </div>
+    <div class="p-field">
+        <label for="bienesServiciosElectrodomesticos"
+            >Bienes y Servicios Electrodomésticos</label
+        >
+        <p-multiSelect
+            [options]="bienesServiciosElectrodomesticosOptions"
+            formControlName="bienesServiciosElectrodomesticos"
+            placeholder="Seleccione los bienes y servicios"
+        ></p-multiSelect>
+    </div>
+    <div class="p-field">
+        <label for="zonaRiesgo">Zona de Riesgo</label>
+        <p-dropdown
+            [options]="zonaRiesgoOptions"
+            formControlName="zonaRiesgo"
+            placeholder="Seleccione la zona de riesgo"
+        ></p-dropdown>
+    </div>
+</p-panel>
+
+<p-panel header="Medios de Vida">
+    <div class="p-field">
+        <label for="participacionCapacitacion"
+            >Participación en Capacitación</label
+        >
+        <p-dropdown
+            [options]="participacionCapacitacionOptions"
+            formControlName="participacionCapacitacion"
+            placeholder="Seleccione una opción"
+        ></p-dropdown>
+    </div>
+    <div class="p-field">
+        <label for="cuantosTrabajos">Cantidad de Trabajos</label>
+        <input
+            type="number"
+            pInputText
+            formControlName="cuantosTrabajos"
+            placeholder="Ingrese el número de trabajos"
+        />
+    </div>
+    <div class="p-field">
+        <label for="actividadLaboral">Actividad Laboral</label>
+        <p-dropdown
+            [options]="actividadLaboralOptions"
+            formControlName="actividadLaboral"
+            placeholder="Seleccione una opción"
+        ></p-dropdown>
+    </div>
+
+    <!-- Tabla de Actividades Económicas -->
+    <div class="p-field">
+        <label>Actividad Económica</label>
+        <button
+            pButton
+            type="button"
+            icon="pi pi-plus"
+            label="Añadir Actividad"
+            (click)="showDialogActividadEconomica()"
+        ></button>
+        <p-table
+            [value]="actividadEconomicaList"
+            [paginator]="true"
+            [rows]="5"
+            [responsiveLayout]="'scroll'"
+        >
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Nombre de la Actividad</th>
+                    <th>Acciones</th>
+                </tr>
             </ng-template>
-        </p-stepperPanel>
-        <p-stepperPanel header="Información Personal">
-            <ng-template
-                pTemplate="content"
-                let-prevCallback="prevCallback"
-                let-nextCallback="nextCallback"
-                let-index="index"
-            >
-                <div
-                    class="flex flex-wrap gap-3 p-fluid"
-                    formGroupName="informacionPersonal"
-                >
-                    <div class="flex-auto">
-                        <label for="entrevistado">Entrevistado</label>
-                        <input
-                            type="text"
-                            pInputText
-                            formControlName="entrevistado"
-                            [required]="true"
-                        />
-                    </div>
-                    <div class="flex-auto">
-                        <label for="dni">Cédula</label>
-                        <input
-                            type="text"
-                            pInputText
-                            formControlName="dni"
-                            [required]="true"
-                        />
-                    </div>
-                    <div class="flex-auto">
-                        <label for="edad">Edad</label>
-                        <p-inputNumber formControlName="edad" [required]="true">
-                        </p-inputNumber>
-                    </div>
-                    <div class="flex-auto">
-                        <label for="nacionalidad">Nacionalidad</label>
-                        <input
-                            type="text"
-                            pInputText
-                            formControlName="nacionalidad"
-                            [required]="true"
-                        />
-                    </div>
-                    <div class="flex-auto">
-                        <label for="phone">Teléfono</label>
-                        <input
-                            type="text"
-                            pInputText
-                            formControlName="phone"
-                            [required]="true"
-                        />
-                    </div>
-                </div>
-                <div class="flex pt-4 justify-content-between">
-                    <p-button
-                        label="Back"
-                        icon="pi pi-arrow-left"
-                        (onClick)="prevCallback.emit()"
-                    />
-                    <p-button
-                        label="Next"
-                        icon="pi pi-arrow-right"
-                        iconPos="right"
-                        (onClick)="nextCallback.emit()"
-                    />
-                </div>
-            </ng-template>
-        </p-stepperPanel>
-        <p-stepperPanel header="Información de Ubicación">
-            <ng-template
-                pTemplate="content"
-                let-prevCallback="prevCallback"
-                let-nextCallback="nextCallback"
-                let-index="index"
-            >
-                <div
-                    class="flex flex-wrap gap-3 p-fluid"
-                    formGroupName="informacionUbicacion"
-                >
-                    <div class="flex-auto">
-                        <label for="posesionTime">Tiempo de Posesión</label>
-                        <input
-                            type="text"
-                            pInputText
-                            formControlName="posesionTime"
-                            [required]="true"
-                        />
-                    </div>
-                    <div class="flex-auto">
-                        <label for="sector">Sector</label>
-                        <input
-                            type="text"
-                            pInputText
-                            formControlName="sector"
-                            [required]="true"
-                        />
-                    </div>
-                    <div class="flex-auto">
-                        <label for="barrio">Barrio</label>
-                        <input
-                            type="text"
-                            pInputText
-                            formControlName="barrio"
-                            [required]="true"
-                        />
-                    </div>
-                    <div class="flex-auto">
-                        <label for="manzana">Manzana</label>
-                        <input
-                            type="text"
-                            pInputText
-                            formControlName="manzana"
-                            [required]="true"
-                        />
-                    </div>
-                    <div class="flex-auto">
-                        <label for="lotenumero">Número de Lote</label>
-                        <input
-                            type="text"
-                            pInputText
-                            formControlName="lotenumero"
-                            [required]="true"
-                        />
-                    </div>
-                    <div class="flex-auto">
-                        <label for="familyCount">Número de Familias</label>
-                        <p-inputNumber
-                            formControlName="familyCount"
-                            [required]="true"
-                        >
-                        </p-inputNumber>
-                    </div>
-                    <div class="flex-auto">
-                        <label for="peopleCount">Número de Personas</label>
-                        <p-inputNumber
-                            formControlName="peopleCount"
-                            [required]="true"
-                        >
-                        </p-inputNumber>
-                    </div>
-                    <div class="flex-auto">
-                        <label for="houseState">Estado de la Casa</label>
-                        <p-dropdown
-                            formControlName="houseState"
-                            [options]="houseStateOptions"
-                            [required]="true"
-                        >
-                        </p-dropdown>
-                    </div>
-                </div>
-                <div class="flex pt-4 justify-content-between">
-                    <p-button
-                        label="Back"
-                        icon="pi pi-arrow-left"
-                        (onClick)="prevCallback.emit()"
-                    />
-                    <p-button
-                        label="Next"
-                        icon="pi pi-arrow-right"
-                        iconPos="right"
-                        (onClick)="nextCallback.emit()"
-                    />
-                </div>
-            </ng-template>
-        </p-stepperPanel>
-        <p-stepperPanel header="Salud">
-            <ng-template
-                pTemplate="content"
-                let-prevCallback="prevCallback"
-                let-nextCallback="nextCallback"
-                let-index="index"
-            >
-                <div class="flex flex-wrap gap-3 p-fluid" formGroupName="salud">
-                    <div class="flex-auto">
-                        <label for="estadoSalud">Estado de Salud</label>
-                        <p-dropdown
-                            formControlName="estadoSalud"
-                            [options]="estadoSaludOptions"
-                            [required]="true"
-                        >
-                        </p-dropdown>
-                    </div>
-                    <div class="flex-auto">
-                        <label for="causasSalud">Causas de Salud</label>
-                        <p-multiSelect
-                            formControlName="causasSalud"
-                            [options]="causasSaludOptions"
-                            [required]="true"
-                        >
-                        </p-multiSelect>
-                    </div>
-                    <div class="flex-auto">
-                        <label for="customCausaControl"
-                            >Otra causa (especificar)</label
-                        >
-                        <p-inputGroup>
-                            <input
-                                type="text"
-                                pInputText
-                                [formControl]="customCausaControl"
-                                (keyup.enter)="addCausa()"
-                            />
-                            <button
-                                type="button"
-                                pButton
-                                icon="pi pi-plus"
-                                label="Agregar Causa"
-                                class="p-button-success"
-                                (click)="addCausa()"
-                            ></button>
-                        </p-inputGroup>
-                    </div>
-                    <div class="flex-auto">
-                        <label for="conexionHigienico"
-                            >Conexión Higiénica</label
-                        >
-                        <p-dropdown
-                            formControlName="conexionHigienico"
-                            [options]="conexionHigienicoOptions"
-                            placeholder="Conexión Higiénica"
-                            [required]="true"
-                        >
-                        </p-dropdown>
-                    </div>
-                </div>
-                <div class="flex pt-4 justify-content-between">
-                    <p-button
-                        label="Back"
-                        icon="pi pi-arrow-left"
-                        (onClick)="prevCallback.emit()"
-                    />
-                    <p-button
-                        label="Next"
-                        icon="pi pi-arrow-right"
-                        iconPos="right"
-                        (onClick)="nextCallback.emit()"
-                    />
-                </div>
-            </ng-template>
-        </p-stepperPanel>
-        <p-stepperPanel header="Información de vivienda">
-            <ng-template
-                pTemplate="content"
-                let-prevCallback="prevCallback"
-                let-nextCallback="nextCallback"
-                let-index="index"
-            >
-                <div
-                    class="flex flex-wrap gap-3 p-fluid"
-                    formGroupName="vivienda"
-                >
-                    <!-- Estructura de Vivienda (RadioButtons o Dropdown) -->
-                    <div class="flex-auto">
-                        <label>Estructura de Vivienda</label>
-                        <div
-                            *ngIf="
-                                estructuraViviendaOptions.length <=
-                                    displayoption;
-                                else dropdownEstructuraVivienda
-                            "
-                        >
-                            <div class="flex flex-wrap gap-3 mt-3 mb-2">
-                                <div
-                                    *ngFor="
-                                        let option of estructuraViviendaOptions
-                                    "
-                                    class="flex align-items-center"
-                                >
-                                    <p-radioButton
-                                        formControlName="estructuraVivienda"
-                                        [value]="option"
-                                        inputId="{{ option }}"
-                                    ></p-radioButton>
-                                    <label for="{{ option }}">{{
-                                        option
-                                    }}</label>
-                                </div>
-                            </div>
-                        </div>
-                        <ng-template #dropdownEstructuraVivienda>
-                            <p-dropdown
-                                formControlName="estructuraVivienda"
-                                [options]="estructuraViviendaOptions"
-                                placeholder="Seleccione"
-                            ></p-dropdown>
-                        </ng-template>
-                    </div>
-
-                    <!-- Servicios Básicos (Checkboxes o MultiSelect) -->
-                    <div class="flex-auto">
-                        <label
-                            >¿Cuáles de los siguientes servicios básicos Ud.
-                            Dispone? (Respuesta Múltiple)</label
-                        >
-                        <div
-                            *ngIf="
-                                serviciosBasicosOptions.length <= displayoption;
-                                else multiSelectServiciosBasicos
-                            "
-                        >
-                            <div class="flex flex-wrap gap-3 mt-3 mb-2">
-                                <div
-                                    *ngFor="
-                                        let option of serviciosBasicosOptions
-                                    "
-                                    class="flex align-items-center"
-                                >
-                                    <p-checkbox
-                                        formControlName="serviciosBasicos"
-                                        [value]="option"
-                                        inputId="{{ option }}"
-                                    ></p-checkbox>
-                                    <label for="{{ option }}">{{
-                                        option
-                                    }}</label>
-                                </div>
-                            </div>
-                        </div>
-                        <ng-template #multiSelectServiciosBasicos>
-                            <p-multiSelect
-                                formControlName="serviciosBasicos"
-                                [options]="serviciosBasicosOptions"
-                                placeholder="Seleccione"
-                            ></p-multiSelect>
-                        </ng-template>
-                    </div>
-
-                    <!-- Tenencia de Vivienda (RadioButtons o Dropdown) -->
-                    <div class="flex-auto">
-                        <label>La tenencia de la vivienda es:</label>
-                        <div
-                            *ngIf="
-                                tenenciaViviendaOptions.length <= displayoption;
-                                else dropdownTenenciaVivienda
-                            "
-                        >
-                            <div class="flex flex-wrap gap-3 mt-3 mb-2">
-                                <div
-                                    *ngFor="
-                                        let option of tenenciaViviendaOptions
-                                    "
-                                    class="flex align-items-center"
-                                >
-                                    <p-radioButton
-                                        formControlName="tenenciaVivienda"
-                                        [value]="option"
-                                        inputId="{{ option }}"
-                                    ></p-radioButton>
-                                    <label for="{{ option }}">{{
-                                        option
-                                    }}</label>
-                                </div>
-                            </div>
-                        </div>
-                        <ng-template #dropdownTenenciaVivienda>
-                            <p-dropdown
-                                formControlName="tenenciaVivienda"
-                                [options]="tenenciaViviendaOptions"
-                                placeholder="Seleccione"
-                            ></p-dropdown>
-                        </ng-template>
-                    </div>
-
-                    <!-- Documentos de Propiedad (Checkboxes o MultiSelect) -->
-                    <div class="flex-auto">
-                        <label
-                            >¿Qué documentos relativos a la propiedad usted
-                            tiene?</label
-                        >
-                        <div
-                            *ngIf="
-                                documentosPropiedadOptions.length <=
-                                    displayoption;
-                                else dropdownDocumentosPropiedad
-                            "
-                        >
-                            <div class="flex flex-wrap gap-3 mt-3 mb-2">
-                                <div
-                                    *ngFor="
-                                        let option of documentosPropiedadOptions
-                                    "
-                                    class="flex align-items-center"
-                                >
-                                    <p-radioButton
-                                        formControlName="documentosPropiedad"
-                                        [value]="option"
-                                        inputId="{{ option }}"
-                                    ></p-radioButton>
-                                    <label for="{{ option }}">{{
-                                        option
-                                    }}</label>
-                                </div>
-                            </div>
-                        </div>
-                        <ng-template #dropdownDocumentosPropiedad>
-                            <p-dropdown
-                                formControlName="documentosPropiedad"
-                                [options]="documentosPropiedadOptions"
-                                placeholder="Seleccione"
-                            ></p-dropdown>
-                        </ng-template>
-                    </div>
-
-                    <!-- Tipo de Alumbrado (RadioButtons o Dropdown) -->
-                    <div class="flex-auto">
-                        <label>Tipo de alumbrado de la Vivienda: </label>
-                        <div
-                            *ngIf="
-                                tipoAlumbradoOptions.length <= displayoption;
-                                else dropdownTipoAlumbrado
-                            "
-                        >
-                            <div class="flex flex-wrap gap-3 mt-3 mb-2">
-                                <div
-                                    *ngFor="let option of tipoAlumbradoOptions"
-                                    class="flex align-items-center"
-                                >
-                                    <p-radioButton
-                                        formControlName="tipoAlumbrado"
-                                        [value]="option"
-                                        inputId="{{ option }}"
-                                    ></p-radioButton>
-                                    <label for="{{ option }}">{{
-                                        option
-                                    }}</label>
-                                </div>
-                            </div>
-                        </div>
-                        <ng-template #dropdownTipoAlumbrado>
-                            <p-dropdown
-                                formControlName="tipoAlumbrado"
-                                [options]="tipoAlumbradoOptions"
-                                placeholder="Seleccione"
-                            ></p-dropdown>
-                        </ng-template>
-                    </div>
-
-                    <!-- Abastecimiento de Agua (Checkboxes o MultiSelect) -->
-                    <div class="flex-auto">
-                        <label
-                            >¿Cómo se abastece con el agua? (Respuesta
-                            Múltiple)</label
-                        >
-                        <div
-                            *ngIf="
-                                abastecimientoAguaOptions.length <=
-                                    displayoption;
-                                else multiSelectAbastecimientoAgua
-                            "
-                        >
-                            <div class="flex flex-wrap gap-3 mt-3 mb-2">
-                                <div
-                                    *ngFor="
-                                        let option of abastecimientoAguaOptions
-                                    "
-                                    class="flex align-items-center"
-                                >
-                                    <p-checkbox
-                                        formControlName="abastecimientoAgua"
-                                        [value]="option"
-                                        inputId="{{ option }}"
-                                    ></p-checkbox>
-                                    <label for="{{ option }}">{{
-                                        option
-                                    }}</label>
-                                </div>
-                            </div>
-                        </div>
-                        <ng-template #multiSelectAbastecimientoAgua>
-                            <p-multiSelect
-                                formControlName="abastecimientoAgua"
-                                [options]="abastecimientoAguaOptions"
-                                placeholder="Seleccione"
-                            ></p-multiSelect>
-                        </ng-template>
-                    </div>
-
-                    <!-- Bienes y Servicios Electrodomésticos (Checkboxes o MultiSelect) -->
-                    <div class="flex-auto">
-                        <label
-                            >¿Cuáles de los siguientes bienes y servicios
-                            electrodomésticos Ud. ¿Posee? (Respuesta
-                            Múltiple)</label
-                        >
-                        <div
-                            *ngIf="
-                                bienesServiciosElectrodomesticosOptions.length <=
-                                    displayoption;
-                                else multiSelectBienesServiciosElectrodomesticos
-                            "
-                        >
-                            <div class="flex flex-wrap gap-3 mt-3 mb-2">
-                                <div
-                                    *ngFor="
-                                        let option of bienesServiciosElectrodomesticosOptions
-                                    "
-                                    class="flex align-items-center"
-                                >
-                                    <p-checkbox
-                                        formControlName="bienesServiciosElectrodomesticos"
-                                        [value]="option"
-                                        inputId="{{ option }}"
-                                    ></p-checkbox>
-                                    <label for="{{ option }}">{{
-                                        option
-                                    }}</label>
-                                </div>
-                            </div>
-                        </div>
-                        <ng-template
-                            #multiSelectBienesServiciosElectrodomesticos
-                        >
-                            <p-multiSelect
-                                formControlName="bienesServiciosElectrodomesticos"
-                                [options]="
-                                    bienesServiciosElectrodomesticosOptions
-                                "
-                                placeholder="Seleccione"
-                            ></p-multiSelect>
-                        </ng-template>
-                    </div>
-
-                    <!-- Zona de Riesgo (RadioButtons o Dropdown) -->
-                    <div class="flex-auto">
-                        <label
-                            >Su vivienda se encuentra en una zona de
-                            riesgo:</label
-                        >
-                        <div
-                            *ngIf="
-                                zonaRiesgoOptions.length <= displayoption;
-                                else dropdownZonaRiesgo
-                            "
-                        >
-                            <div class="flex flex-wrap gap-3 mt-3 mb-2">
-                                <div
-                                    *ngFor="let option of zonaRiesgoOptions"
-                                    class="flex align-items-center"
-                                >
-                                    <p-radioButton
-                                        formControlName="zonaRiesgo"
-                                        [value]="option"
-                                        inputId="{{ option }}"
-                                    ></p-radioButton>
-                                    <label for="{{ option }}">{{
-                                        option
-                                    }}</label>
-                                </div>
-                            </div>
-                        </div>
-                        <ng-template #dropdownZonaRiesgo>
-                            <p-dropdown
-                                formControlName="zonaRiesgo"
-                                [options]="zonaRiesgoOptions"
-                                placeholder="Seleccione"
-                            ></p-dropdown>
-                        </ng-template>
-                    </div>
-
-                    <!-- Número de Pisos (Input) -->
-                    <div class="flex-auto">
-                        <label for="numPisos"
-                            >¿Cuántos pisos posee la vivienda?</label
-                        >
-                        <p-inputNumber
-                            formControlName="numPisos"
-                            placeholder="Número de Pisos"
-                        ></p-inputNumber>
-                    </div>
-
-                    <!-- Número de Habitaciones (Input) -->
-                    <div class="flex-auto">
-                        <label for="numPisos"
-                            >¿Cuántas habitaciones posee la vivienda?</label
-                        >
-                        <p-inputNumber
-                            formControlName="numHabitaciones"
-                            placeholder="Número de Habitaciones"
-                        ></p-inputNumber>
-                    </div>
-                </div>
-                <div class="flex pt-4 justify-content-between">
-                    <p-button
-                        label="Back"
-                        icon="pi pi-arrow-left"
-                        (onClick)="prevCallback.emit()"
-                    />
-                    <p-button
-                        label="Next"
-                        icon="pi pi-arrow-right"
-                        iconPos="right"
-                        (onClick)="nextCallback.emit()"
-                    />
-                </div>
-            </ng-template>
-        </p-stepperPanel>
-        <p-stepperPanel header="Información de vivienda">
-            <ng-template
-                pTemplate="content"
-                let-prevCallback="prevCallback"
-                let-nextCallback="nextCallback"
-                let-index="index"
-            >
-                <div
-                    class="flex flex-wrap gap-3 p-fluid"
-                    formGroupName="mediosDeVida"
-                >
-                    <!-- Participación en Capacitación -->
-                    <div class="p-field">
-                        <label for="participacionCapacitacion"
-                            >Participación en Capacitación</label
-                        >
-                        <p-dropdown
-                            id="participacionCapacitacion"
-                            formControlName="participacionCapacitacion"
-                            [options]="[
-                                { label: 'Sí', value: 'SI' },
-                                { label: 'No', value: 'NO' }
-                            ]"
-                            placeholder="Seleccione..."
-                        ></p-dropdown>
-                    </div>
-
-                    <!-- Cuántos Trabajos -->
-                    <div class="p-field">
-                        <label for="cuantosTrabajos">Cuántos Trabajos</label>
-                        <input
-                            id="cuantosTrabajos"
-                            type="number"
-                            pInputText
-                            formControlName="cuantosTrabajos"
-                        />
-                    </div>
-
-                    <!-- Actividad Laboral -->
-                    <div class="p-field">
-                        <label for="actividadLaboral">Actividad Laboral</label>
-                        <p-dropdown
-                            id="actividadLaboral"
-                            formControlName="actividadLaboral"
-                            [options]="[
-                                {
-                                    label: 'A tiempo completo',
-                                    value: 'COMPLETO'
-                                },
-                                { label: 'Parcial', value: 'PARCIAL' },
-                                { label: 'Esporádica', value: 'ESPORADICA' },
-                                { label: 'Por temporada', value: 'TEMPORADA' },
-                                { label: 'Pensionista', value: 'PENSIONISTA' },
-                                { label: 'Cesante', value: 'CESANTE' },
-                                { label: 'Ninguna', value: 'NINGUNA' }
-                            ]"
-                            placeholder="Seleccione..."
-                        ></p-dropdown>
-                    </div>
-
-                    <!-- Botón para añadir actividad económica -->
-                    <div class="p-field">
-                        <label>Actividades Económicas</label>
+            <ng-template pTemplate="body" let-actividad>
+                <tr>
+                    <td>{{ actividad.nombre }}</td>
+                    <td>
                         <button
                             pButton
-                            type="button"
-                            label="Añadir Actividad Económica"
-                            icon="pi pi-plus"
-                            (click)="showActividadEconomicaDialog()"
+                            icon="pi pi-pencil"
+                            class="p-button-rounded p-button-warning"
+                            (click)="editActividadEconomica(actividad)"
                         ></button>
-
-                        <!-- Tabla de Actividades Económicas -->
-                        <p-table
-                            [value]="actividadEconomicaList"
-                            [paginator]="true"
-                            [rows]="5"
-                        >
-                            <ng-template pTemplate="header">
-                                <tr>
-                                    <th>Actividad Económica</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </ng-template>
-                            <ng-template
-                                pTemplate="body"
-                                let-actividad
-                                let-i="rowIndex"
-                            >
-                                <tr>
-                                    <td>{{ actividad.nombre }}</td>
-                                    <td>
-                                        <button
-                                            pButton
-                                            type="button"
-                                            icon="pi pi-pencil"
-                                            (click)="
-                                                showActividadEconomicaDialog(i)
-                                            "
-                                        ></button>
-                                        <button
-                                            pButton
-                                            type="button"
-                                            icon="pi pi-trash"
-                                            (click)="
-                                                removeActividadEconomica(i)
-                                            "
-                                        ></button>
-                                    </td>
-                                </tr>
-                            </ng-template>
-                        </p-table>
-                    </div>
-                </div>
-                <div class="flex pt-4 justify-content-between">
-                    <p-button
-                        label="Back"
-                        icon="pi pi-arrow-left"
-                        (onClick)="prevCallback.emit()"
-                    />
-                    <p-button
-                        label="Next"
-                        icon="pi pi-arrow-right"
-                        iconPos="right"
-                        (onClick)="nextCallback.emit()"
-                    />
-                </div>
+                        <button
+                            pButton
+                            icon="pi pi-trash"
+                            class="p-button-rounded p-button-danger"
+                            (click)="deleteActividadEconomica(actividad)"
+                        ></button>
+                    </td>
+                </tr>
             </ng-template>
-        </p-stepperPanel>
+        </p-table>
+    </div>
 
-        <p-stepperPanel header="Header III">
-            <ng-template
-                pTemplate="content"
-                let-prevCallback="prevCallback"
-                let-index="index"
-            >
-                <div class="flex pt-4 justify-content-start">
-                    <p-button
-                        label="Back"
-                        icon="pi pi-arrow-left"
-                        (onClick)="prevCallback.emit()"
-                    />
-                    <p-button
-                        type="submit"
-                        label="Enviar"
-                        [disabled]="registrationForm.invalid"
-                    >
-                    </p-button>
-                </div>
+    <div class="p-field">
+        <label for="relacionDependencia">Relación de Dependencia</label>
+        <p-dropdown
+            [options]="relacionDependenciaOptions"
+            formControlName="relacionDependencia"
+            placeholder="Seleccione una opción"
+        ></p-dropdown>
+    </div>
+    <div class="p-field">
+        <label for="cuentaPropia">Cuenta Propia</label>
+        <p-dropdown
+            [options]="cuentaPropiaOptions"
+            formControlName="cuentaPropia"
+            placeholder="Seleccione una opción"
+        ></p-dropdown>
+    </div>
+    <div class="p-field">
+        <label for="ingresosMensuales">Ingresos Mensuales</label>
+        <p-dropdown
+            [options]="ingresosMensualesOptions"
+            formControlName="ingresosMensuales"
+            placeholder="Seleccione una opción"
+        ></p-dropdown>
+    </div>
+
+    <div class="p-field">
+        <label for="gastosHogar">Gastos del Hogar</label>
+        <button
+            pButton
+            type="button"
+            icon="pi pi-plus"
+            label="Añadir Gasto"
+            (click)="showDialogGastosHogar()"
+        ></button>
+        <p-table
+            [value]="gastosHogarList"
+            [paginator]="true"
+            [rows]="5"
+            [responsiveLayout]="'scroll'"
+        >
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Tipo de Gasto</th>
+                    <th>Porcentaje</th>
+                    <th>Acciones</th>
+                </tr>
             </ng-template>
-        </p-stepperPanel>
-    </p-stepper>
-</form>
+            <ng-template pTemplate="body" let-gasto>
+                <tr>
+                    <td>{{ gasto.tipo }}</td>
+                    <td>{{ gasto.porcentaje }}%</td>
+                    <td>
+                        <button
+                            pButton
+                            icon="pi pi-pencil"
+                            class="p-button-rounded p-button-warning"
+                            (click)="editGastoHogar(gasto)"
+                        ></button>
+                        <button
+                            pButton
+                            icon="pi pi-trash"
+                            class="p-button-rounded p-button-danger"
+                            (click)="deleteGastoHogar(gasto)"
+                        ></button>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
 
-<!-- Diálogo para añadir/editar actividad económica -->
+    <div class="p-field">
+        <label for="fuentesIngresos">Fuentes de Ingresos</label>
+        <p-multiSelect
+            [options]="fuentesIngresosOptions"
+            formControlName="fuentesIngresos"
+            placeholder="Seleccione las fuentes de ingresos"
+        ></p-multiSelect>
+    </div>
+</p-panel>
+
+<!-- Diálogo para agregar o editar Actividad Económica -->
 <p-dialog
-    header="Añadir/Editar Actividad Económica"
-    [(visible)]="isDialogVisible"
+    header="Actividad Económica"
+    [(visible)]="displayActividadDialog"
     [modal]="true"
     [responsive]="true"
-    [closable]="false"
+    [style]="{ width: '400px' }"
 >
     <div class="p-fluid">
         <div class="p-field">
             <label for="nombreActividad">Nombre de la Actividad</label>
             <input
-                id="nombreActividad"
                 type="text"
                 pInputText
-                [(ngModel)]="actividadEconomica.nombre"
-                required
+                [(ngModel)]="actividadActual.nombre"
+                placeholder="Ingrese la actividad económica"
             />
         </div>
+    </div>
+    <p-footer>
+        <button
+            pButton
+            label="Guardar"
+            icon="pi pi-check"
+            (click)="saveActividadEconomica()"
+        ></button>
+        <button
+            pButton
+            label="Cancelar"
+            icon="pi pi-times"
+            class="p-button-secondary"
+            (click)="cancelActividadEconomica()"
+        ></button>
+    </p-footer>
+</p-dialog>
+
+<!-- Diálogo para agregar o editar Gastos del Hogar -->
+<p-dialog
+    header="Gastos del Hogar"
+    [(visible)]="displayGastosDialog"
+    [modal]="true"
+    [responsive]="true"
+    [style]="{ width: '400px' }"
+>
+    <div class="p-fluid">
         <div class="p-field">
-            <button
-                pButton
-                type="button"
-                label="Guardar"
-                icon="pi pi-check"
-                (click)="saveActividadEconomica()"
-                [disabled]="!actividadEconomica.nombre"
-            ></button>
-            <button
-                pButton
-                type="button"
-                label="Cancelar"
-                icon="pi pi-times"
-                (click)="isDialogVisible = false"
-            ></button>
+            <label for="tipoGasto">Tipo de Gasto</label>
+            <p-dropdown
+                [options]="gastosHogarOptions"
+                [(ngModel)]="gastoActual.tipo"
+                placeholder="Seleccione el tipo de gasto"
+            ></p-dropdown>
+        </div>
+        <div class="p-field">
+            <label for="porcentajeGasto">Porcentaje (%)</label>
+            <input
+                type="number"
+                pInputText
+                [(ngModel)]="gastoActual.porcentaje"
+                placeholder="Ingrese el porcentaje"
+            />
         </div>
     </div>
+    <p-footer>
+        <button
+            pButton
+            label="Guardar"
+            icon="pi pi-check"
+            (click)="saveGastoHogar()"
+        ></button>
+        <button
+            pButton
+            label="Cancelar"
+            icon="pi pi-times"
+            class="p-button-secondary"
+            (click)="cancelGastoHogar()"
+        ></button>
+    </p-footer>
 </p-dialog>
