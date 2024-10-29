@@ -317,4 +317,63 @@ export class FormularioSocioeconomicoComponent {
     deleteGastoHogar(gasto) {
         /* eliminar gasto */
     }
+
+    // Variables para redesDeApoyo
+    actividadesBarrioOptions = [
+        { label: 'IGLESIA', value: 'IGLESIA' },
+        { label: 'GRUPOS LGTBIQ', value: 'GRUPOS LGTBIQ' },
+        { label: 'COMITE BARRIAL', value: 'COMITE BARRIAL' },
+        { label: 'CLUBES DEPORTIVOS', value: 'CLUBES DEPORTIVOS' },
+        { label: 'ASOCIACIÓN DE MUJERES', value: 'ASOCIACIÓN DE MUJERES' },
+        { label: 'ASOCIACIÓN JUVENIL', value: 'ASOCIACIÓN JUVENIL' },
+        { label: 'CLUB DE BARCO', value: 'CLUB DE BARCO' },
+        { label: 'CLUB DE POLICIA', value: 'CLUB DE POLICIA' },
+        { label: 'CLUB DE ASESORIAS', value: 'CLUB DE ASESORIAS' },
+        { label: 'CLUB DE ESTUDIANTES', value: 'CLUB DE ESTUDIANTES' },
+        { label: 'OTROS', value: 'OTROS' },
+        { label: 'NINGUNO', value: 'NINGUNO' },
+    ];
+
+    recibeAyudaHumanitariaOptions = [
+        { label: 'IGLESIA', value: 'IGLESIA' },
+        { label: 'VECINO(A)S', value: 'VECINO(A)S' },
+        { label: 'AMIGO(A)S', value: 'AMIGO(A)S' },
+        { label: 'FAMILIA', value: 'FAMILIA' },
+        { label: "ONG'S", value: "ONG'S" },
+        { label: 'INSTITUCIONES PÚBLICA', value: 'INSTITUCIONES PÚBLICA' },
+        { label: 'NINGUNO', value: 'NINGUNO' },
+        { label: 'OTROS', value: 'OTROS' },
+    ];
+
+    actividadCantonDentroOptions = [
+        { label: 'PLAYA', value: 'PLAYA' },
+        { label: 'DOMICILIO', value: 'DOMICILIO' },
+        { label: 'RIO', value: 'RIO' },
+        { label: 'DEPORTE', value: 'DEPORTE' },
+        { label: 'CAMPO', value: 'CAMPO' },
+        { label: 'PARQUES', value: 'PARQUES' },
+        { label: 'OTROS', value: 'OTROS' },
+    ];
+
+    actividadCantonFueraOptions = [
+        { label: 'PLAYA', value: 'PLAYA' },
+        { label: 'DOMICILIO', value: 'DOMICILIO' },
+        { label: 'RIO', value: 'RIO' },
+        { label: 'DEPORTE', value: 'DEPORTE' },
+        { label: 'CAMPO', value: 'CAMPO' },
+        { label: 'PARQUES', value: 'PARQUES' },
+        { label: 'OTROS', value: 'OTROS' },
+    ];
+
+    mejorasBarrioOptions = [
+        { label: 'CALLES PAVIMENTADAS', value: 'CALLES PAVIMENTADAS' },
+        { label: 'PRESENCIA POLICÍAL', value: 'PRESENCIA POLICÍAL' },
+        { label: 'AREAS VERDES', value: 'AREAS VERDES' },
+        { label: 'AGUA POTABLE', value: 'AGUA POTABLE' },
+        { label: 'ALCANTARILLADO', value: 'ALCANTARILLADO' },
+        { label: 'ACTIVIDADES RECREATIVAS', value: 'ACTIVIDADES RECREATIVAS' },
+        { label: 'ALUMBRADO PÚBLICO', value: 'ALUMBRADO PÚBLICO' },
+        { label: 'RECOLECCIÓN DE BASURA', value: 'RECOLECCIÓN DE BASURA' },
+        { label: 'SUB-CENTRO DE SALUD', value: 'SUB-CENTRO DE SALUD' },
+    ];
 }

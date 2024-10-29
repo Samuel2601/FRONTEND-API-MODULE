@@ -1,351 +1,443 @@
-<p-panel header="Información de Registro">
-    <div class="p-field">
-        <label for="date">Fecha</label>
-        <input id="date" pInputText type="date" formControlName="date" />
-    </div>
-    <div class="p-field">
-        <label for="encuestador">Encuestador</label>
-        <input id="encuestador" pInputText formControlName="encuestador" />
-    </div>
-</p-panel>
+<form action="" [formGroup]="registrationForm">
+    <p-panel
+        header="Información de Registro"
+        formGroupName="informacionRegistro"
+    >
+        <div class="p-field">
+            <label for="date">Fecha</label>
+            <input id="date" pInputText type="date" formControlName="date" />
+        </div>
+        <div class="p-field">
+            <label for="encuestador">Encuestador</label>
+            <input id="encuestador" pInputText formControlName="encuestador" />
+        </div>
+    </p-panel>
 
-<p-panel header="Información Personal">
-    <div class="p-field">
-        <label for="entrevistado">Entrevistado</label>
-        <input id="entrevistado" pInputText formControlName="entrevistado" />
-    </div>
-    <div class="p-field">
-        <label for="dni">DNI</label>
-        <input id="dni" pInputText formControlName="dni" />
-    </div>
-    <div class="p-field">
-        <label for="edad">Edad</label>
-        <input id="edad" pInputText type="number" formControlName="edad" />
-    </div>
-    <div class="p-field">
-        <label for="nacionalidad">Nacionalidad</label>
-        <input id="nacionalidad" pInputText formControlName="nacionalidad" />
-    </div>
-    <div class="p-field">
-        <label for="phone">Teléfono</label>
-        <input id="phone" pInputText formControlName="phone" />
-    </div>
-</p-panel>
+    <p-panel
+        header="Información Personal"
+        formGroupName="informacionPersonal"
+        styleClass="p-panel-content-custom"
+    >
+        <div class="p-field">
+            <label for="entrevistado">Entrevistado</label>
+            <input
+                id="entrevistado"
+                pInputText
+                formControlName="entrevistado"
+            />
+        </div>
+        <div class="p-field">
+            <label for="dni">DNI</label>
+            <input id="dni" pInputText formControlName="dni" />
+        </div>
+        <div class="p-field">
+            <label for="edad">Edad</label>
+            <input id="edad" pInputText type="number" formControlName="edad" />
+        </div>
+        <div class="p-field">
+            <label for="nacionalidad">Nacionalidad</label>
+            <input
+                id="nacionalidad"
+                pInputText
+                formControlName="nacionalidad"
+            />
+        </div>
+        <div class="p-field">
+            <label for="phone">Teléfono</label>
+            <input id="phone" pInputText formControlName="phone" />
+        </div>
+    </p-panel>
 
-<p-panel header="Información de Ubicación">
-    <div class="p-field">
-        <label for="posesionTime">Tiempo de Posesión</label>
-        <input id="posesionTime" pInputText formControlName="posesionTime" />
-    </div>
-    <div class="p-field">
-        <label for="sector">Sector</label>
-        <input id="sector" pInputText formControlName="sector" />
-    </div>
-    <div class="p-field">
-        <label for="barrio">Barrio</label>
-        <input id="barrio" pInputText formControlName="barrio" />
-    </div>
-    <div class="p-field">
-        <label for="manzana">Manzana</label>
-        <input id="manzana" pInputText formControlName="manzana" />
-    </div>
-    <div class="p-field">
-        <label for="lotenumero">Lote Número</label>
-        <input id="lotenumero" pInputText formControlName="lotenumero" />
-    </div>
-    <div class="p-field">
-        <label for="familyCount">Cantidad de Familiares</label>
-        <input
-            id="familyCount"
-            pInputText
-            type="number"
-            formControlName="familyCount"
-        />
-    </div>
-    <div class="p-field">
-        <label for="peopleCount">Cantidad de Personas</label>
-        <input
-            id="peopleCount"
-            pInputText
-            type="number"
-            formControlName="peopleCount"
-        />
-    </div>
-    <div class="p-field">
-        <label for="houseState">Estado de la Casa</label>
-        <p-dropdown
-            [options]="houseStateOptions"
-            formControlName="houseState"
-            placeholder="Seleccione el estado"
-        ></p-dropdown>
-    </div>
-</p-panel>
-<p-panel header="Información de Salud">
-    <div class="p-field">
-        <label for="estadoSalud">Estado de Salud</label>
-        <p-dropdown
-            [options]="estadoSaludOptions"
-            formControlName="estadoSalud"
-            placeholder="Seleccione el estado"
-        ></p-dropdown>
-    </div>
-    <div class="p-field">
-        <label for="causasSalud">Causas de Salud</label>
-        <p-multiSelect
-            [options]="causasSaludOptions"
-            formControlName="causasSalud"
-            placeholder="Seleccione las causas"
-        ></p-multiSelect>
-    </div>
-    <div class="p-field">
-        <label for="conexionHigienico">Conexión Higiénica</label>
-        <p-dropdown
-            [options]="conexionHigienicoOptions"
-            formControlName="conexionHigienico"
-            placeholder="Seleccione la conexión"
-        ></p-dropdown>
-    </div>
-</p-panel>
+    <p-panel
+        header="Información de Ubicación"
+        formGroupName="informacionUbicacion"
+    >
+        <div class="p-field">
+            <label for="posesionTime">Tiempo de Posesión</label>
+            <input
+                id="posesionTime"
+                pInputText
+                formControlName="posesionTime"
+            />
+        </div>
+        <div class="p-field">
+            <label for="sector">Sector</label>
+            <input id="sector" pInputText formControlName="sector" />
+        </div>
+        <div class="p-field">
+            <label for="barrio">Barrio</label>
+            <input id="barrio" pInputText formControlName="barrio" />
+        </div>
+        <div class="p-field">
+            <label for="manzana">Manzana</label>
+            <input id="manzana" pInputText formControlName="manzana" />
+        </div>
+        <div class="p-field">
+            <label for="lotenumero">Lote Número</label>
+            <input id="lotenumero" pInputText formControlName="lotenumero" />
+        </div>
+        <div class="p-field">
+            <label for="familyCount">Cantidad de Familiares</label>
+            <input
+                id="familyCount"
+                pInputText
+                type="number"
+                formControlName="familyCount"
+            />
+        </div>
+        <div class="p-field">
+            <label for="peopleCount">Cantidad de Personas</label>
+            <input
+                id="peopleCount"
+                pInputText
+                type="number"
+                formControlName="peopleCount"
+            />
+        </div>
+        <div class="p-field">
+            <label for="houseState">Estado de la Casa</label>
+            <p-dropdown
+                [options]="houseStateOptions"
+                formControlName="houseState"
+                placeholder="Seleccione el estado"
+            ></p-dropdown>
+        </div>
+    </p-panel>
 
-<p-panel header="Información de Vivienda">
-    <div class="p-field">
-        <label for="estructuraVivienda">Estructura de Vivienda</label>
-        <p-dropdown
-            [options]="estructuraViviendaOptions"
-            formControlName="estructuraVivienda"
-            placeholder="Seleccione la estructura"
-        ></p-dropdown>
-    </div>
-    <div class="p-field">
-        <label for="serviciosBasicos">Servicios Básicos</label>
-        <p-multiSelect
-            [options]="serviciosBasicosOptions"
-            formControlName="serviciosBasicos"
-            placeholder="Seleccione los servicios"
-        ></p-multiSelect>
-    </div>
-    <div class="p-field">
-        <label for="tenenciaVivienda">Tenencia de Vivienda</label>
-        <p-dropdown
-            [options]="tenenciaViviendaOptions"
-            formControlName="tenenciaVivienda"
-            placeholder="Seleccione la tenencia"
-        ></p-dropdown>
-    </div>
-    <div class="p-field">
-        <label for="documentosPropiedad">Documentos de Propiedad</label>
-        <p-multiSelect
-            [options]="documentosPropiedadOptions"
-            formControlName="documentosPropiedad"
-            placeholder="Seleccione los documentos"
-        ></p-multiSelect>
-    </div>
-    <div class="p-field">
-        <label for="numPisos">Número de Pisos</label>
-        <input
-            type="number"
-            pInputText
-            formControlName="numPisos"
-            placeholder="Ingrese el número de pisos"
-        />
-    </div>
-    <div class="p-field">
-        <label for="numHabitaciones">Número de Habitaciones</label>
-        <input
-            type="number"
-            pInputText
-            formControlName="numHabitaciones"
-            placeholder="Ingrese el número de habitaciones"
-        />
-    </div>
-    <div class="p-field">
-        <label for="tipoAlumbrado">Tipo de Alumbrado</label>
-        <p-dropdown
-            [options]="tipoAlumbradoOptions"
-            formControlName="tipoAlumbrado"
-            placeholder="Seleccione el tipo de alumbrado"
-        ></p-dropdown>
-    </div>
-    <div class="p-field">
-        <label for="abastecimientoAgua">Abastecimiento de Agua</label>
-        <p-multiSelect
-            [options]="abastecimientoAguaOptions"
-            formControlName="abastecimientoAgua"
-            placeholder="Seleccione el abastecimiento de agua"
-        ></p-multiSelect>
-    </div>
-    <div class="p-field">
-        <label for="bienesServiciosElectrodomesticos"
-            >Bienes y Servicios Electrodomésticos</label
-        >
-        <p-multiSelect
-            [options]="bienesServiciosElectrodomesticosOptions"
-            formControlName="bienesServiciosElectrodomesticos"
-            placeholder="Seleccione los bienes y servicios"
-        ></p-multiSelect>
-    </div>
-    <div class="p-field">
-        <label for="zonaRiesgo">Zona de Riesgo</label>
-        <p-dropdown
-            [options]="zonaRiesgoOptions"
-            formControlName="zonaRiesgo"
-            placeholder="Seleccione la zona de riesgo"
-        ></p-dropdown>
-    </div>
-</p-panel>
+    <p-panel header="Información de Salud" formGroupName="salud">
+        <div class="p-field">
+            <label for="estadoSalud">Estado de Salud</label>
+            <p-dropdown
+                [options]="estadoSaludOptions"
+                formControlName="estadoSalud"
+                placeholder="Seleccione el estado"
+            ></p-dropdown>
+        </div>
+        <div class="p-field">
+            <label for="causasSalud">Causas de Salud</label>
+            <p-multiSelect
+                [options]="causasSaludOptions"
+                formControlName="causasSalud"
+                placeholder="Seleccione las causas"
+            ></p-multiSelect>
+        </div>
+        <div class="p-field">
+            <label for="conexionHigienico">Conexión Higiénica</label>
+            <p-dropdown
+                [options]="conexionHigienicoOptions"
+                formControlName="conexionHigienico"
+                placeholder="Seleccione la conexión"
+            ></p-dropdown>
+        </div>
+    </p-panel>
 
-<p-panel header="Medios de Vida">
-    <div class="p-field">
-        <label for="participacionCapacitacion"
-            >Participación en Capacitación</label
-        >
-        <p-dropdown
-            [options]="participacionCapacitacionOptions"
-            formControlName="participacionCapacitacion"
-            placeholder="Seleccione una opción"
-        ></p-dropdown>
-    </div>
-    <div class="p-field">
-        <label for="cuantosTrabajos">Cantidad de Trabajos</label>
-        <input
-            type="number"
-            pInputText
-            formControlName="cuantosTrabajos"
-            placeholder="Ingrese el número de trabajos"
-        />
-    </div>
-    <div class="p-field">
-        <label for="actividadLaboral">Actividad Laboral</label>
-        <p-dropdown
-            [options]="actividadLaboralOptions"
-            formControlName="actividadLaboral"
-            placeholder="Seleccione una opción"
-        ></p-dropdown>
-    </div>
+    <p-panel header="Información de Vivienda" formGroupName="vivienda">
+        <div class="p-field">
+            <label for="estructuraVivienda">Estructura de Vivienda</label>
+            <p-dropdown
+                [options]="estructuraViviendaOptions"
+                formControlName="estructuraVivienda"
+                placeholder="Seleccione la estructura"
+            ></p-dropdown>
+        </div>
+        <div class="p-field">
+            <label for="serviciosBasicos">Servicios Básicos</label>
+            <p-multiSelect
+                [options]="serviciosBasicosOptions"
+                formControlName="serviciosBasicos"
+                placeholder="Seleccione los servicios"
+            ></p-multiSelect>
+        </div>
+        <div class="p-field">
+            <label for="tenenciaVivienda">Tenencia de Vivienda</label>
+            <p-dropdown
+                [options]="tenenciaViviendaOptions"
+                formControlName="tenenciaVivienda"
+                placeholder="Seleccione la tenencia"
+            ></p-dropdown>
+        </div>
+        <div class="p-field">
+            <label for="documentosPropiedad">Documentos de Propiedad</label>
+            <p-multiSelect
+                [options]="documentosPropiedadOptions"
+                formControlName="documentosPropiedad"
+                placeholder="Seleccione los documentos"
+            ></p-multiSelect>
+        </div>
+        <div class="p-field">
+            <label for="numPisos">Número de Pisos</label>
+            <input
+                type="number"
+                pInputText
+                formControlName="numPisos"
+                placeholder="Ingrese el número de pisos"
+            />
+        </div>
+        <div class="p-field">
+            <label for="numHabitaciones">Número de Habitaciones</label>
+            <input
+                type="number"
+                pInputText
+                formControlName="numHabitaciones"
+                placeholder="Ingrese el número de habitaciones"
+            />
+        </div>
+        <div class="p-field">
+            <label for="tipoAlumbrado">Tipo de Alumbrado</label>
+            <p-dropdown
+                [options]="tipoAlumbradoOptions"
+                formControlName="tipoAlumbrado"
+                placeholder="Seleccione el tipo de alumbrado"
+            ></p-dropdown>
+        </div>
+        <div class="p-field">
+            <label for="abastecimientoAgua">Abastecimiento de Agua</label>
+            <p-multiSelect
+                [options]="abastecimientoAguaOptions"
+                formControlName="abastecimientoAgua"
+                placeholder="Seleccione el abastecimiento de agua"
+            ></p-multiSelect>
+        </div>
+        <div class="p-field">
+            <label for="bienesServiciosElectrodomesticos"
+                >Bienes y Servicios Electrodomésticos</label
+            >
+            <p-multiSelect
+                [options]="bienesServiciosElectrodomesticosOptions"
+                formControlName="bienesServiciosElectrodomesticos"
+                placeholder="Seleccione los bienes y servicios"
+            ></p-multiSelect>
+        </div>
+        <div class="p-field">
+            <label for="zonaRiesgo">Zona de Riesgo</label>
+            <p-dropdown
+                [options]="zonaRiesgoOptions"
+                formControlName="zonaRiesgo"
+                placeholder="Seleccione la zona de riesgo"
+            ></p-dropdown>
+        </div>
+    </p-panel>
 
-    <!-- Tabla de Actividades Económicas -->
-    <div class="p-field">
-        <label>Actividad Económica</label>
-        <button
-            pButton
-            type="button"
-            icon="pi pi-plus"
-            label="Añadir Actividad"
-            (click)="showDialogActividadEconomica()"
-        ></button>
-        <p-table
-            [value]="actividadEconomicaList"
-            [paginator]="true"
-            [rows]="5"
-            [responsiveLayout]="'scroll'"
-        >
-            <ng-template pTemplate="header">
-                <tr>
-                    <th>Nombre de la Actividad</th>
-                    <th>Acciones</th>
-                </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-actividad>
-                <tr>
-                    <td>{{ actividad.nombre }}</td>
-                    <td>
-                        <button
-                            pButton
-                            icon="pi pi-pencil"
-                            class="p-button-rounded p-button-warning"
-                            (click)="editActividadEconomica(actividad)"
-                        ></button>
-                        <button
-                            pButton
-                            icon="pi pi-trash"
-                            class="p-button-rounded p-button-danger"
-                            (click)="deleteActividadEconomica(actividad)"
-                        ></button>
-                    </td>
-                </tr>
-            </ng-template>
-        </p-table>
-    </div>
+    <p-panel header="Medios de Vida" formGroupName="mediosDeVida">
+        <div class="p-field">
+            <label for="participacionCapacitacion"
+                >Participación en Capacitación</label
+            >
+            <p-dropdown
+                [options]="participacionCapacitacionOptions"
+                formControlName="participacionCapacitacion"
+                placeholder="Seleccione una opción"
+            ></p-dropdown>
+        </div>
+        <div class="p-field">
+            <label for="cuantosTrabajos">Cantidad de Trabajos</label>
+            <input
+                type="number"
+                pInputText
+                formControlName="cuantosTrabajos"
+                placeholder="Ingrese el número de trabajos"
+            />
+        </div>
+        <div class="p-field">
+            <label for="actividadLaboral">Actividad Laboral</label>
+            <p-dropdown
+                [options]="actividadLaboralOptions"
+                formControlName="actividadLaboral"
+                placeholder="Seleccione una opción"
+            ></p-dropdown>
+        </div>
 
-    <div class="p-field">
-        <label for="relacionDependencia">Relación de Dependencia</label>
-        <p-dropdown
-            [options]="relacionDependenciaOptions"
-            formControlName="relacionDependencia"
-            placeholder="Seleccione una opción"
-        ></p-dropdown>
-    </div>
-    <div class="p-field">
-        <label for="cuentaPropia">Cuenta Propia</label>
-        <p-dropdown
-            [options]="cuentaPropiaOptions"
-            formControlName="cuentaPropia"
-            placeholder="Seleccione una opción"
-        ></p-dropdown>
-    </div>
-    <div class="p-field">
-        <label for="ingresosMensuales">Ingresos Mensuales</label>
-        <p-dropdown
-            [options]="ingresosMensualesOptions"
-            formControlName="ingresosMensuales"
-            placeholder="Seleccione una opción"
-        ></p-dropdown>
-    </div>
+        <!-- Tabla de Actividades Económicas -->
+        <div class="p-field">
+            <label>Actividad Económica</label>
+            <button
+                pButton
+                type="button"
+                icon="pi pi-plus"
+                label="Añadir Actividad"
+                (click)="showDialogActividadEconomica()"
+            ></button>
+            <p-table
+                [value]="actividadEconomicaList"
+                [paginator]="true"
+                [rows]="5"
+                [responsiveLayout]="'scroll'"
+            >
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>Nombre de la Actividad</th>
+                        <th>Acciones</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-actividad>
+                    <tr>
+                        <td>{{ actividad.nombre }}</td>
+                        <td>
+                            <button
+                                pButton
+                                icon="pi pi-pencil"
+                                class="p-button-rounded p-button-warning"
+                                (click)="editActividadEconomica(actividad)"
+                            ></button>
+                            <button
+                                pButton
+                                icon="pi pi-trash"
+                                class="p-button-rounded p-button-danger"
+                                (click)="deleteActividadEconomica(actividad)"
+                            ></button>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
 
-    <div class="p-field">
-        <label for="gastosHogar">Gastos del Hogar</label>
-        <button
-            pButton
-            type="button"
-            icon="pi pi-plus"
-            label="Añadir Gasto"
-            (click)="showDialogGastosHogar()"
-        ></button>
-        <p-table
-            [value]="gastosHogarList"
-            [paginator]="true"
-            [rows]="5"
-            [responsiveLayout]="'scroll'"
-        >
-            <ng-template pTemplate="header">
-                <tr>
-                    <th>Tipo de Gasto</th>
-                    <th>Porcentaje</th>
-                    <th>Acciones</th>
-                </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-gasto>
-                <tr>
-                    <td>{{ gasto.tipo }}</td>
-                    <td>{{ gasto.porcentaje }}%</td>
-                    <td>
-                        <button
-                            pButton
-                            icon="pi pi-pencil"
-                            class="p-button-rounded p-button-warning"
-                            (click)="editGastoHogar(gasto)"
-                        ></button>
-                        <button
-                            pButton
-                            icon="pi pi-trash"
-                            class="p-button-rounded p-button-danger"
-                            (click)="deleteGastoHogar(gasto)"
-                        ></button>
-                    </td>
-                </tr>
-            </ng-template>
-        </p-table>
-    </div>
+        <div class="p-field">
+            <label for="relacionDependencia">Relación de Dependencia</label>
+            <p-dropdown
+                [options]="relacionDependenciaOptions"
+                formControlName="relacionDependencia"
+                placeholder="Seleccione una opción"
+            ></p-dropdown>
+        </div>
+        <div class="p-field">
+            <label for="cuentaPropia">Cuenta Propia</label>
+            <p-dropdown
+                [options]="cuentaPropiaOptions"
+                formControlName="cuentaPropia"
+                placeholder="Seleccione una opción"
+            ></p-dropdown>
+        </div>
+        <div class="p-field">
+            <label for="ingresosMensuales">Ingresos Mensuales</label>
+            <p-dropdown
+                [options]="ingresosMensualesOptions"
+                formControlName="ingresosMensuales"
+                placeholder="Seleccione una opción"
+            ></p-dropdown>
+        </div>
 
-    <div class="p-field">
-        <label for="fuentesIngresos">Fuentes de Ingresos</label>
-        <p-multiSelect
-            [options]="fuentesIngresosOptions"
-            formControlName="fuentesIngresos"
-            placeholder="Seleccione las fuentes de ingresos"
-        ></p-multiSelect>
-    </div>
-</p-panel>
+        <div class="p-field">
+            <label for="gastosHogar">Gastos del Hogar</label>
+            <button
+                pButton
+                type="button"
+                icon="pi pi-plus"
+                label="Añadir Gasto"
+                (click)="showDialogGastosHogar()"
+            ></button>
+            <p-table
+                [value]="gastosHogarList"
+                [paginator]="true"
+                [rows]="5"
+                [responsiveLayout]="'scroll'"
+            >
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>Tipo de Gasto</th>
+                        <th>Porcentaje</th>
+                        <th>Acciones</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-gasto>
+                    <tr>
+                        <td>{{ gasto.tipo }}</td>
+                        <td>{{ gasto.porcentaje }}%</td>
+                        <td>
+                            <button
+                                pButton
+                                icon="pi pi-pencil"
+                                class="p-button-rounded p-button-warning"
+                                (click)="editGastoHogar(gasto)"
+                            ></button>
+                            <button
+                                pButton
+                                icon="pi pi-trash"
+                                class="p-button-rounded p-button-danger"
+                                (click)="deleteGastoHogar(gasto)"
+                            ></button>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+
+        <div class="p-field">
+            <label for="fuentesIngresos">Fuentes de Ingresos</label>
+            <p-multiSelect
+                [options]="fuentesIngresosOptions"
+                formControlName="fuentesIngresos"
+                placeholder="Seleccione las fuentes de ingresos"
+            ></p-multiSelect>
+        </div>
+    </p-panel>
+
+    <p-panel
+        header="Redes de Apoyo"
+        styleClass="mb-3"
+        formGroupName="redesDeApoyo"
+    >
+        <div class="field">
+            <label for="actividadesBarrio">Actividades en el Barrio</label>
+            <p-multiSelect
+                [options]="actividadesBarrioOptions"
+                formControlName="actividadesBarrio"
+                defaultLabel="Seleccione..."
+            >
+            </p-multiSelect>
+        </div>
+
+        <div class="field">
+            <label for="recibeayudaHumanitaria">Recibe Ayuda Humanitaria</label>
+            <p-multiSelect
+                [options]="recibeAyudaHumanitariaOptions"
+                formControlName="recibeayudaHumanitaria"
+                defaultLabel="Seleccione..."
+            >
+            </p-multiSelect>
+        </div>
+
+        <div class="field">
+            <label for="actividadCantonDentro"
+                >Actividades dentro del Cantón</label
+            >
+            <p-multiSelect
+                [options]="actividadCantonDentroOptions"
+                formControlName="actividadCantonDentro"
+                defaultLabel="Seleccione..."
+            >
+            </p-multiSelect>
+        </div>
+
+        <div class="field">
+            <label for="actividadCantonFuera"
+                >Actividades fuera del Cantón</label
+            >
+            <p-multiSelect
+                [options]="actividadCantonFueraOptions"
+                formControlName="actividadCantonFuera"
+                defaultLabel="Seleccione..."
+            >
+            </p-multiSelect>
+        </div>
+
+        <div class="field">
+            <label for="mejorasBarrio">Mejoras en el Barrio</label>
+            <p-multiSelect
+                [options]="mejorasBarrioOptions"
+                formControlName="mejorasBarrio"
+                defaultLabel="Seleccione..."
+            >
+            </p-multiSelect>
+        </div>
+
+        <div class="field">
+            <label for="mejoraPlus">Otras Mejoras (Especificar)</label>
+            <input type="text" pInputText formControlName="mejoraPlus" />
+        </div>
+    </p-panel>
+
+    <button pButton type="submit" label="Registrar"></button>
+</form>
 
 <!-- Diálogo para agregar o editar Actividad Económica -->
 <p-dialog
