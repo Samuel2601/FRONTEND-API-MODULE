@@ -1,3 +1,4 @@
+<p-toast></p-toast>
 <form action="" [formGroup]="registrationForm">
     <p-panel
         header="Información de Registro"
@@ -27,7 +28,7 @@
             />
         </div>
         <div class="p-field">
-            <label for="dni">DNI</label>
+            <label for="dni">Nª Cédula</label>
             <input id="dni" pInputText formControlName="dni" />
         </div>
         <div class="p-field">
@@ -77,7 +78,9 @@
             <input id="lotenumero" pInputText formControlName="lotenumero" />
         </div>
         <div class="p-field">
-            <label for="familyCount">Cantidad de Familiares</label>
+            <label for="familyCount"
+                >¿Cuántas familias viven en el hogar?
+            </label>
             <input
                 id="familyCount"
                 pInputText
@@ -86,7 +89,9 @@
             />
         </div>
         <div class="p-field">
-            <label for="peopleCount">Cantidad de Personas</label>
+            <label for="peopleCount"
+                >¿Cuántas personas viven en el hogar?</label
+            >
             <input
                 id="peopleCount"
                 pInputText
@@ -95,7 +100,7 @@
             />
         </div>
         <div class="p-field">
-            <label for="houseState">Estado de la Casa</label>
+            <label for="houseState">Estado actual de la Vivienda</label>
             <p-dropdown
                 [options]="houseStateOptions"
                 formControlName="houseState"
@@ -106,7 +111,9 @@
 
     <p-panel header="Información de Salud" formGroupName="salud">
         <div class="p-field">
-            <label for="estadoSalud">Estado de Salud</label>
+            <label for="estadoSalud"
+                >¿Cómo usted evalúa su estado de salud?</label
+            >
             <p-dropdown
                 [options]="estadoSaludOptions"
                 formControlName="estadoSalud"
@@ -114,15 +121,23 @@
             ></p-dropdown>
         </div>
         <div class="p-field">
-            <label for="causasSalud">Causas de Salud</label>
+            <label for="causasSalud"
+                >En su opinión, ¿cuáles son las causas de su problema de salud?
+            </label>
             <p-multiSelect
+                [filter]="false"
+                selectedItemsLabel="{0} seleccionado"
+                [maxSelectedLabels]="1"
                 [options]="causasSaludOptions"
                 formControlName="causasSalud"
                 placeholder="Seleccione las causas"
             ></p-multiSelect>
         </div>
         <div class="p-field">
-            <label for="conexionHigienico">Conexión Higiénica</label>
+            <label for="conexionHigienico"
+                >El servicio higiénico que tiene en su vivienda está conectado
+                a:
+            </label>
             <p-dropdown
                 [options]="conexionHigienicoOptions"
                 formControlName="conexionHigienico"
@@ -133,7 +148,7 @@
 
     <p-panel header="Información de Vivienda" formGroupName="vivienda">
         <div class="p-field">
-            <label for="estructuraVivienda">Estructura de Vivienda</label>
+            <label for="estructuraVivienda">Estructura de la Vivienda</label>
             <p-dropdown
                 [options]="estructuraViviendaOptions"
                 formControlName="estructuraVivienda"
@@ -141,15 +156,20 @@
             ></p-dropdown>
         </div>
         <div class="p-field">
-            <label for="serviciosBasicos">Servicios Básicos</label>
+            <label for="serviciosBasicos"
+                >¿Cuáles de los siguientes servicios básicos Ud. Dispone?
+            </label>
             <p-multiSelect
+                [filter]="false"
+                selectedItemsLabel="{0} seleccionado"
+                [maxSelectedLabels]="1"
                 [options]="serviciosBasicosOptions"
                 formControlName="serviciosBasicos"
                 placeholder="Seleccione los servicios"
             ></p-multiSelect>
         </div>
         <div class="p-field">
-            <label for="tenenciaVivienda">Tenencia de Vivienda</label>
+            <label for="tenenciaVivienda">La tenencia de la vivienda es</label>
             <p-dropdown
                 [options]="tenenciaViviendaOptions"
                 formControlName="tenenciaVivienda"
@@ -157,15 +177,20 @@
             ></p-dropdown>
         </div>
         <div class="p-field">
-            <label for="documentosPropiedad">Documentos de Propiedad</label>
+            <label for="documentosPropiedad"
+                >Qué documentos relativos a la propiedad usted tiene:
+            </label>
             <p-multiSelect
+                [filter]="false"
+                selectedItemsLabel="{0} seleccionado"
+                [maxSelectedLabels]="1"
                 [options]="documentosPropiedadOptions"
                 formControlName="documentosPropiedad"
                 placeholder="Seleccione los documentos"
             ></p-multiSelect>
         </div>
         <div class="p-field">
-            <label for="numPisos">Número de Pisos</label>
+            <label for="numPisos">¿Cuántos pisos posee la vivienda? </label>
             <input
                 type="number"
                 pInputText
@@ -174,7 +199,9 @@
             />
         </div>
         <div class="p-field">
-            <label for="numHabitaciones">Número de Habitaciones</label>
+            <label for="numHabitaciones"
+                >¿Cuántas habitaciones posee la vivienda?
+            </label>
             <input
                 type="number"
                 pInputText
@@ -183,7 +210,7 @@
             />
         </div>
         <div class="p-field">
-            <label for="tipoAlumbrado">Tipo de Alumbrado</label>
+            <label for="tipoAlumbrado">Tipo de alumbrado de la Vivienda</label>
             <p-dropdown
                 [options]="tipoAlumbradoOptions"
                 formControlName="tipoAlumbrado"
@@ -191,8 +218,13 @@
             ></p-dropdown>
         </div>
         <div class="p-field">
-            <label for="abastecimientoAgua">Abastecimiento de Agua</label>
+            <label for="abastecimientoAgua"
+                >¿Cómo se abastece con el agua?
+            </label>
             <p-multiSelect
+                [filter]="false"
+                selectedItemsLabel="{0} seleccionado"
+                [maxSelectedLabels]="1"
                 [options]="abastecimientoAguaOptions"
                 formControlName="abastecimientoAgua"
                 placeholder="Seleccione el abastecimiento de agua"
@@ -200,16 +232,22 @@
         </div>
         <div class="p-field">
             <label for="bienesServiciosElectrodomesticos"
-                >Bienes y Servicios Electrodomésticos</label
-            >
+                >¿Cuáles de los siguientes servicios electrodomésticos Ud.
+                Dispone?
+            </label>
             <p-multiSelect
+                [filter]="false"
+                selectedItemsLabel="{0} seleccionado"
+                [maxSelectedLabels]="1"
                 [options]="bienesServiciosElectrodomesticosOptions"
                 formControlName="bienesServiciosElectrodomesticos"
-                placeholder="Seleccione los bienes y servicios"
+                placeholder="Seleccione los servicios"
             ></p-multiSelect>
         </div>
         <div class="p-field">
-            <label for="zonaRiesgo">Zona de Riesgo</label>
+            <label for="zonaRiesgo"
+                >¿Su vivienda se encuentra en una zona de riesgo?</label
+            >
             <p-dropdown
                 [options]="zonaRiesgoOptions"
                 formControlName="zonaRiesgo"
@@ -221,7 +259,7 @@
     <p-panel header="Medios de Vida" formGroupName="mediosDeVida">
         <div class="p-field">
             <label for="participacionCapacitacion"
-                >Participación en Capacitación</label
+                >Ha participado en algún tipo de capacitación</label
             >
             <p-dropdown
                 [options]="participacionCapacitacionOptions"
@@ -230,7 +268,7 @@
             ></p-dropdown>
         </div>
         <div class="p-field">
-            <label for="cuantosTrabajos">Cantidad de Trabajos</label>
+            <label for="cuantosTrabajos">¿Cuántos trabajos desempeña? </label>
             <input
                 type="number"
                 pInputText
@@ -239,7 +277,9 @@
             />
         </div>
         <div class="p-field">
-            <label for="actividadLaboral">Actividad Laboral</label>
+            <label for="actividadLaboral"
+                >En los últimos 12 meses, ha tenido una actividad laboral:
+            </label>
             <p-dropdown
                 [options]="actividadLaboralOptions"
                 formControlName="actividadLaboral"
@@ -249,7 +289,7 @@
 
         <!-- Tabla de Actividades Económicas -->
         <div class="p-field">
-            <label>Actividad Económica</label>
+            <label>Qué actividades económica a desempeñado?</label>
             <button
                 pButton
                 type="button"
@@ -292,7 +332,9 @@
         </div>
 
         <div class="p-field">
-            <label for="relacionDependencia">Relación de Dependencia</label>
+            <label for="relacionDependencia"
+                >Trabaja en relación de dependencia?</label
+            >
             <p-dropdown
                 [options]="relacionDependenciaOptions"
                 formControlName="relacionDependencia"
@@ -300,7 +342,7 @@
             ></p-dropdown>
         </div>
         <div class="p-field">
-            <label for="cuentaPropia">Cuenta Propia</label>
+            <label for="cuentaPropia">Trabaja por cuenta propia?</label>
             <p-dropdown
                 [options]="cuentaPropiaOptions"
                 formControlName="cuentaPropia"
@@ -308,7 +350,10 @@
             ></p-dropdown>
         </div>
         <div class="p-field">
-            <label for="ingresosMensuales">Ingresos Mensuales</label>
+            <label for="ingresosMensuales"
+                >Ingresos mensuales promedios del hogar (sumando los ingresos de
+                todos los individuos activos)</label
+            >
             <p-dropdown
                 [options]="ingresosMensualesOptions"
                 formControlName="ingresosMensuales"
@@ -317,7 +362,9 @@
         </div>
 
         <div class="p-field">
-            <label for="gastosHogar">Gastos del Hogar</label>
+            <label for="gastosHogar"
+                >Repartición de los gastos del hogar:
+            </label>
             <button
                 pButton
                 type="button"
@@ -340,7 +387,7 @@
                 </ng-template>
                 <ng-template pTemplate="body" let-gasto>
                     <tr>
-                        <td>{{ gasto.tipo }}</td>
+                        <td>{{ gasto.tipo.label }}</td>
                         <td>{{ gasto.porcentaje }}%</td>
                         <td>
                             <button
@@ -362,8 +409,13 @@
         </div>
 
         <div class="p-field">
-            <label for="fuentesIngresos">Fuentes de Ingresos</label>
+            <label for="fuentesIngresos"
+                >Los ingresos mensuales provienen de:
+            </label>
             <p-multiSelect
+                [filter]="false"
+                selectedItemsLabel="{0} seleccionado"
+                [maxSelectedLabels]="1"
                 [options]="fuentesIngresosOptions"
                 formControlName="fuentesIngresos"
                 placeholder="Seleccione las fuentes de ingresos"
@@ -377,8 +429,13 @@
         formGroupName="redesDeApoyo"
     >
         <div class="field">
-            <label for="actividadesBarrio">Actividades en el Barrio</label>
+            <label for="actividadesBarrio"
+                >Participa en actividades en el barrio</label
+            >
             <p-multiSelect
+                [filter]="false"
+                selectedItemsLabel="{0} seleccionado"
+                [maxSelectedLabels]="1"
                 [options]="actividadesBarrioOptions"
                 formControlName="actividadesBarrio"
                 defaultLabel="Seleccione..."
@@ -387,8 +444,13 @@
         </div>
 
         <div class="field">
-            <label for="recibeayudaHumanitaria">Recibe Ayuda Humanitaria</label>
+            <label for="recibeayudaHumanitaria"
+                >Recibe algún tipo de ayuda humanitaria?</label
+            >
             <p-multiSelect
+                [filter]="false"
+                selectedItemsLabel="{0} seleccionado"
+                [maxSelectedLabels]="1"
                 [options]="recibeAyudaHumanitariaOptions"
                 formControlName="recibeayudaHumanitaria"
                 defaultLabel="Seleccione..."
@@ -398,9 +460,13 @@
 
         <div class="field">
             <label for="actividadCantonDentro"
-                >Actividades dentro del Cantón</label
+                >En su tiempo libre, que actividades realizan (dentro del
+                cantón)</label
             >
             <p-multiSelect
+                [filter]="false"
+                selectedItemsLabel="{0} seleccionado"
+                [maxSelectedLabels]="1"
                 [options]="actividadCantonDentroOptions"
                 formControlName="actividadCantonDentro"
                 defaultLabel="Seleccione..."
@@ -410,9 +476,13 @@
 
         <div class="field">
             <label for="actividadCantonFuera"
-                >Actividades fuera del Cantón</label
+                >En su tiempo libre, que actividades realizan (fuera del
+                cantón)</label
             >
             <p-multiSelect
+                [filter]="false"
+                selectedItemsLabel="{0} seleccionado"
+                [maxSelectedLabels]="1"
                 [options]="actividadCantonFueraOptions"
                 formControlName="actividadCantonFuera"
                 defaultLabel="Seleccione..."
@@ -421,8 +491,14 @@
         </div>
 
         <div class="field">
-            <label for="mejorasBarrio">Mejoras en el Barrio</label>
+            <label for="mejorasBarrio"
+                >¿Qué sugiere usted para mejorar su barrio? (Seleccionar 3)
+            </label>
             <p-multiSelect
+                [filter]="false"
+                selectedItemsLabel="{0} seleccionado"
+                [maxSelectedLabels]="1"
+                selectionLimit="3"
                 [options]="mejorasBarrioOptions"
                 formControlName="mejorasBarrio"
                 defaultLabel="Seleccione..."
@@ -431,7 +507,9 @@
         </div>
 
         <div class="field">
-            <label for="mejoraPlus">Otras Mejoras (Especificar)</label>
+            <label for="mejoraPlus"
+                >Propuestas adicionales para la mejora del barrio</label
+            >
             <input type="text" pInputText formControlName="mejoraPlus" />
         </div>
     </p-panel>
@@ -446,6 +524,7 @@
     [modal]="true"
     [responsive]="true"
     [style]="{ width: '400px' }"
+    [closable]="false"
 >
     <div class="p-fluid">
         <div class="p-field">
@@ -482,14 +561,18 @@
     [modal]="true"
     [responsive]="true"
     [style]="{ width: '400px' }"
+    [closable]="false"
 >
     <div class="p-fluid">
         <div class="p-field">
             <label for="tipoGasto">Tipo de Gasto</label>
             <p-dropdown
+                appendTo="body"
                 [options]="gastosHogarOptions"
                 [(ngModel)]="gastoActual.tipo"
                 placeholder="Seleccione el tipo de gasto"
+                optionLabel="label"
+                [ngModelOptions]="{ standalone: true }"
             ></p-dropdown>
         </div>
         <div class="p-field">
@@ -497,6 +580,8 @@
             <input
                 type="number"
                 pInputText
+                [min]="0"
+                [max]="100"
                 [(ngModel)]="gastoActual.porcentaje"
                 placeholder="Ingrese el porcentaje"
             />
@@ -508,6 +593,7 @@
             label="Guardar"
             icon="pi pi-check"
             (click)="saveGastoHogar()"
+            [disabled]="!isFormValid()"
         ></button>
         <button
             pButton

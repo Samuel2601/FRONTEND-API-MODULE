@@ -7,16 +7,21 @@ import {
     FormGroup,
     Validators,
 } from '@angular/forms';
+import { MessageService } from 'primeng/api';
 
 @Component({
     selector: 'app-formulario-socioeconomico',
     templateUrl: './formulario-socioeconomico.component.html',
     styleUrl: './formulario-socioeconomico.component.scss',
+    providers: [MessageService],
 })
 export class FormularioSocioeconomicoComponent {
     registrationForm: FormGroup;
 
-    constructor(private fb: FormBuilder) {
+    constructor(
+        private fb: FormBuilder,
+        private messageService: MessageService
+    ) {
         this.registrationForm = this.fb.group({
             informacionRegistro: this.fb.group({
                 date: ['', Validators.required],
@@ -283,38 +288,167 @@ export class FormularioSocioeconomicoComponent {
     displayActividadDialog: boolean = false;
     displayGastosDialog: boolean = false;
     actividadActual = { nombre: '' }; // Objeto temporal para actividad económica
-    gastoActual = { tipo: '', porcentaje: null }; // Objeto temporal para gasto del hogar
+    cloneEditActivada = { nombre: '' }; // Objeto temporal para actividad económica
+    gastoActual = { tipo: { label: '', value: '' }, porcentaje: null }; // Objeto temporal para gasto del hogar
+    cloneEditGasto = { tipo: { label: '', value: '' }, porcentaje: null }; // Objeto temporal para gasto del hogar
 
     // Métodos en el componente
+
     showDialogActividadEconomica() {
         /* abrir diálogo */
+        this.displayActividadDialog = true;
     }
     saveActividadEconomica() {
-        /* guardar actividad */
+        const actividadExistente = this.actividadEconomicaList.find(
+            (x) =>
+                x.nombre === this.actividadActual.nombre ||
+                x.nombre === this.cloneEditActivada.nombre
+        );
+
+        if (actividadExistente) {
+            if (this.cloneEditActivada.nombre) {
+                this.updateActividad();
+            } else {
+                this.mostrarErrorActividadExistente();
+            }
+        } else {
+            this.agregarNuevaActividad();
+        }
     }
+
+    private updateActividad() {
+        this.actividadEconomicaList.forEach((element) => {
+            if (element.nombre === this.cloneEditActivada.nombre) {
+                element.nombre = this.actividadActual.nombre;
+            }
+        });
+        this.cloneEditActivada = { nombre: '' };
+        this.displayActividadDialog = false;
+        this.actividadActual = { nombre: '' };
+    }
+
+    private mostrarErrorActividadExistente() {
+        this.displayActividadDialog = false;
+        this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'La actividad ya existe',
+        });
+    }
+
+    private agregarNuevaActividad() {
+        this.actividadEconomicaList.push(this.actividadActual);
+        this.actividadActual = { nombre: '' };
+        this.displayActividadDialog = false;
+        this.cloneEditActivada = { nombre: '' };
+    }
+
     cancelActividadEconomica() {
+        this.actividadActual = { nombre: '' };
+        this.displayActividadDialog = false;
+        this.cloneEditActivada = { nombre: '' };
         /* cancelar */
     }
+
     editActividadEconomica(actividad) {
+        this.cloneEditActivada = actividad;
+        this.actividadActual = Object.assign({}, actividad);
+        this.displayActividadDialog = true;
         /* editar actividad */
     }
+
     deleteActividadEconomica(actividad) {
+        this.actividadEconomicaList = this.actividadEconomicaList.filter(
+            (x) => x.nombre !== actividad.nombre
+        );
         /* eliminar actividad */
     }
 
     showDialogGastosHogar() {
         /* abrir diálogo */
+        this.displayGastosDialog = true;
     }
+
+    isFormValid(): boolean {
+        return (
+            this.gastoActual.tipo.label && // Verifica que se haya seleccionado un tipo de gasto
+            this.gastoActual.porcentaje &&
+            this.gastoActual.porcentaje >= 0 &&
+            this.gastoActual.porcentaje <= 100 // Verifica que el porcentaje esté entre 0 y 100
+        );
+    }
+
     saveGastoHogar() {
-        /* guardar gasto */
+        const gastoExistente = this.gastosHogarList.find(
+            (x) =>
+                x.tipo === this.gastoActual.tipo ||
+                x.tipo === this.cloneEditGasto.tipo
+        );
+
+        if (gastoExistente) {
+            if (this.gastoActual.porcentaje) {
+                this.updateGasto();
+            } else {
+                this.mostrarErrorGastoExistente();
+            }
+            return;
+        } else {
+            this.agregarNuevoGasto();
+        }
     }
+    updateGasto() {
+        this.gastosHogarList.forEach((element) => {
+            if (element.tipo === this.gastoActual.tipo) {
+                element.porcentaje = this.gastoActual.porcentaje;
+            }
+        });
+        this.cloneEditGasto = {
+            tipo: { label: '', value: '' },
+            porcentaje: null,
+        };
+        this.displayGastosDialog = false;
+        this.gastoActual = { tipo: { label: '', value: '' }, porcentaje: null };
+    }
+
+    private mostrarErrorGastoExistente() {
+        this.displayGastosDialog = false;
+        this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'El gasto ya existe',
+        });
+    }
+    private agregarNuevoGasto() {
+        console.log(this.gastoActual);
+        this.gastosHogarList.push(this.gastoActual);
+        this.gastoActual = { tipo: { label: '', value: '' }, porcentaje: null };
+        this.displayGastosDialog = false;
+        this.cloneEditGasto = {
+            tipo: { label: '', value: '' },
+            porcentaje: null,
+        };
+    }
+
     cancelGastoHogar() {
+        this.gastoActual = { tipo: { label: '', value: '' }, porcentaje: null };
+        this.displayGastosDialog = false;
+        this.cloneEditGasto = {
+            tipo: { label: '', value: '' },
+            porcentaje: null,
+        };
         /* cancelar */
     }
     editGastoHogar(gasto) {
+        this.cloneEditGasto = gasto;
+        this.gastoActual = Object.assign({}, gasto);
+        this.displayGastosDialog = true;
+
         /* editar gasto */
     }
     deleteGastoHogar(gasto) {
+        this.gastosHogarList = this.gastosHogarList.filter(
+            (x) => x.tipo.value !== gasto.tipo.value
+        );
         /* eliminar gasto */
     }
 
