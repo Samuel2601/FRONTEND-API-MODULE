@@ -4,13 +4,30 @@
         header="Información de Registro"
         formGroupName="informacionRegistro"
     >
-        <div class="p-field">
-            <label for="date">Fecha</label>
-            <input id="date" pInputText type="date" formControlName="date" />
+        <div class="col-6">
+            <div class="p-field">
+                <div class="col-2">
+                    <label for="date">Fecha</label>
+                </div>
+                <div class="col-3">
+                    <input
+                        id="date"
+                        pInputText
+                        type="date"
+                        formControlName="date"
+                    />
+                </div>
+            </div>
         </div>
-        <div class="p-field">
-            <label for="encuestador">Encuestador</label>
-            <input id="encuestador" pInputText formControlName="encuestador" />
+        <div class="col-6">
+            <div class="p-field">
+                <label for="encuestador">Encuestador</label>
+                <input
+                    id="encuestador"
+                    pInputText
+                    formControlName="encuestador"
+                />
+            </div>
         </div>
     </p-panel>
 
@@ -19,33 +36,51 @@
         formGroupName="informacionPersonal"
         styleClass="p-panel-content-custom"
     >
-        <div class="p-field">
-            <label for="entrevistado">Entrevistado</label>
-            <input
-                id="entrevistado"
-                pInputText
-                formControlName="entrevistado"
-            />
+        <div class="col-6">
+            <div class="p-field">
+                <label for="entrevistado">Entrevistado</label>
+                <input
+                    id="entrevistado"
+                    pInputText
+                    formControlName="entrevistado"
+                />
+            </div>
         </div>
-        <div class="p-field">
-            <label for="dni">Nª Cédula</label>
-            <input id="dni" pInputText formControlName="dni" />
+        <div class="col-6">
+            <div class="p-field">
+                <label for="dni">Nº Cédula</label>
+                <input id="dni" pInputText formControlName="dni" />
+            </div>
         </div>
-        <div class="p-field">
-            <label for="edad">Edad</label>
-            <input id="edad" pInputText type="number" formControlName="edad" />
+
+        <div class="col-6">
+            <div class="p-field">
+                <label for="edad">Edad</label>
+                <input
+                    id="edad"
+                    pInputText
+                    type="number"
+                    formControlName="edad"
+                />
+            </div>
         </div>
-        <div class="p-field">
-            <label for="nacionalidad">Nacionalidad</label>
-            <input
-                id="nacionalidad"
-                pInputText
-                formControlName="nacionalidad"
-            />
+
+        <div class="col-6">
+            <div class="p-field">
+                <label for="nacionalidad">Nacionalidad</label>
+                <input
+                    id="nacionalidad"
+                    pInputText
+                    formControlName="nacionalidad"
+                />
+            </div>
         </div>
-        <div class="p-field">
-            <label for="phone">Teléfono</label>
-            <input id="phone" pInputText formControlName="phone" />
+
+        <div class="col-6">
+            <div class="p-field">
+                <label for="phone">Teléfono</label>
+                <input id="phone" pInputText formControlName="phone" />
+            </div>
         </div>
     </p-panel>
 
