@@ -280,17 +280,159 @@ export class FormularioSocioeconomicoComponent {
         { label: 'Ahorro', value: 'AHORRO' },
     ];
 
+    // Variables para redesDeApoyo
+    actividadesBarrioOptions = [
+        { label: 'IGLESIA', value: 'IGLESIA' },
+        { label: 'GRUPOS LGTBIQ', value: 'GRUPOS LGTBIQ' },
+        { label: 'COMITE BARRIAL', value: 'COMITE BARRIAL' },
+        { label: 'CLUBES DEPORTIVOS', value: 'CLUBES DEPORTIVOS' },
+        { label: 'ASOCIACIÓN DE MUJERES', value: 'ASOCIACIÓN DE MUJERES' },
+        { label: 'ASOCIACIÓN JUVENIL', value: 'ASOCIACIÓN JUVENIL' },
+        { label: 'CLUB DE BARCO', value: 'CLUB DE BARCO' },
+        { label: 'CLUB DE POLICIA', value: 'CLUB DE POLICIA' },
+        { label: 'CLUB DE ASESORIAS', value: 'CLUB DE ASESORIAS' },
+        { label: 'CLUB DE ESTUDIANTES', value: 'CLUB DE ESTUDIANTES' },
+        { label: 'OTROS', value: 'OTROS' },
+        { label: 'NINGUNO', value: 'NINGUNO' },
+    ];
+
+    recibeAyudaHumanitariaOptions = [
+        { label: 'IGLESIA', value: 'IGLESIA' },
+        { label: 'VECINO(A)S', value: 'VECINO(A)S' },
+        { label: 'AMIGO(A)S', value: 'AMIGO(A)S' },
+        { label: 'FAMILIA', value: 'FAMILIA' },
+        { label: "ONG'S", value: "ONG'S" },
+        { label: 'INSTITUCIONES PÚBLICA', value: 'INSTITUCIONES PÚBLICA' },
+        { label: 'NINGUNO', value: 'NINGUNO' },
+        { label: 'OTROS', value: 'OTROS' },
+    ];
+
+    actividadCantonDentroOptions = [
+        { label: 'PLAYA', value: 'PLAYA' },
+        { label: 'DOMICILIO', value: 'DOMICILIO' },
+        { label: 'RIO', value: 'RIO' },
+        { label: 'DEPORTE', value: 'DEPORTE' },
+        { label: 'CAMPO', value: 'CAMPO' },
+        { label: 'PARQUES', value: 'PARQUES' },
+        { label: 'OTROS', value: 'OTROS' },
+    ];
+
+    actividadCantonFueraOptions = [
+        { label: 'PLAYA', value: 'PLAYA' },
+        { label: 'DOMICILIO', value: 'DOMICILIO' },
+        { label: 'RIO', value: 'RIO' },
+        { label: 'DEPORTE', value: 'DEPORTE' },
+        { label: 'CAMPO', value: 'CAMPO' },
+        { label: 'PARQUES', value: 'PARQUES' },
+        { label: 'OTROS', value: 'OTROS' },
+    ];
+
+    mejorasBarrioOptions = [
+        { label: 'CALLES PAVIMENTADAS', value: 'CALLES PAVIMENTADAS' },
+        { label: 'PRESENCIA POLICÍAL', value: 'PRESENCIA POLICÍAL' },
+        { label: 'AREAS VERDES', value: 'AREAS VERDES' },
+        { label: 'AGUA POTABLE', value: 'AGUA POTABLE' },
+        { label: 'ALCANTARILLADO', value: 'ALCANTARILLADO' },
+        { label: 'ACTIVIDADES RECREATIVAS', value: 'ACTIVIDADES RECREATIVAS' },
+        { label: 'ALUMBRADO PÚBLICO', value: 'ALUMBRADO PÚBLICO' },
+        { label: 'RECOLECCIÓN DE BASURA', value: 'RECOLECCIÓN DE BASURA' },
+        { label: 'SUB-CENTRO DE SALUD', value: 'SUB-CENTRO DE SALUD' },
+    ];
+
+    familigeneroOptions = [
+        { label: 'Masculino', value: 'MASCULINO' },
+        { label: 'Femenino', value: 'FEMENINO' },
+        { label: 'No se aplica', value: 'NO SE APLICA' },
+    ];
+    estadoCivilOptions = [
+        { label: 'Casado', value: 'CASADO' },
+        { label: 'Soltero', value: 'SOLTERO' },
+        { label: 'Divorciado', value: 'DIVERCIADO' },
+        { label: 'Viudo', value: 'VIUDO' },
+        { label: 'Separado', value: 'SEPARADO' },
+        { label: 'No se aplica', value: 'NO SE APLICA' },
+    ];
+    etniaOptions = [
+        { label: 'Hispana', value: 'HISPANA' },
+        { label: 'Latina', value: 'LATINA' },
+        { label: 'Asia', value: 'ASIA' },
+        { label: 'Africana', value: 'AFRICANA' },
+        { label: 'No se aplica', value: 'NO SE APLICA' },
+    ];
+    nacionalidadOptions = [
+        { label: 'Española', value: 'ESPAÑOLA' },
+        { label: 'Latina', value: 'LATINA' },
+        { label: 'Asia', value: 'ASIA' },
+        { label: 'Africana', value: 'AFRICANA' },
+        { label: 'No se aplica', value: 'NO SE APLICA' },
+    ];
+    nivelEducativoOptions = [
+        { label: 'Completo', value: 'COMPLETO' },
+        { label: 'Mediano', value: 'MEDIANO' },
+        { label: 'Bajo', value: 'BAJO' },
+        { label: 'No se aplica', value: 'NO SE APLICA' },
+    ];
+    ocupacionOptions = [
+        { label: 'Trabajador', value: 'TRABAJADOR' },
+        { label: 'Estudiante', value: 'ESTUDIANTE' },
+        { label: 'Estudia y Trabaja', value: 'ESTUDIANTE_TRABAJO' },
+        { label: 'Otro', value: 'OTRO' },
+        { label: 'No se aplica', value: 'NO SE APLICA' },
+    ];
+    discapacidadOptions = [
+        { label: 'Discapacitado', value: 'DISCAPACITADO' },
+        { label: 'No se aplica', value: 'NO SE APLICA' },
+    ];
+    enfermedadOptions = [
+        { label: 'Enferma', value: 'ENFERMA' },
+        { label: 'No se aplica', value: 'NO SE APLICA' },
+    ];
+
     // Datos para el diálogo de Actividad Económica y Gastos del Hogar
     actividadEconomicaList = []; // Lista para las actividades económicas ingresadas
     gastosHogarList = []; // Lista para los gastos del hogar ingresados
+    familiarList = []; // Lista para los gastos del hogar ingresados
 
     // Variables para los diálogos
     displayActividadDialog: boolean = false;
     displayGastosDialog: boolean = false;
+    displayFamiliarDialog: boolean = false;
+
     actividadActual = { nombre: '' }; // Objeto temporal para actividad económica
     cloneEditActivada = { nombre: '' }; // Objeto temporal para actividad económica
     gastoActual = { tipo: { label: '', value: '' }, porcentaje: null }; // Objeto temporal para gasto del hogar
     cloneEditGasto = { tipo: { label: '', value: '' }, porcentaje: null }; // Objeto temporal para gasto del hogar
+
+    familiarActual = {
+        familiParentesco: '',
+        familiaNombre: '',
+        familiaApellido: '',
+        familigenero: '',
+        familiEdad: '',
+        familiEstadoCivil: '',
+        familiEtnia: '',
+        familiNacionalidad: '',
+        familiCeduala: '',
+        familiNivelEducativo: '',
+        familiOcupacion: '',
+        familiDiscacidad: '',
+        familiEnfermedad: '',
+    }; // Objeto temporal para familiar
+    cloneEditFamiliar = {
+        familiParentesco: '',
+        familiaNombre: '',
+        familiaApellido: '',
+        familigenero: '',
+        familiEdad: '',
+        familiEstadoCivil: '',
+        familiEtnia: '',
+        familiNacionalidad: '',
+        familiCeduala: '',
+        familiNivelEducativo: '',
+        familiOcupacion: '',
+        familiDiscacidad: '',
+        familiEnfermedad: '',
+    }; // Objeto temporal para familiar
 
     // Métodos en el componente
 
@@ -452,62 +594,168 @@ export class FormularioSocioeconomicoComponent {
         /* eliminar gasto */
     }
 
-    // Variables para redesDeApoyo
-    actividadesBarrioOptions = [
-        { label: 'IGLESIA', value: 'IGLESIA' },
-        { label: 'GRUPOS LGTBIQ', value: 'GRUPOS LGTBIQ' },
-        { label: 'COMITE BARRIAL', value: 'COMITE BARRIAL' },
-        { label: 'CLUBES DEPORTIVOS', value: 'CLUBES DEPORTIVOS' },
-        { label: 'ASOCIACIÓN DE MUJERES', value: 'ASOCIACIÓN DE MUJERES' },
-        { label: 'ASOCIACIÓN JUVENIL', value: 'ASOCIACIÓN JUVENIL' },
-        { label: 'CLUB DE BARCO', value: 'CLUB DE BARCO' },
-        { label: 'CLUB DE POLICIA', value: 'CLUB DE POLICIA' },
-        { label: 'CLUB DE ASESORIAS', value: 'CLUB DE ASESORIAS' },
-        { label: 'CLUB DE ESTUDIANTES', value: 'CLUB DE ESTUDIANTES' },
-        { label: 'OTROS', value: 'OTROS' },
-        { label: 'NINGUNO', value: 'NINGUNO' },
-    ];
-
-    recibeAyudaHumanitariaOptions = [
-        { label: 'IGLESIA', value: 'IGLESIA' },
-        { label: 'VECINO(A)S', value: 'VECINO(A)S' },
-        { label: 'AMIGO(A)S', value: 'AMIGO(A)S' },
-        { label: 'FAMILIA', value: 'FAMILIA' },
-        { label: "ONG'S", value: "ONG'S" },
-        { label: 'INSTITUCIONES PÚBLICA', value: 'INSTITUCIONES PÚBLICA' },
-        { label: 'NINGUNO', value: 'NINGUNO' },
-        { label: 'OTROS', value: 'OTROS' },
-    ];
-
-    actividadCantonDentroOptions = [
-        { label: 'PLAYA', value: 'PLAYA' },
-        { label: 'DOMICILIO', value: 'DOMICILIO' },
-        { label: 'RIO', value: 'RIO' },
-        { label: 'DEPORTE', value: 'DEPORTE' },
-        { label: 'CAMPO', value: 'CAMPO' },
-        { label: 'PARQUES', value: 'PARQUES' },
-        { label: 'OTROS', value: 'OTROS' },
-    ];
-
-    actividadCantonFueraOptions = [
-        { label: 'PLAYA', value: 'PLAYA' },
-        { label: 'DOMICILIO', value: 'DOMICILIO' },
-        { label: 'RIO', value: 'RIO' },
-        { label: 'DEPORTE', value: 'DEPORTE' },
-        { label: 'CAMPO', value: 'CAMPO' },
-        { label: 'PARQUES', value: 'PARQUES' },
-        { label: 'OTROS', value: 'OTROS' },
-    ];
-
-    mejorasBarrioOptions = [
-        { label: 'CALLES PAVIMENTADAS', value: 'CALLES PAVIMENTADAS' },
-        { label: 'PRESENCIA POLICÍAL', value: 'PRESENCIA POLICÍAL' },
-        { label: 'AREAS VERDES', value: 'AREAS VERDES' },
-        { label: 'AGUA POTABLE', value: 'AGUA POTABLE' },
-        { label: 'ALCANTARILLADO', value: 'ALCANTARILLADO' },
-        { label: 'ACTIVIDADES RECREATIVAS', value: 'ACTIVIDADES RECREATIVAS' },
-        { label: 'ALUMBRADO PÚBLICO', value: 'ALUMBRADO PÚBLICO' },
-        { label: 'RECOLECCIÓN DE BASURA', value: 'RECOLECCIÓN DE BASURA' },
-        { label: 'SUB-CENTRO DE SALUD', value: 'SUB-CENTRO DE SALUD' },
-    ];
+    showDialogFamiliar() {
+        /* abrir diálogo */
+        this.displayFamiliarDialog = true;
+    }
+    saveFamiliar() {
+        const familiarExistente = this.familiarList.find(
+            (x) =>
+                x.familiaNombre === this.familiarActual.familiaNombre ||
+                x.familiaNombre === this.cloneEditFamiliar.familiaNombre
+        );
+        if (familiarExistente) {
+            if (this.cloneEditFamiliar.familiaNombre) {
+                this.updateFamiliar();
+            } else {
+                this.mostrarErrorFamiliarExistente();
+            }
+        } else {
+            this.agregarNuevaFamiliar();
+        }
+    }
+    updateFamiliar() {
+        this.familiarList.forEach((element) => {
+            if (
+                element.familiaNombre === this.cloneEditFamiliar.familiaNombre
+            ) {
+                element.familiaNombre = this.familiarActual.familiaNombre;
+            }
+        });
+        this.cloneEditFamiliar = {
+            familiParentesco: '',
+            familiaNombre: '',
+            familiaApellido: '',
+            familigenero: '',
+            familiEdad: '',
+            familiEstadoCivil: '',
+            familiEtnia: '',
+            familiNacionalidad: '',
+            familiCeduala: '',
+            familiNivelEducativo: '',
+            familiOcupacion: '',
+            familiDiscacidad: '',
+            familiEnfermedad: '',
+        };
+        this.displayFamiliarDialog = false;
+        this.familiarActual = {
+            familiParentesco: '',
+            familiaNombre: '',
+            familiaApellido: '',
+            familigenero: '',
+            familiEdad: '',
+            familiEstadoCivil: '',
+            familiEtnia: '',
+            familiNacionalidad: '',
+            familiCeduala: '',
+            familiNivelEducativo: '',
+            familiOcupacion: '',
+            familiDiscacidad: '',
+            familiEnfermedad: '',
+        };
+    }
+    private mostrarErrorFamiliarExistente() {
+        this.displayFamiliarDialog = false;
+        this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'La familiar ya existe',
+        });
+    }
+    private agregarNuevaFamiliar() {
+        this.familiarList.push(this.familiarActual);
+        this.familiarActual = {
+            familiParentesco: '',
+            familiaNombre: '',
+            familiaApellido: '',
+            familigenero: '',
+            familiEdad: '',
+            familiEstadoCivil: '',
+            familiEtnia: '',
+            familiNacionalidad: '',
+            familiCeduala: '',
+            familiNivelEducativo: '',
+            familiOcupacion: '',
+            familiDiscacidad: '',
+            familiEnfermedad: '',
+        };
+        this.displayFamiliarDialog = false;
+        this.cloneEditFamiliar = {
+            familiParentesco: '',
+            familiaNombre: '',
+            familiaApellido: '',
+            familigenero: '',
+            familiEdad: '',
+            familiEstadoCivil: '',
+            familiEtnia: '',
+            familiNacionalidad: '',
+            familiCeduala: '',
+            familiNivelEducativo: '',
+            familiOcupacion: '',
+            familiDiscacidad: '',
+            familiEnfermedad: '',
+        };
+    }
+    cancelFamiliar() {
+        this.familiarActual = {
+            familiParentesco: '',
+            familiaNombre: '',
+            familiaApellido: '',
+            familigenero: '',
+            familiEdad: '',
+            familiEstadoCivil: '',
+            familiEtnia: '',
+            familiNacionalidad: '',
+            familiCeduala: '',
+            familiNivelEducativo: '',
+            familiOcupacion: '',
+            familiDiscacidad: '',
+            familiEnfermedad: '',
+        };
+        this.displayFamiliarDialog = false;
+        this.cloneEditFamiliar = {
+            familiParentesco: '',
+            familiaNombre: '',
+            familiaApellido: '',
+            familigenero: '',
+            familiEdad: '',
+            familiEstadoCivil: '',
+            familiEtnia: '',
+            familiNacionalidad: '',
+            familiCeduala: '',
+            familiNivelEducativo: '',
+            familiOcupacion: '',
+            familiDiscacidad: '',
+            familiEnfermedad: '',
+        };
+        /* cancelar */
+    }
+    editFamiliar(familiar) {
+        this.cloneEditFamiliar = familiar;
+        this.familiarActual = Object.assign({}, familiar);
+        this.displayFamiliarDialog = true;
+        /* editar familiar */
+    }
+    deleteFamiliar(familiar) {
+        this.familiarList = this.familiarList.filter(
+            (x) => x.familiaNombre !== familiar.familiaNombre
+        );
+        /* eliminar familiar */
+    }
+    isFormValidFamili() {
+        return (
+            this.familiarActual.familiaNombre &&
+            this.familiarActual.familiaApellido &&
+            this.familiarActual.familigenero &&
+            this.familiarActual.familiEdad &&
+            this.familiarActual.familiEstadoCivil &&
+            this.familiarActual.familiEtnia &&
+            this.familiarActual.familiNacionalidad &&
+            this.familiarActual.familiCeduala &&
+            this.familiarActual.familiNivelEducativo &&
+            this.familiarActual.familiOcupacion &&
+            this.familiarActual.familiDiscacidad &&
+            this.familiarActual.familiEnfermedad
+        );
+    }
 }

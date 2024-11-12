@@ -912,6 +912,72 @@
     >
         <button pButton type="submit" label="Registrar"></button>
     </div>
+
+    <div>
+        <button
+            pButton
+            type="button"
+            label="Agregar Familiar"
+            (click)="showDialogFamiliar()"
+        ></button>
+        <p-table
+            [style.width]="'100%'"
+            [value]="familiarList"
+            [paginator]="true"
+            [rows]="5"
+            [responsiveLayout]="'scroll'"
+        >
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Parentesco</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Genero</th>
+                    <th>Edad</th>
+                    <th>Estado Civil</th>
+                    <th>Etnia</th>
+                    <th>Nacionalidad</th>
+                    <th>Cedula</th>
+                    <th>Nivel Educativo</th>
+                    <th>Ocupación</th>
+                    <th>Discapacidad</th>
+                    <th>Enfermedad</th>
+                    <th>Acciones</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-familiar>
+                <tr>
+                    <td>{{ familiar.familiParentesco }}</td>
+                    <td>{{ familiar.familiaNombre }}</td>
+                    <td>{{ familiar.familiaApellido }}</td>
+                    <td>{{ familiar.familigenero }}</td>
+                    <td>{{ familiar.familiEdad }}</td>
+                    <td>{{ familiar.familiEstadoCivil }}</td>
+                    <td>{{ familiar.familiEtnia }}</td>
+                    <td>{{ familiar.familiNacionalidad }}</td>
+                    <td>{{ familiar.familiCeduala }}</td>
+                    <td>{{ familiar.familiNivelEducativo }}</td>
+                    <td>{{ familiar.familiOcupacion }}</td>
+                    <td>{{ familiar.familiDiscacidad }}</td>
+                    <td>{{ familiar.familiEnfermedad }}</td>
+                    <td>
+                        <button
+                            pButton
+                            icon="pi pi-pencil"
+                            class="p-button-rounded p-button-warning"
+                            (click)="editFamiliar(familiar)"
+                        ></button>
+                        <button
+                            pButton
+                            icon="pi pi-trash"
+                            class="p-button-rounded p-button-danger"
+                            (click)="deleteFamiliar(familiar)"
+                        ></button>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
 </form>
 
 <!-- Diálogo para agregar o editar Actividad Económica -->
@@ -998,6 +1064,319 @@
             icon="pi pi-times"
             class="p-button-secondary"
             (click)="cancelGastoHogar()"
+        ></button>
+    </p-footer>
+</p-dialog>
+
+<!-- Diálogo para agregar o editar Gastos del Hogar -->
+<p-dialog
+    header="Composición Familiar"
+    [(visible)]="displayFamiliarDialog"
+    [modal]="true"
+    [responsive]="true"
+    [style]="{ width: '400px' }"
+    [closable]="false"
+>
+    <div
+        class="p-fluid"
+        style="
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            align-content: center;
+        "
+    >
+        <div>
+            <label for="familiParentesco">Parentesco</label>
+            <input
+                type="text"
+                pInputText
+                [(ngModel)]="familiarActual.familiParentesco"
+                placeholder="Ingrese el parentesco"
+            />
+        </div>
+        <div
+            class="p-field"
+            style="
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+                align-content: center;
+            "
+        >
+            <label for="familiaNombre">Nombre</label>
+            <input
+                type="text"
+                pInputText
+                [(ngModel)]="familiarActual.familiaNombre"
+                placeholder="Ingrese el nombre"
+            />
+        </div>
+        <div
+            class="p-field"
+            style="
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+                align-content: center;
+            "
+        >
+            <label for="familiaApellido">Apellido</label>
+            <input
+                type="text"
+                pInputText
+                [(ngModel)]="familiarActual.familiaApellido"
+                placeholder="Ingrese el apellido"
+            />
+        </div>
+        <div
+            class="p-field"
+            style="
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+                align-content: center;
+            "
+        >
+            <label for="familigenero">Genero</label>
+            <p-dropdown
+                appendTo="body"
+                [options]="familigeneroOptions"
+                [(ngModel)]="familiarActual.familigenero"
+                placeholder="Seleccione el genero"
+                optionLabel="label"
+                [ngModelOptions]="{ standalone: true }"
+            ></p-dropdown>
+        </div>
+        <div
+            class="p-field"
+            style="
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+                align-content: center;
+            "
+        >
+            <label for="familiEdad">Edad</label>
+            <input
+                type="number"
+                pInputText
+                [(ngModel)]="familiarActual.familiEdad"
+                placeholder="Ingrese la edad"
+                min="0"
+                max="100"
+                step="1"
+                style="width: 100%"
+                class="p-inputtext-sm p-d-block"
+            />
+            <span
+                style="
+                    width: 100%;
+                    display: block;
+                    text-align: center;
+                    font-size: 12px;
+                "
+                >Edad entre 0 y 100</span
+            >
+        </div>
+        <div
+            class="p-field"
+            style="
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+                align-content: center;
+            "
+        >
+            <label for="familiEstadoCivil">Estado Civil</label>
+            <p-dropdown
+                appendTo="body"
+                [options]="estadoCivilOptions"
+                [(ngModel)]="familiarActual.familiEstadoCivil"
+                placeholder="Seleccione el estado civil"
+                optionLabel="label"
+                [ngModelOptions]="{ standalone: true }"
+            ></p-dropdown>
+        </div>
+        <div
+            class="p-field"
+            style="
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+                align-content: center;
+            "
+        >
+            <label for="familiEtnia">Etnia</label>
+            <p-dropdown
+                appendTo="body"
+                [options]="etniaOptions"
+                [(ngModel)]="familiarActual.familiEtnia"
+                placeholder="Seleccione la etnia"
+                optionLabel="label"
+                [ngModelOptions]="{ standalone: true }"
+            ></p-dropdown>
+        </div>
+        <div
+            class="p-field"
+            style="
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+                align-content: center;
+            "
+        >
+            <label for="familiNacionalidad">Nacionalidad</label>
+            <p-dropdown
+                appendTo="body"
+                [options]="nacionalidadOptions"
+                [(ngModel)]="familiarActual.familiNacionalidad"
+                placeholder="Seleccione la nacionalidad"
+                optionLabel="label"
+                [ngModelOptions]="{ standalone: true }"
+            ></p-dropdown>
+        </div>
+        <div
+            class="p-field"
+            style="
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+                align-content: center;
+            "
+        >
+            <label for="familiCeduala">Cedula</label>
+            <input
+                type="text"
+                pInputText
+                [(ngModel)]="familiarActual.familiCeduala"
+                placeholder="Ingrese la cedula"
+                maxlength="10"
+                minlength="10"
+            />
+        </div>
+        <div
+            class="p-field"
+            style="
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+                align-content: center;
+            "
+        >
+            <label for="familiNivelEducativo">Nivel Educativo</label>
+            <p-dropdown
+                appendTo="body"
+                [options]="nivelEducativoOptions"
+                [(ngModel)]="familiarActual.familiNivelEducativo"
+                placeholder="Seleccione el nivel educativo"
+                optionLabel="label"
+                [ngModelOptions]="{ standalone: true }"
+            ></p-dropdown>
+            <span
+                style="
+                    width: 100%;
+                    display: block;
+                    text-align: center;
+                    font-size: 12px;
+                "
+                >Selecciona entre los niveles educativos</span
+            >
+        </div>
+        <div
+            class="p-field"
+            style="
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+                align-content: center;
+            "
+        >
+            <label for="familiOcupacion">Ocupación</label>
+            <p-dropdown
+                appendTo="body"
+                [options]="ocupacionOptions"
+                [(ngModel)]="familiarActual.familiOcupacion"
+                placeholder="Seleccione la ocupación"
+                optionLabel="label"
+                [ngModelOptions]="{ standalone: true }"
+            ></p-dropdown>
+        </div>
+        <div
+            class="p-field"
+            style="
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+                align-content: center;
+            "
+        >
+            <label for="familiDiscacidad">Discapacidad</label>
+            <p-dropdown
+                appendTo="body"
+                [options]="discapacidadOptions"
+                [(ngModel)]="familiarActual.familiDiscacidad"
+                placeholder="Seleccione la discapacidad"
+                optionLabel="label"
+                [ngModelOptions]="{ standalone: true }"
+            ></p-dropdown>
+        </div>
+        <div
+            class="p-field"
+            style="
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+                align-content: center;
+            "
+        >
+            <label for="familiEnfermedad">Enfermedad</label>
+            <p-dropdown
+                appendTo="body"
+                [options]="enfermedadOptions"
+                [(ngModel)]="familiarActual.familiEnfermedad"
+                placeholder="Seleccione la enfermedad"
+                optionLabel="label"
+                [ngModelOptions]="{ standalone: true }"
+            ></p-dropdown>
+            <span
+                style="
+                    width: 100%;
+                    display: block;
+                    text-align: center;
+                    font-size: 12px;
+                "
+                >Enfermedad entre 0 y 10</span
+            >
+        </div>
+    </div>
+    <p-footer>
+        <button
+            pButton
+            label="Guardar"
+            icon="pi pi-check"
+            (click)="saveFamiliar()"
+            [disabled]="!isFormValidFamili()"
+        ></button>
+        <button
+            pButton
+            label="Cancelar"
+            icon="pi pi-times"
+            class="p-button-secondary"
+            (click)="cancelFamiliar()"
         ></button>
     </p-footer>
 </p-dialog>
