@@ -8,6 +8,7 @@ import {
     Validators,
 } from '@angular/forms';
 import { MessageService } from 'primeng/api';
+import { RegistroService } from '../service/registro.service';
 
 @Component({
     selector: 'app-formulario-socioeconomico',
@@ -20,7 +21,8 @@ export class FormularioSocioeconomicoComponent {
 
     constructor(
         private fb: FormBuilder,
-        private messageService: MessageService
+        private messageService: MessageService,
+        private registrationService: RegistroService
     ) {
         this.registrationForm = this.fb.group({
             informacionRegistro: this.fb.group({
@@ -757,5 +759,14 @@ export class FormularioSocioeconomicoComponent {
             this.familiarActual.familiDiscacidad &&
             this.familiarActual.familiEnfermedad
         );
+    }
+
+    sendRegistro() {
+        console.log(this.registrationForm.value);
+        this.registrationService
+            .sendRegistration(this.registrationForm.value)
+            .subscribe((res) => {
+                console.log(res);
+            });
     }
 }

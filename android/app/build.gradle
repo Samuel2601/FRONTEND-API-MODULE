@@ -10,8 +10,8 @@ android {
     compileSdkVersion 34
     defaultConfig {
         applicationId "ec.gob.esmeraldas.labella"
-        minSdk 34
-        targetSdk 34
+        minSdk 33
+        targetSdk 33
         versionCode 37
         versionName '1.36.34'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -21,7 +21,7 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
         signingConfig signingConfigs.debug
-        versionNameSuffix '34'
+        versionNameSuffix targetSdkVersion
     }
     buildTypes {
         release {

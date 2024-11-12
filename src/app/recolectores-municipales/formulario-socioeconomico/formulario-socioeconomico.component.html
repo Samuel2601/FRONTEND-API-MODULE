@@ -1,5 +1,5 @@
 <p-toast></p-toast>
-<form action="" [formGroup]="registrationForm">
+<form action="" [formGroup]="registrationForm" (ngSubmit)="sendRegistro()">
     <p-panel
         header="Información de Registro"
         formGroupName="informacionRegistro"
