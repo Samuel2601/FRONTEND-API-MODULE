@@ -68,12 +68,12 @@
         <div class="col-6">
             <div class="p-field">
                 <label for="nacionalidad">Nacionalidad</label>
-                <input
-                    id="nacionalidad"
-                    pInputText
+                <p-dropdown
+                    [options]="nacionalidadOptions"
                     formControlName="nacionalidad"
-                    class="p-inputtext-sm p-d-block"
-                />
+                    placeholder="Seleccione la nacionalidad"
+                    optionLabel="label"
+                ></p-dropdown>
             </div>
         </div>
 
@@ -1235,14 +1235,41 @@
             "
         >
             <label for="familiNacionalidad">Nacionalidad</label>
+
             <p-dropdown
-                appendTo="body"
                 [options]="nacionalidadOptions"
                 [(ngModel)]="familiarActual.familiNacionalidad"
-                placeholder="Seleccione la nacionalidad"
-                optionLabel="label"
-                [ngModelOptions]="{ standalone: true }"
-            ></p-dropdown>
+                optionLabel="name"
+                [showClear]="true"
+                placeholder="Select a Country"
+            >
+                <ng-template pTemplate="selectedItem">
+                    <div
+                        class="flex align-items-center gap-2"
+                        *ngIf="familiarActual.familiNacionalidad"
+                    >
+                        <img
+                            src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png"
+                            [class]="
+                                'flag flag-' +
+                                familiarActual.familiNacionalidad.code.toLowerCase()
+                            "
+                            style="width: 18px"
+                        />
+                        <div>{{ familiarActual.familiNacionalidad.label }}</div>
+                    </div>
+                </ng-template>
+                <ng-template let-country pTemplate="item">
+                    <div class="flex align-items-center gap-2">
+                        <img
+                            src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png"
+                            [class]="'flag flag-' + country.code.toLowerCase()"
+                            style="width: 18px"
+                        />
+                        <div>{{ country.label }}</div>
+                    </div>
+                </ng-template>
+            </p-dropdown>
         </div>
         <div
             class="p-field"
