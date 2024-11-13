@@ -31,14 +31,33 @@ export class FormularioSocioeconomicoComponent {
         this.registrationForm = this.fb.group({
             informacionRegistro: this.fb.group({
                 date: ['', Validators.required],
-                encuestador: [authService.idUserToken(), Validators.required],
+                encuestador: [
+                    this.authService.idUserToken(),
+                    Validators.required,
+                ],
             }),
             informacionPersonal: this.fb.group({
-                entrevistado: ['', Validators.required],
-                dni: ['', Validators.required],
-                edad: [null, Validators.required], // VALOR NÚMERICO
+                entrevistado: [
+                    '',
+                    [Validators.required, Validators.maxLength(100)],
+                ],
+                dni: [
+                    '',
+                    [Validators.required, Validators.pattern('^[0-9]+$')],
+                ],
+                edad: [
+                    null,
+                    [
+                        Validators.required,
+                        Validators.min(1),
+                        Validators.max(120),
+                    ],
+                ],
                 nacionalidad: ['', Validators.required],
-                phone: ['', Validators.required],
+                phone: [
+                    '',
+                    [Validators.required, Validators.pattern('^[0-9]+$')],
+                ],
             }),
             informacionUbicacion: this.fb.group({
                 posesionTime: ['', Validators.required],
@@ -46,48 +65,58 @@ export class FormularioSocioeconomicoComponent {
                 barrio: ['', Validators.required],
                 manzana: ['', Validators.required],
                 lotenumero: ['', Validators.required],
-                familyCount: [null, Validators.required], // VALOR NÚMERICO
-                peopleCount: [null, Validators.required], // VALOR NÚMERICO
-                houseState: ['', Validators.required], // UNO: CASA CERRADA, SOLAR VACÍO, CONSTRUCCIÓN INICIADA, HOGAR ENTREVISTADO, CASA NO HABITADA, SOLAR CON MALEZA
+                familyCount: [null, [Validators.required, Validators.min(1)]],
+                peopleCount: [null, [Validators.required, Validators.min(1)]],
+                houseState: ['', Validators.required],
             }),
             salud: this.fb.group({
-                estadoSalud: ['', Validators.required], //UNO: EXCELENTE, MALO, BUENO, REGULAR, FATAL
-                causasSalud: [[], Validators.required], // MULTIPLE: MALA ALIMENTACIÓN, ENTORNO, EL NO-USO DE MEDICAMENTO, OTRO (ESPECIFICAR), NO ME GUSTA EL MÉDICO, NO TENGO RECURSOS PARA IR AL MÉDICO, DISTANCIA CON EL SUBCENTRO DE SALUD
-                conexionHigienico: ['', Validators.required], // UNO: RED PÚBLICA, POZO CIEGO, POZO SÉPTICO, RÍO O CANAL, NO TIENE
+                estadoSalud: ['', Validators.required],
+                causasSalud: [[], Validators.required],
+                conexionHigienico: ['', Validators.required],
             }),
             vivienda: this.fb.group({
-                estructuraVivienda: ['', Validators.required], // UNO: HORMIGÓN, CARTÓN, MIXTA, MADERA, PLÁSTICO, CAÑA, PLYWOOD, ZINC
-                serviciosBasicos: [[], Validators.required], // MULTIPLE: AUGA, TELÉFONO/CONVENCIONAL, CELULAR, LUZ, ALCANTARILLADO, RECOLECCIÓN DE LA BASURA, OTROS
-                tenenciaVivienda: ['', Validators.required], // UNO: PROPIA, ALQUILADA, PRESTADA, DONADA, INVADIDA, ABANDONADA, OTRO:
-                documentosPropiedad: [[], Validators.required], // UNO: CONTRATO DE COMPRA-VENTA, DERECHO DE POSISÓN, ESCRITURA, NINGUNA
-                numPisos: ['', Validators.required], //VALOR NÚMERICO
-                numHabitaciones: ['', Validators.required], //VALOR NÚMERICO
-                tipoAlumbrado: ['', Validators.required], // UNO: ELECTRICIDAD, LAMPARAS, OTROS.
-                abastecimientoAgua: [[], Validators.required], // MULTIPLE: AGUA POTABLE, CISTERNA, POZO, RIO, TANQUERO, EMBOTELLADA, OTROS:
-                bienesServiciosElectrodomesticos: [[], Validators.required], //MULTIPLE: INTERNET, LAVADORA, COCINA DE GAS, COCINEA, COCINA DE INDUCCIÓN, TV, TV CABLE, LAPTOP, REFRIGERADORA, COMPUTADORA, PLANCHA EÉCTRICA, MICROONDAS, NO QUISO RESPONDER, OTROS:
-                zonaRiesgo: ['', Validators.required], //UNO: DESLAVE, DEBORDAMIENTOS DEL RÍO, INUNDACIONES, INCENDIOS, OTROS: , NO
+                estructuraVivienda: ['', Validators.required],
+                serviciosBasicos: [
+                    [],
+                    [Validators.required, Validators.minLength(1)],
+                ],
+                tenenciaVivienda: ['', Validators.required],
+                documentosPropiedad: [[], Validators.required],
+                numPisos: [null, [Validators.required, Validators.min(1)]],
+                numHabitaciones: [
+                    null,
+                    [Validators.required, Validators.min(1)],
+                ],
+                tipoAlumbrado: ['', Validators.required],
+                abastecimientoAgua: [[], Validators.required],
+                bienesServiciosElectrodomesticos: [[], Validators.required],
+                zonaRiesgo: ['', Validators.required],
             }),
             mediosDeVida: this.fb.group({
-                participacionCapacitacion: ['', Validators.required], //UNO: SI, NO
-                cuantosTrabajos: [null, Validators.required], // VALOR NUMERICO
-                actividadLaboral: ['', Validators.required], //UNO: A TIEMPO COMPLETO, PARCIAL, ESPORÁDICA, POR TEMPORADA, PENSIONISTA, CESANTE, NINGUNA
-                actividadEconomica: [[], Validators.required], // DIALOG PARA INGRESAR EL NOMBRE DE LA ACTIVIDAD ECONOMICA //HACER UN PEQUEÑA TABLA PARA MOSTRAR LOS INGRESADOS, AÑADIR BOTÓN PARA MODIFICAR CON EL DIALOG O BORRAR
-                relacionDependencia: ['', Validators.required], //UNO: SI FORMAL, INFORMAL, NO QUISO RESPONDER
-                cuentaPropia: ['', Validators.required], //UNO: SI CON RUC, SI CON RISE, SIN RUC, NO CON RISE, NO QUISO RESPONDER
-                ingresosMensuales: ['', Validators.required], // UNO: Menos que salario basicos, USD460 - USD500,USD500 - USD750,USD750 - USD999, USD1000+, No quiere responder
-                gastosHogar: [[], Validators.required], // ESPECIFICAR CUANTO PARA CADA UNO: Pago alquiler de vivienda %, Pago de préstamo de vivienda %, Arreglo de la vivienda %, Vestimenta %, Alimentación %, Salud %, Educación %, Serv.Básicos %, Movilidad %, Otros Gastos %, Ahorro %
-                fuentesIngresos: [[], Validators.required], //MULTIPLE: Trabajo, Bono por discapacidad, Bono Madres Solteras, Bono de Desarrollo Humano, Bono de la Tercera Edad, Apoyo  de ONG’s, Pensiòn de Alimentos, Otros, Pension por Jubilacion
+                participacionCapacitacion: ['', Validators.required],
+                cuantosTrabajos: [
+                    null,
+                    [Validators.required, Validators.min(0)],
+                ],
+                actividadLaboral: ['', Validators.required],
+                actividadEconomica: [[], Validators.required],
+                relacionDependencia: ['', Validators.required],
+                cuentaPropia: ['', Validators.required],
+                ingresosMensuales: ['', Validators.required],
+                gastosHogar: [[], Validators.required],
+                fuentesIngresos: [[], Validators.required],
             }),
             redesDeApoyo: this.fb.group({
-                actividadesBarrio: [[], Validators.required], // MULTIPLE: IGLESIA, GRUPOS LGTBIQ, COMITE BARRIAL, CLUBES DEPORTIVOS, ASOCIACIÓN DE MUJERES, ASOCIACIÓN JUVENIL, CLUB DE BARCO, CLUB DE POLICIA, CLUB DE ASESORIAS, CLUB DE ESTUDIANTES, OTROS, NINGUNO
-                recibeayudaHumanitaria: [[], Validators.required], // MULTIPLE: IGLESIA, VECINO(A)S, AMIGO(A)S, FAMILIA, ONG'S, INSTITUCIONES PÚBLICA, NINGUNO, OTROS
-                actividadCantonDentro: [[], Validators.required], // MULTIPLES: PLAYA, DOMICILIO, RIO, DEPORTE, CAMPO, PARQUES, OTROS
-                actividadCantonFuera: [[], Validators.required], // MULTIPLES: PLAYA, DOMICILIO, RIO, DEPORTE, CAMPO, PARQUES, OTROS
-                mejorasBarrio: [[], Validators.required], //MULTIPLE: CALLES PAVIMENTADAS, PRESENCIA POLICÍAL, AREAS VERDES, AGUA POTABLE, ALACANTARILLADO, ACTIVIDADES RECREATIVAS, ALUMBRADO PÚBLICO, RECOLECCIÓN DE BASURA, SUB-CENTRO DE SALUD
+                actividadesBarrio: [[], Validators.required],
+                recibeayudaHumanitaria: [[], Validators.required],
+                actividadCantonDentro: [[], Validators.required],
+                actividadCantonFuera: [[], Validators.required],
+                mejorasBarrio: [[], Validators.required],
                 mejoraPlus: [''],
             }),
-            familiaList: [],
+            familiaList: [[], Validators.required],
         });
+
         this.initializeNetworkListener();
     }
 
