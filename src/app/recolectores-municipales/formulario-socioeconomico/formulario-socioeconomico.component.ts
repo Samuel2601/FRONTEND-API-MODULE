@@ -82,6 +82,7 @@ export class FormularioSocioeconomicoComponent {
                 mejorasBarrio: [[], Validators.required], //MULTIPLE: CALLES PAVIMENTADAS, PRESENCIA POLICÍAL, AREAS VERDES, AGUA POTABLE, ALACANTARILLADO, ACTIVIDADES RECREATIVAS, ALUMBRADO PÚBLICO, RECOLECCIÓN DE BASURA, SUB-CENTRO DE SALUD
                 mejoraPlus: [''],
             }),
+            familiaList: [],
         });
     }
 
@@ -799,7 +800,40 @@ export class FormularioSocioeconomicoComponent {
     }
 
     sendRegistro() {
-        console.log(this.registrationForm.value);
+        console.log('Antes: ', this.registrationForm.value);
+
+        // Extraer valores simples para nacionalidad
+        this.registrationForm.value.informacionPersonal.nacionalidad =
+            this.registrationForm.value.informacionPersonal.nacionalidad.value;
+
+        // Reemplazar actividadEconomica y gastosHogar con sus listas correspondientes
+        this.registrationForm.value.mediosDeVida.actividadEconomica =
+            this.actividadEconomicaList.map((item: any) => ({
+                nombre: item.nombre,
+            }));
+        this.registrationForm.value.mediosDeVida.gastosHogar =
+            this.gastosHogarList.map((gasto: any) => ({
+                tipo: gasto.tipo.value, // Extrae solo el valor
+                porcentaje: gasto.porcentaje,
+            }));
+
+        // Ajustar los elementos de familiarList
+        this.familiarList.forEach((element: any) => {
+            element.familiNacionalidad = element.familiNacionalidad.value;
+            element.familiEstadoCivil = element.familiEstadoCivil.value;
+            element.familiEtnia = element.familiEtnia.value;
+            element.familiNivelEducativo = element.familiNivelEducativo.value;
+            element.familiOcupacion = element.familiOcupacion.value;
+            element.familiDiscacidad = element.familiDiscacidad.value;
+            element.familiEnfermedad = element.familiEnfermedad.value;
+            element.familigenero = element.familigenero.value;
+        });
+
+        // Asignar la lista de familiares limpia al formulario
+        this.registrationForm.value.familiaList = this.familiarList;
+
+        console.log('Despues: ', this.registrationForm.value);
+
         this.registrationService
             .sendRegistration(this.registrationForm.value)
             .subscribe((res) => {
