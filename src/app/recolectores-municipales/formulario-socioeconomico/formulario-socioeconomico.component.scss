@@ -64,3 +64,58 @@ label {
 .p-grid {
     margin-top: 1rem;
 }
+
+
+.familiar-dialog {
+    --dialog-background: #f9f9f9;
+    --input-background: #ffffff;
+    --primary-color: #007bff;
+    --input-border-radius: 5px;
+    --input-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: var(--dialog-background);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.dialog-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.p-field.half-width {
+    flex-basis: 48%;
+}
+
+.p-field.full-width {
+    flex-basis: 100%;
+}
+
+.p-field input[type="text"],
+.p-field input[type="number"],
+.p-dropdown {
+    width: 100%;
+    background: var(--input-background);
+    border-radius: var(--input-border-radius);
+    box-shadow: var(--input-shadow);
+    padding: 0.5rem;
+}
+
+.field-hint {
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+    display: block;
+    margin-top: 4px;
+}
+
+.save-button {
+    background-color: var(--primary-color);
+    color: #fff;
+    border-radius: var(--input-border-radius);
+    margin-right: 0.5rem;
+}
+
+.cancel-button {
+    border-radius: var(--input-border-radius);
+}

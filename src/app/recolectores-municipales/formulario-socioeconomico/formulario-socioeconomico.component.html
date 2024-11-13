@@ -1112,20 +1112,21 @@
     [(visible)]="displayFamiliarDialog"
     [modal]="true"
     [responsive]="true"
-    [style]="{ width: '400px' }"
+    [style]="{ width: '500px', 'border-radius': '8px' }"
     [closable]="false"
+    class="familiar-dialog"
 >
-    <div
-        class="p-fluid"
-        style="
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            align-content: center;
-        "
-    >
-        <div>
+    <div>
+        <div
+            class="p-fluid"
+            style="
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+                align-content: center;
+            "
+        >
             <label for="familiParentesco">Parentesco</label>
             <input
                 type="text"
@@ -1275,6 +1276,7 @@
             <label for="familiNacionalidad">Nacionalidad</label>
 
             <p-dropdown
+                appendTo="body"
                 [options]="nacionalidadOptions"
                 [(ngModel)]="familiarActual.familiNacionalidad"
                 optionLabel="name"
