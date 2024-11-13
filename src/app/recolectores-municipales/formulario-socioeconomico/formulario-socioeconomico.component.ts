@@ -9,6 +9,9 @@ import {
 } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { RegistroService } from '../service/registro.service';
+import { Network } from '@capacitor/network';
+import { Preferences } from '@capacitor/preferences';
+import { AuthService } from 'src/app/demo/services/auth.service';
 
 @Component({
     selector: 'app-formulario-socioeconomico',
@@ -22,12 +25,13 @@ export class FormularioSocioeconomicoComponent {
     constructor(
         private fb: FormBuilder,
         private messageService: MessageService,
-        private registrationService: RegistroService
+        private registrationService: RegistroService,
+        private authService: AuthService
     ) {
         this.registrationForm = this.fb.group({
             informacionRegistro: this.fb.group({
                 date: ['', Validators.required],
-                encuestador: ['', Validators.required],
+                encuestador: [authService.idUserToken(), Validators.required],
             }),
             informacionPersonal: this.fb.group({
                 entrevistado: ['', Validators.required],
@@ -84,6 +88,7 @@ export class FormularioSocioeconomicoComponent {
             }),
             familiaList: [],
         });
+        this.initializeNetworkListener();
     }
 
     // Opciones para el campo houseState en el grupo informacionUbicacion
@@ -799,8 +804,57 @@ export class FormularioSocioeconomicoComponent {
         );
     }
 
+    private hasNotifiedUser: boolean = false;
+    private lastStatus: boolean = false; // Estado anterior de la red
+
+    async initializeNetworkListener() {
+        const status = await Network.getStatus();
+        this.lastStatus = status.connected;
+
+        Network.addListener('networkStatusChange', async (status) => {
+            if (!this.lastStatus && status.connected) {
+                await this.syncData();
+                this.hasNotifiedUser = false; // Resetear la notificación
+            } else if (!status.connected && !this.hasNotifiedUser) {
+                alert(
+                    'Estás desconectado. La próxima vez que te conectes, enviaremos tu información.'
+                );
+                this.hasNotifiedUser = true; // Marca como notificado
+            }
+            this.lastStatus = status.connected;
+        });
+    }
+
     sendRegistro() {
-        console.log('Antes: ', this.registrationForm.value);
+        this.prepareFormData();
+
+        if (this.lastStatus) {
+            // Si hay conexión, envía los datos
+            this.registrationService
+                .sendRegistration(this.registrationForm.value)
+                .subscribe(
+                    (res) => {
+                        console.log(res);
+                        alert(`Registro exitoso con ID: ${res.data._id}`);
+                    },
+                    (error) => {
+                        console.error('Error al enviar los datos:', error);
+                        this.saveFormLocally();
+                    }
+                );
+        } else {
+            // Si no hay conexión, guarda los datos localmente
+            this.saveFormLocally();
+        }
+    }
+
+    // Método para preparar los datos del formulario antes de enviarlos o guardarlos
+    prepareFormData() {
+        // Ajuste de datos según tus necesidades, como convertir listas a estructuras JSON
+        console.log(
+            'Preparando datos del formulario:',
+            this.registrationForm.value
+        );
 
         // Extraer valores simples para nacionalidad
         this.registrationForm.value.informacionPersonal.nacionalidad =
@@ -833,11 +887,37 @@ export class FormularioSocioeconomicoComponent {
         this.registrationForm.value.familiaList = this.familiarList;
 
         console.log('Despues: ', this.registrationForm.value);
+    }
 
-        this.registrationService
-            .sendRegistration(this.registrationForm.value)
-            .subscribe((res) => {
-                console.log(res);
+    async syncData() {
+        try {
+            const storedFormData = await Preferences.get({ key: 'formData' });
+
+            if (storedFormData.value) {
+                const parsedData = JSON.parse(storedFormData.value);
+                const result = await this.registrationService
+                    .sendRegistration(parsedData)
+                    .toPromise();
+
+                // Si la solicitud es exitosa, elimina los datos almacenados
+                await Preferences.remove({ key: 'formData' });
+                alert(`Registro exitoso con ID: ${result.data._id}`);
+            }
+        } catch (error) {
+            console.error('Error al sincronizar datos:', error);
+        }
+    }
+
+    async saveFormLocally() {
+        try {
+            const formData = this.registrationForm.value;
+            await Preferences.set({
+                key: 'formData',
+                value: JSON.stringify(formData),
             });
+            alert('Datos guardados localmente. Se enviarán al conectarse.');
+        } catch (error) {
+            console.error('Error al guardar los datos localmente:', error);
+        }
     }
 }
