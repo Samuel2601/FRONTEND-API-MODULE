@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 
 import {
+    AbstractControl,
     FormArray,
     FormBuilder,
     FormControl,
@@ -30,7 +31,7 @@ export class FormularioSocioeconomicoComponent {
     ) {
         this.registrationForm = this.fb.group({
             informacionRegistro: this.fb.group({
-                date: ['', Validators.required],
+                date: [null, Validators.required],
                 encuestador: [
                     this.authService.idUserToken(),
                     Validators.required,
@@ -62,49 +63,49 @@ export class FormularioSocioeconomicoComponent {
             informacionUbicacion: this.fb.group({
                 posesionTimeNumber: [null], // Control para el número de tiempo
                 posesionTimeUnit: ['years'],
-                sector: ['', Validators.required],
-                barrio: ['', Validators.required],
-                manzana: ['', Validators.required],
-                lotenumero: ['', Validators.required],
+                sector: [null, Validators.required],
+                barrio: [null, Validators.required],
+                manzana: [null, Validators.required],
+                lotenumero: [null, Validators.required],
                 familyCount: [null, [Validators.required, Validators.min(1)]],
                 peopleCount: [null, [Validators.required, Validators.min(1)]],
-                houseState: ['', Validators.required],
+                houseState: [null, Validators.required],
             }),
             salud: this.fb.group({
-                estadoSalud: ['', Validators.required],
+                estadoSalud: [null, Validators.required],
                 causasSalud: [[], Validators.required],
-                conexionHigienico: ['', Validators.required],
+                conexionHigienico: [null, Validators.required],
             }),
             vivienda: this.fb.group({
-                estructuraVivienda: ['', Validators.required],
+                estructuraVivienda: [null, Validators.required],
                 serviciosBasicos: [
                     [],
                     [Validators.required, Validators.minLength(1)],
                 ],
-                tenenciaVivienda: ['', Validators.required],
+                tenenciaVivienda: [null, Validators.required],
                 documentosPropiedad: [[], Validators.required],
                 numPisos: [null, [Validators.required, Validators.min(1)]],
                 numHabitaciones: [
                     null,
                     [Validators.required, Validators.min(1)],
                 ],
-                tipoAlumbrado: ['', Validators.required],
+                tipoAlumbrado: [null, Validators.required],
                 abastecimientoAgua: [[], Validators.required],
                 bienesServiciosElectrodomesticos: [[], Validators.required],
-                zonaRiesgo: ['', Validators.required],
+                zonaRiesgo: [null, Validators.required],
             }),
             mediosDeVida: this.fb.group({
-                participacionCapacitacion: ['', Validators.required],
+                participacionCapacitacion: [null, Validators.required],
                 cuantosTrabajos: [
                     null,
                     [Validators.required, Validators.min(0)],
                 ],
-                actividadLaboral: ['', Validators.required],
-                actividadEconomica: [[], Validators.required],
-                relacionDependencia: ['', Validators.required],
-                cuentaPropia: ['', Validators.required],
-                ingresosMensuales: ['', Validators.required],
-                gastosHogar: [[], Validators.required],
+                actividadLaboral: [null, Validators.required],
+                actividadEconomica: [[]],
+                relacionDependencia: [null, Validators.required],
+                cuentaPropia: [null, Validators.required],
+                ingresosMensuales: [null, Validators.required],
+                gastosHogar: [[]],
                 fuentesIngresos: [[], Validators.required],
             }),
             redesDeApoyo: this.fb.group({
@@ -113,9 +114,9 @@ export class FormularioSocioeconomicoComponent {
                 actividadCantonDentro: [[], Validators.required],
                 actividadCantonFuera: [[], Validators.required],
                 mejorasBarrio: [[], Validators.required],
-                mejoraPlus: [''],
+                mejoraPlus: [null],
             }),
-            familiaList: [[], Validators.required],
+            familiaList: [[]],
         });
         const userDate = authService.authToken();
         this.initializeNetworkListener();
@@ -126,6 +127,34 @@ export class FormularioSocioeconomicoComponent {
             .get('informacionRegistro.date')
             ?.setValue(currentDate);
     }
+
+    // Método recursivo para obtener la lista de campos no válidos, incluyendo subformularios
+    getInvalidFields(
+        control: AbstractControl = this.registrationForm,
+        parentKey: string = ''
+    ): string[] {
+        let invalidFields: string[] = [];
+
+        if (control instanceof FormGroup) {
+            Object.keys(control.controls).forEach((key) => {
+                const nestedControl = control.get(key);
+                const controlKey = parentKey ? `${parentKey}.${key}` : key;
+
+                if (nestedControl && nestedControl.invalid) {
+                    if (nestedControl instanceof FormGroup) {
+                        invalidFields = invalidFields.concat(
+                            this.getInvalidFields(nestedControl, controlKey)
+                        );
+                    } else {
+                        invalidFields.push(controlKey);
+                    }
+                }
+            });
+        }
+
+        return invalidFields;
+    }
+
     selectedValues: any = {};
     key = '';
     onMultiSelectChange(formControlName: string, json?: boolean) {
@@ -948,6 +977,7 @@ export class FormularioSocioeconomicoComponent {
             familiDiscacidad: '',
             familiEnfermedad: '',
         };
+        console.log(this.familiarList);
     }
     cancelFamiliar() {
         this.familiarActual = {

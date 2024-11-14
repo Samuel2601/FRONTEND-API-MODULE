@@ -1148,6 +1148,7 @@
         <button
             pButton
             type="button"
+            icon="pi pi-plus"
             label="Agregar Familiar"
             (click)="showDialogFamiliar()"
         ></button>
@@ -1185,7 +1186,24 @@
                     <td>{{ familiar.familiEdad }}</td>
                     <td>{{ familiar.familiEstadoCivil }}</td>
                     <td>{{ familiar.familiEtnia }}</td>
-                    <td>{{ familiar.familiNacionalidad }}</td>
+                    <td>
+                        <div
+                            class="flex align-items-center gap-2"
+                            *ngIf="familiar.familiNacionalidad"
+                        >
+                            <img
+                                src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png"
+                                [class]="
+                                    'flag flag-' +
+                                    familiar.familiNacionalidad.code.toLowerCase()
+                                "
+                                style="width: 18px"
+                            />
+                            <div>
+                                {{ familiar.familiNacionalidad.label }}
+                            </div>
+                        </div>
+                    </td>
                     <td>{{ familiar.familiCeduala }}</td>
                     <td>{{ familiar.familiNivelEducativo }}</td>
                     <td>{{ familiar.familiOcupacion }}</td>
@@ -1209,7 +1227,8 @@
             </ng-template>
         </p-table>
     </p-panel>
-    <div
+
+    <footer
         style="
             margin-bottom: 1rem;
             margin-right: 1rem;
@@ -1218,9 +1237,31 @@
             margin-top: 1rem;
         "
     >
-        <button pButton type="submit" label="Registrar"></button>
-    </div>
+        <button
+            pButton
+            type="submit"
+            label="Registrar"
+            [disabled]="!registrationForm.valid"
+        ></button>
+    </footer>
 </form>
+
+<!-- Tabla para mostrar los campos faltantes -->
+<div *ngIf="getInvalidFields().length > 0">
+    <h3>Campos requeridos</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Campo</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let field of getInvalidFields()">
+                <td>{{ field }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 
 <!-- Diálogo para agregar o editar Actividad Económica -->
 <p-dialog
@@ -1395,7 +1436,6 @@
                 [options]="familigeneroOptions"
                 [(ngModel)]="familiarActual.familigenero"
                 placeholder="Seleccione el genero"
-                optionLabel="label"
                 [ngModelOptions]="{ standalone: true }"
             ></p-dropdown>
         </div>
@@ -1447,7 +1487,6 @@
                 [options]="estadoCivilOptions"
                 [(ngModel)]="familiarActual.familiEstadoCivil"
                 placeholder="Seleccione el estado civil"
-                optionLabel="label"
                 [ngModelOptions]="{ standalone: true }"
             ></p-dropdown>
         </div>
@@ -1467,7 +1506,6 @@
                 [options]="etniaOptions"
                 [(ngModel)]="familiarActual.familiEtnia"
                 placeholder="Seleccione la etnia"
-                optionLabel="label"
                 [ngModelOptions]="{ standalone: true }"
             ></p-dropdown>
         </div>
@@ -1555,7 +1593,6 @@
                 [options]="nivelEducativoOptions"
                 [(ngModel)]="familiarActual.familiNivelEducativo"
                 placeholder="Seleccione el nivel educativo"
-                optionLabel="label"
                 [ngModelOptions]="{ standalone: true }"
             ></p-dropdown>
             <span
@@ -1584,7 +1621,6 @@
                 [options]="ocupacionOptions"
                 [(ngModel)]="familiarActual.familiOcupacion"
                 placeholder="Seleccione la ocupación"
-                optionLabel="label"
                 [ngModelOptions]="{ standalone: true }"
             ></p-dropdown>
         </div>
@@ -1604,7 +1640,6 @@
                 [options]="discapacidadOptions"
                 [(ngModel)]="familiarActual.familiDiscacidad"
                 placeholder="Seleccione la discapacidad"
-                optionLabel="label"
                 [ngModelOptions]="{ standalone: true }"
             ></p-dropdown>
         </div>
@@ -1624,7 +1659,6 @@
                 [options]="enfermedadOptions"
                 [(ngModel)]="familiarActual.familiEnfermedad"
                 placeholder="Seleccione la enfermedad"
-                optionLabel="label"
                 [ngModelOptions]="{ standalone: true }"
             ></p-dropdown>
             <span
