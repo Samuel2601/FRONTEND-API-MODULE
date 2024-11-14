@@ -126,6 +126,26 @@ export class FormularioSocioeconomicoComponent {
             .get('informacionRegistro.date')
             ?.setValue(currentDate);
     }
+    selectedValues: any = {};
+    onMultiSelectChange(formControlName: string, json?: boolean) {
+        const selectedItems = this.selectedValues[formControlName];
+        const isNingunaSelected = json
+            ? selectedItems.some((causa) => causa.value === 'NINGUNO')
+            : selectedItems.includes('NINGUNO');
+        // Si "Ninguna" está seleccionada, solo mantenemos "Ninguna"
+        if (isNingunaSelected) {
+            // Desmarcamos todas las demás opciones y solo dejamos "Ninguna"
+            this.selectedValues[formControlName] = json
+                ? [{ label: 'Ninguno', value: 'NINGUNO' }]
+                : ['NINGUNA'];
+        }
+
+        // También puedes agregar aquí validaciones adicionales si es necesario
+        console.log(
+            `Selección para ${formControlName}:`,
+            this.selectedValues[formControlName]
+        );
+    }
 
     timeUnits: any[] = [
         { label: 'Días', value: 'days' },
@@ -152,11 +172,19 @@ export class FormularioSocioeconomicoComponent {
         { label: 'Fatal', value: 'FATAL' },
     ];
 
-    causasSaludOptions: { label: string; value: string }[] = [
+    causasSaludOptions: {
+        label: string;
+        value: string;
+        customCause?: string;
+    }[] = [
         { label: 'Mala Alimentación', value: 'MALA_ALIMENTACION' },
         { label: 'Entorno', value: 'ENTORNO' },
         { label: 'El No-Uso de Medicamento', value: 'NO_USO_MEDICAMENTO' },
-        { label: 'Otro (Especificar)', value: 'OTRO' },
+        {
+            label: 'Otro (Especificar)',
+            value: 'OTRO',
+            customCause: 'Causa personalizada',
+        },
         { label: 'No me Gusta el Médico', value: 'NO_ME_GUSTA_MEDICO' },
         {
             label: 'No Tengo Recursos para ir al Médico',
@@ -212,7 +240,7 @@ export class FormularioSocioeconomicoComponent {
         { label: 'Contrato de Compra-Venta', value: 'CONTRATO_COMPRA_VENTA' },
         { label: 'Derecho de Posesión', value: 'DERECHO_POSICION' },
         { label: 'Escritura', value: 'ESCRITURA' },
-        { label: 'Ninguna', value: 'NINGUNA' },
+        { label: 'Ninguno', value: 'NINGUNO' },
     ];
 
     tipoAlumbradoOptions: { label: string; value: string }[] = [
@@ -273,7 +301,7 @@ export class FormularioSocioeconomicoComponent {
         { label: 'Por temporada', value: 'POR_TEMPORADA' },
         { label: 'Pensionista', value: 'PENSIONISTA' },
         { label: 'Cesante', value: 'CESANTE' },
-        { label: 'Ninguna', value: 'NINGUNA' },
+        { label: 'Ninguno', value: 'NINGUNO' },
     ];
 
     relacionDependenciaOptions = [
@@ -343,7 +371,7 @@ export class FormularioSocioeconomicoComponent {
         { label: 'CLUB DE ASESORIAS', value: 'CLUB DE ASESORIAS' },
         { label: 'CLUB DE ESTUDIANTES', value: 'CLUB DE ESTUDIANTES' },
         { label: 'OTROS', value: 'OTROS' },
-        { label: 'NINGUNO', value: 'NINGUNO' },
+        { label: 'Ninguno', value: 'NINGUNO' },
     ];
 
     recibeAyudaHumanitariaOptions = [
@@ -353,7 +381,7 @@ export class FormularioSocioeconomicoComponent {
         { label: 'FAMILIA', value: 'FAMILIA' },
         { label: "ONG'S", value: "ONG'S" },
         { label: 'INSTITUCIONES PÚBLICA', value: 'INSTITUCIONES PÚBLICA' },
-        { label: 'NINGUNO', value: 'NINGUNO' },
+        { label: 'Ninguno', value: 'NINGUNO' },
         { label: 'OTROS', value: 'OTROS' },
     ];
 
@@ -520,6 +548,60 @@ export class FormularioSocioeconomicoComponent {
         familiDiscacidad: '',
         familiEnfermedad: '',
     }; // Objeto temporal para familiar
+    customCause: string = ''; // Campo para capturar el valor cuando elige "Otro"
+    // Variable para guardar el valor anterior de customCause
+    previousCustomCause: string = '';
+
+    selectedCausasSalud: any[] = []; // Para almacenar las causas seleccionadas
+
+    // Método para manejar la opción "Otro" y agregarla al array
+    displayDialogOtherCause: boolean = false;
+    // Booleano para verificar si 'OTRO' está seleccionado
+    isOtroSelected: boolean = false;
+
+    // Función para manejar el cambio
+    onChangeSelection() {
+        // Verificar si 'OTRO' está en la selección
+        this.isOtroSelected = this.selectedCausasSalud.some(
+            (causa) => causa.value === 'OTRO'
+        );
+    }
+    openDialogOtherCause() {
+        this.displayDialogOtherCause = true;
+    }
+    closeDialogOtherCause() {
+        this.displayDialogOtherCause = false;
+
+        if (this.customCause) {
+            // Verifica si ya existe el valor "OTRO"
+            const index = this.selectedCausasSalud.findIndex(
+                (causa) => causa.value === 'OTRO'
+            );
+
+            if (index !== -1) {
+                // Si existe, actualizamos la causa personalizada
+                this.selectedCausasSalud[index].customCause = this.customCause;
+            } else {
+                // Si no existe, agregamos el valor "OTRO" con la causa personalizada
+                this.selectedCausasSalud.push({
+                    value: 'OTRO',
+                    label: 'Otro (Especificar)',
+                    customCause: this.customCause,
+                });
+            }
+
+            // Actualizamos el formulario reactivo con el arreglo modificado
+            this.registrationForm
+                .get('salud')
+                .get('causasSalud')
+                .setValue(this.selectedCausasSalud);
+
+            // También actualizamos selectedCausasSalud para reflejar el cambio en la UI
+            this.selectedCausasSalud = [...this.selectedCausasSalud]; // Esto dispara la actualización en la UI
+
+            console.log(this.selectedCausasSalud); // Ver el valor actualizado
+        }
+    }
 
     // Métodos en el componente
 
@@ -921,7 +1003,7 @@ export class FormularioSocioeconomicoComponent {
 
     sendRegistro() {
         this.prepareFormData();
-
+        /*
         if (this.lastStatus) {
             // Si hay conexión, envía los datos
             this.registrationService
@@ -939,7 +1021,7 @@ export class FormularioSocioeconomicoComponent {
         } else {
             // Si no hay conexión, guarda los datos localmente
             this.saveFormLocally();
-        }
+        }*/
     }
 
     // Método para preparar los datos del formulario antes de enviarlos o guardarlos

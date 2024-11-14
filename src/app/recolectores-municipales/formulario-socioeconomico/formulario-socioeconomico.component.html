@@ -75,6 +75,7 @@
             <div class="p-field">
                 <label for="nacionalidad">Nacionalidad</label>
                 <p-dropdown
+                    [filter]="true"
                     [options]="nacionalidadOptions"
                     formControlName="nacionalidad"
                     placeholder="Seleccione la nacionalidad"
@@ -271,14 +272,31 @@
                     >En su opinión, ¿cuáles son las causas de su problema de
                     salud?
                 </label>
-                <p-multiSelect
-                    [filter]="false"
-                    selectedItemsLabel="{0} seleccionado"
-                    [maxSelectedLabels]="1"
-                    [options]="causasSaludOptions"
-                    formControlName="causasSalud"
-                    placeholder="Seleccione las causas"
-                ></p-multiSelect>
+                <div>
+                    <p-multiSelect
+                        appendTo="body"
+                        [filter]="false"
+                        selectedItemsLabel="{0} seleccionado"
+                        [maxSelectedLabels]="1"
+                        [options]="causasSaludOptions"
+                        formControlName="causasSalud"
+                        placeholder="Seleccione las causas"
+                        [(ngModel)]="selectedCausasSalud"
+                        (ngModelChange)="onChangeSelection()"
+                        optionLabel="label"
+                    ></p-multiSelect>
+
+                    <!-- Mostrar un botón para abrir el diálogo si se seleccionó 'OTRO' -->
+                    <button
+                        *ngIf="isOtroSelected"
+                        type="button"
+                        pButton
+                        pTooltip="Especificar Otra Causa"
+                        tooltipPosition="left"
+                        icon="pi pi-pencil"
+                        (click)="openDialogOtherCause()"
+                    ></button>
+                </div>
             </div>
         </div>
         <div class="col-12">
@@ -342,6 +360,7 @@
                     >¿Cuáles de los siguientes servicios básicos Ud. Dispone?
                 </label>
                 <p-multiSelect
+                    appendTo="body"
                     [filter]="false"
                     selectedItemsLabel="{0} seleccionado"
                     [maxSelectedLabels]="1"
@@ -388,12 +407,18 @@
                     >Qué documentos relativos a la propiedad usted tiene:
                 </label>
                 <p-multiSelect
+                    appendTo="body"
                     [filter]="false"
                     selectedItemsLabel="{0} seleccionado"
                     [maxSelectedLabels]="1"
                     [options]="documentosPropiedadOptions"
                     formControlName="documentosPropiedad"
+                    [(ngModel)]="selectedValues.documentosPropiedad"
                     placeholder="Seleccione los documentos"
+                    optionLabel="label"
+                    (onChange)="
+                        onMultiSelectChange('documentosPropiedad', true)
+                    "
                 ></p-multiSelect>
             </div>
         </div>
@@ -478,6 +503,7 @@
                     >¿Cómo se abastece con el agua?
                 </label>
                 <p-multiSelect
+                    appendTo="body"
                     [filter]="false"
                     selectedItemsLabel="{0} seleccionado"
                     [maxSelectedLabels]="1"
@@ -503,6 +529,7 @@
                     Dispone?
                 </label>
                 <p-multiSelect
+                    appendTo="body"
                     [filter]="false"
                     selectedItemsLabel="{0} seleccionado"
                     [maxSelectedLabels]="1"
@@ -798,6 +825,7 @@
                     >Los ingresos mensuales provienen de:
                 </label>
                 <p-multiSelect
+                    appendTo="body"
                     [filter]="false"
                     selectedItemsLabel="{0} seleccionado"
                     [maxSelectedLabels]="1"
@@ -829,6 +857,7 @@
                     >Participa en actividades en el barrio</label
                 >
                 <p-multiSelect
+                    appendTo="body"
                     [filter]="false"
                     selectedItemsLabel="{0} seleccionado"
                     [maxSelectedLabels]="1"
@@ -855,6 +884,7 @@
                     >Recibe algún tipo de ayuda humanitaria?</label
                 >
                 <p-multiSelect
+                    appendTo="body"
                     [filter]="false"
                     selectedItemsLabel="{0} seleccionado"
                     [maxSelectedLabels]="1"
@@ -882,6 +912,7 @@
                     cantón)</label
                 >
                 <p-multiSelect
+                    appendTo="body"
                     [filter]="false"
                     selectedItemsLabel="{0} seleccionado"
                     [maxSelectedLabels]="1"
@@ -909,6 +940,7 @@
                     cantón)</label
                 >
                 <p-multiSelect
+                    appendTo="body"
                     [filter]="false"
                     selectedItemsLabel="{0} seleccionado"
                     [maxSelectedLabels]="1"
@@ -935,6 +967,7 @@
                     >¿Qué sugiere usted para mejorar su barrio? (Seleccionar 3)
                 </label>
                 <p-multiSelect
+                    appendTo="body"
                     [filter]="false"
                     selectedItemsLabel="{0} seleccionado"
                     [maxSelectedLabels]="1"
@@ -1473,6 +1506,45 @@
             icon="pi pi-times"
             class="p-button-secondary"
             (click)="cancelFamiliar()"
+        ></button>
+    </p-footer>
+</p-dialog>
+
+<!-- p-dialog para ingresar la causa personalizada -->
+<p-dialog
+    header="Especificar Otra Causa"
+    [(visible)]="displayDialogOtherCause"
+    [modal]="true"
+    [responsive]="true"
+    [style]="{ width: '400px' }"
+    [closable]="false"
+>
+    <div class="p-fluid">
+        <div class="p-field">
+            <label for="customCause">Especifique otra causa:</label>
+            <input
+                id="customCause"
+                type="text"
+                pInputText
+                [(ngModel)]="customCause"
+                placeholder="Especifique la causa"
+            />
+        </div>
+    </div>
+
+    <p-footer>
+        <button
+            pButton
+            label="Guardar"
+            icon="pi pi-check"
+            (click)="closeDialogOtherCause()"
+        ></button>
+        <button
+            pButton
+            label="Cancelar"
+            icon="pi pi-times"
+            class="p-button-secondary"
+            (click)="closeDialogOtherCause()"
         ></button>
     </p-footer>
 </p-dialog>
