@@ -19,10 +19,14 @@
             <div class="p-field">
                 <label for="encuestador">Encuestador</label>
                 <input
+                    *ngIf="!username"
                     id="encuestador"
                     pInputText
                     formControlName="encuestador"
                 />
+                <label for="encuestador" *ngIf="username">
+                    {{ username }}
+                </label>
             </div>
         </div>
     </p-panel>
@@ -48,6 +52,8 @@
                     pInputText
                     formControlName="dni"
                     class="p-inputtext-sm p-d-block"
+                    maxlength="10"
+                    minlength="10"
                 />
             </div>
         </div>
@@ -74,7 +80,7 @@
                     placeholder="Seleccione la nacionalidad"
                     optionLabel="label"
                     [showClear]="true"
-                    placeholder="Select a Country"
+                    placeholder="Select a País"
                 >
                     <ng-template pTemplate="selectedItem">
                         <div
@@ -124,6 +130,8 @@
                     pInputText
                     formControlName="phone"
                     class="p-inputtext-sm p-d-block"
+                    maxlength="10"
+                    minlength="10"
                 />
             </div>
         </div>
@@ -136,11 +144,26 @@
         <div class="col-6">
             <div class="p-field">
                 <label for="posesionTime">Tiempo de Posesión</label>
-                <input
-                    id="posesionTime"
-                    pInputText
-                    formControlName="posesionTime"
-                />
+                <div>
+                    <input
+                        id="posesionTime"
+                        pInputText
+                        formControlName="posesionTimeNumber"
+                        type="number"
+                        min="0"
+                        placeholder="Cantidad"
+                        style="width: auto"
+                    />
+                    <p-dropdown
+                        appendTo="body"
+                        formControlName="posesionTimeUnit"
+                        [options]="timeUnits"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Seleccionar"
+                        [style.width]="'auto'"
+                    ></p-dropdown>
+                </div>
             </div>
         </div>
         <div class="col-6">
@@ -181,6 +204,7 @@
                     pInputText
                     type="number"
                     formControlName="familyCount"
+                    min="0"
                 />
             </div>
         </div>
@@ -194,6 +218,7 @@
                     pInputText
                     type="number"
                     formControlName="peopleCount"
+                    min="0"
                 />
             </div>
         </div>
@@ -1067,14 +1092,18 @@
     <div class="p-fluid">
         <div class="p-field">
             <label for="tipoGasto">Tipo de Gasto</label>
+            <!-- Mostrar el dropdown solo si es un nuevo gasto -->
             <p-dropdown
+                *ngIf="!isEditMode"
                 appendTo="body"
-                [options]="gastosHogarOptions"
+                [options]="filteredGastosOptions"
                 [(ngModel)]="gastoActual.tipo"
                 placeholder="Seleccione el tipo de gasto"
                 optionLabel="label"
                 [ngModelOptions]="{ standalone: true }"
             ></p-dropdown>
+            <!-- Mostrar solo el tipo de gasto en texto si es edición -->
+            <span *ngIf="isEditMode">{{ gastoActual.tipo?.label }}</span>
         </div>
         <div class="p-field">
             <label for="porcentajeGasto">Porcentaje (%)</label>
@@ -1281,7 +1310,7 @@
                 [(ngModel)]="familiarActual.familiNacionalidad"
                 optionLabel="name"
                 [showClear]="true"
-                placeholder="Select a Country"
+                placeholder="Select a un País"
             >
                 <ng-template pTemplate="selectedItem">
                     <div

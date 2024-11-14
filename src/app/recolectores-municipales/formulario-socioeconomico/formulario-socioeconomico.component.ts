@@ -21,7 +21,7 @@ import { AuthService } from 'src/app/demo/services/auth.service';
 })
 export class FormularioSocioeconomicoComponent {
     registrationForm: FormGroup;
-
+    username: String = '';
     constructor(
         private fb: FormBuilder,
         private messageService: MessageService,
@@ -53,14 +53,15 @@ export class FormularioSocioeconomicoComponent {
                         Validators.max(120),
                     ],
                 ],
-                nacionalidad: ['', Validators.required],
+                nacionalidad: [undefined, Validators.required],
                 phone: [
                     '',
                     [Validators.required, Validators.pattern('^[0-9]+$')],
                 ],
             }),
             informacionUbicacion: this.fb.group({
-                posesionTime: ['', Validators.required],
+                posesionTimeNumber: [null], // Control para el número de tiempo
+                posesionTimeUnit: ['years'],
                 sector: ['', Validators.required],
                 barrio: ['', Validators.required],
                 manzana: ['', Validators.required],
@@ -116,9 +117,21 @@ export class FormularioSocioeconomicoComponent {
             }),
             familiaList: [[], Validators.required],
         });
-
+        const userDate = authService.authToken();
         this.initializeNetworkListener();
+        this.username = userDate.last_name + ' ' + userDate.name;
+        // Asigna la fecha actual al control 'date' al inicializar el componente
+        const currentDate = new Date().toISOString().split('T')[0]; // Formato 'YYYY-MM-DD' para el input date
+        this.registrationForm
+            .get('informacionRegistro.date')
+            ?.setValue(currentDate);
     }
+
+    timeUnits: any[] = [
+        { label: 'Días', value: 'days' },
+        { label: 'Meses', value: 'months' },
+        { label: 'Años', value: 'years' },
+    ];
 
     // Opciones para el campo houseState en el grupo informacionUbicacion
     houseStateOptions: { label: string; value: string }[] = [
@@ -485,7 +498,7 @@ export class FormularioSocioeconomicoComponent {
         familiEdad: '',
         familiEstadoCivil: '',
         familiEtnia: '',
-        familiNacionalidad: { label: '', value: '', code: '' },
+        familiNacionalidad: undefined,
         familiCeduala: '',
         familiNivelEducativo: '',
         familiOcupacion: '',
@@ -500,7 +513,7 @@ export class FormularioSocioeconomicoComponent {
         familiEdad: '',
         familiEstadoCivil: '',
         familiEtnia: '',
-        familiNacionalidad: { label: '', value: '', code: '' },
+        familiNacionalidad: undefined,
         familiCeduala: '',
         familiNivelEducativo: '',
         familiOcupacion: '',
@@ -582,19 +595,68 @@ export class FormularioSocioeconomicoComponent {
 
     showDialogGastosHogar() {
         /* abrir diálogo */
+        this.isEditMode = false; // Modo agregar
         this.displayGastosDialog = true;
     }
 
+    // Método para obtener las opciones filtradas para el dropdown
+    get filteredGastosOptions(): any[] {
+        // Filtra las opciones para excluir las que ya están en la lista
+        return this.gastosHogarOptions.filter(
+            (option) =>
+                !this.gastosHogarList.some(
+                    (gasto) => gasto.tipo.value === option.value
+                )
+        );
+    }
+
     isFormValid(): boolean {
+        // Verifica que se haya seleccionado un tipo de gasto y que el porcentaje esté entre 0 y 100
+        const totalPorcentaje = this.gastosHogarList.reduce(
+            (sum, gasto) => sum + gasto.porcentaje,
+            0
+        );
+        // Calcula el porcentaje restante
+        const porcentajeRestante = 100 - totalPorcentaje;
+
+        // Verifica si el porcentaje que se intenta agregar excede el 100%
+        if (this.gastoActual.porcentaje + totalPorcentaje > 100) {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `La suma de los porcentajes no puede exceder el 100%. Puedes agregar hasta ${porcentajeRestante}% más.`,
+            });
+            this.gastoActual.porcentaje = 0;
+        }
+
         return (
             this.gastoActual.tipo.label && // Verifica que se haya seleccionado un tipo de gasto
-            this.gastoActual.porcentaje &&
             this.gastoActual.porcentaje >= 0 &&
-            this.gastoActual.porcentaje <= 100 // Verifica que el porcentaje esté entre 0 y 100
+            this.gastoActual.porcentaje <= 100 && // Verifica que el porcentaje esté entre 0 y 100
+            totalPorcentaje + this.gastoActual.porcentaje <= 100 // Verifica que la suma de los porcentajes no exceda 100
         );
     }
 
     saveGastoHogar() {
+        // Calcula la suma total de los porcentajes actuales
+        const totalPorcentaje = this.gastosHogarList.reduce(
+            (sum, gasto) => sum + gasto.porcentaje,
+            0
+        );
+
+        // Calcula el porcentaje restante
+        const porcentajeRestante = 100 - totalPorcentaje;
+
+        // Verifica si el porcentaje que se intenta agregar excede el 100%
+        if (this.gastoActual.porcentaje + totalPorcentaje > 100) {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `La suma de los porcentajes no puede exceder el 100%. Puedes agregar hasta ${porcentajeRestante}% más.`,
+            });
+            return; // No continuar si el total excede 100%
+        }
+
         const gastoExistente = this.gastosHogarList.find(
             (x) =>
                 x.tipo === this.gastoActual.tipo ||
@@ -634,6 +696,7 @@ export class FormularioSocioeconomicoComponent {
             detail: 'El gasto ya existe',
         });
     }
+
     private agregarNuevoGasto() {
         console.log(this.gastoActual);
         this.gastosHogarList.push(this.gastoActual);
@@ -654,7 +717,9 @@ export class FormularioSocioeconomicoComponent {
         };
         /* cancelar */
     }
+    isEditMode: boolean = false;
     editGastoHogar(gasto) {
+        this.isEditMode = true; // Modo edición
         this.cloneEditGasto = gasto;
         this.gastoActual = Object.assign({}, gasto);
         this.displayGastosDialog = true;
@@ -704,7 +769,7 @@ export class FormularioSocioeconomicoComponent {
             familiEdad: '',
             familiEstadoCivil: '',
             familiEtnia: '',
-            familiNacionalidad: { label: '', value: '', code: '' },
+            familiNacionalidad: undefined,
             familiCeduala: '',
             familiNivelEducativo: '',
             familiOcupacion: '',
@@ -720,7 +785,7 @@ export class FormularioSocioeconomicoComponent {
             familiEdad: '',
             familiEstadoCivil: '',
             familiEtnia: '',
-            familiNacionalidad: { label: '', value: '', code: '' },
+            familiNacionalidad: undefined,
             familiCeduala: '',
             familiNivelEducativo: '',
             familiOcupacion: '',
@@ -746,7 +811,7 @@ export class FormularioSocioeconomicoComponent {
             familiEdad: '',
             familiEstadoCivil: '',
             familiEtnia: '',
-            familiNacionalidad: { label: '', value: '', code: '' },
+            familiNacionalidad: undefined,
             familiCeduala: '',
             familiNivelEducativo: '',
             familiOcupacion: '',
@@ -762,7 +827,7 @@ export class FormularioSocioeconomicoComponent {
             familiEdad: '',
             familiEstadoCivil: '',
             familiEtnia: '',
-            familiNacionalidad: { label: '', value: '', code: '' },
+            familiNacionalidad: undefined,
             familiCeduala: '',
             familiNivelEducativo: '',
             familiOcupacion: '',
@@ -779,7 +844,7 @@ export class FormularioSocioeconomicoComponent {
             familiEdad: '',
             familiEstadoCivil: '',
             familiEtnia: '',
-            familiNacionalidad: { label: '', value: '', code: '' },
+            familiNacionalidad: undefined,
             familiCeduala: '',
             familiNivelEducativo: '',
             familiOcupacion: '',
@@ -795,7 +860,7 @@ export class FormularioSocioeconomicoComponent {
             familiEdad: '',
             familiEstadoCivil: '',
             familiEtnia: '',
-            familiNacionalidad: { label: '', value: '', code: '' },
+            familiNacionalidad: undefined,
             familiCeduala: '',
             familiNivelEducativo: '',
             familiOcupacion: '',
