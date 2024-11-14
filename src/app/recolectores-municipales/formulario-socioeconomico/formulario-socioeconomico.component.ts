@@ -127,8 +127,10 @@ export class FormularioSocioeconomicoComponent {
             ?.setValue(currentDate);
     }
     selectedValues: any = {};
+    key = '';
     onMultiSelectChange(formControlName: string, json?: boolean) {
         const selectedItems = this.selectedValues[formControlName];
+        console.log(selectedItems);
         const isNingunaSelected = json
             ? selectedItems.some((causa) => causa.value === 'NINGUNO')
             : selectedItems.includes('NINGUNO');
@@ -138,6 +140,19 @@ export class FormularioSocioeconomicoComponent {
             this.selectedValues[formControlName] = json
                 ? [{ label: 'Ninguno', value: 'NINGUNO' }]
                 : ['NINGUNA'];
+        } else {
+            const isOtroSelected = json
+                ? selectedItems.some(
+                      (causa) =>
+                          causa.value === 'OTRO' || causa.value === 'OTROS'
+                  )
+                : selectedItems.includes('OTRO', 'OTROS');
+            // Si "Otro" está seleccionada, solo mantenemos "Otro"
+            if (isOtroSelected) {
+                this.key = formControlName;
+                this.isOtroSelected[this.key] = true;
+                this.displayDialogOtherCause = true;
+            }
         }
 
         // También puedes agregar aquí validaciones adicionales si es necesario
@@ -175,7 +190,7 @@ export class FormularioSocioeconomicoComponent {
     causasSaludOptions: {
         label: string;
         value: string;
-        customCause?: string;
+        customOther?: string;
     }[] = [
         { label: 'Mala Alimentación', value: 'MALA_ALIMENTACION' },
         { label: 'Entorno', value: 'ENTORNO' },
@@ -183,7 +198,7 @@ export class FormularioSocioeconomicoComponent {
         {
             label: 'Otro (Especificar)',
             value: 'OTRO',
-            customCause: 'Causa personalizada',
+            customOther: 'Causa personalizada',
         },
         { label: 'No me Gusta el Médico', value: 'NO_ME_GUSTA_MEDICO' },
         {
@@ -393,6 +408,7 @@ export class FormularioSocioeconomicoComponent {
         { label: 'CAMPO', value: 'CAMPO' },
         { label: 'PARQUES', value: 'PARQUES' },
         { label: 'OTROS', value: 'OTROS' },
+        { label: 'Ninguno', value: 'NINGUNO' },
     ];
 
     actividadCantonFueraOptions = [
@@ -403,6 +419,7 @@ export class FormularioSocioeconomicoComponent {
         { label: 'CAMPO', value: 'CAMPO' },
         { label: 'PARQUES', value: 'PARQUES' },
         { label: 'OTROS', value: 'OTROS' },
+        { label: 'Ninguno', value: 'NINGUNO' },
     ];
 
     mejorasBarrioOptions = [
@@ -548,8 +565,8 @@ export class FormularioSocioeconomicoComponent {
         familiDiscacidad: '',
         familiEnfermedad: '',
     }; // Objeto temporal para familiar
-    customCause: string = ''; // Campo para capturar el valor cuando elige "Otro"
-    // Variable para guardar el valor anterior de customCause
+    customOther: any = {}; // Campo para capturar el valor cuando elige "Otro"
+    // Variable para guardar el valor anterior de customOther
     previousCustomCause: string = '';
 
     selectedCausasSalud: any[] = []; // Para almacenar las causas seleccionadas
@@ -557,49 +574,35 @@ export class FormularioSocioeconomicoComponent {
     // Método para manejar la opción "Otro" y agregarla al array
     displayDialogOtherCause: boolean = false;
     // Booleano para verificar si 'OTRO' está seleccionado
-    isOtroSelected: boolean = false;
+    isOtroSelected: { [key: string]: boolean } = {};
 
-    // Función para manejar el cambio
-    onChangeSelection() {
-        // Verificar si 'OTRO' está en la selección
-        this.isOtroSelected = this.selectedCausasSalud.some(
-            (causa) => causa.value === 'OTRO'
-        );
-    }
-    openDialogOtherCause() {
+    openDialogOtherCause(formControlName: string) {
+        this.key = formControlName;
         this.displayDialogOtherCause = true;
     }
     closeDialogOtherCause() {
         this.displayDialogOtherCause = false;
 
-        if (this.customCause) {
+        if (this.customOther[this.key]) {
             // Verifica si ya existe el valor "OTRO"
-            const index = this.selectedCausasSalud.findIndex(
-                (causa) => causa.value === 'OTRO'
+            const index = this.selectedValues[this.key].findIndex(
+                (causa) => causa.value === 'OTRO' || causa.value === 'OTROS'
             );
 
             if (index !== -1) {
                 // Si existe, actualizamos la causa personalizada
-                this.selectedCausasSalud[index].customCause = this.customCause;
+                this.selectedValues[this.key][index].customOther =
+                    this.customOther[this.key];
             } else {
                 // Si no existe, agregamos el valor "OTRO" con la causa personalizada
-                this.selectedCausasSalud.push({
+                this.selectedValues[this.key].push({
                     value: 'OTRO',
                     label: 'Otro (Especificar)',
-                    customCause: this.customCause,
+                    customOther: this.customOther[this.key],
                 });
             }
 
-            // Actualizamos el formulario reactivo con el arreglo modificado
-            this.registrationForm
-                .get('salud')
-                .get('causasSalud')
-                .setValue(this.selectedCausasSalud);
-
-            // También actualizamos selectedCausasSalud para reflejar el cambio en la UI
-            this.selectedCausasSalud = [...this.selectedCausasSalud]; // Esto dispara la actualización en la UI
-
-            console.log(this.selectedCausasSalud); // Ver el valor actualizado
+            console.log(this.selectedValues); // Ver el valor actualizado
         }
     }
 
@@ -693,22 +696,25 @@ export class FormularioSocioeconomicoComponent {
     }
 
     isFormValid(): boolean {
-        // Verifica que se haya seleccionado un tipo de gasto y que el porcentaje esté entre 0 y 100
-        const totalPorcentaje = this.gastosHogarList.reduce(
-            (sum, gasto) => sum + gasto.porcentaje,
-            0
-        );
-        // Calcula el porcentaje restante
-        const porcentajeRestante = 100 - totalPorcentaje;
+        let totalPorcentaje = 0;
+        if (!this.isEditMode) {
+            // Verifica que se haya seleccionado un tipo de gasto y que el porcentaje esté entre 0 y 100
+            totalPorcentaje = this.gastosHogarList.reduce(
+                (sum, gasto) => sum + gasto.porcentaje,
+                0
+            );
+            // Calcula el porcentaje restante
+            const porcentajeRestante = 100 - totalPorcentaje;
 
-        // Verifica si el porcentaje que se intenta agregar excede el 100%
-        if (this.gastoActual.porcentaje + totalPorcentaje > 100) {
-            this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: `La suma de los porcentajes no puede exceder el 100%. Puedes agregar hasta ${porcentajeRestante}% más.`,
-            });
-            this.gastoActual.porcentaje = 0;
+            // Verifica si el porcentaje que se intenta agregar excede el 100%
+            if (this.gastoActual.porcentaje + totalPorcentaje > 100) {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: `La suma de los porcentajes no puede exceder el 100%. Puedes agregar hasta ${porcentajeRestante}% más.`,
+                });
+                this.gastoActual.porcentaje = 0;
+            }
         }
 
         return (
@@ -720,23 +726,25 @@ export class FormularioSocioeconomicoComponent {
     }
 
     saveGastoHogar() {
-        // Calcula la suma total de los porcentajes actuales
-        const totalPorcentaje = this.gastosHogarList.reduce(
-            (sum, gasto) => sum + gasto.porcentaje,
-            0
-        );
+        if (!this.isEditMode) {
+            // Calcula la suma total de los porcentajes actuales
+            const totalPorcentaje = this.gastosHogarList.reduce(
+                (sum, gasto) => sum + gasto.porcentaje,
+                0
+            );
 
-        // Calcula el porcentaje restante
-        const porcentajeRestante = 100 - totalPorcentaje;
+            // Calcula el porcentaje restante
+            const porcentajeRestante = 100 - totalPorcentaje;
 
-        // Verifica si el porcentaje que se intenta agregar excede el 100%
-        if (this.gastoActual.porcentaje + totalPorcentaje > 100) {
-            this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: `La suma de los porcentajes no puede exceder el 100%. Puedes agregar hasta ${porcentajeRestante}% más.`,
-            });
-            return; // No continuar si el total excede 100%
+            // Verifica si el porcentaje que se intenta agregar excede el 100%
+            if (this.gastoActual.porcentaje + totalPorcentaje > 100) {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: `La suma de los porcentajes no puede exceder el 100%. Puedes agregar hasta ${porcentajeRestante}% más.`,
+                });
+                return; // No continuar si el total excede 100%
+            }
         }
 
         const gastoExistente = this.gastosHogarList.find(
@@ -757,11 +765,35 @@ export class FormularioSocioeconomicoComponent {
         }
     }
     updateGasto() {
-        this.gastosHogarList.forEach((element) => {
-            if (element.tipo === this.gastoActual.tipo) {
-                element.porcentaje = this.gastoActual.porcentaje;
+        // Calcula el total de porcentajes, excluyendo el gasto que está siendo editado
+        const totalPorcentaje = this.gastosHogarList.reduce((sum, gasto) => {
+            return gasto.tipo !== this.cloneEditGasto.tipo
+                ? sum + gasto.porcentaje
+                : sum;
+        }, 0);
+
+        // Calcula el porcentaje restante disponible
+        const porcentajeRestante = 100 - totalPorcentaje;
+
+        // Verifica si el porcentaje actualizado excede el 100%
+        if (this.gastoActual.porcentaje > porcentajeRestante) {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `La suma de los porcentajes no puede exceder el 100%. Puedes agregar hasta ${porcentajeRestante}% más.`,
+            });
+            return; // Termina si el total excede el 100%
+        }
+
+        // Actualiza el porcentaje del gasto seleccionado
+        this.gastosHogarList = this.gastosHogarList.map((element) => {
+            if (element.tipo === this.cloneEditGasto.tipo) {
+                return { ...element, porcentaje: this.gastoActual.porcentaje };
             }
+            return element;
         });
+
+        // Restablece los valores después de la actualización
         this.cloneEditGasto = {
             tipo: { label: '', value: '' },
             porcentaje: null,

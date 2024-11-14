@@ -281,20 +281,20 @@
                         [options]="causasSaludOptions"
                         formControlName="causasSalud"
                         placeholder="Seleccione las causas"
-                        [(ngModel)]="selectedCausasSalud"
-                        (ngModelChange)="onChangeSelection()"
                         optionLabel="label"
+                        [(ngModel)]="selectedValues.causasSalud"
+                        (onChange)="onMultiSelectChange('causasSalud', true)"
                     ></p-multiSelect>
 
                     <!-- Mostrar un botón para abrir el diálogo si se seleccionó 'OTRO' -->
                     <button
-                        *ngIf="isOtroSelected"
+                        *ngIf="isOtroSelected['causasSalud']"
                         type="button"
                         pButton
                         pTooltip="Especificar Otra Causa"
                         tooltipPosition="left"
                         icon="pi pi-pencil"
-                        (click)="openDialogOtherCause()"
+                        (click)="openDialogOtherCause('causasSalud')"
                     ></button>
                 </div>
             </div>
@@ -359,15 +359,33 @@
                 <label for="serviciosBasicos"
                     >¿Cuáles de los siguientes servicios básicos Ud. Dispone?
                 </label>
-                <p-multiSelect
-                    appendTo="body"
-                    [filter]="false"
-                    selectedItemsLabel="{0} seleccionado"
-                    [maxSelectedLabels]="1"
-                    [options]="serviciosBasicosOptions"
-                    formControlName="serviciosBasicos"
-                    placeholder="Seleccione los servicios"
-                ></p-multiSelect>
+                <div>
+                    <p-multiSelect
+                        appendTo="body"
+                        [filter]="false"
+                        selectedItemsLabel="{0} seleccionado"
+                        [maxSelectedLabels]="1"
+                        [options]="serviciosBasicosOptions"
+                        formControlName="serviciosBasicos"
+                        [(ngModel)]="selectedValues.serviciosBasicos"
+                        optionLabel="label"
+                        placeholder="Seleccione los servicios"
+                        (onChange)="
+                            onMultiSelectChange('serviciosBasicos', true)
+                        "
+                    ></p-multiSelect>
+
+                    <!-- Mostrar un botón para abrir el diálogo si se seleccionó 'OTRO' -->
+                    <button
+                        *ngIf="isOtroSelected['serviciosBasicos']"
+                        type="button"
+                        pButton
+                        pTooltip="Especificar Otra Causa"
+                        tooltipPosition="left"
+                        icon="pi pi-pencil"
+                        (click)="openDialogOtherCause('serviciosBasicos')"
+                    ></button>
+                </div>
             </div>
         </div>
         <div class="col-12">
@@ -502,15 +520,32 @@
                 <label for="abastecimientoAgua"
                     >¿Cómo se abastece con el agua?
                 </label>
-                <p-multiSelect
-                    appendTo="body"
-                    [filter]="false"
-                    selectedItemsLabel="{0} seleccionado"
-                    [maxSelectedLabels]="1"
-                    [options]="abastecimientoAguaOptions"
-                    formControlName="abastecimientoAgua"
-                    placeholder="Seleccione el abastecimiento de agua"
-                ></p-multiSelect>
+                <div>
+                    <p-multiSelect
+                        appendTo="body"
+                        [filter]="false"
+                        selectedItemsLabel="{0} seleccionado"
+                        [maxSelectedLabels]="1"
+                        [options]="abastecimientoAguaOptions"
+                        formControlName="abastecimientoAgua"
+                        [(ngModel)]="selectedValues.abastecimientoAgua"
+                        optionLabel="label"
+                        placeholder="Seleccione el abastecimiento de agua"
+                        (onChange)="
+                            onMultiSelectChange('abastecimientoAgua', true)
+                        "
+                    ></p-multiSelect>
+
+                    <button
+                        *ngIf="isOtroSelected['abastecimientoAgua']"
+                        type="button"
+                        pButton
+                        pTooltip="Especificar Otra Causa"
+                        tooltipPosition="left"
+                        icon="pi pi-pencil"
+                        (click)="openDialogOtherCause('abastecimientoAgua')"
+                    ></button>
+                </div>
             </div>
         </div>
         <div class="col-12">
@@ -528,15 +563,43 @@
                     >¿Cuáles de los siguientes servicios electrodomésticos Ud.
                     Dispone?
                 </label>
-                <p-multiSelect
-                    appendTo="body"
-                    [filter]="false"
-                    selectedItemsLabel="{0} seleccionado"
-                    [maxSelectedLabels]="1"
-                    [options]="bienesServiciosElectrodomesticosOptions"
-                    formControlName="bienesServiciosElectrodomesticos"
-                    placeholder="Seleccione los servicios"
-                ></p-multiSelect>
+
+                <div>
+                    <p-multiSelect
+                        appendTo="body"
+                        [filter]="false"
+                        selectedItemsLabel="{0} seleccionado"
+                        [maxSelectedLabels]="1"
+                        [options]="bienesServiciosElectrodomesticosOptions"
+                        formControlName="bienesServiciosElectrodomesticos"
+                        [(ngModel)]="
+                            selectedValues.bienesServiciosElectrodomesticos
+                        "
+                        placeholder="Seleccione los servicios"
+                        optionLabel="label"
+                        (onChange)="
+                            onMultiSelectChange(
+                                'bienesServiciosElectrodomesticos',
+                                true
+                            )
+                        "
+                    ></p-multiSelect>
+                    <button
+                        *ngIf="
+                            isOtroSelected['bienesServiciosElectrodomesticos']
+                        "
+                        type="button"
+                        pButton
+                        pTooltip="Especificar Otra Causa"
+                        tooltipPosition="left"
+                        icon="pi pi-pencil"
+                        (click)="
+                            openDialogOtherCause(
+                                'bienesServiciosElectrodomesticos'
+                            )
+                        "
+                    ></button>
+                </div>
             </div>
         </div>
         <div class="col-12">
@@ -824,15 +887,31 @@
                 <label for="fuentesIngresos"
                     >Los ingresos mensuales provienen de:
                 </label>
-                <p-multiSelect
-                    appendTo="body"
-                    [filter]="false"
-                    selectedItemsLabel="{0} seleccionado"
-                    [maxSelectedLabels]="1"
-                    [options]="fuentesIngresosOptions"
-                    formControlName="fuentesIngresos"
-                    placeholder="Seleccione las fuentes de ingresos"
-                ></p-multiSelect>
+                <div>
+                    <p-multiSelect
+                        appendTo="body"
+                        [filter]="false"
+                        selectedItemsLabel="{0} seleccionado"
+                        [maxSelectedLabels]="1"
+                        [options]="fuentesIngresosOptions"
+                        formControlName="fuentesIngresos"
+                        [(ngModel)]="selectedValues.fuentesIngresos"
+                        placeholder="Seleccione las fuentes de ingresos"
+                        optionLabel="label"
+                        (onChange)="
+                            onMultiSelectChange('fuentesIngresos', true)
+                        "
+                    ></p-multiSelect>
+                    <button
+                        *ngIf="isOtroSelected['fuentesIngresos']"
+                        type="button"
+                        pButton
+                        pTooltip="Especificar Otra Causa"
+                        tooltipPosition="left"
+                        icon="pi pi-pencil"
+                        (click)="openDialogOtherCause('fuentesIngresos')"
+                    ></button>
+                </div>
             </div>
         </div>
     </p-panel>
@@ -856,16 +935,33 @@
                 <label for="actividadesBarrio"
                     >Participa en actividades en el barrio</label
                 >
-                <p-multiSelect
-                    appendTo="body"
-                    [filter]="false"
-                    selectedItemsLabel="{0} seleccionado"
-                    [maxSelectedLabels]="1"
-                    [options]="actividadesBarrioOptions"
-                    formControlName="actividadesBarrio"
-                    defaultLabel="Seleccione..."
-                >
-                </p-multiSelect>
+
+                <div>
+                    <p-multiSelect
+                        appendTo="body"
+                        [filter]="false"
+                        selectedItemsLabel="{0} seleccionado"
+                        [maxSelectedLabels]="1"
+                        [options]="actividadesBarrioOptions"
+                        formControlName="actividadesBarrio"
+                        [(ngModel)]="selectedValues.actividadesBarrio"
+                        defaultLabel="Seleccione..."
+                        optionLabel="label"
+                        (onChange)="
+                            onMultiSelectChange('actividadesBarrio', true)
+                        "
+                    >
+                    </p-multiSelect>
+                    <button
+                        *ngIf="isOtroSelected['actividadesBarrio']"
+                        type="button"
+                        pButton
+                        pTooltip="Especificar Otra Causa"
+                        tooltipPosition="left"
+                        icon="pi pi-pencil"
+                        (click)="openDialogOtherCause('actividadesBarrio')"
+                    ></button>
+                </div>
             </div>
         </div>
 
@@ -883,16 +979,33 @@
                 <label for="recibeayudaHumanitaria"
                     >Recibe algún tipo de ayuda humanitaria?</label
                 >
-                <p-multiSelect
-                    appendTo="body"
-                    [filter]="false"
-                    selectedItemsLabel="{0} seleccionado"
-                    [maxSelectedLabels]="1"
-                    [options]="recibeAyudaHumanitariaOptions"
-                    formControlName="recibeayudaHumanitaria"
-                    defaultLabel="Seleccione..."
-                >
-                </p-multiSelect>
+
+                <div>
+                    <p-multiSelect
+                        appendTo="body"
+                        [filter]="false"
+                        selectedItemsLabel="{0} seleccionado"
+                        [maxSelectedLabels]="1"
+                        [options]="recibeAyudaHumanitariaOptions"
+                        formControlName="recibeayudaHumanitaria"
+                        [(ngModel)]="selectedValues.recibeayudaHumanitaria"
+                        defaultLabel="Seleccione..."
+                        optionLabel="label"
+                        (onChange)="
+                            onMultiSelectChange('recibeayudaHumanitaria', true)
+                        "
+                    >
+                    </p-multiSelect>
+                    <button
+                        *ngIf="isOtroSelected['recibeayudaHumanitaria']"
+                        type="button"
+                        pButton
+                        pTooltip="Especificar Otra Causa"
+                        tooltipPosition="left"
+                        icon="pi pi-pencil"
+                        (click)="openDialogOtherCause('recibeayudaHumanitaria')"
+                    ></button>
+                </div>
             </div>
         </div>
 
@@ -911,16 +1024,32 @@
                     >En su tiempo libre, que actividades realizan (dentro del
                     cantón)</label
                 >
-                <p-multiSelect
-                    appendTo="body"
-                    [filter]="false"
-                    selectedItemsLabel="{0} seleccionado"
-                    [maxSelectedLabels]="1"
-                    [options]="actividadCantonDentroOptions"
-                    formControlName="actividadCantonDentro"
-                    defaultLabel="Seleccione..."
-                >
-                </p-multiSelect>
+                <div>
+                    <p-multiSelect
+                        appendTo="body"
+                        [filter]="false"
+                        selectedItemsLabel="{0} seleccionado"
+                        [maxSelectedLabels]="1"
+                        [options]="actividadCantonDentroOptions"
+                        formControlName="actividadCantonDentro"
+                        [(ngModel)]="selectedValues.actividadCantonDentro"
+                        defaultLabel="Seleccione..."
+                        optionLabel="label"
+                        (onChange)="
+                            onMultiSelectChange('actividadCantonDentro', true)
+                        "
+                    >
+                    </p-multiSelect>
+                    <button
+                        *ngIf="isOtroSelected['actividadCantonDentro']"
+                        type="button"
+                        pButton
+                        pTooltip="Especificar Otra Causa"
+                        tooltipPosition="left"
+                        icon="pi pi-pencil"
+                        (click)="openDialogOtherCause('actividadCantonDentro')"
+                    ></button>
+                </div>
             </div>
         </div>
 
@@ -939,16 +1068,33 @@
                     >En su tiempo libre, que actividades realizan (fuera del
                     cantón)</label
                 >
-                <p-multiSelect
-                    appendTo="body"
-                    [filter]="false"
-                    selectedItemsLabel="{0} seleccionado"
-                    [maxSelectedLabels]="1"
-                    [options]="actividadCantonFueraOptions"
-                    formControlName="actividadCantonFuera"
-                    defaultLabel="Seleccione..."
-                >
-                </p-multiSelect>
+
+                <div>
+                    <p-multiSelect
+                        appendTo="body"
+                        [filter]="false"
+                        selectedItemsLabel="{0} seleccionado"
+                        [maxSelectedLabels]="1"
+                        [options]="actividadCantonFueraOptions"
+                        formControlName="actividadCantonFuera"
+                        [(ngModel)]="selectedValues.actividadCantonFuera"
+                        defaultLabel="Seleccione..."
+                        optionLabel="label"
+                        (onChange)="
+                            onMultiSelectChange('actividadCantonFuera', true)
+                        "
+                    >
+                    </p-multiSelect>
+                    <button
+                        *ngIf="isOtroSelected['actividadCantonFuera']"
+                        type="button"
+                        pButton
+                        pTooltip="Especificar Otra Causa"
+                        tooltipPosition="left"
+                        icon="pi pi-pencil"
+                        (click)="openDialogOtherCause('actividadCantonFuera')"
+                    ></button>
+                </div>
             </div>
         </div>
 
@@ -1512,7 +1658,7 @@
 
 <!-- p-dialog para ingresar la causa personalizada -->
 <p-dialog
-    header="Especificar Otra Causa"
+    [header]="'Especificar Otra: ' + key"
     [(visible)]="displayDialogOtherCause"
     [modal]="true"
     [responsive]="true"
@@ -1521,12 +1667,13 @@
 >
     <div class="p-fluid">
         <div class="p-field">
-            <label for="customCause">Especifique otra causa:</label>
+            <label for="customCause">Especifique 'OTRO' o 'OTROS':</label>
             <input
-                id="customCause"
+                *ngIf="key"
+                id="customOther"
                 type="text"
                 pInputText
-                [(ngModel)]="customCause"
+                [(ngModel)]="customOther[key]"
                 placeholder="Especifique la causa"
             />
         </div>
