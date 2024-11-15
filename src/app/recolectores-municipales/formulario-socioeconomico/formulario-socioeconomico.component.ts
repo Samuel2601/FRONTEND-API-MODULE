@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
 import {
     AbstractControl,
@@ -8,7 +8,7 @@ import {
     FormGroup,
     Validators,
 } from '@angular/forms';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { RegistroService } from '../service/registro.service';
 import { Network } from '@capacitor/network';
 import { Preferences } from '@capacitor/preferences';
@@ -18,16 +18,17 @@ import { AuthService } from 'src/app/demo/services/auth.service';
     selector: 'app-formulario-socioeconomico',
     templateUrl: './formulario-socioeconomico.component.html',
     styleUrl: './formulario-socioeconomico.component.scss',
-    providers: [MessageService],
+    providers: [MessageService, ConfirmationService],
 })
-export class FormularioSocioeconomicoComponent {
+export class FormularioSocioeconomicoComponent implements OnInit {
     registrationForm: FormGroup;
     username: String = '';
     constructor(
         private fb: FormBuilder,
         private messageService: MessageService,
         private registrationService: RegistroService,
-        private authService: AuthService
+        private authService: AuthService,
+        private confirmationService: ConfirmationService
     ) {
         this.registrationForm = this.fb.group({
             informacionRegistro: this.fb.group({
@@ -119,13 +120,16 @@ export class FormularioSocioeconomicoComponent {
             familiaList: [[]],
         });
         const userDate = authService.authToken();
-        this.initializeNetworkListener();
+
         this.username = userDate.last_name + ' ' + userDate.name;
         // Asigna la fecha actual al control 'date' al inicializar el componente
         const currentDate = new Date().toISOString().split('T')[0]; // Formato 'YYYY-MM-DD' para el input date
         this.registrationForm
             .get('informacionRegistro.date')
             ?.setValue(currentDate);
+    }
+    async ngOnInit() {
+        await this.initializeNetworkListener();
     }
 
     // Método recursivo para obtener la lista de campos no válidos, incluyendo subformularios
@@ -1064,36 +1068,59 @@ export class FormularioSocioeconomicoComponent {
     }
 
     sendRegistro() {
+        // Actualizar los valores del formulario con las listas correspondientes
         this.registrationForm.value.mediosDeVida.actividadEconomica =
             this.actividadEconomicaList;
         this.registrationForm.value.mediosDeVida.gastosHogar =
             this.gastosHogarList;
         this.registrationForm.value.familiaList = this.familiarList;
 
+        // Preparar el formulario para ser enviado
         const formData = this.prepareFormData(this.registrationForm);
         console.log('Data Simple', formData);
-        /*
+
         if (this.lastStatus) {
-            // Si hay conexión, envía los datos
-            this.registrationService
-                .sendRegistration(this.registrationForm.value)
-                .subscribe(
-                    (res) => {
-                        console.log(res);
-                        alert(`Registro exitoso con ID: ${res.data._id}`);
-                    },
-                    (error) => {
-                        console.error('Error al enviar los datos:', error);
+            // Si hay conexión, intenta enviar los datos al servidor
+            this.registrationService.sendRegistration(formData).subscribe(
+                (res) => {
+                    console.log('Respuesta del servidor:', res);
+                    alert(`Registro exitoso con ID: ${res.data._id}`);
+                },
+                (error) => {
+                    console.error('Error al enviar los datos:', error);
+
+                    // Manejo de errores específicos
+                    if (error.status === 409) {
+                        // Error de conflicto, mostrar información detallada
+                        const errorMessage = this.parseDuplicateKeyError(
+                            error.error?.error || error.message
+                        );
+                        alert(`Error: ${errorMessage}`);
+                    } else {
+                        // Otros errores
+                        alert(
+                            'Ocurrió un error al registrar los datos. Por favor, inténtalo de nuevo más tarde.'
+                        );
+
+                        // Guardar los datos localmente en caso de error
                         this.saveFormLocally();
                     }
-                );
+                }
+            );
         } else {
-            // Si no hay conexión, guarda los datos localmente
+            // Si no hay conexión, guardar los datos localmente
             this.saveFormLocally();
-        }*/
+        }
     }
 
-    // Método para preparar los datos del formulario antes de enviarlos o guardarlos
+    parseDuplicateKeyError(errorMessage: string): string {
+        const match = /dup key: { (.*) }/.exec(errorMessage);
+        if (match && match[1]) {
+            return `Ya existe un registro con los mismos datos: ${match[1]}`;
+        }
+        return 'Error de clave duplicada detectado.';
+    }
+
     // Método para preparar los datos del formulario antes de enviarlos o guardarlos
     prepareFormData(form: FormGroup): any {
         const formData = form.value;
@@ -1111,12 +1138,19 @@ export class FormularioSocioeconomicoComponent {
             }
             return data;
         };
+        // Función para transformar objetos con campos como label, value y code
+        const extractValue = (data: any) => {
+            if (data && typeof data === 'object' && data.value) {
+                return data.value; // Extrae solo el valor
+            }
+            return data;
+        };
 
         return {
             informacionRegistro: { ...formData.informacionRegistro },
             informacionPersonal: {
                 ...formData.informacionPersonal,
-                nacionalidad: transformData(
+                nacionalidad: extractValue(
                     formData.informacionPersonal.nacionalidad
                 ),
             },
@@ -1175,33 +1209,245 @@ export class FormularioSocioeconomicoComponent {
 
     async syncData() {
         try {
-            const storedFormData = await Preferences.get({ key: 'formData' });
+            const { pending } = await this.getLocalRecords();
 
-            if (storedFormData.value) {
-                const parsedData = JSON.parse(storedFormData.value);
-                const result = await this.registrationService
-                    .sendRegistration(parsedData)
-                    .toPromise();
+            if (pending.length === 0) {
+                alert('No hay registros pendientes para sincronizar.');
+                return;
+            }
 
-                // Si la solicitud es exitosa, elimina los datos almacenados
-                await Preferences.remove({ key: 'formData' });
-                alert(`Registro exitoso con ID: ${result.data._id}`);
+            for (const record of pending) {
+                // Verifica conectividad antes de enviar cada registro
+                const isConnected = await this.checkNetworkConnectivity();
+
+                if (!isConnected) {
+                    console.warn(
+                        `Sin conexión. Sincronización abortada para el registro con ID: ${record.id}`
+                    );
+                    break; // Si no hay conexión, salimos del bucle
+                }
+
+                try {
+                    const result = await this.registrationService
+                        .sendRegistration(record.formData)
+                        .toPromise();
+
+                    alert(`Registro enviado con ID: ${result.data._id}`);
+
+                    // Marca el registro como enviado
+                    await this.markAsSent(record.id);
+                } catch (error) {
+                    console.error(
+                        `Error al enviar registro con ID: ${record.id}`,
+                        error
+                    );
+                }
             }
         } catch (error) {
             console.error('Error al sincronizar datos:', error);
         }
     }
 
+    async checkNetworkConnectivity(): Promise<boolean> {
+        try {
+            const status = await Network.getStatus(); // Capacitor Network Plugin
+            return status.connected;
+        } catch (error) {
+            console.error('Error al verificar la conectividad:', error);
+            return false; // Asume que no hay conexión si ocurre un error
+        }
+    }
+
     async saveFormLocally() {
         try {
-            const formData = this.registrationForm.value;
-            await Preferences.set({
-                key: 'formData',
-                value: JSON.stringify(formData),
+            // Obtén los registros almacenados previamente
+            const storedData = await Preferences.get({ key: 'formDataList' });
+            const formDataList = storedData.value
+                ? JSON.parse(storedData.value)
+                : [];
+
+            // Agrega el nuevo registro con estado "pending"
+            formDataList.push({
+                id: new Date().getTime().toString(), // Generar ID único
+                formData: this.prepareFormData(this.registrationForm),
+                status: 'pending',
             });
+
+            await Preferences.set({
+                key: 'formDataList',
+                value: JSON.stringify(formDataList),
+            });
+
             alert('Datos guardados localmente. Se enviarán al conectarse.');
         } catch (error) {
             console.error('Error al guardar los datos localmente:', error);
+        }
+    }
+
+    async getLocalRecords() {
+        try {
+            const storedData = await Preferences.get({ key: 'formDataList' });
+            const formDataList = storedData.value
+                ? JSON.parse(storedData.value)
+                : [];
+
+            const pending = formDataList.filter(
+                (record) => record.status === 'pending'
+            );
+            const sent = formDataList.filter(
+                (record) => record.status === 'sent'
+            );
+
+            return { pending, sent };
+        } catch (error) {
+            console.error('Error al obtener los registros:', error);
+            return { pending: [], sent: [] };
+        }
+    }
+
+    async markAsSent(recordId: string) {
+        try {
+            const storedData = await Preferences.get({ key: 'formDataList' });
+            const formDataList = storedData.value
+                ? JSON.parse(storedData.value)
+                : [];
+
+            const updatedList = formDataList.map((record) =>
+                record.id === recordId ? { ...record, status: 'sent' } : record
+            );
+
+            await Preferences.set({
+                key: 'formDataList',
+                value: JSON.stringify(updatedList),
+            });
+        } catch (error) {
+            console.error('Error al actualizar el estado:', error);
+        }
+    }
+    displayDialogRecords: boolean = false;
+    localRecords: Array<any> = [];
+    editRecord(record: any) {
+        this.loadRecord(record);
+        this.displayDialogRecords = true;
+    }
+
+    async showRecords() {
+        const { pending, sent } = await this.getLocalRecords();
+
+        console.log('Registros pendientes:', pending);
+        console.log('Registros enviados:', sent);
+
+        // Puedes implementar una ventana modal o tabla para mostrar estos registros
+        alert(
+            `Pendientes: ${pending.length}, Enviados: ${sent.length}. Revisa la consola para más detalles.`
+        );
+        this.localRecords = [
+            ...pending.map((record) => ({ ...record, status: 'Pendiente' })),
+            ...sent.map((record) => ({ ...record, status: 'Enviado' })),
+        ];
+        console.log(this.localRecords);
+        this.displayDialogRecords = true;
+    }
+
+    // Método para cargar un registro pendiente en el formulario para editarlo
+    loadRecord(record: any) {
+        this.registrationForm.patchValue(record.formData);
+        alert('Registro cargado para edición.');
+    }
+
+    confirmDelete(record: any) {
+        this.confirmationService.confirm({
+            message: `¿Estás seguro de que deseas eliminar el registro con ID ${record.id}?`,
+            header: 'Confirmar eliminación',
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {
+                this.deleteRecord(record.id);
+            },
+            reject: () => {
+                this.messageService.add({
+                    severity: 'info',
+                    summary: 'Cancelado',
+                    detail: 'El registro no fue eliminado.',
+                });
+            },
+        });
+    }
+
+    async deleteRecord(recordId: string) {
+        try {
+            const storedData = await Preferences.get({ key: 'formDataList' });
+            const formDataList = storedData.value
+                ? JSON.parse(storedData.value)
+                : [];
+
+            const updatedList = formDataList.filter(
+                (record) => record.id !== recordId
+            );
+
+            await Preferences.set({
+                key: 'formDataList',
+                value: JSON.stringify(updatedList),
+            });
+
+            this.localRecords = this.localRecords.filter(
+                (record) => record.id !== recordId
+            );
+
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Eliminado',
+                detail: `El registro con ID ${recordId} fue eliminado exitosamente.`,
+            });
+        } catch (error) {
+            console.error('Error al eliminar el registro:', error);
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Hubo un problema al eliminar el registro.',
+            });
+        }
+    }
+
+    async calculateStorageUsage() {
+        let totalSize = 0;
+
+        const storedData = await Preferences.get({ key: 'formDataList' });
+        if (storedData.value) {
+            const dataSize = new Blob([storedData.value]).size; // Tamaño de los datos en bytes
+            totalSize += dataSize;
+        }
+
+        // Conversión a KB/MB
+        const usedKB = totalSize / 1024;
+        const usedMB = usedKB / 1024;
+
+        alert(
+            `Espacio utilizado: ${usedKB.toFixed(2)} KB (${usedMB.toFixed(
+                2
+            )} MB)`
+        );
+    }
+    async deleteSentRecords() {
+        try {
+            const storedData = await Preferences.get({ key: 'formDataList' });
+            const formDataList = storedData.value
+                ? JSON.parse(storedData.value)
+                : [];
+
+            const pendingRecords = formDataList.filter(
+                (record) => record.status !== 'sent'
+            );
+
+            await Preferences.set({
+                key: 'formDataList',
+                value: JSON.stringify(pendingRecords),
+            });
+
+            this.localRecords = pendingRecords; // Actualiza la tabla de registros locales
+
+            alert('Registros enviados eliminados correctamente.');
+        } catch (error) {
+            console.error('Error al eliminar registros enviados:', error);
         }
     }
 }
