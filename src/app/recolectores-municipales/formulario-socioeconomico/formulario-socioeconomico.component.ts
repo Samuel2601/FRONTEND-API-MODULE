@@ -267,7 +267,7 @@ export class FormularioSocioeconomicoComponent {
         { label: 'Luz', value: 'LUZ' },
         { label: 'Alcantarillado', value: 'ALCANTARILLADO' },
         { label: 'Recolección de Basura', value: 'RECOLECCION_BASURA' },
-        { label: 'Otros', value: 'OTROS' },
+        { label: 'Otros', value: 'OTRO' },
     ];
 
     tenenciaViviendaOptions: { label: string; value: string }[] = [
@@ -290,7 +290,7 @@ export class FormularioSocioeconomicoComponent {
     tipoAlumbradoOptions: { label: string; value: string }[] = [
         { label: 'Electricidad', value: 'ELECTRICIDAD' },
         { label: 'Lámparas', value: 'LAMPARAS' },
-        { label: 'Otros', value: 'OTROS' },
+        { label: 'Otros', value: 'OTRO' },
     ];
 
     abastecimientoAguaOptions: { label: string; value: string }[] = [
@@ -300,7 +300,7 @@ export class FormularioSocioeconomicoComponent {
         { label: 'Río', value: 'RIO' },
         { label: 'Tanquero', value: 'TANQUERO' },
         { label: 'Embotellada', value: 'EMBOTELLADA' },
-        { label: 'Otros', value: 'OTROS' },
+        { label: 'Otros', value: 'OTRO' },
     ];
 
     bienesServiciosElectrodomesticosOptions: {
@@ -320,7 +320,7 @@ export class FormularioSocioeconomicoComponent {
         { label: 'Plancha Eléctrica', value: 'PLANCHA_ELECTRICA' },
         { label: 'Microondas', value: 'MICROONDAS' },
         { label: 'No Quiso Responder', value: 'NO_RESPONDE' },
-        { label: 'Otros', value: 'OTROS' },
+        { label: 'Otros', value: 'OTRO' },
     ];
 
     zonaRiesgoOptions: { label: string; value: string }[] = [
@@ -328,7 +328,7 @@ export class FormularioSocioeconomicoComponent {
         { label: 'Desbordamientos del Río', value: 'DEBORDAMIENTOS_RIO' },
         { label: 'Inundaciones', value: 'INUNDACIONES' },
         { label: 'Incendios', value: 'INCENDIOS' },
-        { label: 'Otros', value: 'OTROS' },
+        { label: 'Otros', value: 'OTRO' },
         { label: 'No', value: 'NO' },
     ];
 
@@ -380,7 +380,7 @@ export class FormularioSocioeconomicoComponent {
         { label: 'Bono de la Tercera Edad', value: 'BONO_TERCERA_EDAD' },
         { label: 'Apoyo de ONG’s', value: 'APOYO_ONG' },
         { label: 'Pensión de Alimentos', value: 'PENSION_ALIMENTOS' },
-        { label: 'Otros', value: 'OTROS' },
+        { label: 'Otros', value: 'OTRO' },
         { label: 'Pensión por Jubilación', value: 'PENSION_JUBILACION' },
     ];
 
@@ -414,7 +414,7 @@ export class FormularioSocioeconomicoComponent {
         { label: 'CLUB DE POLICIA', value: 'CLUB DE POLICIA' },
         { label: 'CLUB DE ASESORIAS', value: 'CLUB DE ASESORIAS' },
         { label: 'CLUB DE ESTUDIANTES', value: 'CLUB DE ESTUDIANTES' },
-        { label: 'OTROS', value: 'OTROS' },
+        { label: 'OTROS', value: 'OTRO' },
         { label: 'Ninguno', value: 'NINGUNO' },
     ];
 
@@ -426,7 +426,7 @@ export class FormularioSocioeconomicoComponent {
         { label: "ONG'S", value: "ONG'S" },
         { label: 'INSTITUCIONES PÚBLICA', value: 'INSTITUCIONES PÚBLICA' },
         { label: 'Ninguno', value: 'NINGUNO' },
-        { label: 'OTROS', value: 'OTROS' },
+        { label: 'OTROS', value: 'OTRO' },
     ];
 
     actividadCantonDentroOptions = [
@@ -436,7 +436,7 @@ export class FormularioSocioeconomicoComponent {
         { label: 'DEPORTE', value: 'DEPORTE' },
         { label: 'CAMPO', value: 'CAMPO' },
         { label: 'PARQUES', value: 'PARQUES' },
-        { label: 'OTROS', value: 'OTROS' },
+        { label: 'OTROS', value: 'OTRO' },
         { label: 'Ninguno', value: 'NINGUNO' },
     ];
 
@@ -447,7 +447,7 @@ export class FormularioSocioeconomicoComponent {
         { label: 'DEPORTE', value: 'DEPORTE' },
         { label: 'CAMPO', value: 'CAMPO' },
         { label: 'PARQUES', value: 'PARQUES' },
-        { label: 'OTROS', value: 'OTROS' },
+        { label: 'OTROS', value: 'OTRO' },
         { label: 'Ninguno', value: 'NINGUNO' },
     ];
 
@@ -1064,7 +1064,14 @@ export class FormularioSocioeconomicoComponent {
     }
 
     sendRegistro() {
-        this.prepareFormData();
+        this.registrationForm.value.mediosDeVida.actividadEconomica =
+            this.actividadEconomicaList;
+        this.registrationForm.value.mediosDeVida.gastosHogar =
+            this.gastosHogarList;
+        this.registrationForm.value.familiaList = this.familiarList;
+
+        const formData = this.prepareFormData(this.registrationForm);
+        console.log('Data Simple', formData);
         /*
         if (this.lastStatus) {
             // Si hay conexión, envía los datos
@@ -1087,44 +1094,83 @@ export class FormularioSocioeconomicoComponent {
     }
 
     // Método para preparar los datos del formulario antes de enviarlos o guardarlos
-    prepareFormData() {
-        // Ajuste de datos según tus necesidades, como convertir listas a estructuras JSON
-        console.log(
-            'Preparando datos del formulario:',
-            this.registrationForm.value
-        );
+    // Método para preparar los datos del formulario antes de enviarlos o guardarlos
+    prepareFormData(form: FormGroup): any {
+        const formData = form.value;
 
-        // Extraer valores simples para nacionalidad
-        this.registrationForm.value.informacionPersonal.nacionalidad =
-            this.registrationForm.value.informacionPersonal.nacionalidad.value;
+        // Función para transformar datos personalizados en formato "OTRO: Detalle"
+        const transformData = (data: any) => {
+            if (Array.isArray(data)) {
+                return data.map((item) =>
+                    typeof item === 'object' && item.value
+                        ? item.value === 'OTRO' && item.customOther
+                            ? `OTRO: ${item.customOther}`
+                            : item.value
+                        : item
+                );
+            }
+            return data;
+        };
 
-        // Reemplazar actividadEconomica y gastosHogar con sus listas correspondientes
-        this.registrationForm.value.mediosDeVida.actividadEconomica =
-            this.actividadEconomicaList.map((item: any) => ({
-                nombre: item.nombre,
-            }));
-        this.registrationForm.value.mediosDeVida.gastosHogar =
-            this.gastosHogarList.map((gasto: any) => ({
-                tipo: gasto.tipo.value, // Extrae solo el valor
-                porcentaje: gasto.porcentaje,
-            }));
-
-        // Ajustar los elementos de familiarList
-        this.familiarList.forEach((element: any) => {
-            element.familiNacionalidad = element.familiNacionalidad.value;
-            element.familiEstadoCivil = element.familiEstadoCivil.value;
-            element.familiEtnia = element.familiEtnia.value;
-            element.familiNivelEducativo = element.familiNivelEducativo.value;
-            element.familiOcupacion = element.familiOcupacion.value;
-            element.familiDiscacidad = element.familiDiscacidad.value;
-            element.familiEnfermedad = element.familiEnfermedad.value;
-            element.familigenero = element.familigenero.value;
-        });
-
-        // Asignar la lista de familiares limpia al formulario
-        this.registrationForm.value.familiaList = this.familiarList;
-
-        console.log('Despues: ', this.registrationForm.value);
+        return {
+            informacionRegistro: { ...formData.informacionRegistro },
+            informacionPersonal: {
+                ...formData.informacionPersonal,
+                nacionalidad: transformData(
+                    formData.informacionPersonal.nacionalidad
+                ),
+            },
+            informacionUbicacion: { ...formData.informacionUbicacion },
+            salud: {
+                ...formData.salud,
+                causasSalud: transformData(formData.salud.causasSalud),
+            },
+            vivienda: {
+                ...formData.vivienda,
+                serviciosBasicos: transformData(
+                    formData.vivienda.serviciosBasicos
+                ),
+                documentosPropiedad: transformData(
+                    formData.vivienda.documentosPropiedad
+                ),
+                abastecimientoAgua: transformData(
+                    formData.vivienda.abastecimientoAgua
+                ),
+                bienesServiciosElectrodomesticos: transformData(
+                    formData.vivienda.bienesServiciosElectrodomesticos
+                ),
+            },
+            mediosDeVida: {
+                ...formData.mediosDeVida,
+                actividadEconomica:
+                    formData.mediosDeVida.actividadEconomica.map(
+                        (item: any) => item.nombre
+                    ),
+                gastosHogar: transformData(formData.mediosDeVida.gastosHogar),
+                fuentesIngresos: transformData(
+                    formData.mediosDeVida.fuentesIngresos
+                ),
+            },
+            redesDeApoyo: {
+                ...formData.redesDeApoyo,
+                actividadesBarrio: transformData(
+                    formData.redesDeApoyo.actividadesBarrio
+                ),
+                recibeayudaHumanitaria: transformData(
+                    formData.redesDeApoyo.recibeayudaHumanitaria
+                ),
+                actividadCantonDentro: transformData(
+                    formData.redesDeApoyo.actividadCantonDentro
+                ),
+                actividadCantonFuera: transformData(
+                    formData.redesDeApoyo.actividadCantonFuera
+                ),
+            },
+            familiaList: formData.familiaList.map((familiar: any) => ({
+                ...familiar,
+                familiNacionalidad: familiar.familiNacionalidad?.value,
+            })),
+        };
     }
 
     async syncData() {

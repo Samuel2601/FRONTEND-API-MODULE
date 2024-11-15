@@ -1237,15 +1237,10 @@
             margin-top: 1rem;
         "
     >
-        <button
-            pButton
-            type="submit"
-            label="Registrar"
-            [disabled]="!registrationForm.valid"
-        ></button>
+        <button pButton type="submit" label="Registrar"></button>
     </footer>
 </form>
-
+<!--   [disabled]="!registrationForm.valid" -->
 <!-- Tabla para mostrar los campos faltantes -->
 <div *ngIf="getInvalidFields().length > 0">
     <h3>Campos requeridos</h3>
@@ -1522,10 +1517,11 @@
             <label for="familiNacionalidad">Nacionalidad</label>
 
             <p-dropdown
+                [filter]="true"
                 appendTo="body"
                 [options]="nacionalidadOptions"
                 [(ngModel)]="familiarActual.familiNacionalidad"
-                optionLabel="name"
+                optionLabel="label"
                 [showClear]="true"
                 placeholder="Select a un País"
             >
