@@ -1,5 +1,5 @@
-<p-toast></p-toast>
 <button (click)="showRecords()" pButton>Ver registros</button>
+<button (click)="cleanform()" pButton>Limpiar formulario</button>
 
 <p-dialog
     header="Registros Locales"
@@ -17,22 +17,48 @@
                 </tr>
             </ng-template>
             <ng-template pTemplate="body" let-record>
-                <tr>
+                <tr
+                    [ngClass]="{
+                        'highlighted-row': currentRecordId === record.id
+                    }"
+                >
                     <td>{{ record.id }}</td>
-                    <td>{{ record.status }}</td>
+                    <td>
+                        <p-badge
+                            *ngIf="record.status === 'Enviado'"
+                            [value]="'Enviado'"
+                            severity="success"
+                        />
+                        <p-badge
+                            *ngIf="record.status === 'Pendiente'"
+                            [value]="'Pendiente'"
+                            severity="warning"
+                        />
+                    </td>
                     <td>
                         <button
                             pButton
                             type="button"
                             label="Editar"
                             (click)="editRecord(record)"
+                            *ngIf="record.status === 'Pendiente'"
                         ></button>
+                        <button
+                            pButton
+                            type="button"
+                            label="Enviar"
+                            class="p-button-success"
+                            (click)="sendRecordManually(record)"
+                            *ngIf="record.status === 'Pendiente'"
+                        ></button>
+                        <p-toast />
+                        <p-confirmPopup />
                         <button
                             pButton
                             type="button"
                             label="Eliminar"
                             class="p-button-danger"
-                            (click)="confirmDelete(record)"
+                            (click)="confirmDelete(record, $event)"
                             *ngIf="record.status === 'Pendiente'"
                         ></button>
                     </td>
@@ -54,15 +80,15 @@
         ></button>
         <button
             pButton
-            type="button"
-            label="Cerrar"
-            icon="pi pi-times"
-            (click)="displayDialogRecords = false"
+            label="Enviar Todos los Pendientes"
+            class="p-button-success"
+            (click)="syncData()"
         ></button>
     </ng-template>
 </p-dialog>
 
 <form action="" [formGroup]="registrationForm" (ngSubmit)="sendRegistro()">
+    <p-toast></p-toast>
     <p-panel
         header="Información de Registro"
         formGroupName="informacionRegistro"
@@ -71,7 +97,7 @@
             <div class="p-field">
                 <label for="date">Fecha</label>
                 <input
-                    id="date"
+                    id="informacionRegistro.date"
                     pInputText
                     type="date"
                     formControlName="date"
@@ -83,7 +109,7 @@
                 <label for="encuestador">Encuestador</label>
                 <input
                     *ngIf="!username"
-                    id="encuestador"
+                    id="informacionRegistro.encuestador"
                     pInputText
                     formControlName="encuestador"
                 />
@@ -99,7 +125,7 @@
             <div class="p-field">
                 <label for="entrevistado">Entrevistado</label>
                 <input
-                    id="entrevistado"
+                    id="informacionPersonal.entrevistado"
                     pInputText
                     formControlName="entrevistado"
                     class="p-inputtext-sm p-d-block"
@@ -111,7 +137,7 @@
             <div class="p-field">
                 <label for="dni">Nº Cédula</label>
                 <input
-                    id="dni"
+                    id="informacionPersonal.dni"
                     pInputText
                     formControlName="dni"
                     class="p-inputtext-sm p-d-block"
@@ -125,7 +151,7 @@
             <div class="p-field">
                 <label for="edad">Edad</label>
                 <input
-                    id="edad"
+                    id="informacionPersonal.edad"
                     pInputText
                     type="number"
                     formControlName="edad"
@@ -138,6 +164,7 @@
             <div class="p-field">
                 <label for="nacionalidad">Nacionalidad</label>
                 <p-dropdown
+                    id="informacionPersonal.nacionalidad"
                     [filter]="true"
                     [options]="nacionalidadOptions"
                     formControlName="nacionalidad"
@@ -190,7 +217,7 @@
             <div class="p-field">
                 <label for="phone">Teléfono</label>
                 <input
-                    id="phone"
+                    id="informacionPersonal.phone"
                     pInputText
                     formControlName="phone"
                     class="p-inputtext-sm p-d-block"
@@ -210,7 +237,7 @@
                 <label for="posesionTime">Tiempo de Posesión</label>
                 <div>
                     <input
-                        id="posesionTime"
+                        id="informacionUbicacion.posesionTime"
                         pInputText
                         formControlName="posesionTimeNumber"
                         type="number"
@@ -233,26 +260,38 @@
         <div class="col-6">
             <div class="p-field">
                 <label for="sector">Sector</label>
-                <input id="sector" pInputText formControlName="sector" />
+                <input
+                    id="informacionUbicacion.sector"
+                    pInputText
+                    formControlName="sector"
+                />
             </div>
         </div>
         <div class="col-6">
             <div class="p-field">
                 <label for="barrio">Barrio</label>
-                <input id="barrio" pInputText formControlName="barrio" />
+                <input
+                    id="informacionUbicacion.barrio"
+                    pInputText
+                    formControlName="barrio"
+                />
             </div>
         </div>
         <div class="col-6">
             <div class="p-field">
                 <label for="manzana">Manzana</label>
-                <input id="manzana" pInputText formControlName="manzana" />
+                <input
+                    id="informacionUbicacion.manzana"
+                    pInputText
+                    formControlName="manzana"
+                />
             </div>
         </div>
         <div class="col-6">
             <div class="p-field">
                 <label for="lotenumero">Lote Número</label>
                 <input
-                    id="lotenumero"
+                    id="informacionUbicacion.lotenumero"
                     pInputText
                     formControlName="lotenumero"
                 />
@@ -264,7 +303,7 @@
                     >¿Cuántas familias viven en el hogar?
                 </label>
                 <input
-                    id="familyCount"
+                    id="informacionUbicacion.familyCount"
                     pInputText
                     type="number"
                     formControlName="familyCount"
@@ -278,7 +317,7 @@
                     >¿Cuántas personas viven en el hogar?</label
                 >
                 <input
-                    id="peopleCount"
+                    id="informacionUbicacion.peopleCount"
                     pInputText
                     type="number"
                     formControlName="peopleCount"
@@ -290,6 +329,7 @@
             <div class="p-field">
                 <label for="houseState">Estado actual de la Vivienda</label>
                 <p-dropdown
+                    id="informacionUbicacion.houseState"
                     [options]="houseStateOptions"
                     formControlName="houseState"
                     placeholder="Seleccione el estado"
@@ -314,6 +354,7 @@
                     >¿Cómo usted evalúa su estado de salud?</label
                 >
                 <p-dropdown
+                    id="salud.estadoSalud"
                     [options]="estadoSaludOptions"
                     formControlName="estadoSalud"
                     placeholder="Seleccione el estado"
@@ -337,6 +378,7 @@
                 </label>
                 <div>
                     <p-multiSelect
+                        id="salud.causasSalud"
                         appendTo="body"
                         [filter]="false"
                         selectedItemsLabel="{0} seleccionado"
@@ -378,6 +420,7 @@
                     conectado a:
                 </label>
                 <p-dropdown
+                    id="salud.conexionHigienico"
                     [options]="conexionHigienicoOptions"
                     formControlName="conexionHigienico"
                     placeholder="Seleccione la conexión"
@@ -402,6 +445,7 @@
                     >Estructura de la Vivienda</label
                 >
                 <p-dropdown
+                    id="vivienda.estructuraVivienda"
                     [options]="estructuraViviendaOptions"
                     formControlName="estructuraVivienda"
                     placeholder="Seleccione la estructura"
@@ -424,6 +468,7 @@
                 </label>
                 <div>
                     <p-multiSelect
+                        id="vivienda.serviciosBasicos"
                         appendTo="body"
                         [filter]="false"
                         selectedItemsLabel="{0} seleccionado"
@@ -466,6 +511,7 @@
                     >La tenencia de la vivienda es</label
                 >
                 <p-dropdown
+                    id="vivienda.tenenciaVivienda"
                     [options]="tenenciaViviendaOptions"
                     formControlName="tenenciaVivienda"
                     placeholder="Seleccione la tenencia"
@@ -488,6 +534,7 @@
                     >Qué documentos relativos a la propiedad usted tiene:
                 </label>
                 <p-multiSelect
+                    id="vivienda.documentosPropiedad"
                     appendTo="body"
                     [filter]="false"
                     selectedItemsLabel="{0} seleccionado"
@@ -517,6 +564,7 @@
             >
                 <label for="numPisos">¿Cuántos pisos posee la vivienda? </label>
                 <input
+                    id="vivienda.numPisos"
                     type="number"
                     pInputText
                     formControlName="numPisos"
@@ -539,6 +587,7 @@
                     >¿Cuántas habitaciones posee la vivienda?
                 </label>
                 <input
+                    id="vivienda.numHabitaciones"
                     type="number"
                     pInputText
                     formControlName="numHabitaciones"
@@ -562,6 +611,7 @@
                     >Tipo de alumbrado de la Vivienda</label
                 >
                 <p-dropdown
+                    id="vivienda.tipoAlumbrado"
                     [options]="tipoAlumbradoOptions"
                     formControlName="tipoAlumbrado"
                     placeholder="Seleccione el tipo de alumbrado"
@@ -585,6 +635,7 @@
                 </label>
                 <div>
                     <p-multiSelect
+                        id="vivienda.abastecimientoAgua"
                         appendTo="body"
                         [filter]="false"
                         selectedItemsLabel="{0} seleccionado"
@@ -629,6 +680,7 @@
 
                 <div>
                     <p-multiSelect
+                        id="vivienda.bienesServiciosElectrodomesticos"
                         appendTo="body"
                         [filter]="false"
                         selectedItemsLabel="{0} seleccionado"
@@ -680,6 +732,7 @@
                     >¿Su vivienda se encuentra en una zona de riesgo?</label
                 >
                 <p-dropdown
+                    id="vivienda.zonaRiesgo"
                     [options]="zonaRiesgoOptions"
                     formControlName="zonaRiesgo"
                     placeholder="Seleccione la zona de riesgo"
@@ -704,6 +757,7 @@
                     >Ha participado en algún tipo de capacitación</label
                 >
                 <p-dropdown
+                    id="mediosDeVida.participacionCapacitacion"
                     [options]="participacionCapacitacionOptions"
                     formControlName="participacionCapacitacion"
                     placeholder="Seleccione una opción"
@@ -725,6 +779,7 @@
                     >¿Cuántos trabajos desempeña?
                 </label>
                 <input
+                    id="mediosDeVida.cuantosTrabajos"
                     type="number"
                     pInputText
                     formControlName="cuantosTrabajos"
@@ -747,6 +802,7 @@
                     >En los últimos 12 meses, ha tenido una actividad laboral:
                 </label>
                 <p-dropdown
+                    id="mediosDeVida.actividadLaboral"
                     [options]="actividadLaboralOptions"
                     formControlName="actividadLaboral"
                     placeholder="Seleccione una opción"
@@ -827,6 +883,7 @@
                     >Trabaja en relación de dependencia?</label
                 >
                 <p-dropdown
+                    id="mediosDeVida.relacionDependencia"
                     [options]="relacionDependenciaOptions"
                     formControlName="relacionDependencia"
                     placeholder="Seleccione una opción"
@@ -847,6 +904,7 @@
             >
                 <label for="cuentaPropia">Trabaja por cuenta propia?</label>
                 <p-dropdown
+                    id="mediosDeVida.cuentaPropia"
                     [options]="cuentaPropiaOptions"
                     formControlName="cuentaPropia"
                     placeholder="Seleccione una opción"
@@ -870,6 +928,7 @@
                     ingresos de todos los individuos activos)</label
                 >
                 <p-dropdown
+                    id="mediosDeVida.ingresosMensuales"
                     [options]="ingresosMensualesOptions"
                     formControlName="ingresosMensuales"
                     placeholder="Seleccione una opción"
@@ -952,6 +1011,7 @@
                 </label>
                 <div>
                     <p-multiSelect
+                        id="mediosDeVida.fuentesIngresos"
                         appendTo="body"
                         [filter]="false"
                         selectedItemsLabel="{0} seleccionado"
@@ -1001,6 +1061,7 @@
 
                 <div>
                     <p-multiSelect
+                        id="redesDeApoyo.actividadesBarrio"
                         appendTo="body"
                         [filter]="false"
                         selectedItemsLabel="{0} seleccionado"
@@ -1045,6 +1106,7 @@
 
                 <div>
                     <p-multiSelect
+                        id="redesDeApoyo.recibeayudaHumanitaria"
                         appendTo="body"
                         [filter]="false"
                         selectedItemsLabel="{0} seleccionado"
@@ -1089,6 +1151,7 @@
                 >
                 <div>
                     <p-multiSelect
+                        id="redesDeApoyo.actividadCantonDentro"
                         appendTo="body"
                         [filter]="false"
                         selectedItemsLabel="{0} seleccionado"
@@ -1134,6 +1197,7 @@
 
                 <div>
                     <p-multiSelect
+                        id="redesDeApoyo.actividadCantonFuera"
                         appendTo="body"
                         [filter]="false"
                         selectedItemsLabel="{0} seleccionado"
@@ -1176,6 +1240,7 @@
                     >¿Qué sugiere usted para mejorar su barrio? (Seleccionar 3)
                 </label>
                 <p-multiSelect
+                    id="redesDeApoyo.mejorasBarrio"
                     appendTo="body"
                     [filter]="false"
                     selectedItemsLabel="{0} seleccionado"
@@ -1203,7 +1268,12 @@
                 <label for="mejoraPlus"
                     >Propuestas adicionales para la mejora del barrio</label
                 >
-                <input type="text" pInputText formControlName="mejoraPlus" />
+                <input
+                    id="redesDeApoyo.mejoraPlus"
+                    type="text"
+                    pInputText
+                    formControlName="mejoraPlus"
+                />
             </div>
         </div>
     </p-panel>
@@ -1300,26 +1370,52 @@
             margin-top: 1rem;
         "
     >
-        <button pButton type="submit" label="Registrar"></button>
+        <button
+            pButton
+            type="submit"
+            label="Registrar"
+            [disabled]="!registrationForm.valid"
+        ></button>
     </footer>
 </form>
+
+<!-- Ícono flotante de advertencia -->
+<button
+    pButton
+    icon="pi pi-exclamation-circle"
+    styleClass="warning-button"
+    (click)="showInvalidFieldsDialog()"
+    class="warning-button"
+></button>
+
+<!-- Dialogo que se muestra al hacer clic en el ícono -->
+<p-dialog
+    header="Campos requeridos o inválidos"
+    [(visible)]="invalidFieldsDialogVisible"
+    [closable]="true"
+    [modal]="true"
+    [style]="{ width: '80%' }"
+    [resizable]="false"
+>
+    <!-- Tabla para mostrar los campos faltantes -->
+    <div *ngIf="getInvalidFields().length > 0" class="invalid-fields-container">
+        <ul class="invalid-fields-list">
+            <li
+                *ngFor="let field of getInvalidFields()"
+                class="invalid-field"
+                (click)="scrollToField(field)"
+            >
+                <span
+                    icon="pi pi-exclamation-triangle"
+                    styleClass="error-icon"
+                ></span>
+                <span>{{ field }}</span>
+            </li>
+        </ul>
+    </div>
+</p-dialog>
+
 <!--   [disabled]="!registrationForm.valid" -->
-<!-- Tabla para mostrar los campos faltantes -->
-<div *ngIf="getInvalidFields().length > 0">
-    <h3>Campos requeridos</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Campo</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr *ngFor="let field of getInvalidFields()">
-                <td>{{ field }}</td>
-            </tr>
-        </tbody>
-    </table>
-</div>
 
 <!-- Diálogo para agregar o editar Actividad Económica -->
 <p-dialog

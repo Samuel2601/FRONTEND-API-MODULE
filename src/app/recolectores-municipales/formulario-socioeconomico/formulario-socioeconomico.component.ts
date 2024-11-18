@@ -131,7 +131,9 @@ export class FormularioSocioeconomicoComponent implements OnInit {
     async ngOnInit() {
         await this.initializeNetworkListener();
     }
-
+    cleanform() {
+        this.registrationForm.reset();
+    }
     // Método recursivo para obtener la lista de campos no válidos, incluyendo subformularios
     getInvalidFields(
         control: AbstractControl = this.registrationForm,
@@ -184,7 +186,7 @@ export class FormularioSocioeconomicoComponent implements OnInit {
             if (isOtroSelected) {
                 this.key = formControlName;
                 this.isOtroSelected[this.key] = true;
-                this.displayDialogOtherCause = true;
+                //this.displayDialogOtherCause = true;
             }
         }
 
@@ -1067,49 +1069,50 @@ export class FormularioSocioeconomicoComponent implements OnInit {
         });
     }
 
-    sendRegistro() {
-        // Actualizar los valores del formulario con las listas correspondientes
-        this.registrationForm.value.mediosDeVida.actividadEconomica =
-            this.actividadEconomicaList;
-        this.registrationForm.value.mediosDeVida.gastosHogar =
-            this.gastosHogarList;
-        this.registrationForm.value.familiaList = this.familiarList;
+    async sendRegistro() {
+        if (this.registrationForm.valid) {
+            // Actualizar los valores del formulario con las listas correspondientes
+            this.registrationForm.value.mediosDeVida.actividadEconomica =
+                this.actividadEconomicaList;
+            this.registrationForm.value.mediosDeVida.gastosHogar =
+                this.gastosHogarList;
+            this.registrationForm.value.familiaList = this.familiarList;
+            if (this.currentRecordId) {
+                await this.updateRecord();
+            } else {
+                await this.saveFormLocally();
+            }
 
-        // Preparar el formulario para ser enviado
-        const formData = this.prepareFormData(this.registrationForm);
-        console.log('Data Simple', formData);
-
-        if (this.lastStatus) {
-            // Si hay conexión, intenta enviar los datos al servidor
-            this.registrationService.sendRegistration(formData).subscribe(
-                (res) => {
-                    console.log('Respuesta del servidor:', res);
-                    alert(`Registro exitoso con ID: ${res.data._id}`);
-                },
-                (error) => {
-                    console.error('Error al enviar los datos:', error);
-
-                    // Manejo de errores específicos
-                    if (error.status === 409) {
-                        // Error de conflicto, mostrar información detallada
-                        const errorMessage = this.parseDuplicateKeyError(
-                            error.error?.error || error.message
-                        );
-                        alert(`Error: ${errorMessage}`);
-                    } else {
-                        // Otros errores
-                        alert(
-                            'Ocurrió un error al registrar los datos. Por favor, inténtalo de nuevo más tarde.'
-                        );
-
-                        // Guardar los datos localmente en caso de error
-                        this.saveFormLocally();
-                    }
-                }
-            );
+            if (this.lastStatus) {
+                this.syncData();
+            }
         } else {
-            // Si no hay conexión, guardar los datos localmente
-            this.saveFormLocally();
+            this.highlightInvalidFields();
+        }
+    }
+    async updateRecord() {
+        try {
+            const storedData = await Preferences.get({ key: 'formDataList' });
+            const formDataList = storedData.value
+                ? JSON.parse(storedData.value)
+                : [];
+
+            const updatedList = formDataList.map((record) =>
+                record.id === this.currentRecordId
+                    ? { ...record, formData: this.registrationForm.value }
+                    : record
+            );
+            this.currentRecordId = null;
+
+            await Preferences.set({
+                key: 'formDataList',
+                value: JSON.stringify(updatedList),
+            });
+            this.displayDialogRecords = true;
+            this.showRecords();
+            alert('Registro actualizado correctamente');
+        } catch (error) {
+            console.error('Error al actualizar el estado:', error);
         }
     }
 
@@ -1122,8 +1125,9 @@ export class FormularioSocioeconomicoComponent implements OnInit {
     }
 
     // Método para preparar los datos del formulario antes de enviarlos o guardarlos
-    prepareFormData(form: FormGroup): any {
-        const formData = form.value;
+    prepareFormData(form: any): any {
+        console.log('form', form);
+        const formData = form;
 
         // Función para transformar datos personalizados en formato "OTRO: Detalle"
         const transformData = (data: any) => {
@@ -1207,7 +1211,12 @@ export class FormularioSocioeconomicoComponent implements OnInit {
         };
     }
 
+    private isSyncing: boolean = false;
+
     async syncData() {
+        if (this.isSyncing) return;
+        this.isSyncing = true;
+
         try {
             const { pending } = await this.getLocalRecords();
 
@@ -1216,26 +1225,52 @@ export class FormularioSocioeconomicoComponent implements OnInit {
                 return;
             }
 
+            // Verifica conectividad antes de enviar cada registro
+            const isConnected = await this.checkNetworkConnectivity();
+
+            if (!isConnected) {
+                console.warn(
+                    `Sin conexión. Sincronización abortada para ${pending.length} registros.`
+                );
+                return; // Si no hay conexión, salimos del bucle
+            }
+
             for (const record of pending) {
-                // Verifica conectividad antes de enviar cada registro
-                const isConnected = await this.checkNetworkConnectivity();
-
-                if (!isConnected) {
-                    console.warn(
-                        `Sin conexión. Sincronización abortada para el registro con ID: ${record.id}`
-                    );
-                    break; // Si no hay conexión, salimos del bucle
-                }
-
                 try {
-                    const result = await this.registrationService
-                        .sendRegistration(record.formData)
-                        .toPromise();
-
-                    alert(`Registro enviado con ID: ${result.data._id}`);
-
-                    // Marca el registro como enviado
-                    await this.markAsSent(record.id);
+                    // Preparar el formulario para ser enviado
+                    const formData = this.prepareFormData(record.formData);
+                    await this.registrationService
+                        .sendRegistration(formData)
+                        .subscribe(
+                            async (res) => {
+                                console.log('Respuesta del servidor:', res);
+                                alert(
+                                    `Registro exitoso con ID: ${res.data._id}`
+                                );
+                                // Marca el registro como enviado
+                                await this.markAsSent(record.id);
+                            },
+                            (error) => {
+                                console.error(
+                                    'Error al enviar los datos:',
+                                    error
+                                );
+                                // Manejo de errores específicos
+                                if (error.status === 409) {
+                                    // Error de conflicto, mostrar información detallada
+                                    const errorMessage =
+                                        this.parseDuplicateKeyError(
+                                            error.error?.error || error.message
+                                        );
+                                    alert(`Error: ${errorMessage}`);
+                                } else {
+                                    // Otros errores
+                                    alert(
+                                        'Ocurrió un error al registrar los datos. Por favor, inténtalo de nuevo más tarde.'
+                                    );
+                                }
+                            }
+                        );
                 } catch (error) {
                     console.error(
                         `Error al enviar registro con ID: ${record.id}`,
@@ -1245,6 +1280,8 @@ export class FormularioSocioeconomicoComponent implements OnInit {
             }
         } catch (error) {
             console.error('Error al sincronizar datos:', error);
+        } finally {
+            this.isSyncing = false;
         }
     }
 
@@ -1269,7 +1306,7 @@ export class FormularioSocioeconomicoComponent implements OnInit {
             // Agrega el nuevo registro con estado "pending"
             formDataList.push({
                 id: new Date().getTime().toString(), // Generar ID único
-                formData: this.prepareFormData(this.registrationForm),
+                formData: this.registrationForm.value,
                 status: 'pending',
             });
 
@@ -1328,7 +1365,7 @@ export class FormularioSocioeconomicoComponent implements OnInit {
     localRecords: Array<any> = [];
     editRecord(record: any) {
         this.loadRecord(record);
-        this.displayDialogRecords = true;
+        this.displayDialogRecords = false;
     }
 
     async showRecords() {
@@ -1349,19 +1386,39 @@ export class FormularioSocioeconomicoComponent implements OnInit {
         this.displayDialogRecords = true;
     }
 
+    // Variable para almacenar el ID del registro que se está editando
+    currentRecordId: string | null = null;
+
     // Método para cargar un registro pendiente en el formulario para editarlo
     loadRecord(record: any) {
         this.registrationForm.patchValue(record.formData);
+        this.actividadEconomicaList =
+            this.registrationForm.value.mediosDeVida.actividadEconomica;
+        this.gastosHogarList =
+            this.registrationForm.value.mediosDeVida.gastosHogar;
+        this.familiarList = this.registrationForm.value.familiaList;
+        // Almacena el ID del registro actualmente en edición
+        this.currentRecordId = record.id;
         alert('Registro cargado para edición.');
     }
 
-    confirmDelete(record: any) {
+    confirmDelete(record: any, event: Event) {
         this.confirmationService.confirm({
-            message: `¿Estás seguro de que deseas eliminar el registro con ID ${record.id}?`,
+            target: event.target as EventTarget,
+            message: `¿Estás seguro de que deseas eliminar el registro con ID: ${record.id}?`,
             header: 'Confirmar eliminación',
             icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Eliminar',
+            rejectLabel: 'Cancelar',
+            acceptButtonStyleClass: 'p-button-danger',
+            rejectButtonStyleClass: 'p-button-secondary',
             accept: () => {
                 this.deleteRecord(record.id);
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Eliminado',
+                    detail: `El registro con ID ${record.id} fue eliminado exitosamente.`,
+                });
             },
             reject: () => {
                 this.messageService.add({
@@ -1446,8 +1503,74 @@ export class FormularioSocioeconomicoComponent implements OnInit {
             this.localRecords = pendingRecords; // Actualiza la tabla de registros locales
 
             alert('Registros enviados eliminados correctamente.');
+            this.showRecords();
         } catch (error) {
             console.error('Error al eliminar registros enviados:', error);
+        }
+    }
+    async sendRecordManually(record: any) {
+        try {
+            // Verifica conectividad antes de enviar
+            const isConnected = await this.checkNetworkConnectivity();
+            if (!isConnected) {
+                alert('Sin conexión. No se puede enviar el registro.');
+                return;
+            }
+
+            // Envía el registro al servidor
+            const response = await this.registrationService
+                .sendRegistration(record.formData)
+                .toPromise();
+
+            alert(
+                `Registro enviado con éxito. ID de Respuesta: ${response.data._id}`
+            );
+
+            // Marca como enviado y actualiza el almacenamiento local
+            await this.markAsSent(record.id);
+
+            // Actualiza los datos en la tabla
+            await this.showRecords();
+        } catch (error) {
+            console.error('Error al enviar el registro manualmente:', error);
+            alert('Error al enviar el registro. Intenta de nuevo más tarde.');
+        }
+    }
+    // Control de la visibilidad del diálogo
+    invalidFieldsDialogVisible: boolean = false;
+    // Mostrar el diálogo al hacer clic en el ícono de advertencia
+    showInvalidFieldsDialog() {
+        this.invalidFieldsDialogVisible = true;
+    }
+
+    // Llamado cuando el usuario hace clic en un campo inválido
+    scrollToField(field: string) {
+        console.log('Campo inválido:', field);
+        const fieldElement = document.getElementById(field);
+        if (fieldElement) {
+            fieldElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+            });
+            fieldElement.focus(); // Asegura que el campo sea enfocado
+            this.invalidFieldsDialogVisible = false; // Cerrar el diálogo
+        }
+    }
+
+    // Función que verifica si un campo está inválido
+    isFieldInvalid(fieldName: string): boolean {
+        const field = this.registrationForm.get(fieldName);
+        return field?.invalid && (field?.touched || field?.dirty);
+    }
+
+    // Resalta los campos inválidos y hace scroll hasta el primero
+    highlightInvalidFields() {
+        const invalidFields = Object.keys(
+            this.registrationForm.controls
+        ).filter((field) => this.isFieldInvalid(field));
+
+        if (invalidFields.length > 0) {
+            this.scrollToField(invalidFields[0]); // Enfoca el primer campo inválido
         }
     }
 }
