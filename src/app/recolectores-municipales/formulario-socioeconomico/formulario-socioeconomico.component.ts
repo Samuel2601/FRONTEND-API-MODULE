@@ -128,18 +128,45 @@ export class FormularioSocioeconomicoComponent implements OnInit {
             .get('informacionRegistro.date')
             ?.setValue(currentDate);
     }
+    balanceFrozen: boolean = false;
+    toggleFrozen(): void {
+        this.balanceFrozen = !this.balanceFrozen;
+    }
     async ngOnInit() {
         await this.initializeNetworkListener();
     }
     cleanform() {
         this.registrationForm.reset();
+        const userDate = this.authService.authToken();
+
+        this.username = userDate.last_name + ' ' + userDate.name;
+        // Asigna la fecha actual al control 'date' al inicializar el componente
+        const currentDate = new Date().toISOString().split('T')[0]; // Formato 'YYYY-MM-DD' para el input date
+        this.registrationForm
+            .get('informacionRegistro.date')
+            ?.setValue(currentDate);
+        this.registrationForm
+            .get('informacionRegistro.encuestador')
+            ?.setValue(this.authService.idUserToken());
+        this.currentRecordId = null;
+        this.isEditMode = false;
+        this.isSent = false;
     }
     // Método recursivo para obtener la lista de campos no válidos, incluyendo subformularios
-    getInvalidFields(
+    getInvalidFieldsWithMessages(
         control: AbstractControl = this.registrationForm,
         parentKey: string = ''
-    ): string[] {
-        let invalidFields: string[] = [];
+    ): { field: string; message: string }[] {
+        const invalidFields: { field: string; message: string }[] = [];
+
+        const errorMessages: { [key: string]: string } = {
+            required: 'Este campo es obligatorio',
+            maxlength: 'El valor excede la longitud máxima permitida',
+            minlength: 'El valor no cumple con la longitud mínima requerida',
+            pattern: 'El formato del campo no es válido',
+            min: 'El valor es menor al mínimo permitido',
+            max: 'El valor excede el máximo permitido',
+        };
 
         if (control instanceof FormGroup) {
             Object.keys(control.controls).forEach((key) => {
@@ -148,11 +175,24 @@ export class FormularioSocioeconomicoComponent implements OnInit {
 
                 if (nestedControl && nestedControl.invalid) {
                     if (nestedControl instanceof FormGroup) {
-                        invalidFields = invalidFields.concat(
-                            this.getInvalidFields(nestedControl, controlKey)
+                        invalidFields.push(
+                            ...this.getInvalidFieldsWithMessages(
+                                nestedControl,
+                                controlKey
+                            )
                         );
-                    } else {
-                        invalidFields.push(controlKey);
+                    } else if (nestedControl.errors) {
+                        Object.keys(nestedControl.errors).forEach(
+                            (errorKey) => {
+                                const message =
+                                    errorMessages[errorKey] ||
+                                    'Error desconocido.';
+                                invalidFields.push({
+                                    field: controlKey,
+                                    message,
+                                });
+                            }
+                        );
                     }
                 }
             });
@@ -1102,18 +1142,133 @@ export class FormularioSocioeconomicoComponent implements OnInit {
                     ? { ...record, formData: this.registrationForm.value }
                     : record
             );
+
+            let update = false;
+
+            if (this.isSent) {
+                // Reemplaza la confirmación por un método personalizado que devuelva una promesa
+                const confirmed = await this.showConfirmationAlert(
+                    '¿Deseas actualizar este registro?',
+                    'Confirmación'
+                );
+                if (!confirmed) {
+                    return; // Detiene la ejecución si el usuario cancela
+                }
+                update = true;
+            } else {
+                await Preferences.set({
+                    key: 'formDataList',
+                    value: JSON.stringify(updatedList),
+                });
+            }
+
+            if (update) {
+                const recordToUpdate = formDataList.filter(
+                    (record) => record.id === this.currentRecordId
+                );
+
+                recordToUpdate[0].formData = this.registrationForm.value;
+
+                await this.sendRecordManually(recordToUpdate[0]); // Envía solo el primer registro coincidente
+
+                await Preferences.set({
+                    key: 'formDataList',
+                    value: JSON.stringify(updatedList),
+                });
+            }
+
             this.currentRecordId = null;
 
-            await Preferences.set({
-                key: 'formDataList',
-                value: JSON.stringify(updatedList),
-            });
             this.displayDialogRecords = true;
-            this.showRecords();
-            alert('Registro actualizado correctamente');
+            await this.showRecords();
+            /*alert('Registro actualizado correctamente');*/
         } catch (error) {
             console.error('Error al actualizar el estado:', error);
         }
+    }
+
+    async sendRecordManually(record: any) {
+        console.log('sendRecordManually', record);
+        try {
+            // Verifica conectividad antes de enviar
+            const isConnected = await this.checkNetworkConnectivity();
+            if (!isConnected) {
+                alert('Sin conexión. No se puede enviar el registro.');
+                if (record.iddata) {
+                    this.markAsSent(record.id, record.iddata, 'pending');
+                }
+                return;
+            }
+            const formdata = this.prepareFormData(record.formData);
+
+            let response;
+            if (record.iddata) {
+                response = await this.registrationService
+                    .updateRegistro(formdata, record.iddata)
+                    .toPromise();
+                if (response.error) {
+                    // Manejo de errores específicos
+                    if (response.error.status === 409) {
+                        // Error de conflicto, mostrar información detallada
+                        const errorMessage = this.parseDuplicateKeyError(
+                            response.error.error?.error ||
+                                response.error.message
+                        );
+                        alert(`Error: ${errorMessage}`);
+                    } else {
+                        // Otros errores
+                        alert(
+                            'Ocurrió un error al registrar los datos. Por favor, inténtalo de nuevo más tarde.'
+                        );
+                    }
+                }
+            } else {
+                response = await this.registrationService
+                    .sendRegistration(formdata)
+                    .toPromise();
+                if (response.error) {
+                    // Manejo de errores específicos
+                    if (response.error.status === 409) {
+                        // Error de conflicto, mostrar información detallada
+                        const errorMessage = this.parseDuplicateKeyError(
+                            response.error.error?.error ||
+                                response.error.message
+                        );
+                        alert(`Error: ${errorMessage}`);
+                    } else {
+                        // Otros errores
+                        alert(
+                            'Ocurrió un error al registrar los datos. Por favor, inténtalo de nuevo más tarde.'
+                        );
+                    }
+                }
+            }
+            console.log('response', response);
+            if (response.data) {
+                /*alert(
+                    `Registro enviado con éxito. ID de Respuesta: ${response.data._id}`
+                );*/
+                // Marca como enviado y actualiza el almacenamiento local
+                await this.markAsSent(record.id, response.data._id);
+
+                // Actualiza los datos en la tabla
+                await this.showRecords();
+            }
+        } catch (error) {
+            console.error('Error al enviar el registro manualmente:', error);
+            alert('Error al enviar el registro. Intenta de nuevo más tarde.');
+        }
+    }
+
+    async showConfirmationAlert(
+        message: string,
+        header: string
+    ): Promise<boolean> {
+        return new Promise((resolve) => {
+            // Usa un alert básico para confirmar
+            const confirmed = confirm(`${header}\n\n${message}`);
+            resolve(confirmed);
+        });
     }
 
     parseDuplicateKeyError(errorMessage: string): string {
@@ -1221,7 +1376,7 @@ export class FormularioSocioeconomicoComponent implements OnInit {
             const { pending } = await this.getLocalRecords();
 
             if (pending.length === 0) {
-                alert('No hay registros pendientes para sincronizar.');
+                //alert('No hay registros pendientes para sincronizar.');
                 return;
             }
 
@@ -1229,7 +1384,7 @@ export class FormularioSocioeconomicoComponent implements OnInit {
             const isConnected = await this.checkNetworkConnectivity();
 
             if (!isConnected) {
-                console.warn(
+                alert(
                     `Sin conexión. Sincronización abortada para ${pending.length} registros.`
                 );
                 return; // Si no hay conexión, salimos del bucle
@@ -1237,18 +1392,27 @@ export class FormularioSocioeconomicoComponent implements OnInit {
 
             for (const record of pending) {
                 try {
+                    // Saltar registros que tengan iddata
+                    if (record.iddata) {
+                        alert(
+                            `Registro con ID: ${record.id} pendiente de actualizar, saltando.`
+                        );
+                        continue; // Salta este registro y pasa al siguiente
+                    }
+
                     // Preparar el formulario para ser enviado
                     const formData = this.prepareFormData(record.formData);
+
                     await this.registrationService
                         .sendRegistration(formData)
                         .subscribe(
                             async (res) => {
                                 console.log('Respuesta del servidor:', res);
-                                alert(
+                                /*alert(
                                     `Registro exitoso con ID: ${res.data._id}`
-                                );
+                                );*/
                                 // Marca el registro como enviado
-                                await this.markAsSent(record.id);
+                                await this.markAsSent(record.id, res.data._id);
                             },
                             (error) => {
                                 console.error(
@@ -1315,7 +1479,7 @@ export class FormularioSocioeconomicoComponent implements OnInit {
                 value: JSON.stringify(formDataList),
             });
 
-            alert('Datos guardados localmente. Se enviarán al conectarse.');
+            /*alert('Datos guardados localmente. Se enviarán al conectarse.');*/
         } catch (error) {
             console.error('Error al guardar los datos localmente:', error);
         }
@@ -1342,7 +1506,7 @@ export class FormularioSocioeconomicoComponent implements OnInit {
         }
     }
 
-    async markAsSent(recordId: string) {
+    async markAsSent(recordId: string, id: string, status?: string) {
         try {
             const storedData = await Preferences.get({ key: 'formDataList' });
             const formDataList = storedData.value
@@ -1350,7 +1514,9 @@ export class FormularioSocioeconomicoComponent implements OnInit {
                 : [];
 
             const updatedList = formDataList.map((record) =>
-                record.id === recordId ? { ...record, status: 'sent' } : record
+                record.id === recordId
+                    ? { ...record, status: status || 'sent', iddata: id }
+                    : record
             );
 
             await Preferences.set({
@@ -1369,27 +1535,49 @@ export class FormularioSocioeconomicoComponent implements OnInit {
     }
 
     async showRecords() {
-        const { pending, sent } = await this.getLocalRecords();
+        try {
+            const { pending, sent } = await this.getLocalRecords();
 
-        console.log('Registros pendientes:', pending);
-        console.log('Registros enviados:', sent);
+            console.log('Registros pendientes:', pending);
+            console.log('Registros enviados:', sent);
 
-        // Puedes implementar una ventana modal o tabla para mostrar estos registros
-        alert(
-            `Pendientes: ${pending.length}, Enviados: ${sent.length}. Revisa la consola para más detalles.`
-        );
-        this.localRecords = [
-            ...pending.map((record) => ({ ...record, status: 'Pendiente' })),
-            ...sent.map((record) => ({ ...record, status: 'Enviado' })),
-        ];
-        console.log(this.localRecords);
-        this.displayDialogRecords = true;
+            // Procesa los registros pendientes y asigna el estado según la existencia de `iddata`
+            const processedPending = pending.map((record) => ({
+                ...record,
+                status: record.iddata ? 'Pendiente a actualizar' : 'Pendiente',
+            }));
+
+            // Procesa los registros enviados
+            const processedSent = sent.map((record) => ({
+                ...record,
+                status: 'Enviado',
+            }));
+
+            // Combina ambos conjuntos de registros
+            this.localRecords = [...processedPending, ...processedSent];
+
+            // Muestra los resultados en un alert y la consola
+            alert(
+                `Pendientes: ${processedPending.length}, Enviados: ${processedSent.length}. Revisa la consola para más detalles.`
+            );
+            console.log(this.localRecords);
+
+            // Muestra el diálogo de registros
+            this.displayDialogRecords = true;
+        } catch (error) {
+            console.error('Error al mostrar los registros:', error);
+            alert(
+                'Ocurrió un error al cargar los registros. Intenta nuevamente.'
+            );
+        }
     }
 
     // Variable para almacenar el ID del registro que se está editando
     currentRecordId: string | null = null;
 
     // Método para cargar un registro pendiente en el formulario para editarlo
+    isSent: boolean = false;
+
     loadRecord(record: any) {
         this.registrationForm.patchValue(record.formData);
         this.actividadEconomicaList =
@@ -1399,7 +1587,13 @@ export class FormularioSocioeconomicoComponent implements OnInit {
         this.familiarList = this.registrationForm.value.familiaList;
         // Almacena el ID del registro actualmente en edición
         this.currentRecordId = record.id;
-        alert('Registro cargado para edición.');
+        this.isSent = record.status === 'sent' || record.status === 'Enviado';
+
+        alert(
+            `Registro cargado para edición.${
+                this.isSent ? ` Ya fue enviado (ID: ${record.iddata})` : ''
+            }`
+        );
     }
 
     confirmDelete(record: any, event: Event) {
@@ -1502,40 +1696,13 @@ export class FormularioSocioeconomicoComponent implements OnInit {
 
             this.localRecords = pendingRecords; // Actualiza la tabla de registros locales
 
-            alert('Registros enviados eliminados correctamente.');
+            /*alert('Registros enviados eliminados correctamente.');*/
             this.showRecords();
         } catch (error) {
             console.error('Error al eliminar registros enviados:', error);
         }
     }
-    async sendRecordManually(record: any) {
-        try {
-            // Verifica conectividad antes de enviar
-            const isConnected = await this.checkNetworkConnectivity();
-            if (!isConnected) {
-                alert('Sin conexión. No se puede enviar el registro.');
-                return;
-            }
 
-            // Envía el registro al servidor
-            const response = await this.registrationService
-                .sendRegistration(record.formData)
-                .toPromise();
-
-            alert(
-                `Registro enviado con éxito. ID de Respuesta: ${response.data._id}`
-            );
-
-            // Marca como enviado y actualiza el almacenamiento local
-            await this.markAsSent(record.id);
-
-            // Actualiza los datos en la tabla
-            await this.showRecords();
-        } catch (error) {
-            console.error('Error al enviar el registro manualmente:', error);
-            alert('Error al enviar el registro. Intenta de nuevo más tarde.');
-        }
-    }
     // Control de la visibilidad del diálogo
     invalidFieldsDialogVisible: boolean = false;
     // Mostrar el diálogo al hacer clic en el ícono de advertencia

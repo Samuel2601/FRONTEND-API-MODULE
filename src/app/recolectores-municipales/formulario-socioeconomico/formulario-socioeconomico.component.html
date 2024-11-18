@@ -1,3 +1,5 @@
+<p-toast></p-toast>
+
 <button (click)="showRecords()" pButton>Ver registros</button>
 <button (click)="cleanform()" pButton>Limpiar formulario</button>
 
@@ -8,6 +10,7 @@
     [style]="{ width: '80vw' }"
 >
     <ng-template pTemplate="content">
+        <p-confirmPopup />
         <p-table [value]="localRecords">
             <ng-template pTemplate="header">
                 <tr>
@@ -34,25 +37,34 @@
                             [value]="'Pendiente'"
                             severity="warning"
                         />
+                        <p-badge
+                            *ngIf="record.status === 'Pendiente a actualizar'"
+                            [value]="'Pendiente a actualizar'"
+                            severity="danger"
+                        />
                     </td>
                     <td>
                         <button
                             pButton
                             type="button"
-                            label="Editar"
+                            [label]="
+                                record.status === 'Pendiente' ? 'Editar' : 'Ver'
+                            "
                             (click)="editRecord(record)"
-                            *ngIf="record.status === 'Pendiente'"
                         ></button>
+
                         <button
                             pButton
                             type="button"
                             label="Enviar"
                             class="p-button-success"
                             (click)="sendRecordManually(record)"
-                            *ngIf="record.status === 'Pendiente'"
+                            *ngIf="
+                                record.status === 'Pendiente' ||
+                                record.status === 'Pendiente a actualizar'
+                            "
                         ></button>
-                        <p-toast />
-                        <p-confirmPopup />
+
                         <button
                             pButton
                             type="button"
@@ -88,7 +100,6 @@
 </p-dialog>
 
 <form action="" [formGroup]="registrationForm" (ngSubmit)="sendRegistro()">
-    <p-toast></p-toast>
     <p-panel
         header="Información de Registro"
         formGroupName="informacionRegistro"
@@ -849,12 +860,14 @@
                             <td>
                                 <button
                                     pButton
+                                    type="button"
                                     icon="pi pi-pencil"
                                     class="p-button-rounded p-button-warning"
                                     (click)="editActividadEconomica(actividad)"
                                 ></button>
                                 <button
                                     pButton
+                                    type="button"
                                     icon="pi pi-trash"
                                     class="p-button-rounded p-button-danger"
                                     (click)="
@@ -978,12 +991,14 @@
                             <td>
                                 <button
                                     pButton
+                                    type="button"
                                     icon="pi pi-pencil"
                                     class="p-button-rounded p-button-warning"
                                     (click)="editGastoHogar(gasto)"
                                 ></button>
                                 <button
                                     pButton
+                                    type="button"
                                     icon="pi pi-trash"
                                     class="p-button-rounded p-button-danger"
                                     (click)="deleteGastoHogar(gasto)"
@@ -1285,9 +1300,11 @@
             label="Agregar Familiar"
             (click)="showDialogFamiliar()"
         ></button>
+
         <p-table
             [style.width]="'100%'"
             [value]="familiarList"
+            [scrollable]="true"
             [paginator]="true"
             [rows]="5"
             [responsiveLayout]="'scroll'"
@@ -1307,7 +1324,13 @@
                     <th>Ocupación</th>
                     <th>Discapacidad</th>
                     <th>Enfermedad</th>
-                    <th>Acciones</th>
+                    <th
+                        style="min-width: 20px"
+                        alignFrozen="right"
+                        pFrozenColumn
+                    >
+                        Acciones
+                    </th>
                 </tr>
             </ng-template>
             <ng-template pTemplate="body" let-familiar>
@@ -1342,15 +1365,17 @@
                     <td>{{ familiar.familiOcupacion }}</td>
                     <td>{{ familiar.familiDiscacidad }}</td>
                     <td>{{ familiar.familiEnfermedad }}</td>
-                    <td>
+                    <td alignFrozen="right" pFrozenColumn>
                         <button
                             pButton
+                            type="button"
                             icon="pi pi-pencil"
                             class="p-button-rounded p-button-warning"
                             (click)="editFamiliar(familiar)"
                         ></button>
                         <button
                             pButton
+                            type="button"
                             icon="pi pi-trash"
                             class="p-button-rounded p-button-danger"
                             (click)="deleteFamiliar(familiar)"
@@ -1381,6 +1406,7 @@
 
 <!-- Ícono flotante de advertencia -->
 <button
+    *ngIf="getInvalidFieldsWithMessages().length > 0"
     pButton
     icon="pi pi-exclamation-circle"
     styleClass="warning-button"
@@ -1398,18 +1424,18 @@
     [resizable]="false"
 >
     <!-- Tabla para mostrar los campos faltantes -->
-    <div *ngIf="getInvalidFields().length > 0" class="invalid-fields-container">
+    <div class="invalid-fields-container">
         <ul class="invalid-fields-list">
             <li
-                *ngFor="let field of getInvalidFields()"
+                *ngFor="let field of getInvalidFieldsWithMessages()"
                 class="invalid-field"
-                (click)="scrollToField(field)"
+                (click)="scrollToField(field.field)"
             >
                 <span
                     icon="pi pi-exclamation-triangle"
                     styleClass="error-icon"
                 ></span>
-                <span>{{ field }}</span>
+                <span>{{ field.message }}: {{ field.field }}</span>
             </li>
         </ul>
     </div>

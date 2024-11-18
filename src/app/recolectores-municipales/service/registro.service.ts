@@ -19,4 +19,7 @@ export class RegistroService {
     sendRegistration(data: any): any {
         return this.http.post(this.url + 'registro', data);
     }
+    updateRegistro(data: any, id: string): any {
+        return this.http.put(this.url + 'registro/' + id, data);
+    }
 }
