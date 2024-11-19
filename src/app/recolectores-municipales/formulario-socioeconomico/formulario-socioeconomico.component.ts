@@ -151,6 +151,9 @@ export class FormularioSocioeconomicoComponent implements OnInit {
         this.currentRecordId = null;
         this.isEditMode = false;
         this.isSent = false;
+        this.familiarList = [];
+        this.gastosHogarList = [];
+        this.actividadEconomicaList = [];
     }
     // Método recursivo para obtener la lista de campos no válidos, incluyendo subformularios
     getInvalidFieldsWithMessages(

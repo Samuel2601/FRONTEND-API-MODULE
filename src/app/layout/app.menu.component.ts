@@ -83,6 +83,11 @@ export class AppMenuComponent implements OnInit {
                         permissions.RecolecternoExterno),
                 items: [
                     {
+                        label: 'Formulario',
+                        icon: 'pi pi-fw pi-slack',
+                        routerLink: ['/recolectores/formulario'],
+                    },
+                    {
                         label: 'Recolectores',
                         icon: 'pi pi-fw pi-slack',
                         routerLink: ['/recolectores/listar'],
