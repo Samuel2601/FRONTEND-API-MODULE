@@ -135,7 +135,7 @@ export class FormularioSocioeconomicoComponent implements OnInit {
     async ngOnInit() {
         await this.initializeNetworkListener();
     }
-    cleanform() {
+    cleanformData() {
         this.registrationForm.reset();
         const userDate = this.authService.authToken();
 
@@ -1200,7 +1200,7 @@ export class FormularioSocioeconomicoComponent implements OnInit {
                 return;
             }
             const formdata = this.prepareFormData(record.formData);
-
+            console.log('DATA FORMATEADA', formdata);
             let response;
             if (record.iddata) {
                 response = await this.registrationService
@@ -1305,6 +1305,16 @@ export class FormularioSocioeconomicoComponent implements OnInit {
             return data;
         };
 
+        // Convertir gastosHogar al formato clave-valor
+        const transformGastosHogar = (gastos: any[]) => {
+            return gastos.reduce((acc: any, gasto: any) => {
+                if (gasto.tipo?.value && gasto.porcentaje !== undefined) {
+                    acc[gasto.tipo.value] = gasto.porcentaje;
+                }
+                return acc;
+            }, {});
+        };
+
         return {
             informacionRegistro: { ...formData.informacionRegistro },
             informacionPersonal: {
@@ -1339,7 +1349,9 @@ export class FormularioSocioeconomicoComponent implements OnInit {
                     formData.mediosDeVida.actividadEconomica.map(
                         (item: any) => item.nombre
                     ),
-                gastosHogar: transformData(formData.mediosDeVida.gastosHogar),
+                gastosHogar: transformGastosHogar(
+                    formData.mediosDeVida.gastosHogar
+                ),
                 fuentesIngresos: transformData(
                     formData.mediosDeVida.fuentesIngresos
                 ),
@@ -1402,7 +1414,7 @@ export class FormularioSocioeconomicoComponent implements OnInit {
 
                     // Preparar el formulario para ser enviado
                     const formData = this.prepareFormData(record.formData);
-
+                    console.log('DATA FORMATEADA', formData);
                     await this.registrationService
                         .sendRegistration(formData)
                         .subscribe(
@@ -1411,6 +1423,13 @@ export class FormularioSocioeconomicoComponent implements OnInit {
                                 /*alert(
                                     `Registro exitoso con ID: ${res.data._id}`
                                 );*/
+                                this.messageService.add({
+                                    severity: 'success',
+                                    summary: 'Registro exitoso',
+                                    detail: `Registrado con exito`,
+                                    life: 3000,
+                                });
+                                //this.cleanformData();
                                 // Marca el registro como enviado
                                 await this.markAsSent(record.id, res.data._id);
                             },

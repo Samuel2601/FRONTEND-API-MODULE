@@ -1,7 +1,18 @@
 <p-toast></p-toast>
 
-<button (click)="showRecords()" pButton>Ver registros</button>
-<button (click)="cleanform()" pButton>Limpiar formulario</button>
+<div style="display: flex; justify-content: space-between">
+    <button (click)="showRecords()" pButton severity="info" icon="pi pi-search">
+        Ver registros
+    </button>
+    <button
+        (click)="cleanformData()"
+        pButton
+        severity="danger"
+        icon="pi pi-trash"
+    >
+        Limpiar formulario
+    </button>
+</div>
 
 <p-dialog
     header="Registros Locales"
