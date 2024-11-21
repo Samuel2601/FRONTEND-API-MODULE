@@ -1791,9 +1791,13 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
             if (Array.isArray(data)) {
                 return data.map((item) => {
                     if (typeof item === 'string' && item.startsWith('OTRO: ')) {
-                        return { value: 'OTRO', customOther: item.slice(6) }; // Extrae la parte después de 'OTRO: '
+                        return {
+                            label: '',
+                            value: 'OTRO',
+                            customOther: item.slice(6),
+                        }; // Extrae la parte después de 'OTRO: '
                     }
-                    return { value: item }; // Retorna un objeto con el campo 'value' para los demás casos
+                    return { label: '', value: item }; // Retorna un objeto con el campo 'value' para los demás casos
                 });
             }
             return data;
@@ -1802,14 +1806,14 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
         const revertValue = (data: any) => {
             // Suponiendo que los valores que fueron extraídos con 'extractValue' ahora deben ser restaurados
             if (data === 'OTRO') {
-                return { value: 'OTRO', customOther: '' }; // Se puede llenar con un valor por defecto si es necesario
+                return { label: '', value: 'OTRO', customOther: '' }; // Se puede llenar con un valor por defecto si es necesario
             }
-            return { value: data }; // Retorna un objeto con el campo 'value' para los demás casos
+            return { label: '', value: data }; // Retorna un objeto con el campo 'value' para los demás casos
         };
 
         const revertGastosHogar = (gastos: any) => {
             return Object.keys(gastos).map((key) => ({
-                tipo: { value: key },
+                tipo: { label: '', value: key },
                 porcentaje: gastos[key],
             }));
         };
@@ -1893,7 +1897,7 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
                     this.reverseFormData(response.data)
                 );
                 this.loading = false;
-                console.log('Registro:', response, this.registro);
+                console.log('Registro:', response, this.registrationForm.value);
             },
             error: (error) => {
                 console.error('Error al cargar el registro:', error);
