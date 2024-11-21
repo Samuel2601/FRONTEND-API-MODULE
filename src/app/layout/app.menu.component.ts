@@ -42,6 +42,7 @@ export class AppMenuComponent implements OnInit {
 
     async loadPermissions() {
         const permissions = {
+            canViewregistro: await this.boolPermiss('/registro', 'get'),
             canViewRecolector: await this.boolPermiss(
                 '/recolector_ruta/:id',
                 'get'
@@ -75,6 +76,24 @@ export class AppMenuComponent implements OnInit {
 
         this.model = [
             {
+                label: 'Ficha Socio Economica',
+                visible: permissions.canViewregistro,
+                items: [
+                    {
+                        label: 'Formulario',
+                        icon: 'pi pi-fw pi-file-edit',
+                        routerLink: ['/ficha-socio-economica/formulario'],
+                        visible: permissions.canViewregistro,
+                    },
+                    {
+                        label: 'Registros',
+                        icon: 'pi pi-fw pi-slack',
+                        routerLink: ['/ficha-socio-economica/registros'],
+                        visible: permissions.canViewregistro,
+                    },
+                ],
+            },
+            {
                 label: 'Recolectores',
                 visible:
                     permissions.canViewRecolector ||
@@ -82,11 +101,6 @@ export class AppMenuComponent implements OnInit {
                     (permissions.canRecolectorExterno &&
                         permissions.RecolecternoExterno),
                 items: [
-                    {
-                        label: 'Formulario',
-                        icon: 'pi pi-fw pi-slack',
-                        routerLink: ['/recolectores/formulario'],
-                    },
                     {
                         label: 'Recolectores',
                         icon: 'pi pi-fw pi-slack',

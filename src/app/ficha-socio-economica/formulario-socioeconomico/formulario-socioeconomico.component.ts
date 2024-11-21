@@ -1,4 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import {
+    Component,
+    Input,
+    OnChanges,
+    OnInit,
+    SimpleChanges,
+} from '@angular/core';
 
 import {
     AbstractControl,
@@ -9,18 +15,22 @@ import {
     Validators,
 } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { RegistroService } from '../service/registro.service';
 import { Network } from '@capacitor/network';
 import { Preferences } from '@capacitor/preferences';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { RegistroService } from '../services/registro.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ImportsModule } from 'src/app/demo/services/import';
 
 @Component({
     selector: 'app-formulario-socioeconomico',
     templateUrl: './formulario-socioeconomico.component.html',
     styleUrl: './formulario-socioeconomico.component.scss',
+    standalone: true,
+    imports: [ImportsModule],
     providers: [MessageService, ConfirmationService],
 })
-export class FormularioSocioeconomicoComponent implements OnInit {
+export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
     registrationForm: FormGroup;
     username: String = '';
     constructor(
@@ -28,7 +38,10 @@ export class FormularioSocioeconomicoComponent implements OnInit {
         private messageService: MessageService,
         private registrationService: RegistroService,
         private authService: AuthService,
-        private confirmationService: ConfirmationService
+        private confirmationService: ConfirmationService,
+        private authservice: AuthService,
+        private route: ActivatedRoute,
+        private router: Router
     ) {
         this.registrationForm = this.fb.group({
             informacionRegistro: this.fb.group({
@@ -133,6 +146,16 @@ export class FormularioSocioeconomicoComponent implements OnInit {
         this.balanceFrozen = !this.balanceFrozen;
     }
     async ngOnInit() {
+        // Si se recibe un id por input, lo cargamos directamente
+        if (this.registroId) {
+            this.loadRegistroData(this.registroId);
+        } else {
+            // Si no, verificamos si hay un id en la ruta
+            const routeId = this.route.snapshot.paramMap.get('id');
+            if (routeId) {
+                this.loadRegistroData(routeId);
+            }
+        }
         await this.initializeNetworkListener();
     }
     cleanformData() {
@@ -1761,5 +1784,121 @@ export class FormularioSocioeconomicoComponent implements OnInit {
         if (invalidFields.length > 0) {
             this.scrollToField(invalidFields[0]); // Enfoca el primer campo inválido
         }
+    }
+
+    reverseFormData(formData: any): any {
+        const reverseData = (data: any) => {
+            if (Array.isArray(data)) {
+                return data.map((item) => {
+                    if (typeof item === 'string' && item.startsWith('OTRO: ')) {
+                        return { value: 'OTRO', customOther: item.slice(6) }; // Extrae la parte después de 'OTRO: '
+                    }
+                    return { value: item }; // Retorna un objeto con el campo 'value' para los demás casos
+                });
+            }
+            return data;
+        };
+
+        const revertValue = (data: any) => {
+            // Suponiendo que los valores que fueron extraídos con 'extractValue' ahora deben ser restaurados
+            if (data === 'OTRO') {
+                return { value: 'OTRO', customOther: '' }; // Se puede llenar con un valor por defecto si es necesario
+            }
+            return { value: data }; // Retorna un objeto con el campo 'value' para los demás casos
+        };
+
+        const revertGastosHogar = (gastos: any) => {
+            return Object.keys(gastos).map((key) => ({
+                tipo: { value: key },
+                porcentaje: gastos[key],
+            }));
+        };
+
+        return {
+            informacionRegistro: { ...formData.informacionRegistro },
+            informacionPersonal: {
+                ...formData.informacionPersonal,
+                nacionalidad: revertValue(
+                    formData.informacionPersonal.nacionalidad
+                ),
+            },
+            informacionUbicacion: { ...formData.informacionUbicacion },
+            salud: {
+                ...formData.salud,
+                causasSalud: reverseData(formData.salud.causasSalud),
+            },
+            vivienda: {
+                ...formData.vivienda,
+                serviciosBasicos: reverseData(
+                    formData.vivienda.serviciosBasicos
+                ),
+                documentosPropiedad: reverseData(
+                    formData.vivienda.documentosPropiedad
+                ),
+                abastecimientoAgua: reverseData(
+                    formData.vivienda.abastecimientoAgua
+                ),
+                bienesServiciosElectrodomesticos: reverseData(
+                    formData.vivienda.bienesServiciosElectrodomesticos
+                ),
+            },
+            mediosDeVida: {
+                ...formData.mediosDeVida,
+                actividadEconomica:
+                    formData.mediosDeVida.actividadEconomica.map(
+                        (nombre: any) => ({ nombre })
+                    ),
+                gastosHogar: revertGastosHogar(
+                    formData.mediosDeVida.gastosHogar[0]
+                ),
+                fuentesIngresos: reverseData(
+                    formData.mediosDeVida.fuentesIngresos
+                ),
+            },
+            redesDeApoyo: {
+                ...formData.redesDeApoyo,
+                actividadesBarrio: reverseData(
+                    formData.redesDeApoyo.actividadesBarrio
+                ),
+                recibeayudaHumanitaria: reverseData(
+                    formData.redesDeApoyo.recibeayudaHumanitaria
+                ),
+                actividadCantonDentro: reverseData(
+                    formData.redesDeApoyo.actividadCantonDentro
+                ),
+                actividadCantonFuera: reverseData(
+                    formData.redesDeApoyo.actividadCantonFuera
+                ),
+            },
+            familiaList: formData.familiaList.map((familiar: any) => ({
+                ...familiar,
+                familiNacionalidad: revertValue(familiar.familiNacionalidad),
+            })),
+        };
+    }
+    @Input() registroId: string | null = null; // Recibe el ID directamente como input
+    registro: any = null; // Datos del registro
+    loading: boolean = true; // Indicador de carga
+    token = this.authservice.token() || ''; // Token de autenticación
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['registroId'] && this.registroId) {
+            this.loadRegistroData(this.registroId); // Si el id cambia, cargar los datos
+        }
+    }
+    loadRegistroData(id: string): void {
+        this.loading = true;
+        this.registrationService.getRegistro(this.token, id).subscribe({
+            next: (response: any) => {
+                this.registrationForm.patchValue(
+                    this.reverseFormData(response.data)
+                );
+                this.loading = false;
+                console.log('Registro:', response, this.registro);
+            },
+            error: (error) => {
+                console.error('Error al cargar el registro:', error);
+                this.loading = false;
+            },
+        });
     }
 }

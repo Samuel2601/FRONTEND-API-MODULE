@@ -1,0 +1,29 @@
+/* Aseguramos que la tabla tenga un buen espaciado */
+.p-datatable td,
+.p-datatable th {
+    padding: 12px;
+}
+
+/* Ajustamos el color de fondo en la fila de la tabla al pasar el ratón */
+.p-datatable tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Estilizamos las cabeceras */
+.p-datatable th {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+}
+
+/* Ajustamos el estilo de la fecha */
+p-table td {
+    font-size: 14px;
+    text-align: center;
+}
+
+/* Mejoramos la apariencia del spinner */
+p-progressSpinner {
+    width: 50px;
+    height: 50px;
+}

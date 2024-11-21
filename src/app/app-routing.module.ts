@@ -10,6 +10,7 @@ import { MapaComponent } from './demo/components/static-page/mapa/mapa.component
 import { ViewFichasArticulosComponent } from './demo/components/static-page/view-fichas-articulos/view-fichas-articulos.component';
 import { MapaTrashComponent } from './demo/components/static-page/mapa-trash/mapa-trash.component';
 import { MostrarFichasArticulosComponent } from './demo/components/static-page/mostrar-fichas-articulos/mostrar-fichas-articulos.component';
+
 @NgModule({
     imports: [
         RouterModule.forRoot(
@@ -18,6 +19,15 @@ import { MostrarFichasArticulosComponent } from './demo/components/static-page/m
                     path: '',
                     component: AppLayoutComponent,
                     children: [
+                        {
+                            path: 'ficha-socio-economica',
+                            loadChildren: () =>
+                                import(
+                                    './ficha-socio-economica/ficha-socio-economica.module'
+                                ).then((m) => m.FichaSocioEconomicaModule),
+                            canActivate: [AuthGuard],
+                            data: { expectedPermission: '/registro' },
+                        },
                         {
                             path: 'recolectores',
                             loadChildren: () =>

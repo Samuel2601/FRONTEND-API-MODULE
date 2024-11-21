@@ -1,0 +1,41 @@
+<p-table
+    [value]="registros"
+    [loading]="loading"
+    [responsive]="true"
+    class="p-datatable-striped p-datatable-bordered"
+    (onRowSelect)="onRowSelect($event.data._id)"
+>
+    <ng-template pTemplate="header">
+        <tr>
+            <th>Encuestador</th>
+            <th>Entrevistado</th>
+            <th>Fecha</th>
+        </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-registro>
+        <tr (click)="onRowSelect(registro.id)">
+            <td>{{ registro.encuestador }}</td>
+            <td>{{ registro.entrevistado }}</td>
+            <td>{{ registro.fecha | date : "shortDate" }}</td>
+        </tr>
+    </ng-template>
+</p-table>
+
+<p *ngIf="loading" class="p-d-block text-center">
+    <p-progressSpinner></p-progressSpinner>
+</p>
+
+<p-toast></p-toast>
+
+<p-dialog
+    header="Editar Registro"
+    [(visible)]="viewDiaglog"
+    [modal]="true"
+    [style]="{ width: '50vw' }"
+    (onHide)="onDialogClose()"
+>
+    <app-formulario-socioeconomico
+        [registroId]="selectedRegistroId"
+    ></app-formulario-socioeconomico>
+</p-dialog>
