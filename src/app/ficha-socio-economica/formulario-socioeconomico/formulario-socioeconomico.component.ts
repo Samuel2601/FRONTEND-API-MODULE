@@ -136,7 +136,7 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
 
         this.username = userDate.last_name + ' ' + userDate.name;
         // Asigna la fecha actual al control 'date' al inicializar el componente
-        const currentDate = new Date().toISOString().split('T')[0]; // Formato 'YYYY-MM-DD' para el input date
+        const currentDate = new Date(); //.toISOString(); // Formato 'YYYY-MM-DD' para el input date
         this.registrationForm
             .get('informacionRegistro.date')
             ?.setValue(currentDate);
@@ -146,6 +146,7 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
         this.balanceFrozen = !this.balanceFrozen;
     }
     async ngOnInit() {
+        this.loading = true;
         // Si se recibe un id por input, lo cargamos directamente
         if (this.registroId) {
             this.loadRegistroData(this.registroId);
@@ -157,14 +158,17 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
             }
         }
         await this.initializeNetworkListener();
+        this.loading = false;
     }
+
     cleanformData() {
+        this.loading = true;
         this.registrationForm.reset();
         const userDate = this.authService.authToken();
 
         this.username = userDate.last_name + ' ' + userDate.name;
         // Asigna la fecha actual al control 'date' al inicializar el componente
-        const currentDate = new Date().toISOString().split('T')[0]; // Formato 'YYYY-MM-DD' para el input date
+        const currentDate = new Date(); //.toISOString(); // Formato 'YYYY-MM-DD' para el input date
         this.registrationForm
             .get('informacionRegistro.date')
             ?.setValue(currentDate);
@@ -177,6 +181,7 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
         this.familiarList = [];
         this.gastosHogarList = [];
         this.actividadEconomicaList = [];
+        this.loading = false;
     }
     // Método recursivo para obtener la lista de campos no válidos, incluyendo subformularios
     getInvalidFieldsWithMessages(
@@ -1927,6 +1932,18 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
                 this.registrationForm.patchValue(
                     this.reverseFormData(response.data)
                 );
+                this.registrationForm
+                    .get('informacionRegistro.date')
+                    ?.setValue(
+                        new Date(
+                            this.registrationForm.value.informacionRegistro.date
+                        )
+                    );
+
+                /*this.registrationForm.value.informacionRegistro.date = new Date(
+                    this.registrationForm.value.informacionRegistro.date
+                )
+                    .toISOString();*/
                 this.familiarList = this.registrationForm.value.familiaList;
                 this.gastosHogarList =
                     this.registrationForm.value.mediosDeVida.gastosHogar;

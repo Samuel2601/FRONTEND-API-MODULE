@@ -1,6 +1,6 @@
 <p-toast></p-toast>
 
-<div style="display: flex; justify-content: space-between">
+<div style="display: flex; justify-content: space-between" *ngIf="!registroId">
     <button (click)="showRecords()" pButton severity="info" icon="pi pi-search">
         Ver registros
     </button>
@@ -19,6 +19,7 @@
     [(visible)]="displayDialogRecords"
     [modal]="true"
     [style]="{ width: '80vw' }"
+    appendTo="body"
 >
     <ng-template pTemplate="content">
         <p-confirmPopup />
@@ -110,7 +111,12 @@
     </ng-template>
 </p-dialog>
 
-<form action="" [formGroup]="registrationForm" (ngSubmit)="sendRegistro()">
+<form
+    action=""
+    [formGroup]="registrationForm"
+    (ngSubmit)="sendRegistro()"
+    *ngIf="!loading"
+>
     <p-panel
         header="Información de Registro"
         formGroupName="informacionRegistro"
@@ -118,11 +124,14 @@
         <div class="col-6">
             <div class="p-field">
                 <label for="date">Fecha</label>
-                <input
+                <p-calendar
                     id="informacionRegistro.date"
-                    pInputText
-                    type="date"
                     formControlName="date"
+                    [showButtonBar]="true"
+                    [showTime]="true"
+                    dateFormat="yy-mm-dd"
+                    hourFormat="24"
+                    [showIcon]="true"
                 />
             </div>
         </div>
@@ -1432,7 +1441,7 @@
     [closable]="true"
     [modal]="true"
     [style]="{ width: '80%' }"
-    [resizable]="false"
+    appendTo="body"
 >
     <!-- Tabla para mostrar los campos faltantes -->
     <div class="invalid-fields-container">
@@ -1461,7 +1470,7 @@
     [modal]="true"
     [responsive]="true"
     [style]="{ width: '400px' }"
-    [closable]="false"
+    appendTo="body"
 >
     <div class="p-fluid">
         <div class="p-field">
@@ -1498,7 +1507,7 @@
     [modal]="true"
     [responsive]="true"
     [style]="{ width: '400px' }"
-    [closable]="false"
+    appendTo="body"
 >
     <div class="p-fluid">
         <div class="p-field">
@@ -1553,7 +1562,7 @@
     [modal]="true"
     [responsive]="true"
     [style]="{ width: '500px', 'border-radius': '8px' }"
-    [closable]="false"
+    appendTo="body"
     class="familiar-dialog"
 >
     <div>
@@ -1889,7 +1898,7 @@
     [modal]="true"
     [responsive]="true"
     [style]="{ width: '400px' }"
-    [closable]="false"
+    appendTo="body"
 >
     <div class="p-fluid">
         <div class="p-field">
