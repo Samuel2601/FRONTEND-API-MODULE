@@ -1148,7 +1148,7 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
             this.registrationForm.value.mediosDeVida.gastosHogar =
                 this.gastosHogarList;
             this.registrationForm.value.familiaList = this.familiarList;
-            if (this.currentRecordId) {
+            if (this.currentRecordId || this.registroId) {
                 await this.updateRecord();
             } else {
                 await this.saveFormLocally();
@@ -1169,7 +1169,7 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
                 : [];
 
             const updatedList = formDataList.map((record) =>
-                record.id === this.currentRecordId
+                record.id === this.currentRecordId || this.registroId
                     ? { ...record, formData: this.registrationForm.value }
                     : record
             );
