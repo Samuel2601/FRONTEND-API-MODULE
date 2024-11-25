@@ -10,11 +10,7 @@ import { FormularioSocioeconomicoComponent } from '../formulario-socioeconomico/
 @Component({
     selector: 'app-registolist-socioeconomico',
     standalone: true,
-    imports: [
-        ImportsModule,
-        EditSocioeconomicaComponent,
-        FormularioSocioeconomicoComponent,
-    ],
+    imports: [ImportsModule, FormularioSocioeconomicoComponent],
     templateUrl: './registolist-socioeconomico.component.html',
     styleUrl: './registolist-socioeconomico.component.scss',
     providers: [MessageService, DynamicDialogRef],

@@ -1787,33 +1787,47 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
     }
 
     reverseFormData(formData: any): any {
-        const reverseData = (data: any) => {
+        const reverseData = (data: any, arr: any[]) => {
             if (Array.isArray(data)) {
                 return data.map((item) => {
                     if (typeof item === 'string' && item.startsWith('OTRO: ')) {
                         return {
-                            label: '',
+                            label: arr.find((x) => x.value === 'OTRO').label,
                             value: 'OTRO',
                             customOther: item.slice(6),
                         }; // Extrae la parte después de 'OTRO: '
                     }
-                    return { label: '', value: item }; // Retorna un objeto con el campo 'value' para los demás casos
+                    return {
+                        label: arr.find((x) => x.value === item).label,
+                        value: item,
+                    }; // Retorna un objeto con el campo 'value' para los demás casos
                 });
             }
             return data;
         };
 
-        const revertValue = (data: any) => {
+        const revertValue = (data: any, arr: any[]) => {
             // Suponiendo que los valores que fueron extraídos con 'extractValue' ahora deben ser restaurados
             if (data === 'OTRO') {
-                return { label: '', value: 'OTRO', customOther: '' }; // Se puede llenar con un valor por defecto si es necesario
+                return {
+                    label: arr.find((x) => x.value === 'OTRO').label,
+                    value: 'OTRO',
+                    customOther: '',
+                }; // Se puede llenar con un valor por defecto si es necesario
             }
-            return { label: '', value: data }; // Retorna un objeto con el campo 'value' para los demás casos
+            return {
+                label: arr.find((x) => x.value === data).label,
+                value: data,
+                code: arr.find((x) => x.value === data).code,
+            }; // Retorna un objeto con el campo 'value' para los demás casos
         };
 
-        const revertGastosHogar = (gastos: any) => {
+        const revertGastosHogar = (gastos: any, arr: any[]) => {
             return Object.keys(gastos).map((key) => ({
-                tipo: { label: '', value: key },
+                tipo: {
+                    label: arr.find((x) => x.value === key).label,
+                    value: key,
+                },
                 porcentaje: gastos[key],
             }));
         };
@@ -1823,27 +1837,35 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
             informacionPersonal: {
                 ...formData.informacionPersonal,
                 nacionalidad: revertValue(
-                    formData.informacionPersonal.nacionalidad
+                    formData.informacionPersonal.nacionalidad,
+                    this.nacionalidadOptions
                 ),
             },
             informacionUbicacion: { ...formData.informacionUbicacion },
             salud: {
                 ...formData.salud,
-                causasSalud: reverseData(formData.salud.causasSalud),
+                causasSalud: reverseData(
+                    formData.salud.causasSalud,
+                    this.causasSaludOptions
+                ),
             },
             vivienda: {
                 ...formData.vivienda,
                 serviciosBasicos: reverseData(
-                    formData.vivienda.serviciosBasicos
+                    formData.vivienda.serviciosBasicos,
+                    this.serviciosBasicosOptions
                 ),
                 documentosPropiedad: reverseData(
-                    formData.vivienda.documentosPropiedad
+                    formData.vivienda.documentosPropiedad,
+                    this.documentosPropiedadOptions
                 ),
                 abastecimientoAgua: reverseData(
-                    formData.vivienda.abastecimientoAgua
+                    formData.vivienda.abastecimientoAgua,
+                    this.abastecimientoAguaOptions
                 ),
                 bienesServiciosElectrodomesticos: reverseData(
-                    formData.vivienda.bienesServiciosElectrodomesticos
+                    formData.vivienda.bienesServiciosElectrodomesticos,
+                    this.bienesServiciosElectrodomesticosOptions
                 ),
             },
             mediosDeVida: {
@@ -1853,30 +1875,39 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
                         (nombre: any) => ({ nombre })
                     ),
                 gastosHogar: revertGastosHogar(
-                    formData.mediosDeVida.gastosHogar[0]
+                    formData.mediosDeVida.gastosHogar[0],
+                    this.gastosHogarOptions
                 ),
                 fuentesIngresos: reverseData(
-                    formData.mediosDeVida.fuentesIngresos
+                    formData.mediosDeVida.fuentesIngresos,
+                    this.fuentesIngresosOptions
                 ),
             },
             redesDeApoyo: {
                 ...formData.redesDeApoyo,
                 actividadesBarrio: reverseData(
-                    formData.redesDeApoyo.actividadesBarrio
+                    formData.redesDeApoyo.actividadesBarrio,
+                    this.actividadesBarrioOptions
                 ),
                 recibeayudaHumanitaria: reverseData(
-                    formData.redesDeApoyo.recibeayudaHumanitaria
+                    formData.redesDeApoyo.recibeayudaHumanitaria,
+                    this.recibeAyudaHumanitariaOptions
                 ),
                 actividadCantonDentro: reverseData(
-                    formData.redesDeApoyo.actividadCantonDentro
+                    formData.redesDeApoyo.actividadCantonDentro,
+                    this.actividadCantonDentroOptions
                 ),
                 actividadCantonFuera: reverseData(
-                    formData.redesDeApoyo.actividadCantonFuera
+                    formData.redesDeApoyo.actividadCantonFuera,
+                    this.actividadCantonFueraOptions
                 ),
             },
             familiaList: formData.familiaList.map((familiar: any) => ({
                 ...familiar,
-                familiNacionalidad: revertValue(familiar.familiNacionalidad),
+                familiNacionalidad: revertValue(
+                    familiar.familiNacionalidad,
+                    this.nacionalidadOptions
+                ),
             })),
         };
     }
@@ -1896,6 +1927,12 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
                 this.registrationForm.patchValue(
                     this.reverseFormData(response.data)
                 );
+                this.familiarList = this.registrationForm.value.familiaList;
+                this.gastosHogarList =
+                    this.registrationForm.value.mediosDeVida.gastosHogar;
+                this.actividadEconomicaList =
+                    this.registrationForm.value.mediosDeVida.actividadEconomica;
+
                 this.loading = false;
                 console.log('Registro:', response, this.registrationForm.value);
             },
