@@ -111,12 +111,7 @@
     </ng-template>
 </p-dialog>
 
-<form
-    action=""
-    [formGroup]="registrationForm"
-    (ngSubmit)="sendRegistro()"
-    *ngIf="!loading"
->
+<form action="" [formGroup]="registrationForm" (ngSubmit)="sendRegistro()">
     <p-panel
         header="Información de Registro"
         formGroupName="informacionRegistro"
@@ -125,6 +120,7 @@
             <div class="p-field">
                 <label for="date">Fecha</label>
                 <p-calendar
+                    appendTo="body"
                     id="informacionRegistro.date"
                     formControlName="date"
                     [showButtonBar]="true"
@@ -195,6 +191,7 @@
             <div class="p-field">
                 <label for="nacionalidad">Nacionalidad</label>
                 <p-dropdown
+                    appendTo="body"
                     id="informacionPersonal.nacionalidad"
                     [filter]="true"
                     [options]="nacionalidadOptions"
@@ -360,6 +357,7 @@
             <div class="p-field">
                 <label for="houseState">Estado actual de la Vivienda</label>
                 <p-dropdown
+                    appendTo="body"
                     id="informacionUbicacion.houseState"
                     [options]="houseStateOptions"
                     formControlName="houseState"
@@ -385,6 +383,7 @@
                     >¿Cómo usted evalúa su estado de salud?</label
                 >
                 <p-dropdown
+                    appendTo="body"
                     id="salud.estadoSalud"
                     [options]="estadoSaludOptions"
                     formControlName="estadoSalud"
@@ -451,6 +450,7 @@
                     conectado a:
                 </label>
                 <p-dropdown
+                    appendTo="body"
                     id="salud.conexionHigienico"
                     [options]="conexionHigienicoOptions"
                     formControlName="conexionHigienico"
@@ -476,6 +476,7 @@
                     >Estructura de la Vivienda</label
                 >
                 <p-dropdown
+                    appendTo="body"
                     id="vivienda.estructuraVivienda"
                     [options]="estructuraViviendaOptions"
                     formControlName="estructuraVivienda"
@@ -542,6 +543,7 @@
                     >La tenencia de la vivienda es</label
                 >
                 <p-dropdown
+                    appendTo="body"
                     id="vivienda.tenenciaVivienda"
                     [options]="tenenciaViviendaOptions"
                     formControlName="tenenciaVivienda"
@@ -642,6 +644,7 @@
                     >Tipo de alumbrado de la Vivienda</label
                 >
                 <p-dropdown
+                    appendTo="body"
                     id="vivienda.tipoAlumbrado"
                     [options]="tipoAlumbradoOptions"
                     formControlName="tipoAlumbrado"
@@ -763,6 +766,7 @@
                     >¿Su vivienda se encuentra en una zona de riesgo?</label
                 >
                 <p-dropdown
+                    appendTo="body"
                     id="vivienda.zonaRiesgo"
                     [options]="zonaRiesgoOptions"
                     formControlName="zonaRiesgo"
@@ -788,6 +792,7 @@
                     >Ha participado en algún tipo de capacitación</label
                 >
                 <p-dropdown
+                    appendTo="body"
                     id="mediosDeVida.participacionCapacitacion"
                     [options]="participacionCapacitacionOptions"
                     formControlName="participacionCapacitacion"
@@ -833,6 +838,7 @@
                     >En los últimos 12 meses, ha tenido una actividad laboral:
                 </label>
                 <p-dropdown
+                    appendTo="body"
                     id="mediosDeVida.actividadLaboral"
                     [options]="actividadLaboralOptions"
                     formControlName="actividadLaboral"
@@ -916,6 +922,7 @@
                     >Trabaja en relación de dependencia?</label
                 >
                 <p-dropdown
+                    appendTo="body"
                     id="mediosDeVida.relacionDependencia"
                     [options]="relacionDependenciaOptions"
                     formControlName="relacionDependencia"
@@ -937,6 +944,7 @@
             >
                 <label for="cuentaPropia">Trabaja por cuenta propia?</label>
                 <p-dropdown
+                    appendTo="body"
                     id="mediosDeVida.cuentaPropia"
                     [options]="cuentaPropiaOptions"
                     formControlName="cuentaPropia"
@@ -961,6 +969,7 @@
                     ingresos de todos los individuos activos)</label
                 >
                 <p-dropdown
+                    appendTo="body"
                     id="mediosDeVida.ingresosMensuales"
                     [options]="ingresosMensualesOptions"
                     formControlName="ingresosMensuales"
