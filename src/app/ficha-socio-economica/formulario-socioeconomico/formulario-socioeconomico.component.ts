@@ -1,8 +1,10 @@
 import {
     Component,
+    EventEmitter,
     Input,
     OnChanges,
     OnInit,
+    Output,
     SimpleChanges,
 } from '@angular/core';
 
@@ -958,6 +960,7 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
         this.displayFamiliarDialog = true;
     }
     saveFamiliar() {
+        console.log(this.familiarActual, this.cloneEditFamiliar);
         const familiarExistente = this.familiarList.find(
             (x) =>
                 x.familiaNombre === this.familiarActual.familiaNombre ||
@@ -974,30 +977,26 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
         }
     }
     updateFamiliar() {
-        this.familiarList.forEach((element) => {
+        console.log('updateFamiliar');
+        this.familiarList = this.familiarList.map((element) => {
             if (
                 element.familiaNombre === this.cloneEditFamiliar.familiaNombre
             ) {
-                element.familiaNombre = this.familiarActual.familiaNombre;
+                // Crea una nueva copia del objeto actualizado
+                return { ...this.familiarActual };
             }
+            return element; // Retorna el elemento original si no coincide
         });
-        this.cloneEditFamiliar = {
-            familiParentesco: '',
-            familiaNombre: '',
-            familiaApellido: '',
-            familigenero: '',
-            familiEdad: '',
-            familiEstadoCivil: '',
-            familiEtnia: '',
-            familiNacionalidad: undefined,
-            familiCeduala: '',
-            familiNivelEducativo: '',
-            familiOcupacion: '',
-            familiDiscacidad: '',
-            familiEnfermedad: '',
-        };
+
+        // Reinicia los objetos usados en el formulario
+        this.cloneEditFamiliar = this.getEmptyFamiliar();
         this.displayFamiliarDialog = false;
-        this.familiarActual = {
+        this.familiarActual = this.getEmptyFamiliar();
+    }
+
+    // Método auxiliar para obtener un objeto vacío para inicializar
+    getEmptyFamiliar() {
+        return {
             familiParentesco: '',
             familiaNombre: '',
             familiaApellido: '',
@@ -1013,6 +1012,7 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
             familiEnfermedad: '',
         };
     }
+
     private mostrarErrorFamiliarExistente() {
         this.displayFamiliarDialog = false;
         this.messageService.add({
@@ -1023,71 +1023,15 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
     }
     private agregarNuevaFamiliar() {
         this.familiarList.push(this.familiarActual);
-        this.familiarActual = {
-            familiParentesco: '',
-            familiaNombre: '',
-            familiaApellido: '',
-            familigenero: '',
-            familiEdad: '',
-            familiEstadoCivil: '',
-            familiEtnia: '',
-            familiNacionalidad: undefined,
-            familiCeduala: '',
-            familiNivelEducativo: '',
-            familiOcupacion: '',
-            familiDiscacidad: '',
-            familiEnfermedad: '',
-        };
+        this.familiarActual = this.getEmptyFamiliar();
         this.displayFamiliarDialog = false;
-        this.cloneEditFamiliar = {
-            familiParentesco: '',
-            familiaNombre: '',
-            familiaApellido: '',
-            familigenero: '',
-            familiEdad: '',
-            familiEstadoCivil: '',
-            familiEtnia: '',
-            familiNacionalidad: undefined,
-            familiCeduala: '',
-            familiNivelEducativo: '',
-            familiOcupacion: '',
-            familiDiscacidad: '',
-            familiEnfermedad: '',
-        };
+        this.cloneEditFamiliar = this.getEmptyFamiliar();
         console.log(this.familiarList);
     }
     cancelFamiliar() {
-        this.familiarActual = {
-            familiParentesco: '',
-            familiaNombre: '',
-            familiaApellido: '',
-            familigenero: '',
-            familiEdad: '',
-            familiEstadoCivil: '',
-            familiEtnia: '',
-            familiNacionalidad: undefined,
-            familiCeduala: '',
-            familiNivelEducativo: '',
-            familiOcupacion: '',
-            familiDiscacidad: '',
-            familiEnfermedad: '',
-        };
+        this.familiarActual = this.getEmptyFamiliar();
         this.displayFamiliarDialog = false;
-        this.cloneEditFamiliar = {
-            familiParentesco: '',
-            familiaNombre: '',
-            familiaApellido: '',
-            familigenero: '',
-            familiEdad: '',
-            familiEstadoCivil: '',
-            familiEtnia: '',
-            familiNacionalidad: undefined,
-            familiCeduala: '',
-            familiNivelEducativo: '',
-            familiOcupacion: '',
-            familiDiscacidad: '',
-            familiEnfermedad: '',
-        };
+        this.cloneEditFamiliar = this.getEmptyFamiliar();
         /* cancelar */
     }
     editFamiliar(familiar) {
@@ -1148,7 +1092,14 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
             this.registrationForm.value.mediosDeVida.gastosHogar =
                 this.gastosHogarList;
             this.registrationForm.value.familiaList = this.familiarList;
-            if (this.currentRecordId || this.registroId) {
+            if (this.registroId) {
+                this.sendRecordManually({
+                    iddata: this.registroId,
+                    formData: this.registrationForm.value,
+                });
+                return;
+            }
+            if (this.currentRecordId) {
                 await this.updateRecord();
             } else {
                 await this.saveFormLocally();
@@ -1161,7 +1112,9 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
             this.highlightInvalidFields();
         }
     }
+
     async updateRecord() {
+        console.log('updateRecord');
         try {
             const storedData = await Preferences.get({ key: 'formDataList' });
             const formDataList = storedData.value
@@ -1275,15 +1228,27 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
                 }
             }
             console.log('response', response);
+
             if (response.data) {
-                /*alert(
+                if (this.registroId) {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Update Register',
+                        detail: 'Valor actualizado exitosamente',
+                    });
+                    setTimeout(() => {
+                        this.cerrarDialogo();
+                    }, 1500);
+                } else {
+                    /*alert(
                     `Registro enviado con éxito. ID de Respuesta: ${response.data._id}`
                 );*/
-                // Marca como enviado y actualiza el almacenamiento local
-                await this.markAsSent(record.id, response.data._id);
+                    // Marca como enviado y actualiza el almacenamiento local
+                    await this.markAsSent(record.id, response.data._id);
 
-                // Actualiza los datos en la tabla
-                await this.showRecords();
+                    // Actualiza los datos en la tabla
+                    await this.showRecords();
+                }
             }
         } catch (error) {
             console.error('Error al enviar el registro manualmente:', error);
@@ -1917,6 +1882,13 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
         };
     }
     @Input() registroId: string | null = null; // Recibe el ID directamente como input
+    @Output() closeDialog = new EventEmitter<void>(); // Evento para cerrar el diálogo
+
+    // Método para emitir el evento hacia el componente padre
+    cerrarDialogo(): void {
+        this.closeDialog.emit();
+    }
+
     registro: any = null; // Datos del registro
     loading: boolean = true; // Indicador de carga
     token = this.authservice.token() || ''; // Token de autenticación
@@ -1952,6 +1924,7 @@ export class FormularioSocioeconomicoComponent implements OnInit, OnChanges {
 
                 this.loading = false;
                 console.log('Registro:', response, this.registrationForm.value);
+                this.isSent = true;
             },
             error: (error) => {
                 console.error('Error al cargar el registro:', error);
