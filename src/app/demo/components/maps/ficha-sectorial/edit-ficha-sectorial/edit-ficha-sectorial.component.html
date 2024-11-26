@@ -1,80 +1,165 @@
-<ng-container *ngIf="model">
+<ng-container>
     <p-toast></p-toast>
 
-    <ng-container *ngIf="load_form">
-        <form [formGroup]="fichaSectorialForm" (ngSubmit)="editarFichaSectorial()">
-            <div class="flex flex-wrap">
-                <div class="w-full lg:w-6 p-4 lg:p-7 surface-card">
-                    <div class="flex flex-column gap-2 mx-auto">
-                        <div class="field p-fluid">
-                            <label htmlFor="direccion_geo">Dirección Geográfica</label>
-                            <input pInputText id="direccion_geo" type="text" formControlName="direccion_geo"  optionLabel="direccion_geo.nombre"/>
-                        </div>
-                        <div class="field p-fluid">
-                            <label htmlFor="actividad">Actividad de Proyecto</label>
-                            <p-dropdown id="actividad" name="actividad" formControlName="actividad" [options]="actividadesProyecto" optionLabel="nombre"></p-dropdown>
-                        </div>
-                        <div class="field p-fluid">
-                            <label htmlFor="fecha_evento">Fecha del Evento:</label>
-                            <p-calendar [touchUI]="isMobil()" [readonlyInput]="isMobil()" id="fecha_evento" name="fecha_evento" formControlName="fecha_evento" [showTime]="true" [showIcon]="true" appendTo="body" inputId="buttondisplay" hourFormat="12"></p-calendar>
-                        </div>
-                    </div>
-                </div>
-                <div class="w-full lg:w-6 p-4 lg:p-7">
-                    <div class="field p-fluid">
-                        <div class="mb-3">
-                            <label htmlFor="estado">Estado de Actividad de Proyecto</label>
-                            <p-dropdown id="estado" name="estado" formControlName="estado" [options]="estadosActividadProyecto" optionLabel="nombre"></p-dropdown>
-                        </div>
-                    </div>
-                    <div class="field p-fluid">
-                        <div style="display: flex; align-items: center; justify-content: flex-start;">
-                            <p style="margin: 1rem">Es un articulo que quieras publicar?</p>
-                            <p-inputSwitch formControlName="es_articulo"></p-inputSwitch>
-                        </div>
-                    </div>
-                    <div class="field p-fluid">
-                        <div style="display: flex; align-items: center; justify-content: flex-start;">
-                            <p style="margin: 1rem">Quieres que se muestre en la página principal?</p>
-                            <p-inputSwitch formControlName="destacado"></p-inputSwitch>
-                        </div>
-                    </div>
-                    <div class="field p-fluid">
-                        <label htmlFor="descripcion">Descripción</label> 
-                        <textarea *ngIf="!fichaSectorialForm.get('es_articulo').value" rows="5" cols="25" pInputTextarea id="descripcion" name="descripcion" formControlName="descripcion" required></textarea>
-                        <p-editor *ngIf="fichaSectorialForm.get('es_articulo').value" formControlName="descripcion" [style]="{ height: '320px', width: '-webkit-fill-available' }"></p-editor>
-                        <div [innerHTML]="fichaSectorialForm.get('descripcion').value"></div>
-                    </div>
-                    <div class="field p-fluid">
-                        <label htmlFor="observacion">Observación</label>
-                        <textarea rows="5" cols="25" pInputTextarea class="form-control" id="observacion" name="observacion" formControlName="observacion"></textarea>
-                    </div>
-                    <div class="field p-fluid">
-                        <label htmlFor="mostrar_en_mapa">Mostrar en mapa</label>
-                        <p-inputSwitch formControlName="mostrar_en_mapa"></p-inputSwitch>
-                    </div>
-                    <div class="field p-fluid" *ngIf="fichaSectorialForm.get('mostrar_en_mapa').value">
-                        <label htmlFor="title_marcador">Titulo que se mostrará cuando se abra el marcador:</label>
-                        <div style="display: flex; align-items: center; justify-content: flex-start;">
-                            <input type="text" pInputText formControlName="title_marcador"/>
-                        </div>
-                    </div>
-                    <div class="field p-fluid" *ngIf="fichaSectorialForm.get('mostrar_en_mapa').value">
-                        <label htmlFor="icono_marcador">Quieres añadir la URL del Marcador?</label>
-                        <div style="display: flex; align-items: center; justify-content: flex-start;">
-                            <input type="text" pInputText formControlName="icono_marcador"/>
-                        </div>
-                    </div>
-                </div>
+    <form
+        [formGroup]="fichaSectorialForm"
+        (ngSubmit)="guardarFichaSectorial()"
+        class="grid p-fluid surface-card p-4"
+    >
+        <!-- Dirección y Actividad -->
+        <div class="col-12 md:col-6">
+            <div class="field">
+                <label for="direccion_geo">Dirección Geográfica</label>
+                <input
+                    pInputText
+                    id="direccion_geo"
+                    type="text"
+                    formControlName="direccion_geo"
+                    placeholder="Ej. UNIDOS SOMOS MÁS (CODESA)"
+                />
             </div>
-            <p-button label="Registrar" type="submit" icon="bi bi-save"></p-button>
-        </form>
-    </ng-container>
-    <ng-container *ngIf="!load_form">
-        <div class="text-center">
-            <div class="spinner-border text-success" role="status">
-                <span class="visually-hidden">Cargando...</span>
+            <div class="field">
+                <label for="actividad">Actividad de Proyecto</label>
+                <p-dropdown
+                    id="actividad"
+                    formControlName="actividad"
+                    [options]="actividadesProyecto"
+                    optionLabel="nombre"
+                ></p-dropdown>
             </div>
         </div>
-    </ng-container>
+
+        <!-- Fecha y Estado -->
+        <div class="col-12 md:col-6">
+            <div class="field">
+                <label for="fecha_evento">Fecha del Evento</label>
+                <p-calendar
+                    id="fecha_evento"
+                    formControlName="fecha_evento"
+                    [showTime]="true"
+                    [showIcon]="true"
+                    appendTo="body"
+                    hourFormat="12"
+                ></p-calendar>
+            </div>
+            <div class="field">
+                <label for="estado">Estado de Actividad</label>
+                <p-dropdown
+                    id="estado"
+                    formControlName="estado"
+                    [options]="estadosActividadProyecto"
+                    optionLabel="nombre"
+                ></p-dropdown>
+            </div>
+        </div>
+
+        <!-- Descripción -->
+        <div class="col-12">
+            <div class="field">
+                <label for="descripcion">Descripción</label>
+                <ng-container
+                    *ngIf="
+                        fichaSectorialForm.get('es_articulo').value;
+                        else textareaMode
+                    "
+                >
+                    <p-editor
+                        formControlName="descripcion"
+                        [style]="{ height: '320px', width: '100%' }"
+                    ></p-editor>
+                </ng-container>
+                <ng-template #textareaMode>
+                    <textarea
+                        id="descripcion"
+                        rows="5"
+                        formControlName="descripcion"
+                        pInputTextarea
+                        placeholder="Describa brevemente la actividad..."
+                    ></textarea>
+                </ng-template>
+            </div>
+        </div>
+
+        <!-- Opciones de configuración -->
+        <div class="col-12">
+            <div class="field-checkbox">
+                <p-checkbox
+                    formControlName="es_articulo"
+                    binary="true"
+                    inputId="esArticulo"
+                ></p-checkbox>
+                <label for="esArticulo">¿Es un artículo para publicar?</label>
+            </div>
+            <div class="field-checkbox">
+                <p-checkbox
+                    formControlName="destacado"
+                    binary="true"
+                    inputId="destacado"
+                ></p-checkbox>
+                <label for="destacado">¿Mostrar en página principal?</label>
+            </div>
+        </div>
+
+        <!-- Observación -->
+        <div class="col-12">
+            <div class="field">
+                <label for="observacion">Observación</label>
+                <textarea
+                    id="observacion"
+                    rows="3"
+                    formControlName="observacion"
+                    pInputTextarea
+                    placeholder="Observaciones adicionales..."
+                ></textarea>
+            </div>
+        </div>
+
+        <!-- Mostrar en mapa -->
+        <div class="col-12">
+            <div class="field-checkbox">
+                <p-checkbox
+                    formControlName="mostrar_en_mapa"
+                    binary="true"
+                    inputId="mostrarEnMapa"
+                ></p-checkbox>
+                <label for="mostrarEnMapa">¿Mostrar en el mapa?</label>
+            </div>
+        </div>
+
+        <div
+            class="col-12"
+            *ngIf="fichaSectorialForm.get('mostrar_en_mapa').value"
+        >
+            <div class="field">
+                <label for="title_marcador">Título del Marcador</label>
+                <input
+                    id="title_marcador"
+                    type="text"
+                    formControlName="title_marcador"
+                    pInputText
+                    placeholder="Ej. LEVANTAMIENTO DE ASENTAMIENTO"
+                />
+            </div>
+            <div class="field">
+                <label for="icono_marcador">URL del Icono del Marcador</label>
+                <input
+                    id="icono_marcador"
+                    type="text"
+                    formControlName="icono_marcador"
+                    pInputText
+                    placeholder="Ej. https://example.com/icon.png"
+                />
+            </div>
+        </div>
+
+        <!-- Botón de Guardar -->
+        <div class="col-12 text-right">
+            <p-button
+                label="Guardar"
+                icon="pi pi-save"
+                type="submit"
+                class="p-button-success"
+            ></p-button>
+        </div>
+    </form>
 </ng-container>

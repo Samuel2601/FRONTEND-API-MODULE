@@ -47,30 +47,29 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
     getSeverity(
         status: string
     ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
-        if(status){
+        if (status) {
             switch (status.toLowerCase()) {
                 case 'suspendido':
                     return 'danger';
-    
+
                 case 'finalizado':
                     return 'success';
-    
+
                 case 'en proceso':
                     return 'info';
-    
+
                 case 'pendiente':
                     return 'warning';
-    
+
                 case 'planificada':
                     return 'info';
-    
+
                 default:
                     return 'secondary'; // Asegúrate de retornar un valor válido por defecto
             }
-        }else{
+        } else {
             return null;
         }
-        
     }
     deshabilitarMapaDesdeIndexFichaSectorial(event: MouseEvent) {
         this.stopPropagation(event);
@@ -88,8 +87,8 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
         private admin: AdminService,
         private deleteService: DeleteService,
         private updateService: UpdateService,
-        private auth:AuthService,
-        private filter:FilterService
+        private auth: AuthService,
+        private filter: FilterService
     ) {}
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['filtro'] || changes['valor']) {
@@ -112,40 +111,62 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
     option: any;
     token = this.auth.token();
     id = this.auth.idUserToken();
-    loading:boolean = false;
+    loading: boolean = false;
     async ngOnInit(): Promise<void> {
-        
         //console.log(this.rol);
         if (!this.modal) this.helperservice.llamarspinner('index ficha');
         const checkObservables = {
-            IndexFichaSectorialComponent: await this.auth.hasPermissionComponent('/ficha_sectorial', 'post'),
-            EditFichaSectorialComponent: await this.auth.hasPermissionComponent('/ficha_sectorial/:id', 'put'),
-            IndexEstadoActividadProyectoComponent: await this.auth.hasPermissionComponent('/estado_actividad_proyecto', 'get'),
-            IndexActividadProyectoComponent: await this.auth.hasPermissionComponent('/actividad_proyecto', 'get'),
-            TotalFilter: await this.auth.hasPermissionComponent('mostra_todas_fichas', 'get'),
-            BorrarFichaSectorialComponent: await this.auth.hasPermissionComponent('/ficha_sectorial/:id', 'delete'),
+            IndexFichaSectorialComponent:
+                await this.auth.hasPermissionComponent(
+                    '/ficha_sectorial',
+                    'post'
+                ),
+            EditFichaSectorialComponent: await this.auth.hasPermissionComponent(
+                '/ficha_sectorial/:id',
+                'put'
+            ),
+            IndexEstadoActividadProyectoComponent:
+                await this.auth.hasPermissionComponent(
+                    '/estado_actividad_proyecto',
+                    'get'
+                ),
+            IndexActividadProyectoComponent:
+                await this.auth.hasPermissionComponent(
+                    '/actividad_proyecto',
+                    'get'
+                ),
+            TotalFilter: await this.auth.hasPermissionComponent(
+                'mostra_todas_fichas',
+                'get'
+            ),
+            BorrarFichaSectorialComponent:
+                await this.auth.hasPermissionComponent(
+                    '/ficha_sectorial/:id',
+                    'delete'
+                ),
         };
         forkJoin(checkObservables).subscribe(async (check) => {
             this.check = check;
             //console.log(check);
             try {
-                if(check.IndexFichaSectorialComponent||check.TotalFilter){
+                if (check.IndexFichaSectorialComponent || check.TotalFilter) {
                     this.listarficha();
-                }else{
+                } else {
                     this.listarFichaSectorial();
-                }     
+                }
             } catch (error) {
                 console.error('Error en ngOnInit:', error);
                 this.router.navigate(['/notfound']);
             } finally {
-                if (!this.modal) this.helperservice.cerrarspinner('index ficha');
+                if (!this.modal)
+                    this.helperservice.cerrarspinner('index ficha');
                 setTimeout(() => {
-                    this.loading=true;
+                    this.loading = true;
                 }, 2000);
             }
         });
     }
-    limit:boolean=false;
+    limit: boolean = false;
     listarFichaSectorial(): void {
         this.load_lista = true;
         this.listService
@@ -153,7 +174,7 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
             .subscribe((response: any) => {
                 if (response.data && response.data.length > 0) {
                     this.fichasectorial = response.data;
-                    this.limit=true;
+                    this.limit = true;
                 }
                 this.load_lista = false;
             });
@@ -162,7 +183,7 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
     isMobil() {
         return this.helperservice.isMobil();
     }
-    isJSONString(str:string) {
+    isJSONString(str: string) {
         try {
             JSON.parse(str);
             return true;
@@ -174,7 +195,7 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
         try {
             return JSON.parse(str);
         } catch (e) {
-            console.error("Error parsing JSON string:", e);
+            console.error('Error parsing JSON string:', e);
             return null;
         }
     }
@@ -198,7 +219,9 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
         }
 
         this.listService
-            .listarFichaSectorial(this.token,{ [filtroServicio]: valorServicio})
+            .listarFichaSectorial(this.token, {
+                [filtroServicio]: valorServicio,
+            })
             .subscribe(
                 (response) => {
                     if (response.data) {
@@ -409,7 +432,7 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
                     (response) => {
                         this.messageService.add({
                             severity: 'success',
-                            summary: 'Eliminado',
+                            summary: 'Eliminado Permanentemente',
                             detail: response.message,
                         });
                         setTimeout(() => {
@@ -471,15 +494,15 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
     navigateToFicha(id: string): void {
         this.router.navigate(['/ver-ficha', id]);
     }
-    load_map:boolean=false;
-    row:number=-1;
-    dialog_view(register:any,num:number){
-        this.row=num;
-        this.load_map=false;
+    load_map: boolean = false;
+    row: number = -1;
+    dialog_view(register: any, num: number) {
+        this.row = num;
+        this.load_map = false;
         this.visible = true;
         this.option = register;
         setTimeout(() => {
-            this.load_map=true;
+            this.load_map = true;
         }, 300);
     }
 }

@@ -300,9 +300,9 @@ export class LayersComponent implements OnInit {
          //hideDelay:1000,
         },
         //visible:this.isMobil(),
-        command: () => {          
+        command: () => {
           this.getLocation();
-      
+
         },
       },*/
     categoria: string;
@@ -1717,10 +1717,10 @@ export class LayersComponent implements OnInit {
     nuevoIncidente(tipo?: string, subtipo?: string) {
         this.controlFullScreem();
         const data = this.opcionb; // JSON que quieres enviar
-        /*this.modalService.dismissAll();    
+        /*this.modalService.dismissAll();
       const this.ref = this.modalService.open(CreateIncidentesDenunciaComponent, { centered: true });
-      this.ref.componentInstance.data = data; 
-      this.ref.componentInstance.direccion = { latitud: this.latitud, longitud: this.longitud };  
+      this.ref.componentInstance.data = data;
+      this.ref.componentInstance.direccion = { latitud: this.latitud, longitud: this.longitud };
       */
         this.ref = this.dialogService.open(CreateIncidentesDenunciaComponent, {
             header: '',

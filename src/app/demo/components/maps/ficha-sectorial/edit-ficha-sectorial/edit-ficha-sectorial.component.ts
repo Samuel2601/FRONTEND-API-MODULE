@@ -1,284 +1,153 @@
 import { Component, OnInit } from '@angular/core';
 import {
     FormBuilder,
-    FormControl,
     FormGroup,
     Validators,
+    FormControl,
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ListService } from 'src/app/demo/services/list.service';
-import { AdminService } from 'src/app/demo/services/admin.service';
-import { HelperService } from 'src/app/demo/services/helper.service';
-import { MessageService } from 'primeng/api';
-import {
-    Camera,
-    CameraResultType,
-    CameraSource,
-    Photo,
-} from '@capacitor/camera';
-import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
-import { FilterService } from '../../../../services/filter.service';
-import { UpdateService } from 'src/app/demo/services/update.service';
-import { AuthService } from 'src/app/demo/services/auth.service';
 import { forkJoin } from 'rxjs';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { MessageService } from 'primeng/api';
+import { Camera } from '@capacitor/camera';
+
+import { AuthService } from 'src/app/demo/services/auth.service';
+import { ListService } from 'src/app/demo/services/list.service';
+import { UpdateService } from 'src/app/demo/services/update.service';
+import { FilterService } from '../../../../services/filter.service';
+import { HelperService } from 'src/app/demo/services/helper.service';
 
 @Component({
     selector: 'app-edit-ficha-sectorial',
     templateUrl: './edit-ficha-sectorial.component.html',
-    styleUrl: './edit-ficha-sectorial.component.scss',
+    styleUrls: ['./edit-ficha-sectorial.component.scss'],
 })
 export class EditFichaSectorialComponent implements OnInit {
     fichaSectorialForm: FormGroup;
-    estadosActividadProyecto: any = [];
-    actividadesProyecto: any = [];
-    model = true;
-    editingF = true;
-    mostrar = false;
-    id: any;
-    check: any = {};
+    estadosActividadProyecto: any[] = [];
+    actividadesProyecto: any[] = [];
+    id: string | null = null;
     ficha: any = {};
-    token = this.auth.token();
-    hover = false;
-    nombreArchivo: any;
-    archivoSeleccionado: File | any;
-    imagenesSeleccionadas: Array<any> = [];
-    load_carrusel = false;
     selectedFiles: File[] = [];
-    upload = true;
+    imagenesSeleccionadas: Array<any> = [];
+    isLoading = true;
+
     responsiveOptions = [
         { breakpoint: '1024px', numVisible: 5 },
         { breakpoint: '768px', numVisible: 3 },
         { breakpoint: '560px', numVisible: 1 },
     ];
-    load_form = true;
 
     constructor(
-        private config: DynamicDialogConfig,
         private fb: FormBuilder,
-        private updateService: UpdateService,
         private router: Router,
-        private listarService: ListService,
-        private adminservice: AdminService,
-        private helper: HelperService,
+        private authService: AuthService,
+        private listService: ListService,
+        private updateService: UpdateService,
+        private filterService: FilterService,
         private messageService: MessageService,
-        private ref: DynamicDialogRef,
-        private filter: FilterService,
-        private auth: AuthService
+        private dialogConfig: DynamicDialogConfig,
+        private dialogRef: DynamicDialogRef,
+        private helperService: HelperService
     ) {
-        this.fichaSectorialForm = this.fb.group({
+        this.fichaSectorialForm = this.createForm();
+    }
+
+    async ngOnInit(): Promise<void> {
+        this.isLoading = true;
+
+        try {
+            await this.checkPermissions();
+            this.id = this.dialogConfig.data?.id || null;
+
+            if (this.id) {
+                await this.loadFichaSectorial();
+            }
+
+            this.estadosActividadProyecto = await this.loadEstadosActividad();
+            this.actividadesProyecto = await this.loadActividadesProyecto();
+        } catch (error) {
+            console.error('Error en ngOnInit:', error);
+            this.router.navigate(['/notfound']);
+        } finally {
+            this.isLoading = false;
+        }
+    }
+    isMobil() {
+        return this.helperService.isMobil();
+    }
+
+    private createForm(): FormGroup {
+        return this.fb.group({
             direccion_geo: ['', Validators.required],
             actividad: ['', Validators.required],
             fecha_evento: ['', Validators.required],
             estado: ['', Validators.required],
             es_articulo: [false],
-            descripcion: [
-                'Texto inicial de la descripción',
-                Validators.required,
-            ],
+            descripcion: ['', Validators.required],
             observacion: [''],
             mostrar_en_mapa: [false],
             title_marcador: [''],
-            icono_marcador: [''],
+            icono_marcador: ['', Validators.pattern('https?://.+')],
             destacado: [false],
         });
     }
 
-    async ngOnInit(): Promise<void> {
-        this.load_form = false;
-
-        const checkObservables = {
-            EditFichaSectorialComponent: await this.auth.hasPermissionComponent(
-                '/ficha_sectorial/:id',
-                'put'
-            ),
-        };
-
-        forkJoin(checkObservables).subscribe(async (check) => {
-            this.check = check;
-            //console.log(check);
-            try {
-                if (!this.check.EditFichaSectorialComponent) {
-                    this.router.navigate(['/notfound']);
-                    return;
-                }
-                if (this.config?.data?.id) {
-                    this.id = this.config.data.id;
-                    await this.obtenerficha();
-                }
-
-                const ident = this.auth.idUserToken();
-                if (ident) {
-                    this.fichaSectorialForm.get('encargado')?.setValue(ident);
-                } else {
-                    this.router.navigate(['/auth/login']);
-                    return;
-                }
-
-                this.router.events.subscribe((val) => {
-                    this.model =
-                        this.router.url === '/create-ficha-sectorial'
-                            ? false
-                            : true;
-                });
-                this.listartEstados();
-                this.listarActividadProyecto();
-            } catch (error) {
-                console.error('Error en ngOnInit:', error);
-                this.router.navigate(['/notfound']);
-            } finally {
-                this.load_form = true;
-            }
-        });
-    }
-
-    async formatear() {
-        this.fichaSectorialForm = this.fb.group({
-            descripcion: new FormControl(this.ficha.descripcion || '', []),
-            encargado: [this.ficha.encargado || '', Validators.required],
-            direccion_geo: [
-                this.ficha.direccion_geo || '',
-                Validators.required,
-            ],
-            estado: [this.ficha.estado || undefined, Validators.required],
-            actividad: [this.ficha.actividad || undefined, Validators.required],
-            fecha_evento: [this.ficha.fecha_evento || ''],
-            observacion: [this.ficha.observacion || ''],
-            es_articulo: [this.ficha.es_articulo || false],
-            view: [this.ficha.view || false],
-            destacado: [this.ficha.destacado || false],
-            view_id: [this.ficha.view_id || this.auth.idUserToken()],
-            mostrar_en_mapa: [this.ficha.mostrar_en_mapa || false],
-            title_marcador: [this.ficha.title_marcador || ''],
-            icono_marcador: [
-                this.ficha.icono_marcador || '',
-                Validators.pattern('https?://.+'),
-            ],
-        });
-        // console.log(this.fichaSectorialForm.value);
-    }
-
-    async obtenerficha() {
-        this.filter
-            .obtenerActividadProyecto(this.token, this.id)
-            .subscribe(async (response) => {
-                if (response.data) {
-                    this.ficha = response.data;
-                    await this.formatear();
-                    Object.keys(this.ficha).forEach((key) => {
-                        const element = this.ficha[key];
-                        const campo = this.fichaSectorialForm.get(key);
-                        if (campo) {
-                            campo.setValue(element);
-                            if (
-                                !this.check.EditFichaAll &&
-                                [
-                                    'descripcion',
-                                    'observacion',
-                                    'estado',
-                                    'mostrar_en_mapa',
-                                    'icono_marcador',
-                                    'es_articulo',
-                                    'title_marcador',
-                                    'destacado',
-                                ].indexOf(key) === -1
-                            ) {
-                                this.deshabilitarCampo(key);
-                            }
-                        }
-                    });
-                    const token = this.auth.token();
-
-                    // Verificamos que el datatoken sea de tipo string
-                    if (!token || typeof token !== 'string') {
-                        console.error('Token inválido o no encontrado.');
-                        return;
-                    }
-                    if (
-                        this.auth.roleUserToken(token)?.nombre ===
-                        'Administrador'
-                    ) {
-                        this.habilitarCampo('direccion_geo');
-                    }
-                }
-            });
-    }
-
-    deshabilitarCampo(campo: string) {
-        this.fichaSectorialForm.get(campo)?.disable();
-    }
-
-    habilitarCampo(campo: string) {
-        this.fichaSectorialForm.get(campo)?.enable();
-    }
-
-    listartEstados() {
-        this.listarService
-            .listarEstadosActividadesProyecto(this.token)
-            .subscribe(
-                (response) => {
-                    if (response.data.length > 0) {
-                        this.estadosActividadProyecto = response.data;
-                    }
-                },
-                (error) => {
-                    if (error.error.message === 'InvalidToken') {
-                        this.router.navigate(['/auth/login']);
-                    } else {
-                        this.messageService.add({
-                            severity: 'error',
-                            summary: `(${error.status})`,
-                            detail: error.error.message || 'Sin conexión',
-                        });
-                    }
-                }
-            );
-    }
-
-    listarActividadProyecto() {
-        this.listarService.listarTiposActividadesProyecto(this.token).subscribe(
-            (response) => {
-                if (response.data.length > 0) {
-                    this.actividadesProyecto = response.data;
-                    this.mostrar = true;
-                }
-            },
-            (error) => {
-                if (error.error.message === 'InvalidToken') {
-                    this.router.navigate(['/auth/login']);
-                } else {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: `(${error.status})`,
-                        detail: error.error.message || 'Sin conexión',
-                    });
-                }
-            }
+    private async checkPermissions(): Promise<void> {
+        const permissions = await this.authService.hasPermissionComponent(
+            '/ficha_sectorial/:id',
+            'put'
         );
+
+        if (!permissions) {
+            this.router.navigate(['/notfound']);
+            throw new Error('Permiso denegado');
+        }
     }
 
-    abrirModal() {
-        this.model = true;
+    private async loadFichaSectorial(): Promise<void> {
+        const response = await this.filterService
+            .obtenerActividadProyecto(this.authService.token(), this.id!)
+            .toPromise();
+        console.log(response.data);
+        this.ficha = response.data || {};
+        this.populateForm(this.ficha);
     }
 
-    cerrarModal() {
-        this.model = false;
+    private populateForm(data: any): void {
+        Object.keys(data).forEach((key) => {
+            const control = this.fichaSectorialForm.get(key);
+            if (control) {
+                control.setValue(data[key]);
+            }
+        });
     }
 
-    activarHover() {
-        this.hover = true;
+    private async loadEstadosActividad(): Promise<any[]> {
+        try {
+            const response = await this.listService
+                .listarEstadosActividadesProyecto(this.authService.token())
+                .toPromise();
+            return response.data || [];
+        } catch (error) {
+            this.handleError(error);
+            return [];
+        }
     }
 
-    desactivarHover() {
-        this.hover = false;
-    }
-
-    isMobil() {
-        return this.helper.isMobil();
+    private async loadActividadesProyecto(): Promise<any[]> {
+        try {
+            const response = await this.listService
+                .listarTiposActividadesProyecto(this.authService.token())
+                .toPromise();
+            return response.data || [];
+        } catch (error) {
+            this.handleError(error);
+            return [];
+        }
     }
 
     onFilesSelected(event: any): void {
-        this.load_carrusel = false;
-        this.upload = true;
         for (let file of event.files) {
             this.selectedFiles.push(file);
             const objectURL = URL.createObjectURL(file);
@@ -287,62 +156,63 @@ export class EditFichaSectorialComponent implements OnInit {
 
         this.messageService.add({
             severity: 'info',
-            summary: 'File Uploaded',
-            detail: `${this.selectedFiles.length} Imagenes subidas`,
+            summary: 'Imágenes seleccionadas',
+            detail: `${this.selectedFiles.length} archivos cargados.`,
         });
-
-        setTimeout(() => {
-            this.load_carrusel = true;
-        }, 1000);
-
-        this.upload = false;
     }
 
-    eliminarImagen(index: number) {
-        this.load_carrusel = false;
-        this.upload = true;
+    eliminarImagen(index: number): void {
         this.imagenesSeleccionadas.splice(index, 1);
         this.selectedFiles.splice(index, 1);
-        setTimeout(() => {
-            this.load_carrusel = true;
-        }, 500);
     }
 
-    editarFichaSectorial() {
-        this.load_form = false;
-        if (this.fichaSectorialForm?.valid) {
-            this.updateService
+    async guardarFichaSectorial(): Promise<void> {
+        if (!this.fichaSectorialForm.valid) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Formulario inválido',
+                detail: 'Por favor completa los campos obligatorios.',
+            });
+            return;
+        }
+
+        this.isLoading = true;
+
+        try {
+            const response = await this.updateService
                 .actualizarActividadProyecto(
-                    this.token,
-                    this.id,
+                    this.authService.token(),
+                    this.id!,
                     this.fichaSectorialForm.value
                 )
-                .subscribe(
-                    (response) => {
-                        if (response.data) {
-                            this.messageService.add({
-                                severity: 'success',
-                                summary: 'Éxito',
-                                detail: 'Ficha Sectorial Actualizado',
-                            });
-                            this.ref.close();
-                            location.reload();
-                        }
-                    },
-                    (error) => {
-                        console.error(error);
-                        if (error.error.message === 'InvalidToken') {
-                            this.router.navigate(['/auth/login']);
-                        } else {
-                            this.messageService.add({
-                                severity: 'error',
-                                summary: `(${error.status})`,
-                                detail: error.error.message || 'Sin conexión',
-                            });
-                        }
-                        this.load_form = true;
-                    }
-                );
+                .toPromise();
+
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Éxito',
+                detail: 'Ficha sectorial actualizada con éxito.',
+            });
+
+            this.dialogRef.close();
+            this.router.navigate(['/success']);
+        } catch (error) {
+            this.handleError(error);
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    private handleError(error: any): void {
+        console.error('Error:', error);
+
+        if (error.error.message === 'InvalidToken') {
+            this.router.navigate(['/auth/login']);
+        } else {
+            this.messageService.add({
+                severity: 'error',
+                summary: `(${error.status})`,
+                detail: error.error.message || 'Error desconocido.',
+            });
         }
     }
 }
