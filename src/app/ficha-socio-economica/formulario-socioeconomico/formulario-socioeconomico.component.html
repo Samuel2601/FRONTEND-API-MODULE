@@ -118,6 +118,20 @@
     >
         <div class="col-6">
             <div class="p-field">
+                <label for="encuestador">Encuestador</label>
+                <input
+                    *ngIf="!username"
+                    id="informacionRegistro.encuestador"
+                    pInputText
+                    formControlName="encuestador"
+                />
+                <label for="encuestador" *ngIf="username">
+                    {{ username }}
+                </label>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="p-field">
                 <label for="date">Fecha</label>
                 <p-calendar
                     appendTo="body"
@@ -129,20 +143,6 @@
                     hourFormat="24"
                     [showIcon]="true"
                 />
-            </div>
-        </div>
-        <div class="col-6">
-            <div class="p-field">
-                <label for="encuestador">Encuestador</label>
-                <input
-                    *ngIf="!username"
-                    id="informacionRegistro.encuestador"
-                    pInputText
-                    formControlName="encuestador"
-                />
-                <label for="encuestador" *ngIf="username">
-                    {{ username }}
-                </label>
             </div>
         </div>
     </p-panel>
