@@ -1,10 +1,161 @@
-.dashboard-summary {
+.dashboard-container {
+    gap: 1rem;
+    margin: 1rem;
+}
+
+.dashboard-card {
+    text-align: center;
+    background-color: #f4f4f4;
+}
+
+.card-content {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.card-icon {
+    font-size: 3rem;
+    color: #007ad9;
+}
+
+p-panel {
+    background: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+p-chart {
+    height: 300px;
+}
+
+p-table {
+    margin-top: 1rem;
+}
+
+.phone-list {
+    padding: 0;
+    list-style: none;
+}
+
+.phone-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #ccc;
+    color: #333;
+}
+
+.card-content {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #007ad9;
+}
+
+p-panel {
+    margin: 1rem 0;
+}
+
+/* Diseño general */
+.dashboard-container {
     gap: 1rem;
 }
 
-.dashboard-summary p-card {
-    flex: 1 1 calc(33.333% - 1rem);
-    min-width: 300px;
+/* Estilo de las tarjetas */
+.info-card {
+    background: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.info-card h3 {
+    margin: 0.5rem 0;
+    font-size: 1.2rem;
+    color: #666666;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #007ad9;
+}
+
+.card-icon {
+    font-size: 2rem;
+    color: #007ad9;
+    margin-bottom: 0.5rem;
+}
+
+/* Lista de teléfonos */
+.phone-list {
+    padding: 0;
+    list-style: none;
+}
+
+.phone-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #ccc;
+    color: #333;
+}
+
+.phone-list li:last-child {
+    border-bottom: none;
+}
+
+
+.ubicacion-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #2c3e50;
+}
+
+h3 {
+    margin-top: 20px;
+    font-size: 1.4em;
+    color: #34495e;
+}
+
+section {
+    margin-bottom: 30px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+table th,
+table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+table th {
+    background-color: #2980b9;
+    color: white;
+}
+
+table tr:nth-child(even) {
+    background-color: #ecf0f1;
 }

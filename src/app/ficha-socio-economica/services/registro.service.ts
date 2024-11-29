@@ -47,4 +47,16 @@ export class RegistroService {
     updateRegistro(data: any, id: string): any {
         return this.http.put(this.url + 'registro/' + id, data);
     }
+
+    informacionRegistro(): any {
+        return this.http.get(this.url + '/api/registros/informacionRegistro');
+    }
+
+    informacionPersonal(): any {
+        return this.http.get(this.url + '/api/registros/informacionPersonal');
+    }
+
+    informacionUbicacion(): any {
+        return this.http.get(this.url + '/api/registros/informacionUbicacion');
+    }
 }
