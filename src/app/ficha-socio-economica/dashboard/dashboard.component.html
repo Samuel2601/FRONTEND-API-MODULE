@@ -99,7 +99,7 @@
                         display: flex;
                         flex-wrap: nowrap;
                         align-content: center;
-                        justify-content: space-around;
+                        justify-content: space-between;
                         align-items: center;
                     "
                 >
@@ -187,62 +187,87 @@
 
     <p-tabPanel header="Información Ubicación">
         <div class="p-grid p-nogutter dashboard-container">
-            <div class="ubicacion-container">
-                <div class="p-col-12 p-md-6">
-                    <div
-                        class="p-grid m-2"
-                        style="
-                            display: flex;
-                            flex-wrap: nowrap;
-                            align-content: center;
-                            justify-content: space-around;
-                            align-items: center;
-                        "
-                    >
-                        <!-- Total Personas Registradas -->
-                        <div class="p-col-6">
-                            <div class="info-card">
-                                <i class="pi pi-database card-icon"></i>
-                                <h3>Promedio de Posesión</h3>
-                                <p class="stat-value">
-                                    {{ ubicacionData.promedioPosesion }}
-                                    {{ ubicacionData.timeUnit }}
-                                </p>
-                            </div>
+            <div class="p-col-12 p-md-6">
+                <div
+                    class="p-grid m-2"
+                    style="
+                        display: flex;
+                        flex-wrap: nowrap;
+                        align-content: center;
+                        justify-content: space-between;
+                        align-items: center;
+                    "
+                >
+                    <!-- Total Personas Registradas -->
+                    <div class="p-col-6">
+                        <div class="info-card">
+                            <i class="pi pi-database card-icon"></i>
+                            <h3>Total Registros</h3>
+                            <p class="stat-value">
+                                {{ ubicacionData.total }}
+                            </p>
                         </div>
-                        <!-- Promedio de Edad -->
-                        <div class="p-col-6">
-                            <div class="info-card">
-                                <i class="pi pi-home card-icon"></i>
-                                <h3>Promedio Familias Lote</h3>
-                                <p class="stat-value">
-                                    {{ ubicacionData.promedioFamiliasPorLote }}
-                                </p>
-                            </div>
+                    </div>
+                    <!-- Total Personas Registradas -->
+                    <div class="p-col-6">
+                        <div class="info-card">
+                            <i class="pi pi-home card-icon"></i>
+                            <h3>Promedio de Posesión</h3>
+                            <p class="stat-value">
+                                {{ ubicacionData.promedioPosesion }}
+                                {{ ubicacionData.timeUnit }}
+                            </p>
                         </div>
+                    </div>
+                    <!-- Promedio de Edad -->
+                    <div class="p-col-6">
+                        <div class="info-card">
+                            <i class="pi pi-users card-icon"></i>
+                            <h3>Promedio por Lote</h3>
+                            <p class="stat-value">
+                                {{ ubicacionData.promedioFamiliasPorLote }}
+                                Familias
+                            </p>
+                        </div>
+                    </div>
 
-                        <!-- Edad Mínima -->
-                        <div class="p-col-6">
-                            <div class="info-card">
-                                <i class="pi pi-user card-icon"></i>
-                                <h3>Promedio Personas Lote</h3>
-                                <p class="stat-value">
-                                    {{ ubicacionData.promedioPersonasPorLote }}
-                                </p>
-                            </div>
+                    <!-- Edad Mínima -->
+                    <div class="p-col-6">
+                        <div class="info-card">
+                            <i class="pi pi-user card-icon"></i>
+                            <h3>Promedio por Lote</h3>
+                            <p class="stat-value">
+                                {{ ubicacionData.promedioPersonasPorLote }}
+                                Personas
+                            </p>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Distribución por Rango de Edad -->
-                <div class="p-col-12 p-md-6">
-                    <p-panel header="Distribución por Sector">
+            <!-- Distribución por Rango de Edad -->
+            <p-toggleButton
+                [(ngModel)]="showChart"
+                onLabel="Gráfico"
+                offLabel="Tabla"
+                onIcon="pi-chart-bar"
+                offIcon="pi pi-table"
+                styleClass="p-mb-2"
+            >
+            </p-toggleButton>
+
+            <div class="p-col-12 p-md-6">
+                <p-panel header="Distribución por Sector">
+                    <ng-container *ngIf="showChart">
                         <p-chart
                             type="bar"
                             [data]="ubicacionData.distribucionPorSector.chart"
                             [options]="chartOptions"
-                        ></p-chart>
+                        >
+                        </p-chart>
+                    </ng-container>
 
+                    <ng-container *ngIf="!showChart">
                         <table>
                             <thead>
                                 <tr>
@@ -262,163 +287,163 @@
                                 </tr>
                             </tbody>
                         </table>
-                    </p-panel>
-                </div>
-
-                <section class="estado-casa">
-                    <h3>Distribución por Estado de Casa</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Estado</th>
-                                <th>Count</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                *ngFor="
-                                    let item of ubicacionData.distribucionPorEstadoCasa
-                                "
-                            >
-                                <td>{{ item.estado }}</td>
-                                <td>{{ item.count }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </section>
-
-                <section class="personas-sector">
-                    <h3>Promedio de Personas por Sector</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Sector</th>
-                                <th>Promedio de Personas</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                *ngFor="
-                                    let item of ubicacionData.promedioPersonasPorSector
-                                "
-                            >
-                                <td>{{ item.sector }}</td>
-                                <td>{{ item.promedioPersonas }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </section>
-
-                <section class="personas-barrio">
-                    <h3>Total de Personas por Barrio</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Barrio</th>
-                                <th>Total de Personas</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                *ngFor="
-                                    let item of ubicacionData.totalPersonasPorBarrio
-                                "
-                            >
-                                <td>{{ item.barrio }}</td>
-                                <td>{{ item.totalPersonas }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </section>
-
-                <section class="lotes-sector">
-                    <h3>Total de Lotes por Sector</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Sector</th>
-                                <th>Total de Lotes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                *ngFor="
-                                    let item of ubicacionData.totalLotesPorSector
-                                "
-                            >
-                                <td>{{ item.sector }}</td>
-                                <td>{{ item.totalLotes }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </section>
-
-                <section class="familias-sector">
-                    <h3>Total de Familias por Sector</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Sector</th>
-                                <th>Total de Familias</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                *ngFor="
-                                    let item of ubicacionData.totalFamiliasPorSector
-                                "
-                            >
-                                <td>{{ item.sector }}</td>
-                                <td>{{ item.totalFamilias }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </section>
-
-                <section class="familias-barrio">
-                    <h3>Total de Familias por Barrio</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Barrio</th>
-                                <th>Total de Familias</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                *ngFor="
-                                    let item of ubicacionData.totalFamiliasPorBarrio
-                                "
-                            >
-                                <td>{{ item.barrio }}</td>
-                                <td>{{ item.totalFamilias }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </section>
-
-                <section class="familias-lote">
-                    <h3>Total de Familias por Lote</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Lote</th>
-                                <th>Total de Familias</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                *ngFor="
-                                    let item of ubicacionData.totalFamiliasPorLote
-                                "
-                            >
-                                <td>{{ item.lote }}</td>
-                                <td>{{ item.totalFamilias }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </section>
+                    </ng-container>
+                </p-panel>
             </div>
+
+            <section class="estado-casa">
+                <h3>Distribución por Estado de Casa</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Estado</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            *ngFor="
+                                let item of ubicacionData.distribucionPorEstadoCasa
+                            "
+                        >
+                            <td>{{ item.estado }}</td>
+                            <td>{{ item.count }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="personas-sector">
+                <h3>Promedio de Personas por Sector</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sector</th>
+                            <th>Promedio de Personas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            *ngFor="
+                                let item of ubicacionData.promedioPersonasPorSector
+                            "
+                        >
+                            <td>{{ item.sector }}</td>
+                            <td>{{ item.promedioPersonas }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="personas-barrio">
+                <h3>Total de Personas por Barrio</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Barrio</th>
+                            <th>Total de Personas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            *ngFor="
+                                let item of ubicacionData.totalPersonasPorBarrio
+                            "
+                        >
+                            <td>{{ item.barrio }}</td>
+                            <td>{{ item.totalPersonas }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="lotes-sector">
+                <h3>Total de Lotes por Sector</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sector</th>
+                            <th>Total de Lotes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            *ngFor="
+                                let item of ubicacionData.totalLotesPorSector
+                            "
+                        >
+                            <td>{{ item.sector }}</td>
+                            <td>{{ item.totalLotes }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="familias-sector">
+                <h3>Total de Familias por Sector</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sector</th>
+                            <th>Total de Familias</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            *ngFor="
+                                let item of ubicacionData.totalFamiliasPorSector
+                            "
+                        >
+                            <td>{{ item.sector }}</td>
+                            <td>{{ item.totalFamilias }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="familias-barrio">
+                <h3>Total de Familias por Barrio</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Barrio</th>
+                            <th>Total de Familias</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            *ngFor="
+                                let item of ubicacionData.totalFamiliasPorBarrio
+                            "
+                        >
+                            <td>{{ item.barrio }}</td>
+                            <td>{{ item.totalFamilias }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="familias-lote">
+                <h3>Total de Familias por Lote</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Lote</th>
+                            <th>Total de Familias</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            *ngFor="
+                                let item of ubicacionData.totalFamiliasPorLote
+                            "
+                        >
+                            <td>{{ item.lote }}</td>
+                            <td>{{ item.totalFamilias }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
         </div>
     </p-tabPanel>
 </p-tabView>

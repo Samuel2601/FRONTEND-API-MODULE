@@ -70,6 +70,7 @@ export class DashboardComponent implements OnInit {
         // Obtener datos ubicación
         this.fetchUbicacionData().subscribe((data: any) => {
             this.ubicacionData = this.processUbicacionData(data);
+            this.ubicacionData.total = data.total;
             console.log(this.ubicacionData);
         });
     }
@@ -364,4 +365,5 @@ export class DashboardComponent implements OnInit {
             },
         };
     }
+    showChart: boolean = true;
 }
