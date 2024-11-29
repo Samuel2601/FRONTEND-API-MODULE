@@ -27,6 +27,29 @@ export class DashboardComponent implements OnInit {
 
     chartOptions: any;
 
+    colors: [
+        '#42A5F5',
+        '#66BB6A',
+        '#FFA726',
+        '#AB47BC',
+        '#FF7043',
+        '#29B6F6',
+        '#FFCA28',
+        '#26A69A',
+        '#8D6E63',
+        '#78909C',
+        '#5C6BC0',
+        '#EF5350',
+        '#EC407A',
+        '#7E57C2',
+        '#42A5F5',
+        '#FFEE58',
+        '#8E24AA',
+        '#BDBDBD',
+        '#FF6F00',
+        '#00ACC1'
+    ];
+
     constructor(private registroService: RegistroService) {}
 
     // Método para obtener datos generales
@@ -155,28 +178,7 @@ export class DashboardComponent implements OnInit {
             datasets: [
                 {
                     data: data.porNacionalidad.map((item: any) => item.count),
-                    backgroundColor: [
-                        '#42A5F5',
-                        '#66BB6A',
-                        '#FFA726',
-                        '#AB47BC',
-                        '#FF7043',
-                        '#29B6F6',
-                        '#FFCA28',
-                        '#26A69A',
-                        '#8D6E63',
-                        '#78909C',
-                        '#5C6BC0',
-                        '#EF5350',
-                        '#EC407A',
-                        '#7E57C2',
-                        '#42A5F5',
-                        '#FFEE58',
-                        '#8E24AA',
-                        '#BDBDBD',
-                        '#FF6F00',
-                        '#00ACC1',
-                    ],
+                    backgroundColor: this.colors,
                 },
             ],
         };
@@ -229,7 +231,7 @@ export class DashboardComponent implements OnInit {
         // Procesar la distribución por estado de casa
         const distribucionPorEstadoCasa = {
             table: data.distribucionPorEstadoCasa.map((item: any) => ({
-                sector: item._id ?? 'Desconocido',
+                estado: item._id ?? 'Desconocido',
                 count: item.count ?? 0,
             })),
             chart: {
@@ -242,7 +244,7 @@ export class DashboardComponent implements OnInit {
                         data: data.distribucionPorEstadoCasa.map(
                             (item: any) => item.count
                         ),
-                        backgroundColor: '#66BB6A',
+                        backgroundColor: this.colors,
                     },
                 ],
             },

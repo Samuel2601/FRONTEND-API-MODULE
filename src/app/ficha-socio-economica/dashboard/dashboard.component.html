@@ -325,11 +325,11 @@
 
                     <ng-container *ngIf="!showChart['estadoCasa']">
                         <p-chart
-                            type="pie"
+                            type="doughnut"
                             [data]="
                                 ubicacionData.distribucionPorEstadoCasa.chart
                             "
-                            [options]="chartOptions"
+                            [options]="chartOptionsPie"
                             height="500"
                         >
                         </p-chart>
