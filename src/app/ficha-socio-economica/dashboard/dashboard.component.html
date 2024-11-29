@@ -244,46 +244,45 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Distribución por Rango de Edad -->
-            <p-toggleButton
-                [(ngModel)]="showChart"
-                onLabel="Gráfico"
-                offLabel="Tabla"
-                onIcon="pi-chart-bar"
-                offIcon="pi pi-table"
-                styleClass="p-mb-2"
-            >
-            </p-toggleButton>
-
+            <!--Distribución por Sector-->
             <div class="p-col-12 p-md-6">
-                <p-panel header="Distribución por Sector">
+                <p-panel>
                     <ng-template pTemplate="header">
                         <div class="flex align-items-center gap-2">
-                            <p-avatar
-                                image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png"
-                                size="large"
-                                shape="circle"
-                            />
-                            <span class="font-bold"> Amy Elsner </span>
+                            <span class="font-bold">
+                                Distribución por Sector
+                            </span>
                         </div>
                     </ng-template>
+                    <ng-template pTemplate="icons">
+                        <!-- Distribución por Rango de Edad -->
+                        <p-toggleButton
+                            [(ngModel)]="showChart['distribucionPorSector']"
+                            onLabel="Gráfico"
+                            offLabel="Tabla"
+                            onIcon="pi pi-chart-bar"
+                            offIcon="pi pi-table"
+                            styleClass="p-mb-2"
+                        >
+                        </p-toggleButton>
+                    </ng-template>
 
-                    <ng-container *ngIf="showChart">
+                    <ng-container *ngIf="!showChart['distribucionPorSector']">
                         <p-chart
                             type="bar"
                             [data]="ubicacionData.distribucionPorSector.chart"
                             [options]="chartOptions"
+                            height="500"
                         >
                         </p-chart>
                     </ng-container>
 
-                    <ng-container *ngIf="!showChart">
+                    <ng-container *ngIf="showChart['distribucionPorSector']">
                         <table>
                             <thead>
                                 <tr>
                                     <th>Sector</th>
-                                    <th>Count</th>
+                                    <th>Conteo</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -302,159 +301,401 @@
                 </p-panel>
             </div>
 
-            <section class="estado-casa">
-                <h3>Distribución por Estado de Casa</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Estado</th>
-                            <th>Count</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            *ngFor="
-                                let item of ubicacionData.distribucionPorEstadoCasa
-                            "
+            <!-- Distribución por Estado de Casa -->
+            <div class="p-col-12 p-md-6">
+                <p-panel>
+                    <ng-template pTemplate="header">
+                        <div class="flex align-items-center gap-2">
+                            <span class="font-bold">
+                                Distribución por Estado de Casa
+                            </span>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="icons">
+                        <p-toggleButton
+                            [(ngModel)]="showChart['estadoCasa']"
+                            onLabel="Gráfico"
+                            offLabel="Tabla"
+                            onIcon="pi pi-chart-bar"
+                            offIcon="pi pi-table"
+                            styleClass="p-mb-2"
                         >
-                            <td>{{ item.estado }}</td>
-                            <td>{{ item.count }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
+                        </p-toggleButton>
+                    </ng-template>
 
-            <section class="personas-sector">
-                <h3>Promedio de Personas por Sector</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Sector</th>
-                            <th>Promedio de Personas</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            *ngFor="
-                                let item of ubicacionData.promedioPersonasPorSector
+                    <ng-container *ngIf="!showChart['estadoCasa']">
+                        <p-chart
+                            type="pie"
+                            [data]="
+                                ubicacionData.distribucionPorEstadoCasa.chart
                             "
+                            [options]="chartOptions"
+                            height="500"
                         >
-                            <td>{{ item.sector }}</td>
-                            <td>{{ item.promedioPersonas }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
+                        </p-chart>
+                    </ng-container>
 
-            <section class="personas-barrio">
-                <h3>Total de Personas por Barrio</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Barrio</th>
-                            <th>Total de Personas</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            *ngFor="
-                                let item of ubicacionData.totalPersonasPorBarrio
-                            "
-                        >
-                            <td>{{ item.barrio }}</td>
-                            <td>{{ item.totalPersonas }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
+                    <ng-container *ngIf="showChart['estadoCasa']">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Estado</th>
+                                    <th>Conteo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    *ngFor="
+                                        let item of ubicacionData
+                                            .distribucionPorEstadoCasa.table
+                                    "
+                                >
+                                    <td>{{ item.estado }}</td>
+                                    <td>{{ item.count }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </ng-container>
+                </p-panel>
+            </div>
 
-            <section class="lotes-sector">
-                <h3>Total de Lotes por Sector</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Sector</th>
-                            <th>Total de Lotes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            *ngFor="
-                                let item of ubicacionData.totalLotesPorSector
-                            "
+            <!-- Promedio de Personas por Sector -->
+            <div class="p-col-12 p-md-6">
+                <p-panel>
+                    <ng-template pTemplate="header">
+                        <div class="flex align-items-center gap-2">
+                            <span class="font-bold">
+                                Promedio de Personas por Sector
+                            </span>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="icons">
+                        <p-toggleButton
+                            [(ngModel)]="showChart['personasSector']"
+                            onLabel="Gráfico"
+                            offLabel="Tabla"
+                            onIcon="pi pi-chart-bar"
+                            offIcon="pi pi-table"
+                            styleClass="p-mb-2"
                         >
-                            <td>{{ item.sector }}</td>
-                            <td>{{ item.totalLotes }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
+                        </p-toggleButton>
+                    </ng-template>
 
-            <section class="familias-sector">
-                <h3>Total de Familias por Sector</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Sector</th>
-                            <th>Total de Familias</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            *ngFor="
-                                let item of ubicacionData.totalFamiliasPorSector
+                    <ng-container *ngIf="!showChart['personasSector']">
+                        <p-chart
+                            type="bar"
+                            [data]="
+                                ubicacionData.promedioPersonasPorSector.chart
                             "
+                            [options]="chartOptions"
+                            height="500"
                         >
-                            <td>{{ item.sector }}</td>
-                            <td>{{ item.totalFamilias }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
+                        </p-chart>
+                    </ng-container>
 
-            <section class="familias-barrio">
-                <h3>Total de Familias por Barrio</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Barrio</th>
-                            <th>Total de Familias</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            *ngFor="
-                                let item of ubicacionData.totalFamiliasPorBarrio
-                            "
-                        >
-                            <td>{{ item.barrio }}</td>
-                            <td>{{ item.totalFamilias }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
+                    <ng-container *ngIf="showChart['personasSector']">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Sector</th>
+                                    <th>Promedio de Personas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    *ngFor="
+                                        let item of ubicacionData
+                                            .promedioPersonasPorSector.table
+                                    "
+                                >
+                                    <td>{{ item.sector }}</td>
+                                    <td>{{ item.promedioPersonas }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </ng-container>
+                </p-panel>
+            </div>
 
-            <section class="familias-lote">
-                <h3>Total de Familias por Lote</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Lote</th>
-                            <th>Total de Familias</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            *ngFor="
-                                let item of ubicacionData.totalFamiliasPorLote
-                            "
+            <!-- Total de Personas por Barrio -->
+            <div class="p-col-12 p-md-6">
+                <p-panel>
+                    <ng-template pTemplate="header">
+                        <div class="flex align-items-center gap-2">
+                            <span class="font-bold">
+                                Total de Personas por Barrio
+                            </span>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="icons">
+                        <p-toggleButton
+                            [(ngModel)]="showChart['personasBarrio']"
+                            onLabel="Gráfico"
+                            offLabel="Tabla"
+                            onIcon="pi pi-chart-bar"
+                            offIcon="pi pi-table"
+                            styleClass="p-mb-2"
                         >
-                            <td>{{ item.lote }}</td>
-                            <td>{{ item.totalFamilias }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
+                        </p-toggleButton>
+                    </ng-template>
+
+                    <ng-container *ngIf="!showChart['personasBarrio']">
+                        <p-chart
+                            type="bar"
+                            [data]="ubicacionData.totalPersonasPorBarrio.chart"
+                            [options]="chartOptions"
+                            height="500"
+                        >
+                        </p-chart>
+                    </ng-container>
+
+                    <ng-container *ngIf="showChart['personasBarrio']">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Barrio</th>
+                                    <th>Total de Personas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    *ngFor="
+                                        let item of ubicacionData
+                                            .totalPersonasPorBarrio.table
+                                    "
+                                >
+                                    <td>{{ item.barrio }}</td>
+                                    <td>{{ item.totalPersonas }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </ng-container>
+                </p-panel>
+            </div>
+
+            <!-- Total de Lotes por Sector -->
+            <div class="p-col-12 p-md-6">
+                <p-panel>
+                    <ng-template pTemplate="header">
+                        <div class="flex align-items-center gap-2">
+                            <span class="font-bold">
+                                Total de Lotes por Sector
+                            </span>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="icons">
+                        <p-toggleButton
+                            [(ngModel)]="showChart['lotesSector']"
+                            onLabel="Gráfico"
+                            offLabel="Tabla"
+                            onIcon="pi pi-chart-bar"
+                            offIcon="pi pi-table"
+                            styleClass="p-mb-2"
+                        >
+                        </p-toggleButton>
+                    </ng-template>
+
+                    <ng-container *ngIf="!showChart['lotesSector']">
+                        <p-chart
+                            type="bar"
+                            [data]="ubicacionData.totalLotesPorSector.chart"
+                            [options]="chartOptions"
+                            height="500"
+                        >
+                        </p-chart>
+                    </ng-container>
+
+                    <ng-container *ngIf="showChart['lotesSector']">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Sector</th>
+                                    <th>Total de Lotes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    *ngFor="
+                                        let item of ubicacionData
+                                            .totalLotesPorSector.table
+                                    "
+                                >
+                                    <td>{{ item.sector }}</td>
+                                    <td>{{ item.totalLotes }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </ng-container>
+                </p-panel>
+            </div>
+
+            <!-- Total de Familias por Sector -->
+            <div class="p-col-12 p-md-6">
+                <p-panel>
+                    <ng-template pTemplate="header">
+                        <div class="flex align-items-center gap-2">
+                            <span class="font-bold">
+                                Total de Familias por Sector
+                            </span>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="icons">
+                        <p-toggleButton
+                            [(ngModel)]="showChart['familiasSector']"
+                            onLabel="Gráfico"
+                            offLabel="Tabla"
+                            onIcon="pi pi-chart-bar"
+                            offIcon="pi pi-table"
+                            styleClass="p-mb-2"
+                        >
+                        </p-toggleButton>
+                    </ng-template>
+
+                    <ng-container *ngIf="!showChart['familiasSector']">
+                        <p-chart
+                            type="bar"
+                            [data]="ubicacionData.totalFamiliasPorSector.chart"
+                            [options]="chartOptions"
+                            height="500"
+                        >
+                        </p-chart>
+                    </ng-container>
+
+                    <ng-container *ngIf="showChart['familiasSector']">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Sector</th>
+                                    <th>Total de Familias</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    *ngFor="
+                                        let item of ubicacionData
+                                            .totalFamiliasPorSector.table
+                                    "
+                                >
+                                    <td>{{ item.sector }}</td>
+                                    <td>{{ item.totalFamilias }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </ng-container>
+                </p-panel>
+            </div>
+
+            <!-- Total de Familias por Barrio -->
+            <div class="p-col-12 p-md-6">
+                <p-panel>
+                    <ng-template pTemplate="header">
+                        <div class="flex align-items-center gap-2">
+                            <span class="font-bold">
+                                Total de Familias por Barrio
+                            </span>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="icons">
+                        <p-toggleButton
+                            [(ngModel)]="showChart['familiasBarrio']"
+                            onLabel="Gráfico"
+                            offLabel="Tabla"
+                            onIcon="pi pi-chart-bar"
+                            offIcon="pi pi-table"
+                            styleClass="p-mb-2"
+                        >
+                        </p-toggleButton>
+                    </ng-template>
+
+                    <ng-container *ngIf="!showChart['familiasBarrio']">
+                        <p-chart
+                            type="bar"
+                            [data]="ubicacionData.totalFamiliasPorBarrio.chart"
+                            [options]="chartOptions"
+                            height="500"
+                        >
+                        </p-chart>
+                    </ng-container>
+
+                    <ng-container *ngIf="showChart['familiasBarrio']">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Barrio</th>
+                                    <th>Total de Familias</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    *ngFor="
+                                        let item of ubicacionData
+                                            .totalFamiliasPorBarrio.table
+                                    "
+                                >
+                                    <td>{{ item.barrio }}</td>
+                                    <td>{{ item.totalFamilias }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </ng-container>
+                </p-panel>
+            </div>
+
+            <!-- Total de Familias por Lote -->
+            <div class="p-col-12 p-md-6">
+                <p-panel>
+                    <ng-template pTemplate="header">
+                        <div class="flex align-items-center gap-2">
+                            <span class="font-bold">
+                                Total de Familias por Lote
+                            </span>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="icons">
+                        <p-toggleButton
+                            [(ngModel)]="showChart['familiasLote']"
+                            onLabel="Gráfico"
+                            offLabel="Tabla"
+                            onIcon="pi pi-chart-bar"
+                            offIcon="pi pi-table"
+                            styleClass="p-mb-2"
+                        >
+                        </p-toggleButton>
+                    </ng-template>
+
+                    <ng-container *ngIf="!showChart['familiasLote']">
+                        <p-chart
+                            type="bar"
+                            [data]="ubicacionData.totalFamiliasPorLote.chart"
+                            [options]="chartOptions"
+                            height="500"
+                        >
+                        </p-chart>
+                    </ng-container>
+
+                    <ng-container *ngIf="showChart['familiasLote']">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Lote</th>
+                                    <th>Total de Familias</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    *ngFor="
+                                        let item of ubicacionData
+                                            .totalFamiliasPorLote.table
+                                    "
+                                >
+                                    <td>{{ item.lote }}</td>
+                                    <td>{{ item.totalFamilias }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </ng-container>
+                </p-panel>
+            </div>
         </div>
     </p-tabPanel>
 </p-tabView>

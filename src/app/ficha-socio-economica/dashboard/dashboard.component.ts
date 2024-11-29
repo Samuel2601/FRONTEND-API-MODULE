@@ -257,52 +257,136 @@ export class DashboardComponent implements OnInit {
             data.promedioPersonasPorLote[0]?.promedioPersonas ?? 0;
 
         // Procesar el promedio de personas por sector
-        const promedioPersonasPorSector = data.promedioPersonasPorSector.map(
-            (item: any) => ({
+        const promedioPersonasPorSector = {
+            table: data.promedioPersonasPorSector.map((item: any) => ({
                 sector: item._id ?? 'Desconocido',
                 promedioPersonas: item.promedioPersonas ?? 0,
-            })
-        );
+            })),
+            chart: {
+                labels: data.promedioPersonasPorSector.map(
+                    (item: any) => item._id ?? 'Desconocido'
+                ),
+                datasets: [
+                    {
+                        label: 'Promedio de personas por sector',
+                        data: data.promedioPersonasPorSector.map(
+                            (item: any) => item.promedioPersonas ?? 0
+                        ),
+                        backgroundColor: '#42A5F5',
+                    },
+                ],
+            },
+        };
 
         // Procesar el total de personas por barrio
-        const totalPersonasPorBarrio = data.totalPersonasPorBarrio.map(
-            (item: any) => ({
+        const totalPersonasPorBarrio = {
+            table: data.totalPersonasPorBarrio.map((item: any) => ({
                 barrio: item._id ?? 'Desconocido',
                 totalPersonas: item.totalPersonas ?? 0,
-            })
-        );
+            })),
+            chart: {
+                labels: data.totalPersonasPorBarrio.map(
+                    (item: any) => item._id ?? 'Desconocido'
+                ),
+                datasets: [
+                    {
+                        label: 'Total de personas por barrio',
+                        data: data.totalPersonasPorBarrio.map(
+                            (item: any) => item.totalPersonas ?? 0
+                        ),
+                        backgroundColor: '#FFA726',
+                    },
+                ],
+            },
+        };
 
         // Procesar el total de lotes por sector
-        const totalLotesPorSector = data.totalLotesPorSector.map(
-            (item: any) => ({
+        const totalLotesPorSector = {
+            table: data.totalLotesPorSector.map((item: any) => ({
                 sector: item._id ?? 'Desconocido',
                 totalLotes: item.totalLotes ?? 0,
-            })
-        );
+            })),
+            chart: {
+                labels: data.totalLotesPorSector.map(
+                    (item: any) => item._id ?? 'Desconocido'
+                ),
+                datasets: [
+                    {
+                        label: 'Total de lotes por sector',
+                        data: data.totalLotesPorSector.map(
+                            (item: any) => item.totalLotes ?? 0
+                        ),
+                        backgroundColor: '#AB47BC',
+                    },
+                ],
+            },
+        };
 
         // Procesar el total de familias por sector
-        const totalFamiliasPorSector = data.totalFamiliasPorSector.map(
-            (item: any) => ({
+        const totalFamiliasPorSector = {
+            table: data.totalFamiliasPorSector.map((item: any) => ({
                 sector: item._id ?? 'Desconocido',
                 totalFamilias: item.totalFamilias ?? 0,
-            })
-        );
+            })),
+            chart: {
+                labels: data.totalFamiliasPorSector.map(
+                    (item: any) => item._id ?? 'Desconocido'
+                ),
+                datasets: [
+                    {
+                        label: 'Total de familias por sector',
+                        data: data.totalFamiliasPorSector.map(
+                            (item: any) => item.totalFamilias ?? 0
+                        ),
+                        backgroundColor: '#26A69A',
+                    },
+                ],
+            },
+        };
 
         // Procesar el total de familias por barrio
-        const totalFamiliasPorBarrio = data.totalFamiliasPorBarrio.map(
-            (item: any) => ({
+        const totalFamiliasPorBarrio = {
+            table: data.totalFamiliasPorBarrio.map((item: any) => ({
                 barrio: item._id ?? 'Desconocido',
                 totalFamilias: item.totalFamilias ?? 0,
-            })
-        );
+            })),
+            chart: {
+                labels: data.totalFamiliasPorBarrio.map(
+                    (item: any) => item._id ?? 'Desconocido'
+                ),
+                datasets: [
+                    {
+                        label: 'Total de familias por barrio',
+                        data: data.totalFamiliasPorBarrio.map(
+                            (item: any) => item.totalFamilias ?? 0
+                        ),
+                        backgroundColor: '#FF7043',
+                    },
+                ],
+            },
+        };
 
         // Procesar el total de familias por lote
-        const totalFamiliasPorLote = data.totalFamiliasPorLote.map(
-            (item: any) => ({
+        const totalFamiliasPorLote = {
+            table: data.totalFamiliasPorLote.map((item: any) => ({
                 lote: item._id ?? 'Desconocido',
                 totalFamilias: item.totalFamilias ?? 0,
-            })
-        );
+            })),
+            chart: {
+                labels: data.totalFamiliasPorLote.map(
+                    (item: any) => item._id ?? 'Desconocido'
+                ),
+                datasets: [
+                    {
+                        label: 'Total de familias por lote',
+                        data: data.totalFamiliasPorLote.map(
+                            (item: any) => item.totalFamilias ?? 0
+                        ),
+                        backgroundColor: '#29B6F6',
+                    },
+                ],
+            },
+        };
 
         // Estructura final de datos procesados
         return {
@@ -365,5 +449,6 @@ export class DashboardComponent implements OnInit {
             },
         };
     }
-    showChart: boolean = true;
+    // Define el objeto
+    showChart: { [key: string]: boolean } = {};
 }
