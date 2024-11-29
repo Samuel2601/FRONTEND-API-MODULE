@@ -203,6 +203,7 @@ export class DashboardComponent implements OnInit {
     }
 
     processUbicacionData(data: any) {
+        console.log(data);
         // Procesar el promedio de posesión
         const promedioPosesion =
             data.promedioPosesion[0]?.promedioPosesion ?? 0;
@@ -242,7 +243,7 @@ export class DashboardComponent implements OnInit {
                     {
                         label: 'Distribución por sector',
                         data: data.distribucionPorEstadoCasa.map(
-                            (item: any) => item.count
+                            (item: any) => (item.count * 100) / data.total
                         ),
                         backgroundColor: this.colors,
                     },
