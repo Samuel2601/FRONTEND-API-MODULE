@@ -188,8 +188,31 @@
     </p-tabPanel>
 
     <p-tabPanel header="Información Ubicación">
-        <div class="p-grid p-nogutter dashboard-container">
-            <div class="p-col-12 p-md-6">
+        <!-- Add this to your existing template -->
+        <div class="layout-controls mb-3">
+            <p-selectButton
+                [(ngModel)]="layoutView"
+                [options]="layoutOptions"
+                optionLabel="label"
+                optionValue="value"
+                (onChange)="onLayoutChange()"
+            >
+            </p-selectButton>
+        </div>
+
+        <div
+            class="p-grid"
+            [ngClass]="
+                layoutView === 'grid'
+                    ? 'p-grid-nogutter dashboard-grid'
+                    : 'p-grid-nogutter dashboard-list'
+            "
+        >
+            <!-- Existing grid items remain the same, just wrapped in this div -->
+            <div
+                class="p-col-12"
+                [ngClass]="layoutView === 'grid' ? 'p-md-6' : ''"
+            >
                 <div
                     class="p-grid m-2"
                     style="

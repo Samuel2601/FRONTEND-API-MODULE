@@ -454,4 +454,15 @@ export class DashboardComponent implements OnInit {
     }
     // Define el objeto
     showChart: { [key: string]: boolean } = {};
+
+    layoutView: 'grid' | 'list' = 'grid';
+
+    layoutOptions = [
+        { label: 'Grid', value: 'grid' },
+        { label: 'List', value: 'list' },
+    ];
+
+    onLayoutChange() {
+        // Optional: Any additional logic when layout changes
+    }
 }

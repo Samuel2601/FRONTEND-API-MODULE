@@ -159,3 +159,20 @@ table th {
 table tr:nth-child(even) {
     background-color: #ecf0f1;
 }
+
+
+/* Add to your component's CSS */
+.dashboard-grid .p-col-12 {
+    transition: all 0.3s ease;
+}
+
+.dashboard-list .p-col-12 {
+    width: 100%;
+    max-width: 100%;
+}
+
+.layout-controls {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+}
