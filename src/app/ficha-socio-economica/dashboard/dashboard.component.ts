@@ -91,12 +91,16 @@ export class DashboardComponent implements OnInit {
         });
 
         // Obtener datos ubicación
+
         this.fetchUbicacionData().subscribe((data: any) => {
+            this.loadData = false;
             this.ubicacionData = this.processUbicacionData(data);
             this.ubicacionData.total = data.total;
             console.log(this.ubicacionData);
+            this.loadData = true;
         });
     }
+    loadData: boolean = false;
 
     processGeneralData(data: any) {
         this.surveyorData = {
@@ -227,6 +231,7 @@ export class DashboardComponent implements OnInit {
                     },
                 ],
             },
+            title: 'Distribución por sector',
         };
 
         // Procesar la distribución por estado de casa
@@ -249,6 +254,7 @@ export class DashboardComponent implements OnInit {
                     },
                 ],
             },
+            title: 'Distribución por estado de casa',
         };
 
         // Procesar el promedio de familias por lote
@@ -279,6 +285,7 @@ export class DashboardComponent implements OnInit {
                     },
                 ],
             },
+            title: 'Promedio de personas por sector',
         };
 
         // Procesar el total de personas por barrio
@@ -301,6 +308,7 @@ export class DashboardComponent implements OnInit {
                     },
                 ],
             },
+            title: 'Total de personas por barrio',
         };
 
         // Procesar el total de lotes por sector
@@ -323,6 +331,7 @@ export class DashboardComponent implements OnInit {
                     },
                 ],
             },
+            title: 'Total de lotes por sector',
         };
 
         // Procesar el total de familias por sector
@@ -345,6 +354,7 @@ export class DashboardComponent implements OnInit {
                     },
                 ],
             },
+            title: 'Total de familias por sector',
         };
 
         // Procesar el total de familias por barrio
@@ -367,6 +377,7 @@ export class DashboardComponent implements OnInit {
                     },
                 ],
             },
+            title: 'Total de familias por barrio',
         };
 
         // Procesar el total de familias por lote
@@ -389,22 +400,31 @@ export class DashboardComponent implements OnInit {
                     },
                 ],
             },
+            title: 'Total de familias por lote',
         };
-
-        // Estructura final de datos procesados
-        return {
-            promedioPosesion,
-            timeUnit,
+        const components = {
             distribucionPorSector,
             distribucionPorEstadoCasa,
-            promedioFamiliasPorLote,
-            promedioPersonasPorLote,
             promedioPersonasPorSector,
             totalPersonasPorBarrio,
             totalLotesPorSector,
             totalFamiliasPorSector,
             totalFamiliasPorBarrio,
             totalFamiliasPorLote,
+        };
+        const components_arr = Object.entries(components).map(
+            ([key, value]) => ({
+                key,
+                ...value,
+            })
+        );
+        // Estructura final de datos procesados
+        return {
+            promedioPosesion,
+            timeUnit,
+            promedioFamiliasPorLote,
+            promedioPersonasPorLote,
+            components_arr,
         };
     }
 
@@ -455,14 +475,14 @@ export class DashboardComponent implements OnInit {
     // Define el objeto
     showChart: { [key: string]: boolean } = {};
 
-    layoutView: 'grid' | 'list' = 'grid';
+    layout: 'grid' | 'list' = 'grid';
 
     layoutOptions = [
         { label: 'Grid', value: 'grid' },
         { label: 'List', value: 'list' },
     ];
 
-    onLayoutChange() {
-        // Optional: Any additional logic when layout changes
+    onLayoutChange(event: any) {
+        this.layout = event.value;
     }
 }
