@@ -531,7 +531,7 @@ export class DashboardComponent implements OnInit {
                     },
                 },
                 tooltip: {
-                    mode: 'nearest',
+                    mode: 'index',
                     intersect: false,
                     backgroundColor: '#ffffff', // Fondo blanco para mejor visibilidad
                     titleColor: '#333333', // Color del título
