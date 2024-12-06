@@ -49,14 +49,14 @@ export class RegistroService {
     }
 
     informacionRegistro(): any {
-        return this.http.get(this.url + '/api/registros/informacionRegistro');
+        return this.http.get(this.url + 'api/registros/informacionRegistro');
     }
 
     informacionPersonal(): any {
-        return this.http.get(this.url + '/api/registros/informacionPersonal');
+        return this.http.get(this.url + 'api/registros/informacionPersonal');
     }
 
     informacionUbicacion(): any {
-        return this.http.get(this.url + '/api/registros/informacionUbicacion');
+        return this.http.get(this.url + 'api/registros/informacionUbicacion');
     }
 }

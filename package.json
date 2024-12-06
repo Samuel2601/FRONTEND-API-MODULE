@@ -51,6 +51,7 @@
     "capacitor-native-biometric": "^4.2.2",
     "chart.js": "^4.4.3",
     "crypto-js": "^4.2.0",
+    "date-fns": "^4.1.0",
     "howler": "^2.2.4",
     "html2pdf.js": "^0.10.2",
     "leaflet": "^1.9.4",

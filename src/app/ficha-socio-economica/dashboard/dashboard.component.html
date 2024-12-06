@@ -35,7 +35,7 @@
             <div class="p-col-12 p-md-6">
                 <p-panel header="Registros por Hora">
                     <p-chart
-                        type="bar"
+                        type="line"
                         [data]="hourlyData"
                         [options]="chartOptions"
                     ></p-chart>
@@ -92,66 +92,61 @@
     <p-tabPanel header="Información Personal">
         <div class="p-grid p-nogutter dashboard-container">
             <!-- Estadísticas como Cards -->
-            <div class="p-col-12 p-md-6">
+            <div
+                class="grid grid-nogutter"
+                style="justify-content: space-around"
+            >
+                <!-- Total Personas Registradas -->
+                <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
+                    <div class="info-card">
+                        <i class="pi pi-database card-icon"></i>
+                        <h3>Total Registros</h3>
+                        <p class="stat-value">
+                            {{ personalData.total }}
+                        </p>
+                    </div>
+                </div>
+                <!-- Promedio de Edad -->
+                <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
+                    <div class="info-card">
+                        <i class="pi pi-chart-line card-icon"></i>
+                        <h3>Promedio Edad</h3>
+                        <p class="stat-value">
+                            {{ personalData.promedioEdad | number : "1.2-2" }}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Edad Mínima -->
                 <div
-                    class="p-grid"
-                    style="
-                        display: flex;
-                        flex-wrap: nowrap;
-                        align-content: center;
-                        justify-content: space-between;
-                        align-items: center;
-                    "
+                    class="col-12 sm:col-2 md:col-2 xl:col-2 p-2"
+                    *ngIf="personalData.ageStats"
                 >
-                    <!-- Total Personas Registradas -->
-                    <div class="p-col-6">
-                        <div class="info-card">
-                            <i class="pi pi-database card-icon"></i>
-                            <h3>Total Registros</h3>
-                            <p class="stat-value">
-                                {{ personalData.total }}
-                            </p>
-                        </div>
+                    <div class="info-card">
+                        <i class="pi pi-angle-double-down card-icon"></i>
+                        <h3>Edad Mínima</h3>
+                        <p class="stat-value">
+                            {{ personalData.ageStats.minEdad }}
+                        </p>
                     </div>
-                    <!-- Promedio de Edad -->
-                    <div class="p-col-6">
-                        <div class="info-card">
-                            <i class="pi pi-chart-line card-icon"></i>
-                            <h3>Promedio Edad</h3>
-                            <p class="stat-value">
-                                {{
-                                    personalData.promedioEdad | number : "1.2-2"
-                                }}
-                            </p>
-                        </div>
-                    </div>
+                </div>
 
-                    <!-- Edad Mínima -->
-                    <div class="p-col-6" *ngIf="personalData.ageStats">
-                        <div class="info-card">
-                            <i class="pi pi-angle-double-down card-icon"></i>
-                            <h3>Edad Mínima</h3>
-                            <p class="stat-value">
-                                {{ personalData.ageStats.minEdad }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Edad Máxima -->
-                    <div class="p-col-6" *ngIf="personalData.ageStats">
-                        <div class="info-card">
-                            <i class="pi pi-angle-double-up card-icon"></i>
-                            <h3>Edad Máxima</h3>
-                            <p class="stat-value">
-                                {{ personalData.ageStats.maxEdad }}
-                            </p>
-                        </div>
+                <!-- Edad Máxima -->
+                <div
+                    class="col-12 sm:col-2 md:col-2 xl:col-2 p-2"
+                    *ngIf="personalData.ageStats"
+                >
+                    <div class="info-card">
+                        <i class="pi pi-angle-double-up card-icon"></i>
+                        <h3>Edad Máxima</h3>
+                        <p class="stat-value">
+                            {{ personalData.ageStats.maxEdad }}
+                        </p>
                     </div>
                 </div>
             </div>
-
             <!-- Distribución por Nacionalidad -->
-            <div class="p-col-12 p-md-6">
+            <div class="p-col-12 p-md-6 my-2">
                 <p-panel header="Distribución por Nacionalidad">
                     <p-chart
                         [height]="'300'"
@@ -164,7 +159,7 @@
             </div>
 
             <!-- Distribución por Rango de Edad -->
-            <div class="p-col-12 p-md-6">
+            <div class="p-col-12 p-md-6 my-2">
                 <p-panel header="Distribución por Rango de Edad">
                     <p-chart
                         type="bar"
@@ -175,7 +170,7 @@
             </div>
 
             <!-- Teléfonos Únicos -->
-            <div class="p-col-12">
+            <div class="p-col-12 my-2">
                 <p-panel header="Teléfonos Únicos">
                     <ul class="phone-list">
                         <li *ngFor="let phone of personalData.telefonosUnicos">
@@ -189,69 +184,61 @@
 
     <p-tabPanel header="Información Ubicación">
         <div class="p-grid p-nogutter dashboard-container">
-            <div class="p-col-12 p-md-6">
-                <div
-                    class="p-grid m-2"
-                    style="
-                        display: flex;
-                        flex-wrap: nowrap;
-                        align-content: center;
-                        justify-content: space-between;
-                        align-items: center;
-                    "
-                >
-                    <!-- Total Personas Registradas -->
-                    <div class="p-col-6">
-                        <div class="info-card">
-                            <i class="pi pi-database card-icon"></i>
-                            <h3>Total Registros</h3>
-                            <p class="stat-value">
-                                {{ ubicacionData.total }}
-                            </p>
-                        </div>
+            <div
+                class="grid grid-nogutter"
+                style="justify-content: space-around"
+            >
+                <!-- Total Personas Registradas -->
+                <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
+                    <div class="info-card">
+                        <i class="pi pi-database card-icon"></i>
+                        <h3>Total Registros</h3>
+                        <p class="stat-value">
+                            {{ ubicacionData.total }}
+                        </p>
                     </div>
-                    <!-- Total Personas Registradas -->
-                    <div class="p-col-6">
-                        <div class="info-card">
-                            <i class="pi pi-home card-icon"></i>
-                            <h3>Promedio de Posesión</h3>
-                            <p class="stat-value">
-                                {{
-                                    ubicacionData.promedioPosesion
-                                        | number : "1.2-2"
-                                }}
-                                {{ ubicacionData.timeUnit }}
-                            </p>
-                        </div>
+                </div>
+                <!-- Total Personas Registradas -->
+                <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
+                    <div class="info-card">
+                        <i class="pi pi-home card-icon"></i>
+                        <h3>Promedio de Posesión</h3>
+                        <p class="stat-value">
+                            {{
+                                ubicacionData.promedioPosesion
+                                    | number : "1.2-2"
+                            }}
+                            Años
+                        </p>
                     </div>
-                    <!-- Promedio de Edad -->
-                    <div class="p-col-6">
-                        <div class="info-card">
-                            <i class="pi pi-users card-icon"></i>
-                            <h3>Promedio por Lote</h3>
-                            <p class="stat-value">
-                                {{
-                                    ubicacionData.promedioFamiliasPorLote
-                                        | number : "1.2-2"
-                                }}
-                                Familias
-                            </p>
-                        </div>
+                </div>
+                <!-- Promedio de Edad -->
+                <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
+                    <div class="info-card">
+                        <i class="pi pi-users card-icon"></i>
+                        <h3>Promedio por Lote</h3>
+                        <p class="stat-value">
+                            {{
+                                ubicacionData.promedioFamiliasPorLote
+                                    | number : "1.2-2"
+                            }}
+                            Familias
+                        </p>
                     </div>
+                </div>
 
-                    <!-- Edad Mínima -->
-                    <div class="p-col-6">
-                        <div class="info-card">
-                            <i class="pi pi-user card-icon"></i>
-                            <h3>Promedio por Lote</h3>
-                            <p class="stat-value">
-                                {{
-                                    ubicacionData.promedioPersonasPorLote
-                                        | number : "1.2-2"
-                                }}
-                                Personas
-                            </p>
-                        </div>
+                <!-- Edad Mínima -->
+                <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
+                    <div class="info-card">
+                        <i class="pi pi-user card-icon"></i>
+                        <h3>Promedio por Lote</h3>
+                        <p class="stat-value">
+                            {{
+                                ubicacionData.promedioPersonasPorLote
+                                    | number : "1.2-2"
+                            }}
+                            Personas
+                        </p>
                     </div>
                 </div>
             </div>
@@ -262,13 +249,16 @@
                 [layout]="layout"
                 *ngIf="loadData"
             >
-                <ng-template pTemplate="header">
+                <ng-template pTemplate="header" *ngIf="!isMobil()">
                     <div class="flex justify-content-end">
                         <p-dataViewLayoutOptions></p-dataViewLayoutOptions>
                     </div>
                 </ng-template>
                 <ng-template pTemplate="list" let-dash>
-                    <div class="p-col-12 p-md-6" *ngFor="let config of dash">
+                    <div
+                        class="p-col-12 p-md-6 my-3"
+                        *ngFor="let config of dash"
+                    >
                         <p-panel>
                             <ng-template pTemplate="header">
                                 <div class="flex align-items-center gap-2">
@@ -340,74 +330,94 @@
                 </ng-template>
 
                 <ng-template pTemplate="grid" let-dash>
-                    <div class="p-col-12 p-md-6" *ngFor="let config of dash">
-                        <p-panel>
-                            <ng-template pTemplate="header">
-                                <div class="flex align-items-center gap-2">
-                                    <span class="font-bold">{{
-                                        config.title
-                                    }}</span>
+                    <div class="grid grid-nogutter">
+                        <div
+                            class="col-12 sm:col-6 md:col-6 xl:col-6 p-2"
+                            *ngFor="let product of dash"
+                        >
+                            <div
+                                class="p-4 border-1 surface-border surface-card border-round flex flex-column"
+                            >
+                                <div class="relative mx-auto">
+                                    <p-button
+                                        [label]="
+                                            !showChart[product.key]
+                                                ? 'Table'
+                                                : 'Gráfico'
+                                        "
+                                        [severity]="getSeverity(product)"
+                                        (click)="
+                                            showChart[product.key] =
+                                                !showChart[product.key]
+                                        "
+                                        class="absolute"
+                                        [style.left.px]="4"
+                                        [style.top.px]="4"
+                                    />
                                 </div>
-                            </ng-template>
-                            <ng-template pTemplate="icons">
-                                <p-toggleButton
-                                    [(ngModel)]="showChart[config.key]"
-                                    onLabel="Gráfico"
-                                    offLabel="Tabla"
-                                    onIcon="pi pi-chart-bar"
-                                    offIcon="pi pi-table"
-                                    styleClass="p-mb-2"
+                                <div
+                                    class="surface-50 flex justify-content-center border-round p-3 chart-table-container"
                                 >
-                                </p-toggleButton>
-                            </ng-template>
-
-                            <ng-container *ngIf="!showChart[config.key]">
-                                <p-chart
-                                    [type]="
-                                        config.key ===
-                                        'distribucionPorEstadoCasa'
-                                            ? 'doughnut'
-                                            : 'bar'
-                                    "
-                                    [data]="config.chart"
-                                    [options]="
-                                        config.key ===
-                                        'distribucionPorEstadoCasa'
-                                            ? chartOptionsPie
-                                            : chartOptions
-                                    "
-                                    height="500"
-                                ></p-chart>
-                            </ng-container>
-
-                            <ng-container *ngIf="showChart[config.key]">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th
-                                                *ngFor="
-                                                    let col of config.table[0]
-                                                        | keyvalue
-                                                "
-                                            >
-                                                {{ col.key }}
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr *ngFor="let item of config.table">
-                                            <td
-                                                *ngFor="
-                                                    let col of item | keyvalue
-                                                "
-                                            >
-                                                {{ col.value }}
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </ng-container>
-                        </p-panel>
+                                    <ng-container
+                                        *ngIf="!showChart[product.key]"
+                                    >
+                                        <p-chart
+                                            class="border-round w-full"
+                                            [type]="
+                                                product.key ===
+                                                'distribucionPorEstadoCasa'
+                                                    ? 'doughnut'
+                                                    : 'bar'
+                                            "
+                                            [data]="product.chart"
+                                            [options]="
+                                                product.key ===
+                                                'distribucionPorEstadoCasa'
+                                                    ? chartOptionsPie
+                                                    : chartOptions
+                                            "
+                                            height="100%"
+                                            [responsive]="true"
+                                        ></p-chart>
+                                    </ng-container>
+                                    <ng-container
+                                        *ngIf="showChart[product.key]"
+                                    >
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th
+                                                        *ngFor="
+                                                            let col of product
+                                                                .table[0]
+                                                                | keyvalue
+                                                        "
+                                                    >
+                                                        {{ col.key }}
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr
+                                                    *ngFor="
+                                                        let item of product.table
+                                                    "
+                                                >
+                                                    <td
+                                                        *ngFor="
+                                                            let col of item
+                                                                | keyvalue
+                                                        "
+                                                    >
+                                                        {{ col.value }}
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </ng-container>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </ng-template>
             </p-dataView>

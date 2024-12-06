@@ -3,6 +3,8 @@ import { RegistroService } from '../services/registro.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { ImportsModule } from 'src/app/demo/services/import';
 import { Observable } from 'rxjs';
+import { format } from 'date-fns'; // Asegúrate de tener instalada date-fns si la usas
+import { HelperService } from 'src/app/demo/services/helper.service';
 
 @Component({
     selector: 'app-dashboard',
@@ -50,8 +52,13 @@ export class DashboardComponent implements OnInit {
         '#00ACC1'
     ];
 
-    constructor(private registroService: RegistroService) {}
-
+    constructor(
+        private registroService: RegistroService,
+        private helperService: HelperService
+    ) {}
+    isMobil() {
+        return this.helperService.isMobil();
+    }
     // Método para obtener datos generales
     fetchGeneralData(): Observable<any> {
         return this.registroService.informacionRegistro();
@@ -116,38 +123,63 @@ export class DashboardComponent implements OnInit {
             ],
         };
 
+        // Asumimos que data.lineaDeTiempo contiene fechas como string en formato 'YYYY-MM-DD'
+        const startDate = new Date(data.lineaDeTiempo[0]._id); // La fecha más antigua
+        const endDate = new Date(); // La fecha actual
+
+        // Función para generar todas las fechas entre startDate y endDate
+        const generateDateRange = (start: Date, end: Date) => {
+            const dates = [];
+            let currentDate = start;
+            while (currentDate <= end) {
+                dates.push(format(currentDate, 'yyyy-MM-dd')); // Formato 'YYYY-MM-DD'
+                currentDate.setDate(currentDate.getDate() + 1); // Incrementamos un día
+            }
+            return dates;
+        };
+
+        // Generamos las fechas intermedias
+        const allDates = generateDateRange(startDate, endDate);
+
+        // Creamos el dataset con las fechas generadas y completando con 0 donde no haya datos
         this.timelineData = {
-            labels: data.lineaDeTiempo.map((item: any) => item._id),
+            labels: allDates, // Etiquetas con todas las fechas
             datasets: [
                 {
                     label: 'Registros por Día',
-                    data: data.lineaDeTiempo.map((item: any) => item.count),
-                    backgroundColor: '#42A5F5',
+                    data: allDates.map((date) => {
+                        const found = data.lineaDeTiempo.find(
+                            (item: any) => item._id === date
+                        );
+                        return found ? found.count : 0; // Si no se encuentra la fecha, asignamos 0
+                    }),
+                    backgroundColor: '#cae6fc7d',
                     borderColor: '#1E88E5',
-                    fill: false,
+                    fill: true,
                     tension: 0.4,
                 },
             ],
         };
 
         this.hourlyData = {
-            labels: data.lineaDeTiempoHora.map((item) => `${item._id}:00`),
+            labels: Array.from(
+                { length: 24 },
+                (_, i) => `${i.toString().padStart(2, '0')}:00`
+            ),
             datasets: [
                 {
-                    label: 'Promedio por Hora (Line)',
-                    data: data.lineaDeTiempoHora.map((item) => item.count),
-                    fill: false,
-                    borderColor: '#42A5F5',
+                    label: 'Promedio por Hora',
+                    data: Array.from({ length: 24 }, (_, i) => {
+                        const hourData = data.lineaDeTiempoHora.find(
+                            (item) => item._id === i
+                        );
+                        return hourData ? hourData.count : 0;
+                    }),
+                    fill: true,
+                    borderColor: '#1E88E5',
                     tension: 0.5,
                     type: 'line',
-                },
-                {
-                    label: 'Registros por Hora (Bar)',
-                    data: data.lineaDeTiempoHora.map((item) => item.count),
-                    backgroundColor: '#90cd93',
-                    borderColor: '#66BB6A',
-                    borderWidth: 1,
-                    type: 'bar',
+                    backgroundColor: '#cae6fc7d',
                 },
             ],
         };
@@ -208,16 +240,17 @@ export class DashboardComponent implements OnInit {
 
     processUbicacionData(data: any) {
         console.log(data);
+
         // Procesar el promedio de posesión
-        const promedioPosesion =
-            data.promedioPosesion[0]?.promedioPosesion ?? 0;
-        const timeUnit = data.promedioPosesion[0]?.timeUnit ?? 'años';
+        const promedioPosesion = data.promedioPosesion?.promedioPosesion ?? 0;
+        const timeUnit = data.promedioPosesion?.timeUnit ?? 'años';
 
         // Procesar la distribución por sector
         const distribucionPorSector = {
             table: data.distribucionPorSector.map((item: any) => ({
-                sector: item._id ?? 'Desconocido',
-                count: item.count ?? 0,
+                Sector: item._id ?? 'Desconocido',
+                Conteo: item.count ?? 0,
+                Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
             })),
             chart: {
                 labels: data.distribucionPorSector.map((item: any) => item._id),
@@ -234,11 +267,58 @@ export class DashboardComponent implements OnInit {
             title: 'Distribución por sector',
         };
 
+        // Procesar la distribución por barrio
+        const distribucionPorBarrio = {
+            table: data.distribucionPorBarrio.map((item: any) => ({
+                Barrio: item._id ?? 'Desconocido',
+                Conteo: item.count ?? 0,
+                Porcentaje: item.percentage ?? 0,
+            })),
+            chart: {
+                labels: data.distribucionPorBarrio.map((item: any) => item._id),
+                datasets: [
+                    {
+                        label: 'Distribución por barrio',
+                        data: data.distribucionPorBarrio.map(
+                            (item: any) => item.count
+                        ),
+                        backgroundColor: '#FFA726',
+                    },
+                ],
+            },
+            title: 'Distribución por barrio',
+        };
+
+        // Procesar la distribución por manzana
+        const distribucionPorManzana = {
+            table: data.distribucionPorManzana.map((item: any) => ({
+                Manzana: item._id ?? 'Desconocido',
+                Conteo: item.count ?? 0,
+                Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
+            })),
+            chart: {
+                labels: data.distribucionPorManzana.map(
+                    (item: any) => item._id
+                ),
+                datasets: [
+                    {
+                        label: 'Distribución por manzana',
+                        data: data.distribucionPorManzana.map(
+                            (item: any) => item.count
+                        ),
+                        backgroundColor: '#29B6F6',
+                    },
+                ],
+            },
+            title: 'Distribución por manzana',
+        };
+
         // Procesar la distribución por estado de casa
         const distribucionPorEstadoCasa = {
             table: data.distribucionPorEstadoCasa.map((item: any) => ({
-                estado: item._id ?? 'Desconocido',
-                count: item.count ?? 0,
+                Estado: item._id ?? 'Desconocido',
+                Conteo: item.count ?? 0,
+                Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
             })),
             chart: {
                 labels: data.distribucionPorEstadoCasa.map(
@@ -246,7 +326,7 @@ export class DashboardComponent implements OnInit {
                 ),
                 datasets: [
                     {
-                        label: 'Distribución por sector',
+                        label: 'Distribución por estado de casa',
                         data: data.distribucionPorEstadoCasa.map(
                             (item: any) => (item.count * 100) / data.total
                         ),
@@ -258,53 +338,29 @@ export class DashboardComponent implements OnInit {
         };
 
         // Procesar el promedio de familias por lote
-        const promedioFamiliasPorLote =
-            data.promedioFamiliasPorLote[0]?.promedioFamilias ?? 0;
+        const promedioFamiliasPorLote = data.promedioFamiliasPorLote ?? 0;
 
         // Procesar el promedio de personas por lote
-        const promedioPersonasPorLote =
-            data.promedioPersonasPorLote[0]?.promedioPersonas ?? 0;
-
-        // Procesar el promedio de personas por sector
-        const promedioPersonasPorSector = {
-            table: data.promedioPersonasPorSector.map((item: any) => ({
-                sector: item._id ?? 'Desconocido',
-                promedioPersonas: item.promedioPersonas ?? 0,
-            })),
-            chart: {
-                labels: data.promedioPersonasPorSector.map(
-                    (item: any) => item._id ?? 'Desconocido'
-                ),
-                datasets: [
-                    {
-                        label: 'Promedio de personas por sector',
-                        data: data.promedioPersonasPorSector.map(
-                            (item: any) => item.promedioPersonas ?? 0
-                        ),
-                        backgroundColor: '#42A5F5',
-                    },
-                ],
-            },
-            title: 'Promedio de personas por sector',
-        };
+        const promedioPersonasPorLote = data.promedioPersonasPorLote ?? 0;
 
         // Procesar el total de personas por barrio
-        const totalPersonasPorBarrio = {
-            table: data.totalPersonasPorBarrio.map((item: any) => ({
+        const totalFamiliasPorLote = {
+            table: data.totalFamiliasPorLote.map((item: any) => ({
                 barrio: item._id ?? 'Desconocido',
-                totalPersonas: item.totalPersonas ?? 0,
+                Conteo: item.totalFamilias ?? 0,
+                Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
             })),
             chart: {
-                labels: data.totalPersonasPorBarrio.map(
+                labels: data.totalFamiliasPorLote.map(
                     (item: any) => item._id ?? 'Desconocido'
                 ),
                 datasets: [
                     {
                         label: 'Total de personas por barrio',
-                        data: data.totalPersonasPorBarrio.map(
-                            (item: any) => item.totalPersonas ?? 0
+                        data: data.totalFamiliasPorLote.map(
+                            (item: any) => item.totalFamilias ?? 0
                         ),
-                        backgroundColor: '#FFA726',
+                        backgroundColor: '#FF7043',
                     },
                 ],
             },
@@ -312,20 +368,21 @@ export class DashboardComponent implements OnInit {
         };
 
         // Procesar el total de lotes por sector
-        const totalLotesPorSector = {
-            table: data.totalLotesPorSector.map((item: any) => ({
-                sector: item._id ?? 'Desconocido',
-                totalLotes: item.totalLotes ?? 0,
+        const totalFamiliasPorSector = {
+            table: data.totalFamiliasPorSector.map((item: any) => ({
+                Sector: item._id ?? 'Desconocido',
+                Conteo: item.totalFamilias ?? 0,
+                Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
             })),
             chart: {
-                labels: data.totalLotesPorSector.map(
+                labels: data.totalFamiliasPorSector.map(
                     (item: any) => item._id ?? 'Desconocido'
                 ),
                 datasets: [
                     {
                         label: 'Total de lotes por sector',
-                        data: data.totalLotesPorSector.map(
-                            (item: any) => item.totalLotes ?? 0
+                        data: data.totalFamiliasPorSector.map(
+                            (item: any) => item.totalFamilias ?? 0
                         ),
                         backgroundColor: '#AB47BC',
                     },
@@ -335,20 +392,21 @@ export class DashboardComponent implements OnInit {
         };
 
         // Procesar el total de familias por sector
-        const totalFamiliasPorSector = {
-            table: data.totalFamiliasPorSector.map((item: any) => ({
-                sector: item._id ?? 'Desconocido',
-                totalFamilias: item.totalFamilias ?? 0,
+        const totalPersonasPorLote = {
+            table: data.totalPersonasPorLote.map((item: any) => ({
+                Sector: item._id ?? 'Desconocido',
+                Conteo: item.totalPersonas ?? 0,
+                Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
             })),
             chart: {
-                labels: data.totalFamiliasPorSector.map(
+                labels: data.totalPersonasPorLote.map(
                     (item: any) => item._id ?? 'Desconocido'
                 ),
                 datasets: [
                     {
                         label: 'Total de familias por sector',
-                        data: data.totalFamiliasPorSector.map(
-                            (item: any) => item.totalFamilias ?? 0
+                        data: data.totalPersonasPorLote.map(
+                            (item: any) => item.totalPersonas ?? 0
                         ),
                         backgroundColor: '#26A69A',
                     },
@@ -358,20 +416,21 @@ export class DashboardComponent implements OnInit {
         };
 
         // Procesar el total de familias por barrio
-        const totalFamiliasPorBarrio = {
-            table: data.totalFamiliasPorBarrio.map((item: any) => ({
-                barrio: item._id ?? 'Desconocido',
-                totalFamilias: item.totalFamilias ?? 0,
+        const totalPersonasPorSector = {
+            table: data.totalPersonasPorSector.map((item: any) => ({
+                Barrio: item._id ?? 'Desconocido',
+                Conteo: item.totalPersonas ?? 0,
+                Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
             })),
             chart: {
-                labels: data.totalFamiliasPorBarrio.map(
+                labels: data.totalPersonasPorSector.map(
                     (item: any) => item._id ?? 'Desconocido'
                 ),
                 datasets: [
                     {
                         label: 'Total de familias por barrio',
-                        data: data.totalFamiliasPorBarrio.map(
-                            (item: any) => item.totalFamilias ?? 0
+                        data: data.totalPersonasPorSector.map(
+                            (item: any) => item.totalPersonas ?? 0
                         ),
                         backgroundColor: '#FF7043',
                     },
@@ -380,44 +439,24 @@ export class DashboardComponent implements OnInit {
             title: 'Total de familias por barrio',
         };
 
-        // Procesar el total de familias por lote
-        const totalFamiliasPorLote = {
-            table: data.totalFamiliasPorLote.map((item: any) => ({
-                lote: item._id ?? 'Desconocido',
-                totalFamilias: item.totalFamilias ?? 0,
-            })),
-            chart: {
-                labels: data.totalFamiliasPorLote.map(
-                    (item: any) => item._id ?? 'Desconocido'
-                ),
-                datasets: [
-                    {
-                        label: 'Total de familias por lote',
-                        data: data.totalFamiliasPorLote.map(
-                            (item: any) => item.totalFamilias ?? 0
-                        ),
-                        backgroundColor: '#29B6F6',
-                    },
-                ],
-            },
-            title: 'Total de familias por lote',
-        };
         const components = {
-            distribucionPorSector,
             distribucionPorEstadoCasa,
-            promedioPersonasPorSector,
-            totalPersonasPorBarrio,
-            totalLotesPorSector,
+            distribucionPorSector,
+            distribucionPorBarrio,
+            distribucionPorManzana,
             totalFamiliasPorSector,
-            totalFamiliasPorBarrio,
             totalFamiliasPorLote,
+            totalPersonasPorLote,
+            totalPersonasPorSector,
         };
+
         const components_arr = Object.entries(components).map(
             ([key, value]) => ({
                 key,
                 ...value,
             })
         );
+
         // Estructura final de datos procesados
         return {
             promedioPosesion,
@@ -441,9 +480,18 @@ export class DashboardComponent implements OnInit {
     }
     chartOptionsPie: any;
     initChartOptions() {
+        const documentStyle = getComputedStyle(document.documentElement);
+        const textColor = documentStyle.getPropertyValue('--text-color');
+        const textColorSecondary = documentStyle.getPropertyValue(
+            '--text-color-secondary'
+        );
+        const surfaceBorder =
+            documentStyle.getPropertyValue('--surface-border');
+
         this.chartOptions = {
-            responsive: true,
+            //responsive: true,
             maintainAspectRatio: false,
+            aspectRatio: 0.6,
             plugins: {
                 legend: {
                     display: true,
@@ -452,16 +500,26 @@ export class DashboardComponent implements OnInit {
             },
             scales: {
                 x: {
-                    ticks: { color: '#495057' },
-                    grid: { color: '#ebedef' },
+                    ticks: {
+                        color: textColorSecondary,
+                    },
+                    grid: {
+                        color: surfaceBorder,
+                    },
                 },
                 y: {
-                    ticks: { color: '#495057' },
-                    grid: { color: '#ebedef' },
+                    ticks: {
+                        color: textColorSecondary,
+                    },
+                    grid: {
+                        color: surfaceBorder,
+                    },
                 },
             },
         };
         this.chartOptionsPie = {
+            //responsive: true,
+            //maintainAspectRatio: false,
             plugins: {
                 legend: {
                     labels: {
@@ -475,7 +533,7 @@ export class DashboardComponent implements OnInit {
     // Define el objeto
     showChart: { [key: string]: boolean } = {};
 
-    layout: 'grid' | 'list' = 'grid';
+    layout: 'grid' | 'list' = this.isMobil() ? 'list' : 'grid';
 
     layoutOptions = [
         { label: 'Grid', value: 'grid' },
@@ -484,5 +542,21 @@ export class DashboardComponent implements OnInit {
 
     onLayoutChange(event: any) {
         this.layout = event.value;
+    }
+
+    getSeverity(product: any) {
+        switch (product) {
+            case 'INSTOCK':
+                return 'success';
+
+            case 'LOWSTOCK':
+                return 'warning';
+
+            case 'OUTOFSTOCK':
+                return 'danger';
+
+            default:
+                return null;
+        }
     }
 }

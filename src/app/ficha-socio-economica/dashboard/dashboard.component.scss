@@ -176,3 +176,12 @@ table tr:nth-child(even) {
     justify-content: flex-end;
     margin-bottom: 15px;
 }
+
+
+.chart-table-container {
+    height: 400px; /* Ajusta según tus necesidades */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Evita desbordamientos */
+  }
