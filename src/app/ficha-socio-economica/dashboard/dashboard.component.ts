@@ -176,10 +176,10 @@ export class DashboardComponent implements OnInit {
                         return hourData ? hourData.count : 0;
                     }),
                     fill: true,
-                    borderColor: '#1E88E5',
+                    borderColor: '#4caf50',
                     tension: 0.5,
                     type: 'line',
-                    backgroundColor: '#cae6fc7d',
+                    backgroundColor: '#b2ddb4',
                 },
             ],
         };
@@ -199,7 +199,7 @@ export class DashboardComponent implements OnInit {
                             );
                         return hourData ? hourData.count : 0;
                     }),
-                    backgroundColor: '#fccc55',
+                    backgroundColor: '#facb618c',
                     borderColor: '#fbc02d',
                     fill: true,
                     type: 'line',
