@@ -185,18 +185,25 @@ export class DashboardComponent implements OnInit {
         };
 
         this.hourlyDataConectividad = {
-            labels: data.lineaDeTiempoHoraConectividad.map(
-                (item: any) => `${item._id}:00`
+            labels: Array.from(
+                { length: 24 },
+                (_, i) => `${i.toString().padStart(2, '0')}:00`
             ),
             datasets: [
                 {
                     label: 'Registros por Hora de Conectividad de Encuestadores',
-                    data: data.lineaDeTiempoHoraConectividad.map(
-                        (item: any) => item.count
-                    ),
+                    data: Array.from({ length: 24 }, (_, i) => {
+                        const hourData =
+                            data.lineaDeTiempoHoraConectividad.find(
+                                (item) => item._id === i
+                            );
+                        return hourData ? hourData.count : 0;
+                    }),
                     backgroundColor: '#fccc55',
                     borderColor: '#fbc02d',
                     fill: true,
+                    type: 'line',
+                    tension: 0.5,
                 },
             ],
         };
@@ -510,34 +517,70 @@ export class DashboardComponent implements OnInit {
             documentStyle.getPropertyValue('--surface-border');
 
         this.chartOptions = {
-            //responsive: true,
             maintainAspectRatio: false,
             aspectRatio: 0.6,
             plugins: {
                 legend: {
                     display: true,
                     position: 'top',
+                    labels: {
+                        font: {
+                            size: 14, // Tamaño del texto de la leyenda
+                        },
+                        color: '#495057', // Color del texto
+                    },
+                },
+                tooltip: {
+                    mode: 'nearest',
+                    intersect: false,
+                    backgroundColor: '#ffffff', // Fondo blanco para mejor visibilidad
+                    titleColor: '#333333', // Color del título
+                    bodyColor: '#555555', // Color del cuerpo
+                    borderColor: '#ddd', // Borde del tooltip
+                    borderWidth: 1, // Grosor del borde
+                    padding: 10, // Espaciado interno
+                    titleFont: {
+                        size: 16, // Tamaño de fuente del título
+                        weight: 'bold', // Negrita para resaltar
+                    },
+                    bodyFont: {
+                        size: 14, // Tamaño de fuente del cuerpo
+                    },
+                    displayColors: false, // Ocultar el indicador de color del punto
+                    callbacks: {
+                        label: function (context: any) {
+                            // Personalizar el contenido de las etiquetas
+                            return `Valor: ${context.raw} `;
+                        },
+                    },
                 },
             },
             scales: {
                 x: {
                     ticks: {
-                        color: textColorSecondary,
+                        color: '#495057',
+                        font: {
+                            size: 12,
+                        },
                     },
                     grid: {
-                        color: surfaceBorder,
+                        color: '#ebedef',
                     },
                 },
                 y: {
                     ticks: {
-                        color: textColorSecondary,
+                        color: '#495057',
+                        font: {
+                            size: 12,
+                        },
                     },
                     grid: {
-                        color: surfaceBorder,
+                        color: '#ebedef',
                     },
                 },
             },
         };
+
         this.chartOptionsPie = {
             //responsive: true,
             //maintainAspectRatio: false,
