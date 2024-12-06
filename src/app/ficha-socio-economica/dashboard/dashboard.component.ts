@@ -247,6 +247,7 @@ export class DashboardComponent implements OnInit {
 
         // Procesar la distribución por sector
         const distribucionPorSector = {
+            columnOrder: ['Sector', 'Conteo', 'Porcentaje'],
             table: data.distribucionPorSector.map((item: any) => ({
                 Sector: item._id ?? 'Desconocido',
                 Conteo: item.count ?? 0,
@@ -269,6 +270,7 @@ export class DashboardComponent implements OnInit {
 
         // Procesar la distribución por barrio
         const distribucionPorBarrio = {
+            columnOrder: ['Barrio', 'Conteo', 'Porcentaje'],
             table: data.distribucionPorBarrio.map((item: any) => ({
                 Barrio: item._id ?? 'Desconocido',
                 Conteo: item.count ?? 0,
@@ -291,6 +293,7 @@ export class DashboardComponent implements OnInit {
 
         // Procesar la distribución por manzana
         const distribucionPorManzana = {
+            columnOrder: ['Manzana', 'Conteo', 'Porcentaje'],
             table: data.distribucionPorManzana.map((item: any) => ({
                 Manzana: item._id ?? 'Desconocido',
                 Conteo: item.count ?? 0,
@@ -315,6 +318,7 @@ export class DashboardComponent implements OnInit {
 
         // Procesar la distribución por estado de casa
         const distribucionPorEstadoCasa = {
+            columnOrder: ['Estado', 'Conteo', 'Porcentaje'],
             table: data.distribucionPorEstadoCasa.map((item: any) => ({
                 Estado: item._id ?? 'Desconocido',
                 Conteo: item.count ?? 0,
@@ -345,8 +349,9 @@ export class DashboardComponent implements OnInit {
 
         // Procesar el total de personas por barrio
         const totalFamiliasPorLote = {
+            columnOrder: ['Barrio', 'Conteo', 'Porcentaje'],
             table: data.totalFamiliasPorLote.map((item: any) => ({
-                barrio: item._id ?? 'Desconocido',
+                Barrio: item._id ?? 'Desconocido',
                 Conteo: item.totalFamilias ?? 0,
                 Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
             })),
@@ -369,6 +374,7 @@ export class DashboardComponent implements OnInit {
 
         // Procesar el total de lotes por sector
         const totalFamiliasPorSector = {
+            columnOrder: ['Sector', 'Conteo', 'Porcentaje'],
             table: data.totalFamiliasPorSector.map((item: any) => ({
                 Sector: item._id ?? 'Desconocido',
                 Conteo: item.totalFamilias ?? 0,
@@ -393,6 +399,7 @@ export class DashboardComponent implements OnInit {
 
         // Procesar el total de familias por sector
         const totalPersonasPorLote = {
+            columnOrder: ['Sector', 'Conteo', 'Porcentaje'],
             table: data.totalPersonasPorLote.map((item: any) => ({
                 Sector: item._id ?? 'Desconocido',
                 Conteo: item.totalPersonas ?? 0,
@@ -417,6 +424,7 @@ export class DashboardComponent implements OnInit {
 
         // Procesar el total de familias por barrio
         const totalPersonasPorSector = {
+            columnOrder: ['Barrio', 'Conteo', 'Porcentaje'],
             table: data.totalPersonasPorSector.map((item: any) => ({
                 Barrio: item._id ?? 'Desconocido',
                 Conteo: item.totalPersonas ?? 0,
@@ -456,7 +464,7 @@ export class DashboardComponent implements OnInit {
                 ...value,
             })
         );
-
+        console.log(components_arr);
         // Estructura final de datos procesados
         return {
             promedioPosesion,

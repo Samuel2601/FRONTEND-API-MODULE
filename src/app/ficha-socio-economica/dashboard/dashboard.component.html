@@ -304,11 +304,10 @@
                                         <tr>
                                             <th
                                                 *ngFor="
-                                                    let col of config.table[0]
-                                                        | keyvalue
+                                                    let col of config.columnOrder
                                                 "
                                             >
-                                                {{ col.key }}
+                                                {{ col }}
                                             </th>
                                         </tr>
                                     </thead>
@@ -316,10 +315,10 @@
                                         <tr *ngFor="let item of config.table">
                                             <td
                                                 *ngFor="
-                                                    let col of item | keyvalue
+                                                    let col of config.columnOrder
                                                 "
                                             >
-                                                {{ col.value }}
+                                                {{ item[col] }}
                                             </td>
                                         </tr>
                                     </tbody>
@@ -388,12 +387,10 @@
                                                 <tr>
                                                     <th
                                                         *ngFor="
-                                                            let col of product
-                                                                .table[0]
-                                                                | keyvalue
+                                                            let col of product.columnOrder
                                                         "
                                                     >
-                                                        {{ col.key }}
+                                                        {{ col }}
                                                     </th>
                                                 </tr>
                                             </thead>
@@ -405,11 +402,10 @@
                                                 >
                                                     <td
                                                         *ngFor="
-                                                            let col of item
-                                                                | keyvalue
+                                                            let col of product.columnOrder
                                                         "
                                                     >
-                                                        {{ col.value }}
+                                                        {{ item[col] }}
                                                     </td>
                                                 </tr>
                                             </tbody>
