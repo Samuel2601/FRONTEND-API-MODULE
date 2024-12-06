@@ -274,7 +274,7 @@ export class DashboardComponent implements OnInit {
             table: data.distribucionPorBarrio.map((item: any) => ({
                 Barrio: item._id ?? 'Desconocido',
                 Conteo: item.count ?? 0,
-                Porcentaje: item.percentage ?? 0,
+                Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
             })),
             chart: {
                 labels: data.distribucionPorBarrio.map((item: any) => item._id),
@@ -331,8 +331,8 @@ export class DashboardComponent implements OnInit {
                 datasets: [
                     {
                         label: 'Distribución por estado de casa',
-                        data: data.distribucionPorEstadoCasa.map(
-                            (item: any) => (item.count * 100) / data.total
+                        data: data.distribucionPorEstadoCasa.map((item: any) =>
+                            parseFloat(item.percentage).toFixed(2)
                         ),
                         backgroundColor: this.colors,
                     },
@@ -361,7 +361,7 @@ export class DashboardComponent implements OnInit {
                 ),
                 datasets: [
                     {
-                        label: 'Total de personas por barrio',
+                        label: 'Total de familias por lote',
                         data: data.totalFamiliasPorLote.map(
                             (item: any) => item.totalFamilias ?? 0
                         ),
@@ -369,7 +369,7 @@ export class DashboardComponent implements OnInit {
                     },
                 ],
             },
-            title: 'Total de personas por barrio',
+            title: 'Total de familias por lote',
         };
 
         // Procesar el total de lotes por sector
@@ -386,7 +386,7 @@ export class DashboardComponent implements OnInit {
                 ),
                 datasets: [
                     {
-                        label: 'Total de lotes por sector',
+                        label: 'Total de familias por sector',
                         data: data.totalFamiliasPorSector.map(
                             (item: any) => item.totalFamilias ?? 0
                         ),
@@ -394,7 +394,7 @@ export class DashboardComponent implements OnInit {
                     },
                 ],
             },
-            title: 'Total de lotes por sector',
+            title: 'Total de familias por sector',
         };
 
         // Procesar el total de familias por sector
@@ -411,7 +411,7 @@ export class DashboardComponent implements OnInit {
                 ),
                 datasets: [
                     {
-                        label: 'Total de familias por sector',
+                        label: 'Total de personas por lote',
                         data: data.totalPersonasPorLote.map(
                             (item: any) => item.totalPersonas ?? 0
                         ),
@@ -419,7 +419,7 @@ export class DashboardComponent implements OnInit {
                     },
                 ],
             },
-            title: 'Total de familias por sector',
+            title: 'Total de personas por lote',
         };
 
         // Procesar el total de familias por barrio
@@ -436,7 +436,7 @@ export class DashboardComponent implements OnInit {
                 ),
                 datasets: [
                     {
-                        label: 'Total de familias por barrio',
+                        label: 'Total de personas por sector',
                         data: data.totalPersonasPorSector.map(
                             (item: any) => item.totalPersonas ?? 0
                         ),
@@ -444,7 +444,7 @@ export class DashboardComponent implements OnInit {
                     },
                 ],
             },
-            title: 'Total de familias por barrio',
+            title: 'Total de personas por sector',
         };
 
         const components = {
@@ -473,6 +473,19 @@ export class DashboardComponent implements OnInit {
             promedioPersonasPorLote,
             components_arr,
         };
+    }
+    getTotalRegistros(data: any[], columnOrder: string): number {
+        if (!data || !columnOrder) {
+            console.error('Data or columnOrder is missing');
+            return 0;
+        }
+
+        const total = data.reduce((acc, item) => {
+            const value = parseFloat(item[columnOrder]) || 0; // Asegurarse de que sea numérico
+            return acc + value;
+        }, 0);
+
+        return total;
     }
 
     processNationalityData(data: any) {
