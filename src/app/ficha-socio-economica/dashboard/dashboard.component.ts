@@ -26,10 +26,11 @@ export class DashboardComponent implements OnInit {
     ageRangeData: any = { labels: [], datasets: [] };
 
     ubicacionData: any = {};
+    saludData: any = {};
 
     chartOptions: any;
 
-    colors: [
+    colors: any[] = [
         '#42A5F5',
         '#66BB6A',
         '#FFA726',
@@ -49,7 +50,7 @@ export class DashboardComponent implements OnInit {
         '#8E24AA',
         '#BDBDBD',
         '#FF6F00',
-        '#00ACC1'
+        '#00ACC1',
     ];
 
     constructor(
@@ -72,6 +73,10 @@ export class DashboardComponent implements OnInit {
     // Método para obtener datos personales
     fetchUbicacionData(): Observable<any> {
         return this.registroService.informacionUbicacion();
+    }
+
+    fetchSaludData(): Observable<any> {
+        return this.registroService.informacionsalud();
     }
 
     loading: boolean = true;
@@ -104,6 +109,14 @@ export class DashboardComponent implements OnInit {
             this.ubicacionData = this.processUbicacionData(data);
             this.ubicacionData.total = data.total;
             console.log(this.ubicacionData);
+            this.loadData = true;
+        });
+
+        this.fetchSaludData().subscribe((data: any) => {
+            console.log(data);
+            this.saludData = this.processSalud(data);
+            this.saludData.total = data.total;
+            console.log(this.saludData);
             this.loadData = true;
         });
     }
@@ -220,6 +233,7 @@ export class DashboardComponent implements OnInit {
             labels: data.porNacionalidad.map((item: any) => item._id),
             datasets: [
                 {
+                    label: 'Personas con este nacionalidad',
                     data: data.porNacionalidad.map((item: any) => item.count),
                     backgroundColor: this.colors,
                 },
@@ -230,7 +244,7 @@ export class DashboardComponent implements OnInit {
             labels: data.rangoEdadCount.map((item: any) => item._id),
             datasets: [
                 {
-                    label: 'Registros',
+                    label: 'Personas con este rango de edad',
                     data: data.rangoEdadCount.map((item: any) => item.count),
                     backgroundColor: '#66BB6A',
                 },
@@ -261,6 +275,7 @@ export class DashboardComponent implements OnInit {
                 Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
             })),
             chart: {
+                type: 'bar',
                 labels: data.distribucionPorSector.map((item: any) => item._id),
                 datasets: [
                     {
@@ -284,6 +299,7 @@ export class DashboardComponent implements OnInit {
                 Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
             })),
             chart: {
+                type: 'bar',
                 labels: data.distribucionPorBarrio.map((item: any) => item._id),
                 datasets: [
                     {
@@ -307,6 +323,7 @@ export class DashboardComponent implements OnInit {
                 Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
             })),
             chart: {
+                type: 'bar',
                 labels: data.distribucionPorManzana.map(
                     (item: any) => item._id
                 ),
@@ -332,6 +349,7 @@ export class DashboardComponent implements OnInit {
                 Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
             })),
             chart: {
+                type: 'doughnut',
                 labels: data.distribucionPorEstadoCasa.map(
                     (item: any) => item._id
                 ),
@@ -363,6 +381,7 @@ export class DashboardComponent implements OnInit {
                 Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
             })),
             chart: {
+                type: 'bar',
                 labels: data.totalFamiliasPorLote.map(
                     (item: any) => item._id ?? 'Desconocido'
                 ),
@@ -388,6 +407,7 @@ export class DashboardComponent implements OnInit {
                 Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
             })),
             chart: {
+                type: 'bar',
                 labels: data.totalFamiliasPorSector.map(
                     (item: any) => item._id ?? 'Desconocido'
                 ),
@@ -413,6 +433,7 @@ export class DashboardComponent implements OnInit {
                 Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
             })),
             chart: {
+                type: 'bar',
                 labels: data.totalPersonasPorLote.map(
                     (item: any) => item._id ?? 'Desconocido'
                 ),
@@ -438,6 +459,7 @@ export class DashboardComponent implements OnInit {
                 Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
             })),
             chart: {
+                type: 'bar',
                 labels: data.totalPersonasPorSector.map(
                     (item: any) => item._id ?? 'Desconocido'
                 ),
@@ -481,6 +503,336 @@ export class DashboardComponent implements OnInit {
             components_arr,
         };
     }
+
+    processSalud(data: any) {
+        console.log(data);
+        // Assuming data.estadisticas[0] contains the statistics
+        const estadisticas = data.estadisticas[0];
+
+        // Distribución de estado de salud
+        const distribucionEstadoSalud = {
+            columnOrder: ['Estado de Salud', 'Conteo', 'Porcentaje'],
+            table: estadisticas.distribucionEstadoSalud.map((item: any) => ({
+                'Estado de Salud': item._id ?? 'Desconocido',
+                Conteo: item.count ?? 0,
+                Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
+            })),
+            chart: {
+                type: 'bar',
+                labels: estadisticas.distribucionEstadoSalud.map(
+                    (item: any) => item._id
+                ),
+                datasets: [
+                    {
+                        label: 'Distribución de Estado de Salud por Registros',
+                        data: estadisticas.distribucionEstadoSalud.map(
+                            (item: any) => item.count
+                        ),
+                        backgroundColor: '#66BB6A',
+                    },
+                ],
+                title: 'Distribución de Estado de Salud por Registros',
+            },
+            title: 'Distribución de Estado de Salud por Registros',
+        };
+
+        // Causas frecuentes
+        const causasFrecuentes = {
+            columnOrder: ['Causa', 'Conteo', 'Porcentaje'],
+            table: estadisticas.causasFrecuentes.map((item: any) => ({
+                Causa: item._id ?? 'Desconocido',
+                Conteo: item.count ?? 0,
+                Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
+            })),
+            chart: {
+                type: 'bar',
+                labels: estadisticas.causasFrecuentes.map(
+                    (item: any) => item._id
+                ),
+                datasets: [
+                    {
+                        label: 'Causas Frecuentes',
+                        data: estadisticas.causasFrecuentes.map(
+                            (item: any) => item.count
+                        ),
+                        backgroundColor: '#FFA726',
+                    },
+                ],
+                title: 'Causas Frecuentes',
+            },
+            title: 'Causas Frecuentes',
+        };
+
+        // Distribución de estado de salud y causa
+        const distribucionEstadoSaludYCausa = {
+            columnOrder: ['Estado de Salud', 'Causa', 'Conteo', 'Porcentaje'],
+            table: estadisticas.distribucionEstadoSaludYCausa.map(
+                (item: any) => ({
+                    'Estado de Salud': item._id.estadoSalud ?? 'Desconocido',
+                    Causa: item._id.causaSalud ?? 'Desconocido',
+                    Conteo: item.count ?? 0,
+                    Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
+                })
+            ),
+            chart: {
+                type: 'bar', // Tipo de gráfico de barras apiladas
+                options: this.chartOptions.stacked,
+                labels: Array.from(
+                    new Set(
+                        estadisticas.distribucionEstadoSaludYCausa.map(
+                            (item: any) => item._id.estadoSalud
+                        )
+                    )
+                ),
+                datasets: Array.from(
+                    new Set(
+                        estadisticas.distribucionEstadoSaludYCausa.map(
+                            (item: any) => item._id.causaSalud
+                        )
+                    )
+                ).map((causa, index) => ({
+                    label: causa,
+                    data: Array.from(
+                        new Set(
+                            estadisticas.distribucionEstadoSaludYCausa.map(
+                                (item: any) => item._id.estadoSalud
+                            )
+                        )
+                    ).map((estadoSalud) => {
+                        const matchingItem =
+                            estadisticas.distribucionEstadoSaludYCausa.find(
+                                (item: any) =>
+                                    item._id.estadoSalud === estadoSalud &&
+                                    item._id.causaSalud === causa
+                            );
+                        return matchingItem ? matchingItem.count : 0;
+                    }),
+                    backgroundColor: this.colors[index % this.colors.length],
+                })),
+                title: 'Estado de Salud y Causa',
+            },
+            title: 'Estado de Salud y Causa',
+        };
+
+        // Conexión higiénico
+        const distribucionConexionHigienico = {
+            columnOrder: ['Tipo de Conexión', 'Conteo', 'Porcentaje'],
+            table: estadisticas.distribucionConexionHigienico.map(
+                (item: any) => ({
+                    'Tipo de Conexión': item._id ?? 'Desconocido',
+                    Conteo: item.count ?? 0,
+                    Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
+                })
+            ),
+            chart: {
+                type: 'bar',
+                labels: estadisticas.distribucionConexionHigienico.map(
+                    (item: any) => item._id
+                ),
+                datasets: [
+                    {
+                        label: 'Distribución de Conexión Higiénico',
+                        data: estadisticas.distribucionConexionHigienico.map(
+                            (item: any) => item.count
+                        ),
+                        backgroundColor: '#26A69A',
+                    },
+                ],
+                title: 'Distribución de Conexión Higiénico',
+            },
+            title: 'Distribución de Conexión Higiénico',
+        };
+        const distribucionConexionHigienicoPorEstadoSalud = {
+            columnOrder: [
+                'Estado de Salud',
+                'Conexión Higiénico',
+                'Conteo',
+                'Porcentaje',
+            ],
+            table: estadisticas.distribucionConexionHigienicoPorEstadoSalud.map(
+                (item: any) => ({
+                    'Estado de Salud': item._id.estadoSalud ?? 'Desconocido',
+                    'Conexión Higiénico':
+                        item._id.conexionHigienico ?? 'Desconocido',
+                    Conteo: item.count ?? 0,
+                    Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
+                })
+            ),
+            chart: {
+                type: 'bar',
+                options: this.chartOptions.stacked,
+                labels: Array.from(
+                    new Set(
+                        estadisticas.distribucionConexionHigienicoPorEstadoSalud.map(
+                            (item: any) => item._id.estadoSalud
+                        )
+                    )
+                ),
+                datasets: Array.from(
+                    new Set(
+                        estadisticas.distribucionConexionHigienicoPorEstadoSalud.map(
+                            (item: any) => item._id.conexionHigienico
+                        )
+                    )
+                ).map((conexion, index) => ({
+                    label: conexion,
+                    data: Array.from(
+                        new Set(
+                            estadisticas.distribucionConexionHigienicoPorEstadoSalud.map(
+                                (item: any) => item._id.estadoSalud
+                            )
+                        )
+                    ).map((estadoSalud) => {
+                        const matchingItem =
+                            estadisticas.distribucionConexionHigienicoPorEstadoSalud.find(
+                                (item: any) =>
+                                    item._id.estadoSalud === estadoSalud &&
+                                    item._id.conexionHigienico === conexion
+                            );
+                        return matchingItem ? matchingItem.count : 0;
+                    }),
+                    backgroundColor: this.colors[index % this.colors.length],
+                })),
+                title: 'Conexión Higiénico por Estado de Salud',
+            },
+            title: 'Conexión Higiénico por Estado de Salud',
+        };
+
+        const causasPorSector = {
+            columnOrder: ['Sector', 'Causa de Salud', 'Conteo', 'Porcentaje'],
+            table: estadisticas.causasPorSector.map((item: any) => ({
+                Sector: item._id.sector ?? 'Desconocido',
+                'Causa de Salud': item._id.causaSalud ?? 'Desconocido',
+                Conteo: item.count ?? 0,
+                Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
+            })),
+            chart: {
+                type: 'bar',
+                options: this.chartOptions.stacked,
+                labels: Array.from(
+                    new Set(
+                        estadisticas.causasPorSector.map(
+                            (item: any) => item._id.sector
+                        )
+                    )
+                ),
+                datasets: Array.from(
+                    new Set(
+                        estadisticas.causasPorSector.map(
+                            (item: any) => item._id.causaSalud
+                        )
+                    )
+                ).map((causa, index) => ({
+                    label: causa,
+                    data: Array.from(
+                        new Set(
+                            estadisticas.causasPorSector.map(
+                                (item: any) => item._id.sector
+                            )
+                        )
+                    ).map((sector) => {
+                        const matchingItem = estadisticas.causasPorSector.find(
+                            (item: any) =>
+                                item._id.sector === sector &&
+                                item._id.causaSalud === causa
+                        );
+                        return matchingItem ? matchingItem.count : 0;
+                    }),
+                    backgroundColor: this.colors[index % this.colors.length],
+                })),
+                title: 'Causas de Salud por Sector',
+            },
+            title: 'Causas de Salud por Sector',
+        };
+
+        // Distribución de estado de salud
+        const totalPersonasPorCausa = {
+            columnOrder: ['Causa', 'Conteo', 'Porcentaje'],
+            table: estadisticas.totalPersonasPorCausaCombinada.map(
+                (item: any) => ({
+                    Causa: item._id ?? 'Desconocido',
+                    Conteo: item.totalPersonas ?? 0,
+                    Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
+                })
+            ),
+            chart: {
+                type: 'bar',
+                labels: estadisticas.totalPersonasPorCausaCombinada.map(
+                    (item: any) => item._id
+                ),
+                datasets: [
+                    {
+                        label: 'Personas afectadas por casus del Salud',
+                        data: estadisticas.totalPersonasPorCausaCombinada.map(
+                            (item: any) => item.totalPersonas
+                        ),
+                        backgroundColor: '#66BB6A',
+                    },
+                ],
+                title: 'Personas afectadas por casus del Salud',
+            },
+            title: 'Personas afectadas por casus del Salud',
+        };
+
+        // Datos adicionales
+
+        const totalPersonasPorEstadoSalud = {
+            columnOrder: ['Estado', 'Conteo', 'Porcentaje'],
+            table: estadisticas.totalPersonasPorEstadoSalud.map(
+                (item: any) => ({
+                    Estado: item._id ?? 'Desconocido',
+                    Conteo: item.totalPersonas ?? 0,
+                    Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
+                })
+            ),
+            chart: {
+                type: 'bar',
+                labels: estadisticas.totalPersonasPorEstadoSalud.map(
+                    (item: any) => item._id
+                ),
+                datasets: [
+                    {
+                        label: 'Personas afectadas por Estado Salud',
+                        data: estadisticas.totalPersonasPorEstadoSalud.map(
+                            (item: any) => item.totalPersonas
+                        ),
+                        backgroundColor: '#66BB6A',
+                    },
+                ],
+                title: 'Personas afectadas por Estado Salud',
+            },
+            title: 'Personas afectadas por Estado Salud',
+        };
+
+        // Componentes para el array
+        const components = {
+            distribucionEstadoSalud,
+            causasFrecuentes,
+            distribucionEstadoSaludYCausa,
+            distribucionConexionHigienico,
+            distribucionConexionHigienicoPorEstadoSalud,
+            causasPorSector,
+            totalPersonasPorCausa,
+            totalPersonasPorEstadoSalud
+        };
+
+        const components_arr = Object.entries(components).map(
+            ([key, value]) => ({
+                key,
+                ...value,
+            })
+        );
+
+        return {
+            total: data.total,
+            totalPersonasPorCausa,
+            components_arr,
+            promedioCausasPorRegistro: parseFloat(
+                estadisticas.promedioCausasPorRegistro[0].promedioCausas
+            ).toFixed(2),
+        };
+    }
+
     getTotalRegistros(data: any[], columnOrder: string): number {
         if (!data || !columnOrder) {
             console.error('Data or columnOrder is missing');
@@ -510,90 +862,239 @@ export class DashboardComponent implements OnInit {
     initChartOptions() {
         const documentStyle = getComputedStyle(document.documentElement);
         const textColor = documentStyle.getPropertyValue('--text-color');
-        const textColorSecondary = documentStyle.getPropertyValue(
-            '--text-color-secondary'
-        );
         const surfaceBorder =
             documentStyle.getPropertyValue('--surface-border');
 
-        this.chartOptions = {
+        // Formateador de números localizado
+        const numberFormatter = new Intl.NumberFormat('es-ES', {
+            style: 'decimal',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+        });
+
+        // Callback para formatear valores
+        const formatValueCallback = (value: number) =>
+            numberFormatter.format(value);
+
+        // Configuración común de ejes
+        const commonAxisOptions = {
+            ticks: {
+                color: textColor,
+                font: { size: 12 },
+                callback: formatValueCallback,
+            },
+            grid: { color: surfaceBorder },
+        };
+
+        // Plugin personalizado para resaltar valores máximos y mínimos
+        const highlightMinMaxPlugin = {
+            id: 'highlightMinMax',
+            afterDraw: (chart: any) => {
+                const ctx = chart.ctx;
+                chart.data.datasets.forEach(
+                    (dataset: any, datasetIndex: number) => {
+                        const meta = chart.getDatasetMeta(datasetIndex);
+                        const min = Math.min(...dataset.data);
+                        const max = Math.max(...dataset.data);
+                        meta.data.forEach((datapoint: any, index: number) => {
+                            if (
+                                dataset.data[index] === min ||
+                                dataset.data[index] === max
+                            ) {
+                                ctx.save();
+                                ctx.fillStyle = 'red';
+                                ctx.beginPath();
+                                const { x, y } = datapoint.tooltipPosition();
+                                ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                                ctx.fill();
+                                ctx.restore();
+                            }
+                        });
+                    }
+                );
+            },
+        };
+
+        // Configuración base de gráficos
+        const baseChartOptions = {
             maintainAspectRatio: false,
             aspectRatio: 0.6,
+            responsive: true,
+            animation: {
+                duration: 1000,
+                easing: 'easeOutQuart',
+            },
+            interaction: {
+                mode: 'nearest',
+                intersect: false,
+            },
             plugins: {
                 legend: {
                     display: true,
                     position: 'top',
                     labels: {
-                        font: {
-                            size: 14, // Tamaño del texto de la leyenda
-                        },
-                        color: '#495057', // Color del texto
+                        font: { size: 14 },
+                        color: textColor,
                     },
                 },
                 tooltip: {
                     mode: 'index',
                     intersect: false,
-                    backgroundColor: '#ffffff', // Fondo blanco para mejor visibilidad
-                    titleColor: '#333333', // Color del título
-                    bodyColor: '#555555', // Color del cuerpo
-                    borderColor: '#ddd', // Borde del tooltip
-                    borderWidth: 1, // Grosor del borde
-                    padding: 10, // Espaciado interno
-                    titleFont: {
-                        size: 16, // Tamaño de fuente del título
-                        weight: 'bold', // Negrita para resaltar
-                    },
-                    bodyFont: {
-                        size: 14, // Tamaño de fuente del cuerpo
-                    },
-                    displayColors: false, // Ocultar el indicador de color del punto
+                    backgroundColor: '#ffffff',
+                    titleColor: '#333333',
+                    bodyColor: '#555555',
+                    borderColor: '#ddd',
+                    borderWidth: 1,
+                    padding: 10,
+                    titleFont: { size: 16, weight: 'bold' },
+                    bodyFont: { size: 14 },
+                    displayColors: false,
                     callbacks: {
-                        label: function (context: any) {
-                            // Personalizar el contenido de las etiquetas
-                            return `Valor: ${context.raw} `;
-                        },
-                    },
-                },
-            },
-            scales: {
-                x: {
-                    ticks: {
-                        color: '#495057',
-                        font: {
-                            size: 12,
-                        },
-                    },
-                    grid: {
-                        color: '#ebedef',
-                    },
-                },
-                y: {
-                    ticks: {
-                        color: '#495057',
-                        font: {
-                            size: 12,
-                        },
-                    },
-                    grid: {
-                        color: '#ebedef',
+                        label: (context: any) =>
+                            `Valor: ${numberFormatter.format(context.raw)}`,
                     },
                 },
             },
         };
 
-        this.chartOptionsPie = {
-            //responsive: true,
-            //maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    labels: {
-                        usePointStyle: true,
-                        color: '#495057',
+        // Configuraciones específicas para diferentes gráficos
+        this.chartOptions = {
+            line: {
+                ...baseChartOptions,
+                plugins: {
+                    ...baseChartOptions.plugins,
+                    highlightMinMaxPlugin,
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: '#495057',
+                            font: {
+                                size: 12,
+                            },
+                        },
+                        grid: {
+                            color: '#ebedef',
+                        },
+                    },
+                    y: { ...commonAxisOptions },
+                },
+            },
+            bar: {
+                ...baseChartOptions,
+                plugins: {
+                    ...baseChartOptions.plugins,
+                    highlightMinMaxPlugin,
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: '#495057',
+                            font: {
+                                size: 12,
+                            },
+                        },
+                        grid: {
+                            color: '#ebedef',
+                        },
+                    },
+                    y: { ...commonAxisOptions },
+                },
+            },
+            pie: {
+                ...baseChartOptions,
+                plugins: {
+                    ...baseChartOptions.plugins,
+                    legend: {
+                        ...baseChartOptions.plugins.legend,
+                        labels: {
+                            usePointStyle: true,
+                            color: textColor,
+                        },
+                    },
+                },
+            },
+            doughnut: {
+                ...baseChartOptions,
+                plugins: {
+                    ...baseChartOptions.plugins,
+                    legend: {
+                        ...baseChartOptions.plugins.legend,
+                        labels: {
+                            usePointStyle: true,
+                            color: textColor,
+                        },
+                    },
+                },
+            },
+            stacked: {
+                ...baseChartOptions,
+                scales: {
+                    x: {
+                        ticks: {
+                            color: '#495057',
+                            font: {
+                                size: 12,
+                            },
+                        },
+                        grid: {
+                            color: '#ebedef',
+                        },
+                        stacked: true,
+                    },
+                    y: { ...commonAxisOptions, stacked: true },
+                },
+            },
+            doubleAxis: {
+                ...baseChartOptions,
+                scales: {
+                    y: {
+                        type: 'linear',
+                        position: 'left',
+                        ticks: { callback: formatValueCallback },
+                    },
+                    y2: {
+                        type: 'linear',
+                        position: 'right',
+                        grid: { drawOnChartArea: false },
+                        ticks: { callback: formatValueCallback },
                     },
                 },
             },
         };
+        this.chartOptions.stacked.plugins.tooltip.callbacks.label = (
+            context: any
+        ) => {
+            const datasetLabel = context.dataset.label || 'Sin etiqueta';
+            const value = context.raw;
+            return `${datasetLabel}: ${numberFormatter.format(value)}`;
+        };
+        this.chartOptions.stacked.scales.x = {
+            ticks: {
+                color: '#495057',
+                font: {
+                    size: 12,
+                },
+            },
+            grid: {
+                color: '#ebedef',
+            },
+            stacked: true,
+        };
+        this.chartOptions.stacked.scales.y = {
+            ...commonAxisOptions,
+            stacked: true,
+        };
     }
+
+    getChartType(chart: string[]) {
+        let option = {};
+        for (const key in chart) {
+            option = { ...option, ...this.chartOptions[key] };
+        }
+        return option;
+    }
+
     // Define el objeto
     showChart: { [key: string]: boolean } = {};
 
@@ -610,11 +1111,11 @@ export class DashboardComponent implements OnInit {
 
     getSeverity(product: any) {
         switch (product) {
-            case 'INSTOCK':
+            case 'Tabla':
                 return 'success';
 
-            case 'LOWSTOCK':
-                return 'warning';
+            case 'Gráfico':
+                return 'info';
 
             case 'OUTOFSTOCK':
                 return 'danger';

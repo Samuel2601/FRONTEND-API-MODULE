@@ -59,4 +59,8 @@ export class RegistroService {
     informacionUbicacion(): any {
         return this.http.get(this.url + 'api/registros/informacionUbicacion');
     }
+
+    informacionsalud(): any {
+        return this.http.get(this.url + 'api/registros/salud');
+    }
 }
