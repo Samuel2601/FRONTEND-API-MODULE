@@ -79,6 +79,9 @@ export class DashboardComponent implements OnInit {
     fetchSaludData(): Observable<any> {
         return this.registroService.informacionsalud();
     }
+    fetchHistoricoData(): Observable<any> {
+        return this.registroService.informacionHistorico();
+    }
 
     loading: boolean = true;
 
@@ -88,10 +91,10 @@ export class DashboardComponent implements OnInit {
         this.initChartOptions();
         this.loading = false;
     }
+    historicoData: any = { total: 0, total_filtered: 0 };
     async fetchData() {
         // Obtener datos generales
         this.fetchGeneralData().subscribe((data: any) => {
-
             this.generalData = this.processGeneralData(data);
             this.generalData.total = data.total;
             console.log(this.generalData);
@@ -99,8 +102,8 @@ export class DashboardComponent implements OnInit {
 
         // Obtener datos personales
         this.fetchPersonalData().subscribe((data: any) => {
-            this.personalData.total = data.total;
             this.personalData = this.processPersonalData(data);
+            this.personalData.total = data.total;
         });
 
         // Obtener datos ubicación
@@ -116,6 +119,12 @@ export class DashboardComponent implements OnInit {
             this.saludData = this.processSalud(data);
             this.saludData.total = data.total;
             this.loadData = true;
+        });
+
+        this.fetchHistoricoData().subscribe((data: any) => {
+            this.historicoData = data;
+            this.loadData = true;
+            console.log(this.historicoData);
         });
     }
     loadData: boolean = false;

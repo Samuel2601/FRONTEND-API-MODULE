@@ -4,14 +4,22 @@
     [layout]="layout"
     class="custom-dataview"
 >
+    <!-- Header -->
     <ng-template pTemplate="header" *ngIf="!isMobil()">
         <div class="flex justify-content-end p-3 bg-surface-100 rounded-top-xl">
             <p-dataViewLayoutOptions></p-dataViewLayoutOptions>
         </div>
     </ng-template>
+
+    <!-- Vista de lista -->
     <ng-template pTemplate="list" let-dash>
-        <div class="grid p-4 gap-4">
-            <div class="col-12 p-0" *ngFor="let item of dash">
+        <div
+            class="grid p-4 gap-4 drop-list"
+            cdkDropList
+            [cdkDropListData]="components_arr"
+            (cdkDropListDropped)="onDrop($event, 'list')"
+        >
+            <div class="col-12 p-0" *ngFor="let item of dash" cdkDrag>
                 <p-panel>
                     <ng-template pTemplate="header">
                         <div class="flex align-items-center gap-2">
@@ -53,7 +61,6 @@
                         >
                             <ng-template pTemplate="header">
                                 <tr>
-                                    <!-- Encabezados dinámicos basados en columnOrder -->
                                     <th *ngFor="let col of item.columnOrder">
                                         {{ col }}
                                     </th>
@@ -61,45 +68,10 @@
                             </ng-template>
                             <ng-template pTemplate="body" let-titem>
                                 <tr>
-                                    <!-- Celdas dinámicas basadas en columnOrder -->
                                     <td *ngFor="let col of item.columnOrder">
                                         {{ titem[col] }}
-                                        <ng-container
-                                            *ngIf="col === 'Porcentaje'"
-                                            >%</ng-container
-                                        >
                                     </td>
                                 </tr>
-                            </ng-template>
-                            <ng-template pTemplate="footer">
-                                <tr>
-                                    <td
-                                        [attr.colspan]="
-                                            item.columnOrder.length - 2
-                                        "
-                                    >
-                                        Total
-                                    </td>
-                                    <td>
-                                        {{
-                                            getTotalRegistros(
-                                                item.table,
-                                                item.columnOrder[
-                                                    item.columnOrder.length - 2
-                                                ]
-                                            )
-                                        }}
-                                    </td>
-                                    <td>100%</td>
-                                </tr>
-                            </ng-template>
-                            <ng-template pTemplate="summary">
-                                <div
-                                    class="flex align-items-center justify-content-between"
-                                >
-                                    Total de {{item.columnOrder[0]}}(es/s):
-                                    {{ item.table ? item.table.length : 0 }}
-                                </div>
                             </ng-template>
                         </p-table>
                     </ng-container>
@@ -108,20 +80,25 @@
         </div>
     </ng-template>
 
+    <!-- Vista de rejilla (grid) -->
     <ng-template pTemplate="grid" let-dash>
         <div
             class="grid grid-nogutter p-4 gap-4"
             style="justify-content: space-around"
+            cdkDropList
+            [cdkDropListData]="components_arr"
+            (cdkDropListDropped)="onDrop($event, 'grid')"
         >
             <div
                 class="col-12 sm:col-12 md:col-10 xl:col-5 p-2"
                 *ngFor="let item of dash"
+                cdkDrag
             >
                 <div
                     class="p-4 bg-surface-0 shadow-2 border-round-xl flex flex-column transition-all hover:shadow-4"
                 >
                     <div class="relative mx-auto">
-                        <div class="flex align-items-center gap-2">
+                        <div class="flex align-items-center gap-2 mb-1">
                             <span class="font-bold">{{ item.title }}</span>
                             <p-button
                                 [label]="
@@ -168,7 +145,6 @@
                         >
                             <ng-template pTemplate="header">
                                 <tr>
-                                    <!-- Encabezados dinámicos basados en columnOrder -->
                                     <th *ngFor="let col of item.columnOrder">
                                         {{ col }}
                                     </th>
@@ -176,46 +152,10 @@
                             </ng-template>
                             <ng-template pTemplate="body" let-titem>
                                 <tr>
-                                    <!-- Celdas dinámicas basadas en columnOrder -->
                                     <td *ngFor="let col of item.columnOrder">
                                         {{ titem[col] }}
-                                        <ng-container
-                                            *ngIf="col === 'Porcentaje'"
-                                            >%</ng-container
-                                        >
                                     </td>
                                 </tr>
-                            </ng-template>
-                            <ng-template pTemplate="footer">
-                                <tr>
-                                    <td
-                                        [attr.colspan]="
-                                            item.columnOrder.length - 2
-                                        "
-                                    >
-                                        Total
-                                    </td>
-                                    <td>
-                                        {{
-                                            getTotalRegistros(
-                                                item.table,
-                                                item.columnOrder[
-                                                    item.columnOrder.length - 2
-                                                ]
-                                            )
-                                        }}
-                                    </td>
-                                    <td>100%</td>
-                                </tr>
-                            </ng-template>
-
-                            <ng-template pTemplate="summary">
-                                <div
-                                    class="flex align-items-center justify-content-between"
-                                >
-                                    Total de {{item.columnOrder[0]}}(es/s):
-                                    {{ item.table ? item.table.length : 0 }}
-                                </div>
                             </ng-template>
                         </p-table>
                     </ng-container>

@@ -1,17 +1,32 @@
+<div>
+    <div class="status-knob-container">
+        <p-knob
+            *ngIf="historicoData.total > 0"
+            [(ngModel)]="historicoData.total_filtered"
+            [min]="0"
+            [max]="historicoData.total"
+            [size]="150"
+            [step]="1"
+            [showValue]="true"
+        >
+        </p-knob>
+
+        <div class="status-info">
+            <i class="pi pi-file" [style.color]="'#007ad9'"></i>
+            <p>Registros Filtrados: {{ historicoData.total_filtered }}</p>
+        </div>
+    </div>
+</div>
+
 <p-tabView *ngIf="!loading">
     <!-- Pestaña Registros Generales -->
     <p-tabPanel header="Registros Generales">
         <div class="p-grid p-nogutter dashboard-container">
-            <div class="p-col-12 p-md-6 p-lg-4">
-                <p-panel header="Total Registros" class="dashboard-card">
-                    <div class="card-content">
-                        <i class="pi pi-database card-icon"></i>
-                        <h2>{{ generalData.total }}</h2>
-                    </div>
-                </p-panel>
-            </div>
-
-            <app-grafic-table *ngIf="generalData.components_arr && generalData.components_arr.length>0"
+            <app-grafic-table
+                *ngIf="
+                    generalData.components_arr &&
+                    generalData.components_arr.length > 0
+                "
                 [components_arr]="generalData.components_arr"
             ></app-grafic-table>
 
@@ -56,16 +71,6 @@
                 class="grid grid-nogutter"
                 style="justify-content: space-around"
             >
-                <!-- Total Personas Registradas -->
-                <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
-                    <div class="info-card">
-                        <i class="pi pi-database card-icon"></i>
-                        <h3>Total Registros</h3>
-                        <p class="stat-value">
-                            {{ personalData.total }}
-                        </p>
-                    </div>
-                </div>
                 <!-- Promedio de Edad -->
                 <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
                     <div class="info-card">
@@ -105,7 +110,11 @@
                     </div>
                 </div>
             </div>
-            <app-grafic-table *ngIf="personalData.components_arr&&personalData.components_arr.length>0"
+            <app-grafic-table
+                *ngIf="
+                    personalData.components_arr &&
+                    personalData.components_arr.length > 0
+                "
                 [components_arr]="personalData.components_arr"
             ></app-grafic-table>
 
@@ -128,16 +137,6 @@
                 class="grid grid-nogutter"
                 style="justify-content: space-around"
             >
-                <!-- Total Personas Registradas -->
-                <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
-                    <div class="info-card">
-                        <i class="pi pi-database card-icon"></i>
-                        <h3>Total Registros</h3>
-                        <p class="stat-value">
-                            {{ ubicacionData.total }}
-                        </p>
-                    </div>
-                </div>
                 <!-- Total Personas Registradas -->
                 <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
                     <div class="info-card">
@@ -183,7 +182,11 @@
                 </div>
             </div>
 
-            <app-grafic-table *ngIf="ubicacionData.components_arr&&ubicacionData.components_arr.length>0"
+            <app-grafic-table
+                *ngIf="
+                    ubicacionData.components_arr &&
+                    ubicacionData.components_arr.length > 0
+                "
                 [components_arr]="ubicacionData.components_arr"
             ></app-grafic-table>
         </div>
@@ -195,17 +198,6 @@
                 class="grid grid-nogutter"
                 style="justify-content: space-around"
             >
-                <!-- Total Personas Registradas -->
-                <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
-                    <div class="info-card">
-                        <i class="pi pi-database card-icon"></i>
-                        <h3>Total Registros</h3>
-                        <p class="stat-value">
-                            {{ ubicacionData.total }}
-                        </p>
-                    </div>
-                </div>
-
                 <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
                     <div class="status-knob-container">
                         <p-knob
@@ -218,7 +210,7 @@
                             [textColor]="'#000'"
                             [showValue]="true"
                             [size]="150"
-                            valueTemplate="{{knobValue}}%"
+                            valueTemplate="{{ knobValue }}%"
                         ></p-knob>
                         <div class="status-info">
                             <i
@@ -231,7 +223,11 @@
                 </div>
             </div>
 
-            <app-grafic-table *ngIf="saludData.components_arr&&saludData.components_arr.length>0"
+            <app-grafic-table
+                *ngIf="
+                    saludData.components_arr &&
+                    saludData.components_arr.length > 0
+                "
                 [components_arr]="saludData.components_arr"
             ></app-grafic-table>
         </div>

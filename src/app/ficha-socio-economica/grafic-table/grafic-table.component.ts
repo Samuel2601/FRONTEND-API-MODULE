@@ -1,3 +1,4 @@
+import { moveItemInArray } from '@angular/cdk/drag-drop';
 import { Component, Input, OnInit } from '@angular/core';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ImportsModule } from 'src/app/demo/services/import';
@@ -291,4 +292,22 @@ export class GraficTableComponent implements OnInit {
 
         return total;
     }
+
+    onDrop(event: any, target: string) {
+        console.log('Usando onDrop');
+        console.log(event);
+
+        // El índice del item arrastrado y el índice anterior
+        const previousIndex = event.previousIndex;
+        const currentIndex = event.currentIndex;
+
+        // Realiza el reordenamiento directamente usando moveItemInArray
+        if (previousIndex !== currentIndex) {
+            // Mueve el item en el array desde previousIndex a currentIndex
+            moveItemInArray(this.components_arr, previousIndex, currentIndex);
+        }
+
+        console.log(this.components_arr);
+    }
+
 }
