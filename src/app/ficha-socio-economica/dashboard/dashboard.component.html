@@ -11,55 +11,15 @@
                 </p-panel>
             </div>
 
-            <div class="p-col-12 p-md-6">
-                <p-panel header="Distribución por Encuestador">
-                    <p-chart
-                        type="bar"
-                        [data]="surveyorData"
-                        [options]="chartOptions['bar']"
-                    ></p-chart>
-                </p-panel>
-            </div>
-
-            <div class="p-col-12 p-md-6">
-                <p-panel header="Línea de Tiempo">
-                    <p-chart
-                        type="line"
-                        [data]="timelineData"
-                        [options]="chartOptions['line']"
-                    ></p-chart>
-                </p-panel>
-            </div>
-
-            <!-- Gráfico por hora -->
-            <div class="p-col-12 p-md-6">
-                <p-panel header="Registros por Hora">
-                    <p-chart
-                        type="line"
-                        [data]="hourlyData"
-                        [options]="chartOptions['line']"
-                    ></p-chart>
-                </p-panel>
-            </div>
-
-            <!-- Gráfico por hora -->
-            <div class="p-col-12 p-md-6">
-                <p-panel
-                    header="Registros por Hora de Conectividad de Encuestadores"
-                >
-                    <p-chart
-                        type="line"
-                        [data]="hourlyDataConectividad"
-                        [options]="chartOptions['line']"
-                    ></p-chart>
-                </p-panel>
-            </div>
+            <app-grafic-table *ngIf="generalData.components_arr && generalData.components_arr.length>0"
+                [components_arr]="generalData.components_arr"
+            ></app-grafic-table>
 
             <!-- Tabla con registros por encuestador -->
             <div class="p-col-12">
                 <p-panel header="Registros por Encuestador">
                     <p-table
-                        [value]="tableData"
+                        [value]="generalData.tableData"
                         [paginator]="true"
                         [rows]="5"
                         responsiveLayout="scroll"
@@ -145,29 +105,9 @@
                     </div>
                 </div>
             </div>
-            <!-- Distribución por Nacionalidad -->
-            <div class="p-col-12 p-md-6 my-2">
-                <p-panel header="Distribución por Nacionalidad">
-                    <p-chart
-                        [height]="'300'"
-                        type="doughnut"
-                        [data]="nationalityData"
-                        [options]="chartOptions['doughnut']"
-                    >
-                    </p-chart>
-                </p-panel>
-            </div>
-
-            <!-- Distribución por Rango de Edad -->
-            <div class="p-col-12 p-md-6 my-2">
-                <p-panel header="Distribución por Rango de Edad">
-                    <p-chart
-                        type="bar"
-                        [data]="ageRangeData"
-                        [options]="chartOptions['bar']"
-                    ></p-chart>
-                </p-panel>
-            </div>
+            <app-grafic-table *ngIf="personalData.components_arr&&personalData.components_arr.length>0"
+                [components_arr]="personalData.components_arr"
+            ></app-grafic-table>
 
             <!-- Teléfonos Únicos -->
             <div class="p-col-12 my-2">
@@ -243,248 +183,9 @@
                 </div>
             </div>
 
-            <p-dataView
-                #dv
-                [value]="ubicacionData.components_arr"
-                [layout]="layout"
-                *ngIf="loadData"
-            >
-                <ng-template pTemplate="header" *ngIf="!isMobil()">
-                    <div class="flex justify-content-end">
-                        <p-dataViewLayoutOptions></p-dataViewLayoutOptions>
-                    </div>
-                </ng-template>
-                <ng-template pTemplate="list" let-dash>
-                    <div
-                        class="p-col-12 p-md-6 my-3"
-                        *ngFor="let config of dash"
-                    >
-                        <p-panel>
-                            <ng-template pTemplate="header">
-                                <div class="flex align-items-center gap-2">
-                                    <span class="font-bold">{{
-                                        config.title
-                                    }}</span>
-                                </div>
-                            </ng-template>
-                            <ng-template pTemplate="icons">
-                                <p-toggleButton
-                                    [(ngModel)]="showChart[config.key]"
-                                    onLabel="Gráfico"
-                                    offLabel="Tabla"
-                                    onIcon="pi pi-chart-bar"
-                                    offIcon="pi pi-table"
-                                    styleClass="p-mb-2"
-                                >
-                                </p-toggleButton>
-                            </ng-template>
-
-                            <ng-container *ngIf="!showChart[config.key]">
-                                <p-chart
-                                    [type]="config.chart.type"
-                                    [data]="config.chart"
-                                    [options]="
-                                        config.chart.options
-                                            ? config.chart.options
-                                            : chartOptions[config.chart.type]
-                                    "
-                                    height="500"
-                                ></p-chart>
-                            </ng-container>
-
-                            <ng-container *ngIf="showChart[config.key]">
-                                <p-table
-                                    [value]="config.table"
-                                    [rows]="10"
-                                    [paginator]="true"
-                                    [scrollable]="true"
-                                    [scrollHeight]="'300px'"
-                                >
-                                    <ng-template pTemplate="header">
-                                        <tr>
-                                            <!-- Encabezados dinámicos basados en columnOrder -->
-                                            <th
-                                                *ngFor="
-                                                    let col of config.columnOrder
-                                                "
-                                            >
-                                                {{ col }}
-                                            </th>
-                                        </tr>
-                                    </ng-template>
-                                    <ng-template pTemplate="body" let-item>
-                                        <tr>
-                                            <!-- Celdas dinámicas basadas en columnOrder -->
-                                            <td
-                                                *ngFor="
-                                                    let col of config.columnOrder
-                                                "
-                                            >
-                                                {{ item[col] }}
-                                                <ng-container
-                                                    *ngIf="col === 'Porcentaje'"
-                                                    >%</ng-container
-                                                >
-                                            </td>
-                                        </tr>
-                                    </ng-template>
-                                    <ng-template pTemplate="footer">
-                                        <tr>
-                                            <td colspan="1">Total</td>
-                                            <td>
-                                                {{
-                                                    getTotalRegistros(
-                                                        config.table,
-                                                        config.columnOrder[1]
-                                                    )
-                                                }}
-                                            </td>
-                                            <td>100%</td>
-                                        </tr>
-                                    </ng-template>
-                                    <ng-template pTemplate="summary">
-                                        <div
-                                            class="flex align-items-center justify-content-between"
-                                        >
-                                            Total Registros:
-                                            {{
-                                                config.table
-                                                    ? config.table.length
-                                                    : 0
-                                            }}
-                                        </div>
-                                    </ng-template>
-                                </p-table>
-                            </ng-container>
-                        </p-panel>
-                    </div>
-                </ng-template>
-
-                <ng-template pTemplate="grid" let-dash>
-                    <div class="grid grid-nogutter">
-                        <div
-                            class="col-12 sm:col-6 md:col-6 xl:col-6 p-2"
-                            *ngFor="let product of dash"
-                        >
-                            <div
-                                class="p-4 border-1 surface-border surface-card border-round flex flex-column"
-                            >
-                                <div class="relative mx-auto">
-                                    <div class="flex align-items-center gap-2">
-                                        <span class="font-bold">{{
-                                            product.title
-                                        }}</span>
-                                        <p-button
-                                            [label]="
-                                                !showChart[product.key]
-                                                    ? 'Tabla'
-                                                    : 'Gráfico'
-                                            "
-                                            [severity]="
-                                                getSeverity(
-                                                    !showChart[product.key]
-                                                        ? 'Tabla'
-                                                        : 'Gráfico'
-                                                )
-                                            "
-                                            (click)="
-                                                showChart[product.key] =
-                                                    !showChart[product.key]
-                                            "
-                                        />
-                                    </div>
-                                </div>
-                                <div
-                                    class="surface-50 flex justify-content-center border-round p-3 chart-table-container"
-                                    *ngIf="!showChart[product.key]"
-                                >
-                                    <p-chart
-                                        class="border-round w-full"
-                                        [type]="product.chart.type"
-                                        [data]="product.chart"
-                                        [options]="
-                                            product.chart.options
-                                                ? product.chart.options
-                                                : chartOptions[
-                                                      product.chart.type
-                                                  ]
-                                        "
-                                        height="100%"
-                                        [responsive]="true"
-                                    ></p-chart>
-                                </div>
-                                <ng-container *ngIf="showChart[product.key]">
-                                    <p-table
-                                        [value]="product.table"
-                                        [rows]="10"
-                                        [paginator]="true"
-                                        [scrollable]="true"
-                                        [scrollHeight]="'300px'"
-                                    >
-                                        <ng-template pTemplate="header">
-                                            <tr>
-                                                <!-- Encabezados dinámicos basados en columnOrder -->
-                                                <th
-                                                    *ngFor="
-                                                        let col of product.columnOrder
-                                                    "
-                                                >
-                                                    {{ col }}
-                                                </th>
-                                            </tr>
-                                        </ng-template>
-                                        <ng-template pTemplate="body" let-item>
-                                            <tr>
-                                                <!-- Celdas dinámicas basadas en columnOrder -->
-                                                <td
-                                                    *ngFor="
-                                                        let col of product.columnOrder
-                                                    "
-                                                >
-                                                    {{ item[col] }}
-                                                    <ng-container
-                                                        *ngIf="
-                                                            col === 'Porcentaje'
-                                                        "
-                                                        >%</ng-container
-                                                    >
-                                                </td>
-                                            </tr>
-                                        </ng-template>
-                                        <ng-template pTemplate="footer">
-                                            <tr>
-                                                <td colspan="1">Total</td>
-                                                <td>
-                                                    {{
-                                                        getTotalRegistros(
-                                                            product.table,
-                                                            product
-                                                                .columnOrder[1]
-                                                        )
-                                                    }}
-                                                </td>
-                                                <td>100%</td>
-                                            </tr>
-                                        </ng-template>
-                                        <ng-template pTemplate="summary">
-                                            <div
-                                                class="flex align-items-center justify-content-between"
-                                            >
-                                                Total Registros:
-                                                {{
-                                                    product.table
-                                                        ? product.table.length
-                                                        : 0
-                                                }}
-                                            </div>
-                                        </ng-template>
-                                    </p-table>
-                                </ng-container>
-                            </div>
-                        </div>
-                    </div>
-                </ng-template>
-            </p-dataView>
+            <app-grafic-table *ngIf="ubicacionData.components_arr&&ubicacionData.components_arr.length>0"
+                [components_arr]="ubicacionData.components_arr"
+            ></app-grafic-table>
         </div>
     </p-tabPanel>
 
@@ -504,322 +205,35 @@
                         </p>
                     </div>
                 </div>
-                <!-- Total Personas Registradas -->
-                <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
-                    <div class="info-card">
-                        <i class="pi pi-home card-icon"></i>
-                        <h3>Promedio de Posesión</h3>
-                        <p class="stat-value">
-                            {{
-                                ubicacionData.promedioPosesion
-                                    | number : "1.2-2"
-                            }}
-                            Años
-                        </p>
-                    </div>
-                </div>
-                <!-- Promedio de Edad -->
-                <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
-                    <div class="info-card">
-                        <i class="pi pi-users card-icon"></i>
-                        <h3>Promedio por Lote</h3>
-                        <p class="stat-value">
-                            {{
-                                ubicacionData.promedioFamiliasPorLote
-                                    | number : "1.2-2"
-                            }}
-                            Familias
-                        </p>
-                    </div>
-                </div>
 
-                <!-- Edad Mínima -->
                 <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
-                    <div class="info-card">
-                        <i class="pi pi-user card-icon"></i>
-                        <h3>Promedio por Lote</h3>
-                        <p class="stat-value">
-                            {{
-                                ubicacionData.promedioPersonasPorLote
-                                    | number : "1.2-2"
-                            }}
-                            Personas
-                        </p>
+                    <div class="status-knob-container">
+                        <p-knob
+                            [(ngModel)]="knobValue"
+                            [min]="0"
+                            [max]="100"
+                            [step]="1"
+                            [readonly]="true"
+                            [valueColor]="knobColor"
+                            [textColor]="'#000'"
+                            [showValue]="true"
+                            [size]="150"
+                            valueTemplate="{{knobValue}}%"
+                        ></p-knob>
+                        <div class="status-info">
+                            <i
+                                [class]="'pi ' + icon"
+                                [style.color]="knobColor"
+                            ></i>
+                            <p>{{ majorState }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <p-dataView
-                #dv
-                [value]="saludData.components_arr"
-                [layout]="layout"
-                *ngIf="loadData"
-            >
-                <ng-template pTemplate="header" *ngIf="!isMobil()">
-                    <div class="flex justify-content-end">
-                        <p-dataViewLayoutOptions></p-dataViewLayoutOptions>
-                    </div>
-                </ng-template>
-                <ng-template pTemplate="list" let-dash>
-                    <div
-                        class="p-col-12 p-md-6 my-3"
-                        *ngFor="let config of dash"
-                    >
-                        <p-panel>
-                            <ng-template pTemplate="header">
-                                <div class="flex align-items-center gap-2">
-                                    <span class="font-bold">{{
-                                        config.title
-                                    }}</span>
-                                </div>
-                            </ng-template>
-                            <ng-template pTemplate="icons">
-                                <p-toggleButton
-                                    [(ngModel)]="showChart[config.key]"
-                                    onLabel="Gráfico"
-                                    offLabel="Tabla"
-                                    onIcon="pi pi-chart-bar"
-                                    offIcon="pi pi-table"
-                                    styleClass="p-mb-2"
-                                >
-                                </p-toggleButton>
-                            </ng-template>
-
-                            <ng-container *ngIf="!showChart[config.key]">
-                                <p-chart
-                                    [type]="config.chart.type"
-                                    [data]="config.chart"
-                                    [options]="
-                                        config.chart.options
-                                            ? config.chart.options
-                                            : chartOptions[config.chart.type]
-                                    "
-                                    height="500"
-                                ></p-chart>
-                            </ng-container>
-
-                            <ng-container *ngIf="showChart[config.key]">
-                                <p-table
-                                    [value]="config.table"
-                                    [rows]="10"
-                                    [paginator]="true"
-                                    [scrollable]="true"
-                                    [scrollHeight]="'300px'"
-                                >
-                                    <ng-template pTemplate="header">
-                                        <tr>
-                                            <!-- Encabezados dinámicos basados en columnOrder -->
-                                            <th
-                                                *ngFor="
-                                                    let col of config.columnOrder
-                                                "
-                                            >
-                                                {{ col }}
-                                            </th>
-                                        </tr>
-                                    </ng-template>
-                                    <ng-template pTemplate="body" let-item>
-                                        <tr>
-                                            <!-- Celdas dinámicas basadas en columnOrder -->
-                                            <td
-                                                *ngFor="
-                                                    let col of config.columnOrder
-                                                "
-                                            >
-                                                {{ item[col] }}
-                                                <ng-container
-                                                    *ngIf="col === 'Porcentaje'"
-                                                    >%</ng-container
-                                                >
-                                            </td>
-                                        </tr>
-                                    </ng-template>
-                                    <ng-template pTemplate="footer">
-                                        <tr>
-                                            <td
-                                                [attr.colspan]="
-                                                    config.columnOrder.length -
-                                                    2
-                                                "
-                                            >
-                                                Total
-                                            </td>
-                                            <td>
-                                                {{
-                                                    getTotalRegistros(
-                                                        config.table,
-                                                        config.columnOrder[
-                                                            config.columnOrder
-                                                                .length - 2
-                                                        ]
-                                                    )
-                                                }}
-                                            </td>
-                                            <td
-                                                *ngIf="
-                                                    config.columnOrder[
-                                                        config.columnOrder
-                                                            .length - 1
-                                                    ] == 'Porcentaje'
-                                                "
-                                            >
-                                                100%
-                                            </td>
-                                        </tr>
-                                    </ng-template>
-                                    <ng-template pTemplate="summary">
-                                        <div
-                                            class="flex align-items-center justify-content-between"
-                                        >
-                                            Total Registros:
-                                            {{
-                                                config.table
-                                                    ? config.table.length
-                                                    : 0
-                                            }}
-                                        </div>
-                                    </ng-template>
-                                </p-table>
-                            </ng-container>
-                        </p-panel>
-                    </div>
-                </ng-template>
-
-                <ng-template pTemplate="grid" let-dash>
-                    <div class="grid grid-nogutter">
-                        <div
-                            class="col-12 sm:col-6 md:col-6 xl:col-6 p-2"
-                            *ngFor="let product of dash"
-                        >
-                            <div
-                                class="p-4 border-1 surface-border surface-card border-round flex flex-column"
-                            >
-                                <div class="relative mx-auto">
-                                    <div class="flex align-items-center gap-2">
-                                        <span class="font-bold">{{
-                                            product.title
-                                        }}</span>
-                                        <p-button
-                                            [label]="
-                                                !showChart[product.key]
-                                                    ? 'Tabla'
-                                                    : 'Gráfico'
-                                            "
-                                            [severity]="
-                                                getSeverity(
-                                                    !showChart[product.key]
-                                                        ? 'Tabla'
-                                                        : 'Gráfico'
-                                                )
-                                            "
-                                            (click)="
-                                                showChart[product.key] =
-                                                    !showChart[product.key]
-                                            "
-                                        />
-                                    </div>
-                                </div>
-                                <div
-                                    class="surface-50 flex justify-content-center border-round p-3 chart-table-container"
-                                    *ngIf="!showChart[product.key]"
-                                >
-                                    <p-chart
-                                        class="border-round w-full"
-                                        [type]="product.chart.type"
-                                        [data]="product.chart"
-                                        [options]="
-                                            product.chart.options
-                                                ? product.chart.options
-                                                : chartOptions[
-                                                      product.chart.type
-                                                  ]
-                                        "
-                                        height="100%"
-                                        [responsive]="true"
-                                    ></p-chart>
-                                </div>
-                                <ng-container *ngIf="showChart[product.key]">
-                                    <p-table
-                                        [value]="product.table"
-                                        [rows]="10"
-                                        [paginator]="true"
-                                        [scrollable]="true"
-                                        [scrollHeight]="'300px'"
-                                    >
-                                        <ng-template pTemplate="header">
-                                            <tr>
-                                                <!-- Encabezados dinámicos basados en columnOrder -->
-                                                <th
-                                                    *ngFor="
-                                                        let col of product.columnOrder
-                                                    "
-                                                >
-                                                    {{ col }}
-                                                </th>
-                                            </tr>
-                                        </ng-template>
-                                        <ng-template pTemplate="body" let-item>
-                                            <tr>
-                                                <!-- Celdas dinámicas basadas en columnOrder -->
-                                                <td
-                                                    *ngFor="
-                                                        let col of product.columnOrder
-                                                    "
-                                                >
-                                                    {{ item[col] }}
-                                                    <ng-container
-                                                        *ngIf="
-                                                            col === 'Porcentaje'
-                                                        "
-                                                        >%</ng-container
-                                                    >
-                                                </td>
-                                            </tr>
-                                        </ng-template>
-                                        <ng-template pTemplate="footer">
-                                            <tr>
-                                                <td
-                                                    [attr.colspan]="
-                                                        product.columnOrder
-                                                            .length - 2
-                                                    "
-                                                >
-                                                    Total
-                                                </td>
-                                                <td>
-                                                    {{
-                                                        getTotalRegistros(
-                                                            product.table,
-                                                            product.columnOrder[
-                                                                product
-                                                                    .columnOrder
-                                                                    .length - 2
-                                                            ]
-                                                        )
-                                                    }}
-                                                </td>
-                                                <td>100%</td>
-                                            </tr>
-                                        </ng-template>
-                                        <ng-template pTemplate="summary">
-                                            <div
-                                                class="flex align-items-center justify-content-between"
-                                            >
-                                                Total Registros:
-                                                {{
-                                                    product.table
-                                                        ? product.table.length
-                                                        : 0
-                                                }}
-                                            </div>
-                                        </ng-template>
-                                    </p-table>
-                                </ng-container>
-                            </div>
-                        </div>
-                    </div>
-                </ng-template>
-            </p-dataView>
+            <app-grafic-table *ngIf="saludData.components_arr&&saludData.components_arr.length>0"
+                [components_arr]="saludData.components_arr"
+            ></app-grafic-table>
         </div>
     </p-tabPanel>
 </p-tabView>

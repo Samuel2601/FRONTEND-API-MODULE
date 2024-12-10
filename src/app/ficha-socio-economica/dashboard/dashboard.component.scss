@@ -185,3 +185,19 @@ table tr:nth-child(even) {
     align-items: center;
     overflow: hidden; /* Evita desbordamientos */
   }
+
+  .status-knob-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .status-info {
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  .status-info i {
+    font-size: 2rem;
+    margin-bottom: 5px;
+  }

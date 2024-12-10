@@ -48,6 +48,10 @@ export class RegistroService {
         return this.http.put(this.url + 'registro/' + id, data);
     }
 
+    filter(): any {
+        return this.http.get(this.url + 'api/registros/filter');
+    }
+
     informacionRegistro(): any {
         return this.http.get(this.url + 'api/registros/informacionRegistro');
     }

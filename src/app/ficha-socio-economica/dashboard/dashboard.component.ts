@@ -5,11 +5,12 @@ import { ImportsModule } from 'src/app/demo/services/import';
 import { Observable } from 'rxjs';
 import { format } from 'date-fns'; // Asegúrate de tener instalada date-fns si la usas
 import { HelperService } from 'src/app/demo/services/helper.service';
+import { GraficTableComponent } from '../grafic-table/grafic-table.component';
 
 @Component({
     selector: 'app-dashboard',
     standalone: true,
-    imports: [ImportsModule],
+    imports: [ImportsModule, GraficTableComponent],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss',
 })
@@ -90,50 +91,63 @@ export class DashboardComponent implements OnInit {
     async fetchData() {
         // Obtener datos generales
         this.fetchGeneralData().subscribe((data: any) => {
-            console.log(data);
+
+            this.generalData = this.processGeneralData(data);
             this.generalData.total = data.total;
-            this.processGeneralData(data);
+            console.log(this.generalData);
         });
 
         // Obtener datos personales
         this.fetchPersonalData().subscribe((data: any) => {
-            console.log(data);
             this.personalData.total = data.total;
-            this.processPersonalData(data);
+            this.personalData = this.processPersonalData(data);
         });
 
         // Obtener datos ubicación
 
         this.fetchUbicacionData().subscribe((data: any) => {
-            this.loadData = false;
+            //this.loadData = false;
             this.ubicacionData = this.processUbicacionData(data);
             this.ubicacionData.total = data.total;
-            console.log(this.ubicacionData);
             this.loadData = true;
         });
 
         this.fetchSaludData().subscribe((data: any) => {
-            console.log(data);
             this.saludData = this.processSalud(data);
             this.saludData.total = data.total;
-            console.log(this.saludData);
             this.loadData = true;
         });
     }
     loadData: boolean = false;
 
     processGeneralData(data: any) {
-        this.surveyorData = {
-            labels: data.porEncuestador.map(
-                (item: any) => item.encuestador.name
-            ),
-            datasets: [
-                {
-                    label: 'Registros',
-                    data: data.porEncuestador.map((item: any) => item.count),
-                    backgroundColor: '#42A5F5',
-                },
-            ],
+        console.log(data);
+        // Proceso para los datos generales
+        const surveyorData = {
+            columnOrder: ['Encuestador', 'Conteo', 'Porcentaje'],
+            table: data.porEncuestador.map((item: any) => ({
+                Encuestador: `${item.encuestador.name} ${item.encuestador.last_name}`,
+                Conteo: item.count ?? 0,
+                Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
+            })),
+            chart: {
+                type: 'bar',
+                labels: data.porEncuestador.map(
+                    (item: any) =>
+                        `${item.encuestador.name} ${item.encuestador.last_name}`
+                ),
+                datasets: [
+                    {
+                        label: 'Registros',
+                        data: data.porEncuestador.map(
+                            (item: any) => item.count
+                        ),
+                        backgroundColor: '#42A5F5',
+                    },
+                ],
+                title: 'Registros por Encuestador',
+            },
+            title: 'Registros por Encuestador',
         };
 
         // Asumimos que data.lineaDeTiempo contiene fechas como string en formato 'YYYY-MM-DD'
@@ -155,112 +169,212 @@ export class DashboardComponent implements OnInit {
         const allDates = generateDateRange(startDate, endDate);
 
         // Creamos el dataset con las fechas generadas y completando con 0 donde no haya datos
-        this.timelineData = {
-            labels: allDates, // Etiquetas con todas las fechas
-            datasets: [
-                {
-                    label: 'Registros por Día',
-                    data: allDates.map((date) => {
-                        const found = data.lineaDeTiempo.find(
-                            (item: any) => item._id === date
-                        );
-                        return found ? found.count : 0; // Si no se encuentra la fecha, asignamos 0
-                    }),
-                    backgroundColor: '#cae6fc7d',
-                    borderColor: '#1E88E5',
-                    fill: true,
-                    tension: 0.4,
-                },
-            ],
+        const timelineData = {
+            columnOrder: ['Fecha', 'Conteo', 'Porcentaje'],
+            table: data.lineaDeTiempo.map((item: any) => ({
+                Fecha: item._id ?? 'Desconocido',
+                Conteo: item.count ?? 0,
+                Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
+            })),
+            chart: {
+                type: 'line',
+                labels: allDates, // Etiquetas con todas las fechas
+                datasets: [
+                    {
+                        label: 'Registros por Día',
+                        data: allDates.map((date) => {
+                            const found = data.lineaDeTiempo.find(
+                                (item: any) => item._id === date
+                            );
+                            return found ? found.count : 0; // Si no se encuentra la fecha, asignamos 0
+                        }),
+                        backgroundColor: '#cae6fc7d',
+                        borderColor: '#1E88E5',
+                        fill: true,
+                        tension: 0.4,
+                    },
+                ],
+                title: 'Registros por Día',
+            },
+            title: 'Registros por Día',
         };
 
-        this.hourlyData = {
-            labels: Array.from(
-                { length: 24 },
-                (_, i) => `${i.toString().padStart(2, '0')}:00`
-            ),
-            datasets: [
-                {
-                    label: 'Promedio por Hora',
-                    data: Array.from({ length: 24 }, (_, i) => {
-                        const hourData = data.lineaDeTiempoHora.find(
-                            (item) => item._id === i
-                        );
-                        return hourData ? hourData.count : 0;
-                    }),
-                    fill: true,
-                    borderColor: '#4caf50',
-                    tension: 0.5,
-                    type: 'line',
-                    backgroundColor: '#b2ddb4',
-                },
-            ],
-        };
-
-        this.hourlyDataConectividad = {
-            labels: Array.from(
-                { length: 24 },
-                (_, i) => `${i.toString().padStart(2, '0')}:00`
-            ),
-            datasets: [
-                {
-                    label: 'Registros por Hora de Conectividad de Encuestadores',
-                    data: Array.from({ length: 24 }, (_, i) => {
-                        const hourData =
-                            data.lineaDeTiempoHoraConectividad.find(
+        const hourlyData = {
+            columnOrder: ['Hora', 'Conteo', 'Porcentaje'],
+            table: data.lineaDeTiempoHora.map((item: any) => ({
+                Hora: item._id ?? 'Desconocido',
+                Conteo: item.count ?? 0,
+                Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
+            })),
+            chart: {
+                type: 'line',
+                labels: Array.from(
+                    { length: 24 },
+                    (_, i) => `${i.toString().padStart(2, '0')}:00`
+                ),
+                datasets: [
+                    {
+                        label: 'Registros por Hora',
+                        data: Array.from({ length: 24 }, (_, i) => {
+                            const hourData = data.lineaDeTiempoHora.find(
                                 (item) => item._id === i
                             );
-                        return hourData ? hourData.count : 0;
-                    }),
-                    backgroundColor: '#facb618c',
-                    borderColor: '#fbc02d',
-                    fill: true,
-                    type: 'line',
-                    tension: 0.5,
-                },
-            ],
+                            return hourData ? hourData.count : 0;
+                        }),
+                        fill: true,
+                        borderColor: '#4caf50',
+                        tension: 0.5,
+                        type: 'line',
+                        backgroundColor: '#b2ddb4',
+                    },
+                ],
+                title: 'Registros por Hora',
+            },
+            title: 'Registros por Hora',
         };
 
-        this.tableData = data.porEncuestador.map((item: any) => ({
+        const hourlyDataConectividad = {
+            columnOrder: ['Hora', 'Conteo', 'Porcentaje'],
+            table: data.lineaDeTiempoHoraConectividad.map((item: any) => ({
+                Hora: item._id ?? 'Desconocido',
+                Conteo: item.count ?? 0,
+                Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
+            })),
+            chart: {
+                type: 'line',
+                labels: Array.from(
+                    { length: 24 },
+                    (_, i) => `${i.toString().padStart(2, '0')}:00`
+                ),
+                datasets: [
+                    {
+                        label: 'Registros por Hora de Conectividad de Encuestadores',
+                        data: Array.from({ length: 24 }, (_, i) => {
+                            const hourData =
+                                data.lineaDeTiempoHoraConectividad.find(
+                                    (item) => item._id === i
+                                );
+                            return hourData ? hourData.count : 0;
+                        }),
+                        backgroundColor: '#facb618c',
+                        borderColor: '#fbc02d',
+                        fill: true,
+                        type: 'line',
+                        tension: 0.5,
+                    },
+                ],
+                title: 'Registros por Hora de Conectividad de Encuestadores',
+            },
+            title: 'Registros por Hora de Conectividad de Encuestadores',
+        };
+
+        const tableData = data.porEncuestador.map((item: any) => ({
             name: `${item.encuestador.name} ${item.encuestador.last_name}`,
             email: item.encuestador.email,
             count: item.count,
         }));
+
+        const components = {
+            surveyorData,
+            timelineData,
+            hourlyData,
+            hourlyDataConectividad,
+        };
+
+        const components_arr = Object.entries(components).map(
+            ([key, value]) => ({
+                key,
+                ...value,
+            })
+        );
+
+        // Estructura final de retorno
+        return {
+            components_arr,
+            tableData,
+        };
     }
 
     processPersonalData(data: any) {
-        this.nationalityData = {
-            labels: data.porNacionalidad.map((item: any) => item._id),
-            datasets: [
-                {
-                    label: 'Personas con este nacionalidad',
-                    data: data.porNacionalidad.map((item: any) => item.count),
-                    backgroundColor: this.colors,
-                },
-            ],
+        // console.log(data);
+        // Nacionalidad
+        const nationalityData = {
+            columnOrder: ['Nacionalidad', 'Conteo', 'Porcentaje'],
+            table: data.porNacionalidad.map((item: any) => ({
+                Nacionalidad: item._id ?? 'Desconocido',
+                Conteo: item.count ?? 0,
+                Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
+            })),
+            chart: {
+                type: 'doughnut',
+                labels: data.porNacionalidad.map((item: any) => item._id),
+                datasets: [
+                    {
+                        label: 'Personas con esta nacionalidad',
+                        data: data.porNacionalidad.map(
+                            (item: any) => item.count
+                        ),
+                        backgroundColor: this.colors,
+                    },
+                ],
+                title: 'Distribución de Nacionalidades',
+            },
+            title: 'Distribución de Nacionalidades',
         };
 
-        this.ageRangeData = {
-            labels: data.rangoEdadCount.map((item: any) => item._id),
-            datasets: [
-                {
-                    label: 'Personas con este rango de edad',
-                    data: data.rangoEdadCount.map((item: any) => item.count),
-                    backgroundColor: '#66BB6A',
-                },
-            ],
+        const ageRangeData = {
+            columnOrder: ['Rango de Edad', 'Conteo', 'Porcentaje'],
+            table: data.rangoEdadCount.map((item: any) => ({
+                'Rango de Edad': item.rangoEdad ?? 'Desconocido',
+                Conteo: item.count ?? 0,
+                Porcentaje: parseFloat(item.percentage).toFixed(2) ?? 0,
+            })),
+            chart: {
+                type: 'bar',
+                labels: data.rangoEdadCount.map((item: any) => item.rangoEdad),
+                datasets: [
+                    {
+                        label: 'Personas con este rango de edad',
+                        data: data.rangoEdadCount.map(
+                            (item: any) => item.count
+                        ),
+                        backgroundColor: '#66BB6A',
+                    },
+                ],
+                title: 'Distribución por Rango de Edad',
+            },
+            title: 'Distribución por Rango de Edad',
         };
 
-        this.personalData.telefonosUnicos = data.telefonosUnicos;
-        this.personalData.promedioEdad = data.promedioEdad[0].promedioEdad;
-        this.personalData.ageStats = {
-            minEdad: data.ageStats[0].minEdad,
-            maxEdad: data.ageStats[0].maxEdad,
+        const personalData = {
+            telefonosUnicos: data.telefonosUnicos,
+            promedioEdad: data.promedioEdad ?? 0,
+            ageStats: {
+                minEdad: data.ageStats?.minEdad ?? 0,
+                maxEdad: data.ageStats?.maxEdad ?? 0,
+            },
+        };
+
+        const components = {
+            nationalityData,
+            ageRangeData,
+        };
+
+        const components_arr = Object.entries(components).map(
+            ([key, value]) => ({
+                key,
+                ...value,
+            })
+        );
+
+        return {
+            components_arr,
+            ...personalData,
         };
     }
 
     processUbicacionData(data: any) {
-        console.log(data);
+        //console.log(data);
 
         // Procesar el promedio de posesión
         const promedioPosesion = data.promedioPosesion?.promedioPosesion ?? 0;
@@ -493,7 +607,7 @@ export class DashboardComponent implements OnInit {
                 ...value,
             })
         );
-        console.log(components_arr);
+        //console.log(components_arr);
         // Estructura final de datos procesados
         return {
             promedioPosesion,
@@ -505,7 +619,7 @@ export class DashboardComponent implements OnInit {
     }
 
     processSalud(data: any) {
-        console.log(data);
+        //console.log(data);
         // Assuming data.estadisticas[0] contains the statistics
         const estadisticas = data.estadisticas[0];
 
@@ -562,7 +676,6 @@ export class DashboardComponent implements OnInit {
             },
             title: 'Causas Frecuentes',
         };
-
         // Distribución de estado de salud y causa
         const distribucionEstadoSaludYCausa = {
             columnOrder: ['Estado de Salud', 'Causa', 'Conteo', 'Porcentaje'],
@@ -613,7 +726,6 @@ export class DashboardComponent implements OnInit {
             },
             title: 'Estado de Salud y Causa',
         };
-
         // Conexión higiénico
         const distribucionConexionHigienico = {
             columnOrder: ['Tipo de Conexión', 'Conteo', 'Porcentaje'],
@@ -697,7 +809,6 @@ export class DashboardComponent implements OnInit {
             },
             title: 'Conexión Higiénico por Estado de Salud',
         };
-
         const causasPorSector = {
             columnOrder: ['Sector', 'Causa de Salud', 'Conteo', 'Porcentaje'],
             table: estadisticas.causasPorSector.map((item: any) => ({
@@ -744,7 +855,6 @@ export class DashboardComponent implements OnInit {
             },
             title: 'Causas de Salud por Sector',
         };
-
         // Distribución de estado de salud
         const totalPersonasPorCausa = {
             columnOrder: ['Causa', 'Conteo', 'Porcentaje'],
@@ -773,9 +883,7 @@ export class DashboardComponent implements OnInit {
             },
             title: 'Personas afectadas por casus del Salud',
         };
-
         // Datos adicionales
-
         const totalPersonasPorEstadoSalud = {
             columnOrder: ['Estado', 'Conteo', 'Porcentaje'],
             table: estadisticas.totalPersonasPorEstadoSalud.map(
@@ -813,7 +921,7 @@ export class DashboardComponent implements OnInit {
             distribucionConexionHigienicoPorEstadoSalud,
             causasPorSector,
             totalPersonasPorCausa,
-            totalPersonasPorEstadoSalud
+            totalPersonasPorEstadoSalud,
         };
 
         const components_arr = Object.entries(components).map(
@@ -822,7 +930,7 @@ export class DashboardComponent implements OnInit {
                 ...value,
             })
         );
-
+        this.calculateMajorState(distribucionEstadoSalud.table[0]);
         return {
             total: data.total,
             totalPersonasPorCausa,
@@ -831,6 +939,40 @@ export class DashboardComponent implements OnInit {
                 estadisticas.promedioCausasPorRegistro[0].promedioCausas
             ).toFixed(2),
         };
+    }
+
+    majorState: string = '';
+    knobValue: number = 0;
+    knobColor: string = '';
+    icon: string = '';
+    calculateMajorState(data) {
+        const major = data; // Siempre el mayor está en la primera posición
+        this.majorState = major['Estado de Salud'];
+        this.knobValue = parseFloat(major.Porcentaje);
+
+        // Definir color e ícono según el estado de salud
+        switch (this.majorState) {
+            case 'EXCELENTE':
+                this.knobColor = '#4CAF50'; // Verde
+                this.icon = 'pi-thumbs-up';
+                break;
+            case 'FATAL':
+                this.knobColor = '#F44336'; // Rojo
+                this.icon = 'pi-thumbs-down';
+                break;
+            case 'REGULAR':
+                this.knobColor = '#FFC107'; // Amarillo
+                this.icon = 'pi-exclamation-circle';
+                break;
+            case 'MALO':
+                this.knobColor = '#FF5722'; // Naranja
+                this.icon = 'pi-times-circle';
+                break;
+            default:
+                this.knobColor = '#9E9E9E'; // Gris
+                this.icon = 'pi-question-circle';
+                break;
+        }
     }
 
     getTotalRegistros(data: any[], columnOrder: string): number {
@@ -858,6 +1000,7 @@ export class DashboardComponent implements OnInit {
             ],
         };
     }
+
     chartOptionsPie: any;
     initChartOptions() {
         const documentStyle = getComputedStyle(document.documentElement);

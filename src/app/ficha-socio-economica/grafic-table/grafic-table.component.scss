@@ -1,0 +1,22 @@
+.custom-dataview {
+    .p-panel {
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+
+        ::ng-deep .p-panel-header {
+            background: linear-gradient(90deg, #f5f7fa, #f0f3f7);
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+    }
+
+    .chart-table-container {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+
+        &:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+    }
+}
