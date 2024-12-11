@@ -95,29 +95,33 @@ export class DashboardComponent implements OnInit {
     async fetchData() {
         // Obtener datos generales
         this.fetchGeneralData().subscribe((data: any) => {
-            this.generalData = this.processGeneralData(data);
-            this.generalData.total = data.total;
+            console.log(data);
+            this.generalData = data; //this.processGeneralData(data);
+            //this.generalData.total = data.total;
             console.log(this.generalData);
         });
 
         // Obtener datos personales
         this.fetchPersonalData().subscribe((data: any) => {
-            this.personalData = this.processPersonalData(data);
-            this.personalData.total = data.total;
+            console.log(data);
+            this.personalData = data; //this.processPersonalData(data);
+            // this.personalData.total = data.total;
         });
 
         // Obtener datos ubicación
 
         this.fetchUbicacionData().subscribe((data: any) => {
             //this.loadData = false;
-            this.ubicacionData = this.processUbicacionData(data);
-            this.ubicacionData.total = data.total;
+            console.log(data);
+            this.ubicacionData = data; //this.processUbicacionData(data);
+            //this.ubicacionData.total = data.total;
             this.loadData = true;
         });
 
         this.fetchSaludData().subscribe((data: any) => {
-            this.saludData = this.processSalud(data);
-            this.saludData.total = data.total;
+            console.log(data);
+            this.saludData = data; //this.processSalud(data);
+            //this.saludData.total = data.total;
             this.loadData = true;
         });
 

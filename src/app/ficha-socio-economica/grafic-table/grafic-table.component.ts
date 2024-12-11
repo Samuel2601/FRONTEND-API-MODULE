@@ -27,7 +27,7 @@ export class GraficTableComponent implements OnInit {
 
     constructor(private helperService: HelperService) {}
     ngOnInit(): void {
-        console.log(this.components_arr);
+        //console.log(this.components_arr);
         this.initChartOptions();
     }
 

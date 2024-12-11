@@ -63,6 +63,10 @@
                                 <tr>
                                     <th *ngFor="let col of item.columnOrder">
                                         {{ col }}
+                                        <ng-container
+                                            *ngIf="col === 'Porcentaje'"
+                                            >%</ng-container
+                                        >
                                     </th>
                                 </tr>
                             </ng-template>
@@ -72,6 +76,36 @@
                                         {{ titem[col] }}
                                     </td>
                                 </tr>
+                            </ng-template>
+                            <ng-template pTemplate="footer">
+                                <tr>
+                                    <td
+                                        [attr.colspan]="
+                                            item.columnOrder.length - 2
+                                        "
+                                    >
+                                        Total
+                                    </td>
+                                    <td>
+                                        {{
+                                            getTotalRegistros(
+                                                item.table,
+                                                item.columnOrder[
+                                                    item.columnOrder.length - 2
+                                                ]
+                                            )
+                                        }}
+                                    </td>
+                                    <td>100%</td>
+                                </tr>
+                            </ng-template>
+                            <ng-template pTemplate="summary">
+                                <div
+                                    class="flex align-items-center justify-content-between"
+                                >
+                                    Total de {{ item.columnOrder[0] }}(es/s):
+                                    {{ item.table ? item.table.length : 0 }}
+                                </div>
                             </ng-template>
                         </p-table>
                     </ng-container>
@@ -147,6 +181,10 @@
                                 <tr>
                                     <th *ngFor="let col of item.columnOrder">
                                         {{ col }}
+                                        <ng-container
+                                            *ngIf="col === 'Porcentaje'"
+                                            >%</ng-container
+                                        >
                                     </th>
                                 </tr>
                             </ng-template>
@@ -156,6 +194,36 @@
                                         {{ titem[col] }}
                                     </td>
                                 </tr>
+                            </ng-template>
+                            <ng-template pTemplate="footer">
+                                <tr>
+                                    <td
+                                        [attr.colspan]="
+                                            item.columnOrder.length - 2
+                                        "
+                                    >
+                                        Total
+                                    </td>
+                                    <td>
+                                        {{
+                                            getTotalRegistros(
+                                                item.table,
+                                                item.columnOrder[
+                                                    item.columnOrder.length - 2
+                                                ]
+                                            )
+                                        }}
+                                    </td>
+                                    <td>100%</td>
+                                </tr>
+                            </ng-template>
+                            <ng-template pTemplate="summary">
+                                <div
+                                    class="flex align-items-center justify-content-between"
+                                >
+                                    Total de {{ item.columnOrder[0] }}(es/s):
+                                    {{ item.table ? item.table.length : 0 }}
+                                </div>
                             </ng-template>
                         </p-table>
                     </ng-container>
