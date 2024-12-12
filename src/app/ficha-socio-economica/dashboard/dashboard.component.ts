@@ -28,7 +28,8 @@ export class DashboardComponent implements OnInit {
 
     ubicacionData: any = {};
     saludData: any = {};
-
+    viviendaData: any = {};
+    redesDeApoyoData: any = {};
     chartOptions: any;
 
     colors: any[] = [
@@ -79,6 +80,14 @@ export class DashboardComponent implements OnInit {
     fetchSaludData(): Observable<any> {
         return this.registroService.informacionsalud();
     }
+    fetchViviendaData(): Observable<any> {
+        return this.registroService.informacionVivienda();
+    }
+
+    fetchRedesDeApoyoData(): Observable<any> {
+        return this.registroService.informacionRedesdeApoyo();
+    }
+
     fetchHistoricoData(): Observable<any> {
         return this.registroService.informacionHistorico();
     }
@@ -123,12 +132,25 @@ export class DashboardComponent implements OnInit {
             this.saludData = data; //this.processSalud(data);
             //this.saludData.total = data.total;
             this.loadData = true;
+            this.calculateMajorState(data.components_arr[0].table[0]);
         });
 
         this.fetchHistoricoData().subscribe((data: any) => {
             this.historicoData = data;
             this.loadData = true;
             console.log(this.historicoData);
+        });
+        this.fetchViviendaData().subscribe((data: any) => {
+            console.log(data);
+            this.viviendaData = data; //this.processViviendaData(data);
+            //this.viviendaData.total = data.total;
+            this.loadData = true;
+        });
+        this.fetchRedesDeApoyoData().subscribe((data: any) => {
+            console.log(data);
+            this.redesDeApoyoData = data; //this.processViviendaData(data);
+            //this.viviendaData.total = data.total;
+            this.loadData = true;
         });
     }
     loadData: boolean = false;
@@ -960,7 +982,7 @@ export class DashboardComponent implements OnInit {
     icon: string = '';
     calculateMajorState(data) {
         const major = data; // Siempre el mayor está en la primera posición
-        this.majorState = major['Estado de Salud'];
+        this.majorState = major['Estado'];
         this.knobValue = parseFloat(major.Porcentaje);
 
         // Definir color e ícono según el estado de salud

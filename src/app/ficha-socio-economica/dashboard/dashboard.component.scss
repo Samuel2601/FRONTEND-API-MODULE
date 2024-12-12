@@ -112,7 +112,6 @@ p-panel {
     border-bottom: none;
 }
 
-
 .ubicacion-container {
     max-width: 1200px;
     margin: 20px auto;
@@ -160,7 +159,6 @@ table tr:nth-child(even) {
     background-color: #ecf0f1;
 }
 
-
 /* Add to your component's CSS */
 .dashboard-grid .p-col-12 {
     transition: all 0.3s ease;
@@ -177,27 +175,30 @@ table tr:nth-child(even) {
     margin-bottom: 15px;
 }
 
-
 .chart-table-container {
     height: 400px; /* Ajusta según tus necesidades */
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden; /* Evita desbordamientos */
-  }
+}
 
-  .status-knob-container {
+.status-knob-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-  }
+}
 
-  .status-info {
+.status-info {
     margin-top: 10px;
     text-align: center;
-  }
+}
 
-  .status-info i {
+.status-info i {
     font-size: 2rem;
     margin-bottom: 5px;
-  }
+}
+
+#chartjs-xaxis-tooltip {
+    transition: opacity 0.1s ease;
+}

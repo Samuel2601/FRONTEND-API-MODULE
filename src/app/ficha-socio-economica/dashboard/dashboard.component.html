@@ -29,38 +29,6 @@
                 "
                 [components_arr]="generalData.components_arr"
             ></app-grafic-table>
-
-            <!-- Tabla con registros por encuestador -->
-            <div class="p-col-12">
-                <p-panel header="Registros por Encuestador">
-                    <p-table
-                        [value]="generalData.tableData"
-                        [paginator]="true"
-                        [rows]="5"
-                        responsiveLayout="scroll"
-                    >
-                        <ng-template pTemplate="header">
-                            <tr>
-                                <th>Encuestador</th>
-                                <th>Email</th>
-                                <th>Registros</th>
-                            </tr>
-                        </ng-template>
-                        <ng-template pTemplate="body" let-rowData>
-                            <tr>
-                                <td>{{ rowData.name }}</td>
-                                <td>{{ rowData.email }}</td>
-                                <td>
-                                    <p-tag
-                                        [value]="rowData.count"
-                                        severity="info"
-                                    ></p-tag>
-                                </td>
-                            </tr>
-                        </ng-template>
-                    </p-table>
-                </p-panel>
-            </div>
         </div>
     </p-tabPanel>
 
@@ -229,6 +197,88 @@
                     saludData.components_arr.length > 0
                 "
                 [components_arr]="saludData.components_arr"
+            ></app-grafic-table>
+        </div>
+    </p-tabPanel>
+
+    <p-tabPanel header="Información Vivienda">
+        <div class="p-grid p-nogutter dashboard-container">
+            <div
+                class="grid grid-nogutter"
+                style="justify-content: space-around"
+            >
+                <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
+                    <div class="status-knob-container">
+                        <p-knob
+                            [(ngModel)]="knobValue"
+                            [min]="0"
+                            [max]="100"
+                            [step]="1"
+                            [readonly]="true"
+                            [valueColor]="knobColor"
+                            [textColor]="'#000'"
+                            [showValue]="true"
+                            [size]="150"
+                            valueTemplate="{{ knobValue }}%"
+                        ></p-knob>
+                        <div class="status-info">
+                            <i
+                                [class]="'pi ' + icon"
+                                [style.color]="knobColor"
+                            ></i>
+                            <p>{{ majorState }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <app-grafic-table
+                *ngIf="
+                    viviendaData.components_arr &&
+                    viviendaData.components_arr.length > 0
+                "
+                [components_arr]="viviendaData.components_arr"
+            ></app-grafic-table>
+        </div>
+    </p-tabPanel>
+
+    <p-tabPanel header="Información Redes de Apoyo">
+        <div class="p-grid p-nogutter dashboard-container">
+            <div
+                class="grid grid-nogutter"
+                style="justify-content: space-around"
+            >
+                <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
+                    <div class="status-knob-container">
+                        <p-knob
+                            [(ngModel)]="knobValue"
+                            [min]="0"
+                            [max]="100"
+                            [step]="1"
+                            [readonly]="true"
+                            [valueColor]="knobColor"
+                            [textColor]="'#000'"
+                            [showValue]="true"
+                            [size]="150"
+                            valueTemplate="{{ knobValue }}%"
+                        ></p-knob>
+                        <div class="status-info">
+                            <i
+                                [class]="'pi ' + icon"
+                                [style.color]="knobColor"
+                            ></i>
+                            <p>{{ majorState }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <app-grafic-table
+                *ngIf="
+                    redesDeApoyoData.components_arr &&
+                    redesDeApoyoData.components_arr.length > 0
+                "
+                [components_arr]="redesDeApoyoData.components_arr"
             ></app-grafic-table>
         </div>
     </p-tabPanel>

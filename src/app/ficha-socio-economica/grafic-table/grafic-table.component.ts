@@ -2,16 +2,20 @@ import { moveItemInArray } from '@angular/cdk/drag-drop';
 import { Component, Input, OnInit } from '@angular/core';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ImportsModule } from 'src/app/demo/services/import';
+import { Chart, registerables } from 'chart.js';
+
+// Registrar los plugins y componentes de Chart.js
+Chart.register(...registerables);
 
 @Component({
     selector: 'app-grafic-table',
     standalone: true,
     imports: [ImportsModule],
     templateUrl: './grafic-table.component.html',
-    styleUrl: './grafic-table.component.scss',
+    styleUrls: ['./grafic-table.component.scss'], // Cambié styleUrl a styleUrls
 })
 export class GraficTableComponent implements OnInit {
-    @Input() components_arr!: any;
+    @Input() components_arr!: any[];
     // Define el objeto
     showChart: { [key: string]: boolean } = {};
     layout: 'grid' | 'list' = this.isMobil() ? 'list' : 'grid';
@@ -26,16 +30,18 @@ export class GraficTableComponent implements OnInit {
     }
 
     constructor(private helperService: HelperService) {}
+
     ngOnInit(): void {
-        //console.log(this.components_arr);
         this.initChartOptions();
     }
 
-    isMobil() {
+    isMobil(): boolean {
         return this.helperService.isMobil();
     }
+
     chartOptions: any;
-    initChartOptions() {
+
+    initChartOptions(): void {
         const documentStyle = getComputedStyle(document.documentElement);
         const textColor = documentStyle.getPropertyValue('--text-color');
         const surfaceBorder =
@@ -91,6 +97,95 @@ export class GraficTableComponent implements OnInit {
             },
         };
 
+        const xAxisFloatingLabelsPlugin = {
+            id: 'xAxisFloatingLabels',
+            afterDraw: (chart: any) => {
+                const ctx = chart.ctx;
+                const xAxis = chart.scales.x;
+
+                xAxis.ticks.forEach((tick: any, index: number) => {
+                    const x = xAxis.getPixelForTick(index);
+                    const y = xAxis.bottom;
+
+                    // Draw marker for each tick
+                    ctx.save();
+                    ctx.fillStyle = 'blue';
+                    ctx.beginPath();
+                    ctx.arc(x, y + 5, 3, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.restore();
+                });
+            },
+            afterEvent: (chart: any, args: any) => {
+                const { event } = args;
+                const xAxis = chart.scales.x;
+
+                if (event.type === 'mousemove') {
+                    const x = event.x;
+
+                    xAxis.ticks.forEach((tick: any, index: number) => {
+                        const tickX = xAxis.getPixelForTick(index);
+
+                        if (Math.abs(tickX - x) < 5) {
+                            const label = xAxis.ticks[index].label;
+
+                            // Display floating label near the tick
+                            const tooltipEl = document.getElementById(
+                                'xAxis-floating-tooltip'
+                            );
+                            tooltipEl.innerHTML = `Label: ${label}`;
+                            tooltipEl.style.left = `${tickX}px`;
+                            tooltipEl.style.top = `${xAxis.bottom + 20}px`;
+                            tooltipEl.style.opacity = '1';
+                        }
+                    });
+                } else if (event.type === 'mouseout') {
+                    const tooltipEl = document.getElementById(
+                        'xAxis-floating-tooltip'
+                    );
+                    if (tooltipEl) tooltipEl.style.opacity = '0';
+                }
+            },
+        };
+
+        const floatingLabelsPlugin = {
+            id: 'floatingLabels',
+            afterEvent: (chart: any, args: any) => {
+                console.log('Evento recibido:', args.event); // Verifica los eventos
+                const { event } = args;
+                const tooltipEl = document.getElementById(
+                    'chartjs-floating-tooltip'
+                );
+
+                if (event.type === 'mousemove') {
+                    const { x, y } = event;
+                    const elements = chart.getElementsAtEventForMode(
+                        event,
+                        'nearest',
+                        { intersect: true },
+                        false
+                    );
+
+                    if (elements.length) {
+                        const datasetIndex = elements[0].datasetIndex;
+                        const index = elements[0].index;
+                        const label = chart.data.labels[index];
+                        const value =
+                            chart.data.datasets[datasetIndex].data[index];
+
+                        tooltipEl.innerHTML = `Label: ${label}<br>Value: ${value}`;
+                        tooltipEl.style.left = `${x + 10}px`;
+                        tooltipEl.style.top = `${y + 10}px`;
+                        tooltipEl.style.opacity = '1';
+                    } else {
+                        tooltipEl.style.opacity = '0';
+                    }
+                } else if (event.type === 'mouseout') {
+                    tooltipEl.style.opacity = '0';
+                }
+            },
+        };
+
         // Configuración base de gráficos
         const baseChartOptions = {
             maintainAspectRatio: false,
@@ -130,6 +225,9 @@ export class GraficTableComponent implements OnInit {
                             `Valor: ${numberFormatter.format(context.raw)}`,
                     },
                 },
+                floatingLabelsPlugin,
+                xAxisFloatingLabelsPlugin,
+                highlightMinMaxPlugin,
             },
         };
 
@@ -137,10 +235,6 @@ export class GraficTableComponent implements OnInit {
         this.chartOptions = {
             line: {
                 ...baseChartOptions,
-                plugins: {
-                    ...baseChartOptions.plugins,
-                    highlightMinMaxPlugin,
-                },
                 scales: {
                     x: {
                         ticks: {
@@ -238,28 +332,13 @@ export class GraficTableComponent implements OnInit {
                 },
             },
         };
+
         this.chartOptions.stacked.plugins.tooltip.callbacks.label = (
             context: any
         ) => {
             const datasetLabel = context.dataset.label || 'Sin etiqueta';
             const value = context.raw;
             return `${datasetLabel}: ${numberFormatter.format(value)}`;
-        };
-        this.chartOptions.stacked.scales.x = {
-            ticks: {
-                color: '#495057',
-                font: {
-                    size: 12,
-                },
-            },
-            grid: {
-                color: '#ebedef',
-            },
-            stacked: true,
-        };
-        this.chartOptions.stacked.scales.y = {
-            ...commonAxisOptions,
-            stacked: true,
         };
     }
 
@@ -275,7 +354,7 @@ export class GraficTableComponent implements OnInit {
                 return 'danger';
 
             default:
-                return null;
+                return 'danger';
         }
     }
 
@@ -293,21 +372,22 @@ export class GraficTableComponent implements OnInit {
         return total;
     }
 
-    onDrop(event: any, target: string) {
+    onDrop(event: any, target: string): void {
         console.log('Usando onDrop');
         console.log(event);
 
-        // El índice del item arrastrado y el índice anterior
-        const previousIndex = event.previousIndex;
+        // El índice del item arrastrado (fuente)
+        const prevIndex = event.previousIndex;
+        // El índice en el que se soltó el item (destino)
         const currentIndex = event.currentIndex;
 
-        // Realiza el reordenamiento directamente usando moveItemInArray
-        if (previousIndex !== currentIndex) {
-            // Mueve el item en el array desde previousIndex a currentIndex
-            moveItemInArray(this.components_arr, previousIndex, currentIndex);
+        if (prevIndex !== currentIndex) {
+            // Mueve el item en el array
+            moveItemInArray(
+                this.components_arr[target],
+                prevIndex,
+                currentIndex
+            );
         }
-
-        console.log(this.components_arr);
     }
-
 }

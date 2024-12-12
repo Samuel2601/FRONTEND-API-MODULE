@@ -49,6 +49,14 @@
                             "
                             height="500"
                         ></p-chart>
+                        <div
+                            id="xAxis-floating-tooltip"
+                            style="position: absolute; display: none"
+                        ></div>
+                        <div
+                            id="chartjs-floating-tooltip"
+                            style="position: absolute; display: none"
+                        ></div>
                     </ng-container>
 
                     <ng-container *ngIf="showChart[item.key]">
@@ -168,6 +176,14 @@
                             height="100%"
                             [responsive]="true"
                         ></p-chart>
+                        <div
+                            id="xAxis-floating-tooltip"
+                            style="position: absolute; display: none"
+                        ></div>
+                        <div
+                            id="chartjs-floating-tooltip"
+                            style="position: absolute; display: none"
+                        ></div>
                     </div>
                     <ng-container *ngIf="showChart[item.key]">
                         <p-table

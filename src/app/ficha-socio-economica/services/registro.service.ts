@@ -67,4 +67,12 @@ export class RegistroService {
     informacionsalud(): any {
         return this.http.get(this.url + 'api/registros/salud');
     }
+
+    informacionVivienda(): any {
+        return this.http.get(this.url + 'api/registros/vivienda');
+    }
+
+    informacionRedesdeApoyo(): any {
+        return this.http.get(this.url + 'api/registros/redesDeApoyo');
+    }
 }
