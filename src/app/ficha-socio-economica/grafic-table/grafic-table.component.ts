@@ -372,20 +372,31 @@ export class GraficTableComponent implements OnInit {
         return total;
     }
 
-    onDrop(event: any, target: string): void {
+    onDrop(event: any, targetGroup: string, index: number): void {
         console.log('Usando onDrop');
         console.log(event);
 
-        // El índice del item arrastrado (fuente)
-        const prevIndex = event.previousIndex;
-        // El índice en el que se soltó el item (destino)
+        // Datos del ítem arrastrado
+        const draggedItem = event.item.data;
+
+        // El índice en el que se soltó el ítem (destino)
         const currentIndex = event.currentIndex;
 
-        if (prevIndex !== currentIndex) {
-            // Mueve el item en el array
+        // Identificar si el arrastre fue dentro del mismo grupo o entre grupos
+        const isSameGroup = event.previousContainer === event.container;
+
+        if (isSameGroup) {
+            // Movimiento dentro del mismo grupo
+            console.log(
+                `Movimiento dentro del grupo: ${targetGroup}`,
+                index,
+                targetGroup,
+                this.components_arr[index].components
+            );
+
             moveItemInArray(
-                this.components_arr[target],
-                prevIndex,
+                this.components_arr[index].components,
+                event.previousIndex,
                 currentIndex
             );
         }

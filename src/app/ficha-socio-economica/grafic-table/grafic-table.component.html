@@ -12,237 +12,257 @@
     </ng-template>
 
     <!-- Vista de lista -->
-    <ng-template pTemplate="list" let-dash>
-        <div
-            class="grid p-4 gap-4 drop-list"
-            cdkDropList
-            [cdkDropListData]="components_arr"
-            (cdkDropListDropped)="onDrop($event, 'list')"
-        >
-            <div class="col-12 p-0" *ngFor="let item of dash" cdkDrag>
-                <p-panel>
-                    <ng-template pTemplate="header">
-                        <div class="flex align-items-center gap-2">
-                            <span class="font-bold">{{ item.title }}</span>
-                        </div>
-                    </ng-template>
-                    <ng-template pTemplate="icons">
-                        <p-toggleButton
-                            [(ngModel)]="showChart[item.key]"
-                            onLabel="Gráfico"
-                            offLabel="Tabla"
-                            onIcon="pi pi-chart-bar"
-                            offIcon="pi pi-table"
-                            styleClass="p-mb-2"
-                        >
-                        </p-toggleButton>
-                    </ng-template>
+    <ng-template pTemplate="list" let-groups>
+        <div *ngFor="let group of groups; let i = index" class="p-4">
+            <!-- Título del grupo -->
+            <h2 class="text-xl font-bold mb-3">{{ group.title }}</h2>
 
-                    <ng-container *ngIf="!showChart[item.key]">
-                        <p-chart
-                            [type]="item.chart.type"
-                            [data]="item.chart"
-                            [options]="
-                                item.chart.options
-                                    ? item.chart.options
-                                    : chartOptions[item.chart.type]
-                            "
-                            height="500"
-                        ></p-chart>
-                        <div
-                            id="xAxis-floating-tooltip"
-                            style="position: absolute; display: none"
-                        ></div>
-                        <div
-                            id="chartjs-floating-tooltip"
-                            style="position: absolute; display: none"
-                        ></div>
-                    </ng-container>
+            <!-- Elementos del grupo -->
+            <div
+                class="grid gap-4 drop-list"
+                cdkDropList
+                [cdkDropListData]="group.components"
+                (cdkDropListDropped)="onDrop($event, 'list', i)"
+            >
+                <div
+                    class="col-12 p-0"
+                    *ngFor="let item of group.components"
+                    cdkDrag
+                >
+                    <p-panel>
+                        <ng-template pTemplate="header">
+                            <div class="flex align-items-center gap-2">
+                                <span class="font-bold">{{ item.title }}</span>
+                            </div>
+                        </ng-template>
+                        <ng-template pTemplate="icons">
+                            <p-toggleButton
+                                [(ngModel)]="showChart[item.key]"
+                                onLabel="Gráfico"
+                                offLabel="Tabla"
+                                onIcon="pi pi-chart-bar"
+                                offIcon="pi pi-table"
+                                styleClass="p-mb-2"
+                            ></p-toggleButton>
+                        </ng-template>
 
-                    <ng-container *ngIf="showChart[item.key]">
-                        <p-table
-                            [value]="item.table"
-                            [rows]="10"
-                            [paginator]="true"
-                            [scrollable]="true"
-                            [scrollHeight]="'500px'"
-                        >
-                            <ng-template pTemplate="header">
-                                <tr>
-                                    <th *ngFor="let col of item.columnOrder">
-                                        {{ col }}
-                                        <ng-container
-                                            *ngIf="col === 'Porcentaje'"
-                                            >%</ng-container
+                        <ng-container *ngIf="!showChart[item.key]">
+                            <p-chart
+                                [type]="item.chart.type"
+                                [data]="item.chart"
+                                [options]="
+                                    item.chart.options
+                                        ? item.chart.options
+                                        : chartOptions[item.chart.type]
+                                "
+                                height="500"
+                            ></p-chart>
+                        </ng-container>
+
+                        <ng-container *ngIf="showChart[item.key]">
+                            <p-table
+                                [value]="item.table"
+                                [rows]="10"
+                                [paginator]="true"
+                                [scrollable]="true"
+                                [scrollHeight]="'500px'"
+                            >
+                                <ng-template pTemplate="header">
+                                    <tr>
+                                        <th
+                                            *ngFor="let col of item.columnOrder"
                                         >
-                                    </th>
-                                </tr>
-                            </ng-template>
-                            <ng-template pTemplate="body" let-titem>
-                                <tr>
-                                    <td *ngFor="let col of item.columnOrder">
-                                        {{ titem[col] }}
-                                    </td>
-                                </tr>
-                            </ng-template>
-                            <ng-template pTemplate="footer">
-                                <tr>
-                                    <td
-                                        [attr.colspan]="
-                                            item.columnOrder.length - 2
-                                        "
+                                            {{ col }}
+                                            <ng-container
+                                                *ngIf="col === 'Porcentaje'"
+                                                >%</ng-container
+                                            >
+                                        </th>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-titem>
+                                    <tr>
+                                        <td
+                                            *ngFor="let col of item.columnOrder"
+                                        >
+                                            {{ titem[col] }}
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="footer">
+                                    <tr>
+                                        <td
+                                            [attr.colspan]="
+                                                item.columnOrder.length - 2
+                                            "
+                                        >
+                                            Total
+                                        </td>
+                                        <td>
+                                            {{
+                                                getTotalRegistros(
+                                                    item.table,
+                                                    item.columnOrder[
+                                                        item.columnOrder
+                                                            .length - 2
+                                                    ]
+                                                )
+                                            }}
+                                        </td>
+                                        <td>100%</td>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="summary">
+                                    <div
+                                        class="flex align-items-center justify-content-between"
                                     >
-                                        Total
-                                    </td>
-                                    <td>
-                                        {{
-                                            getTotalRegistros(
-                                                item.table,
-                                                item.columnOrder[
-                                                    item.columnOrder.length - 2
-                                                ]
-                                            )
-                                        }}
-                                    </td>
-                                    <td>100%</td>
-                                </tr>
-                            </ng-template>
-                            <ng-template pTemplate="summary">
-                                <div
-                                    class="flex align-items-center justify-content-between"
-                                >
-                                    Total de {{ item.columnOrder[0] }}(es/s):
-                                    {{ item.table ? item.table.length : 0 }}
-                                </div>
-                            </ng-template>
-                        </p-table>
-                    </ng-container>
-                </p-panel>
+                                        Total de
+                                        {{ item.columnOrder[0] }}(es/s):
+                                        {{ item.table ? item.table.length : 0 }}
+                                    </div>
+                                </ng-template>
+                            </p-table>
+                        </ng-container>
+                    </p-panel>
+                </div>
             </div>
         </div>
     </ng-template>
 
     <!-- Vista de rejilla (grid) -->
-    <ng-template pTemplate="grid" let-dash>
-        <div
-            class="grid grid-nogutter p-4 gap-4"
-            style="justify-content: space-around"
-            cdkDropList
-            [cdkDropListData]="components_arr"
-            (cdkDropListDropped)="onDrop($event, 'grid')"
-        >
+    <ng-template pTemplate="grid" let-groups>
+        <div *ngFor="let group of groups; let i = index" class="p-4">
+            <!-- Título del grupo -->
+            <h2 class="text-xl font-bold mb-3">{{ group.title }}</h2>
             <div
-                class="col-12 sm:col-12 md:col-10 xl:col-5 p-2"
-                *ngFor="let item of dash"
-                cdkDrag
+                class="grid grid-nogutter p-4 gap-4"
+                style="justify-content: space-around"
+                cdkDropList
+                [cdkDropListData]="group.components"
+                (cdkDropListDropped)="onDrop($event, 'grid',i)"
             >
                 <div
-                    class="p-4 bg-surface-0 shadow-2 border-round-xl flex flex-column transition-all hover:shadow-4"
+                    class="col-12 sm:col-12 md:col-10 xl:col-5 p-2"
+                    *ngFor="let item of group.components"
+                    cdkDrag
                 >
-                    <div class="relative mx-auto">
-                        <div class="flex align-items-center gap-2 mb-1">
-                            <span class="font-bold">{{ item.title }}</span>
-                            <p-button
-                                [label]="
-                                    !showChart[item.key] ? 'Tabla' : 'Gráfico'
-                                "
-                                [severity]="
-                                    getSeverity(
+                    <div
+                        class="p-4 bg-surface-0 shadow-2 border-round-xl flex flex-column transition-all hover:shadow-4"
+                    >
+                        <div class="relative mx-auto">
+                            <div class="flex align-items-center gap-2 mb-1">
+                                <span class="font-bold">{{ item.title }}</span>
+                                <p-button
+                                    [label]="
                                         !showChart[item.key]
                                             ? 'Tabla'
                                             : 'Gráfico'
-                                    )
-                                "
-                                (click)="
-                                    showChart[item.key] = !showChart[item.key]
-                                "
-                            />
+                                    "
+                                    [severity]="
+                                        getSeverity(
+                                            !showChart[item.key]
+                                                ? 'Tabla'
+                                                : 'Gráfico'
+                                        )
+                                    "
+                                    (click)="
+                                        showChart[item.key] =
+                                            !showChart[item.key]
+                                    "
+                                />
+                            </div>
                         </div>
-                    </div>
-                    <div
-                        class="surface-50 flex justify-content-center border-round p-3 chart-table-container"
-                        *ngIf="!showChart[item.key]"
-                        style="min-height: 300px; height: 100%"
-                    >
-                        <p-chart
-                            class="border-round w-full"
-                            [type]="item.chart.type"
-                            [data]="item.chart"
-                            [options]="
-                                item.chart.options
-                                    ? item.chart.options
-                                    : chartOptions[item.chart.type]
-                            "
-                            height="100%"
-                            [responsive]="true"
-                        ></p-chart>
                         <div
-                            id="xAxis-floating-tooltip"
-                            style="position: absolute; display: none"
-                        ></div>
-                        <div
-                            id="chartjs-floating-tooltip"
-                            style="position: absolute; display: none"
-                        ></div>
-                    </div>
-                    <ng-container *ngIf="showChart[item.key]">
-                        <p-table
-                            [value]="item.table"
-                            [rows]="10"
-                            [paginator]="true"
-                            [scrollable]="true"
-                            [scrollHeight]="'200px'"
+                            class="surface-50 flex justify-content-center border-round p-3 chart-table-container"
+                            *ngIf="!showChart[item.key]"
+                            style="min-height: 300px; height: 100%"
                         >
-                            <ng-template pTemplate="header">
-                                <tr>
-                                    <th *ngFor="let col of item.columnOrder">
-                                        {{ col }}
-                                        <ng-container
-                                            *ngIf="col === 'Porcentaje'"
-                                            >%</ng-container
+                            <p-chart
+                                class="border-round w-full"
+                                [type]="item.chart.type"
+                                [data]="item.chart"
+                                [options]="
+                                    item.chart.options
+                                        ? item.chart.options
+                                        : chartOptions[item.chart.type]
+                                "
+                                height="100%"
+                                [responsive]="true"
+                            ></p-chart>
+                            <div
+                                id="xAxis-floating-tooltip"
+                                style="position: absolute; display: none"
+                            ></div>
+                            <div
+                                id="chartjs-floating-tooltip"
+                                style="position: absolute; display: none"
+                            ></div>
+                        </div>
+                        <ng-container *ngIf="showChart[item.key]">
+                            <p-table
+                                [value]="item.table"
+                                [rows]="10"
+                                [paginator]="true"
+                                [scrollable]="true"
+                                [scrollHeight]="'200px'"
+                            >
+                                <ng-template pTemplate="header">
+                                    <tr>
+                                        <th
+                                            *ngFor="let col of item.columnOrder"
                                         >
-                                    </th>
-                                </tr>
-                            </ng-template>
-                            <ng-template pTemplate="body" let-titem>
-                                <tr>
-                                    <td *ngFor="let col of item.columnOrder">
-                                        {{ titem[col] }}
-                                    </td>
-                                </tr>
-                            </ng-template>
-                            <ng-template pTemplate="footer">
-                                <tr>
-                                    <td
-                                        [attr.colspan]="
-                                            item.columnOrder.length - 2
-                                        "
+                                            {{ col }}
+                                            <ng-container
+                                                *ngIf="col === 'Porcentaje'"
+                                                >%</ng-container
+                                            >
+                                        </th>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-titem>
+                                    <tr>
+                                        <td
+                                            *ngFor="let col of item.columnOrder"
+                                        >
+                                            {{ titem[col] }}
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="footer">
+                                    <tr>
+                                        <td
+                                            [attr.colspan]="
+                                                item.columnOrder.length - 2
+                                            "
+                                        >
+                                            Total
+                                        </td>
+                                        <td>
+                                            {{
+                                                getTotalRegistros(
+                                                    item.table,
+                                                    item.columnOrder[
+                                                        item.columnOrder
+                                                            .length - 2
+                                                    ]
+                                                )
+                                            }}
+                                        </td>
+                                        <td>100%</td>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="summary">
+                                    <div
+                                        class="flex align-items-center justify-content-between"
                                     >
-                                        Total
-                                    </td>
-                                    <td>
-                                        {{
-                                            getTotalRegistros(
-                                                item.table,
-                                                item.columnOrder[
-                                                    item.columnOrder.length - 2
-                                                ]
-                                            )
-                                        }}
-                                    </td>
-                                    <td>100%</td>
-                                </tr>
-                            </ng-template>
-                            <ng-template pTemplate="summary">
-                                <div
-                                    class="flex align-items-center justify-content-between"
-                                >
-                                    Total de {{ item.columnOrder[0] }}(es/s):
-                                    {{ item.table ? item.table.length : 0 }}
-                                </div>
-                            </ng-template>
-                        </p-table>
-                    </ng-container>
+                                        Total de
+                                        {{ item.columnOrder[0] }}(es/s):
+                                        {{ item.table ? item.table.length : 0 }}
+                                    </div>
+                                </ng-template>
+                            </p-table>
+                        </ng-container>
+                    </div>
                 </div>
             </div>
         </div>

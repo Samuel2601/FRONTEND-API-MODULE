@@ -132,7 +132,7 @@ export class DashboardComponent implements OnInit {
             this.saludData = data; //this.processSalud(data);
             //this.saludData.total = data.total;
             this.loadData = true;
-            this.calculateMajorState(data.components_arr[0].table[0]);
+            this.calculateMajorState(data.components_arr[0].components[0].table[0]);
         });
 
         this.fetchHistoricoData().subscribe((data: any) => {
