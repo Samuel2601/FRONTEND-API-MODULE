@@ -75,4 +75,8 @@ export class RegistroService {
     informacionRedesdeApoyo(): any {
         return this.http.get(this.url + 'api/registros/redesDeApoyo');
     }
+
+    getUniqueValues(): any {
+        return this.http.get(this.url + 'api/registros/uniqueValues');
+    }
 }

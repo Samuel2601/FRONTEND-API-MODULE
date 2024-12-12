@@ -6,11 +6,12 @@ import { Observable } from 'rxjs';
 import { format } from 'date-fns'; // Asegúrate de tener instalada date-fns si la usas
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { GraficTableComponent } from '../grafic-table/grafic-table.component';
+import { SearchComponent } from '../search/search.component';
 
 @Component({
     selector: 'app-dashboard',
     standalone: true,
-    imports: [ImportsModule, GraficTableComponent],
+    imports: [ImportsModule, GraficTableComponent,SearchComponent],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss',
 })

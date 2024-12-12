@@ -1,0 +1,119 @@
+<p-card header="Formulario de Búsqueda">
+    <form [formGroup]="buscarForm" (ngSubmit)="buscar()">
+      <div class="p-fluid p-grid">
+        <!-- Información Registro -->
+        <div class="p-field p-col-12 p-md-4">
+          <label for="fecha">Fecha</label>
+          <p-calendar formControlName="fecha" id="fecha"></p-calendar>
+        </div>
+
+        <!-- Información Personal -->
+        <div class="p-field p-col-12 p-md-4">
+          <label for="entrevistado">Entrevistado</label>
+          <input pInputText formControlName="entrevistado" id="entrevistado" />
+        </div>
+
+        <div class="p-field p-col-12 p-md-4">
+          <label for="dni">DNI</label>
+          <input pInputText formControlName="dni" id="dni" />
+        </div>
+
+        <div class="p-field p-col-12 p-md-4">
+          <label for="edad">Edad</label>
+          <input pInputText formControlName="edad" id="edad" type="number" />
+        </div>
+
+        <div class="p-field p-col-12 p-md-4">
+          <label for="nacionalidad">Nacionalidad</label>
+          <p-dropdown formControlName="nacionalidad" [options]="nacionalidades" placeholder="Seleccionar"></p-dropdown>
+        </div>
+
+        <div class="p-field p-col-12 p-md-4">
+          <label for="telefono">Teléfono</label>
+          <input pInputText formControlName="telefono" id="telefono" />
+        </div>
+
+        <!-- Información Ubicación -->
+        <div class="p-field p-col-12 p-md-4">
+          <label for="sector">Sector</label>
+          <p-dropdown formControlName="sector" [options]="sectores" placeholder="Seleccionar"></p-dropdown>
+        </div>
+
+        <div class="p-field p-col-12 p-md-4">
+          <label for="barrio">Barrio</label>
+          <input pInputText formControlName="barrio" id="barrio" />
+        </div>
+
+        <div class="p-field p-col-12 p-md-4">
+          <label for="manzana">Manzana</label>
+          <input pInputText formControlName="manzana" id="manzana" />
+        </div>
+
+        <div class="p-field p-col-12 p-md-4">
+          <label for="lotenumero">Número de Lote</label>
+          <input pInputText formControlName="lotenumero" id="lotenumero" />
+        </div>
+
+        <div class="p-field p-col-12 p-md-4">
+          <label for="familyCount">Número de Familias</label>
+          <input pInputText formControlName="familyCount" id="familyCount" type="number" />
+        </div>
+
+        <!-- Salud -->
+        <div class="p-field p-col-12 p-md-4">
+          <label for="estadoSalud">Estado de Salud</label>
+          <input pInputText formControlName="estadoSalud" id="estadoSalud" />
+        </div>
+
+        <div class="p-field p-col-12 p-md-4">
+          <label for="causasSalud">Causas de Salud</label>
+          <input pInputText formControlName="causasSalud" id="causasSalud" />
+        </div>
+
+        <div class="p-field p-col-12 p-md-4">
+          <label for="conexionHigienico">Conexión Higiénica</label>
+          <input pInputText formControlName="conexionHigienico" id="conexionHigienico" />
+        </div>
+
+        <!-- Vivienda -->
+        <div class="p-field p-col-12 p-md-4">
+          <label for="estructuraVivienda">Estructura de Vivienda</label>
+          <input pInputText formControlName="estructuraVivienda" id="estructuraVivienda" />
+        </div>
+
+        <div class="p-field p-col-12 p-md-4">
+          <label for="numPisos">Número de Pisos</label>
+          <input pInputText formControlName="numPisos" id="numPisos" type="number" />
+        </div>
+
+        <!-- Medios de Vida -->
+        <div class="p-field p-col-12 p-md-4">
+          <label for="participacionCapacitacion">Participación en Capacitación</label>
+          <input pInputText formControlName="participacionCapacitacion" id="participacionCapacitacion" />
+        </div>
+
+        <div class="p-field p-col-12 p-md-4">
+          <label for="actividadLaboral">Actividad Laboral</label>
+          <input pInputText formControlName="actividadLaboral" id="actividadLaboral" />
+        </div>
+
+        <!-- Redes de Apoyo -->
+        <div class="p-field p-col-12 p-md-4">
+          <label for="actividadesBarrio">Actividades en el Barrio</label>
+          <input pInputText formControlName="actividadesBarrio" id="actividadesBarrio" />
+        </div>
+
+        <div class="p-field p-col-12 p-md-4">
+          <label for="recibeAyudaHumanitaria">Recibe Ayuda Humanitaria</label>
+          <input pInputText formControlName="recibeAyudaHumanitaria" id="recibeAyudaHumanitaria" />
+        </div>
+
+        <div class="p-field p-col-12 p-md-4">
+          <label for="mejorasBarrio">Mejoras en el Barrio</label>
+          <input pInputText formControlName="mejorasBarrio" id="mejorasBarrio" />
+        </div>
+
+        <button pButton label="Buscar" type="submit"></button>
+      </div>
+    </form>
+  </p-card>
