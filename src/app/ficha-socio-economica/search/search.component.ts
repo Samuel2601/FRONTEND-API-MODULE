@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RegistroService } from '../services/registro.service';
 import { ImportsModule } from 'src/app/demo/services/import';
 import { FormBuilder, FormGroup } from '@angular/forms';
@@ -10,7 +10,8 @@ import { FormBuilder, FormGroup } from '@angular/forms';
     templateUrl: './search.component.html',
     styleUrl: './search.component.scss',
 })
-export class SearchComponent {
+export class SearchComponent implements OnInit {
+    // Formulario para la búsqueda
     buscarForm: FormGroup;
 
     // Datos de ejemplo para dropdowns (estos deben obtenerse desde un servicio)
@@ -18,12 +19,15 @@ export class SearchComponent {
     sectores = ['Sector 1', 'Sector 2', 'Sector 3'];
     tiposDeVivienda = ['Casa', 'Departamento', 'Vivienda Temporal'];
 
-    constructor(private fb: FormBuilder) {
+    constructor(
+        private fb: FormBuilder,
+        private registroService: RegistroService
+    ) {
         // Inicializamos el formulario con los campos que vamos a buscar
         this.buscarForm = this.fb.group({
             // Sección de Información Registro
             fecha: [null],
-
+            encuestador: [''],
             // Sección de Información Personal
             entrevistado: [''],
             dni: [''],
@@ -58,6 +62,15 @@ export class SearchComponent {
             actividadesBarrio: [''],
             recibeAyudaHumanitaria: [''],
             mejorasBarrio: [''],
+        });
+    }
+    ngOnInit(): void {
+        this.fecthuniqueValues();
+    }
+    uniqueValues: any;
+    async fecthuniqueValues() {
+        this.registroService.getUniqueValues().subscribe((data: any) => {
+            this.uniqueValues = data;
         });
     }
 
