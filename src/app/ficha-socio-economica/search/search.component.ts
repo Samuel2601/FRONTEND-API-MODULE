@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { RegistroService } from '../services/registro.service';
 import { ImportsModule } from 'src/app/demo/services/import';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
     selector: 'app-search',
@@ -25,43 +25,68 @@ export class SearchComponent implements OnInit {
     ) {
         // Inicializamos el formulario con los campos que vamos a buscar
         this.buscarForm = this.fb.group({
-            // Sección de Información Registro
-            fecha: [null],
-            encuestador: [''],
-            // Sección de Información Personal
-            entrevistado: [''],
-            dni: [''],
-            edad: [null],
-            nacionalidad: [''],
-            telefono: [''],
-
-            // Sección de Información de Ubicación
-            sector: [''],
-            barrio: [''],
-            manzana: [''],
-            lotenumero: [''],
-            familyCount: [null],
-
-            // Sección de Salud
-            estadoSalud: [''],
-            causasSalud: [''],
-            conexionHigienico: [''],
-
-            // Sección de Vivienda
-            estructuraVivienda: [''],
-            serviciosBasicos: [''],
-            tenenciaVivienda: [''],
-            numPisos: [null],
-
-            // Sección de Medios de Vida
-            participacionCapacitacion: [''],
-            actividadLaboral: [''],
-            ingresosMensuales: [''],
-
-            // Sección de Redes de Apoyo
-            actividadesBarrio: [''],
-            recibeAyudaHumanitaria: [''],
-            mejorasBarrio: [''],
+            informacionRegistro: this.fb.group({
+                date: fb.group({
+                    start: [null],
+                    end: [null],
+                }),
+                encuestador: [],
+            }),
+            informacionPersonal: this.fb.group({
+                entrevistado: ['', [Validators.maxLength(100)]],
+                dni: ['', [Validators.pattern('^[0-9]+$')]],
+                edad: [null, [Validators.min(1), Validators.max(120)]],
+                nacionalidad: [undefined, Validators.required],
+                phone: ['', [Validators.pattern('^[0-9]+$')]],
+            }),
+            informacionUbicacion: this.fb.group({
+                posesionTimeNumber: [null], // Control para el número de tiempo
+                posesionTimeUnit: ['years'],
+                sector: [null, Validators.required],
+                barrio: [null, Validators.required],
+                manzana: [null, Validators.required],
+                lotenumero: [null, Validators.required],
+                familyCount: [null, [Validators.min(1)]],
+                peopleCount: [null, [Validators.min(1)]],
+                houseState: [null, Validators.required],
+            }),
+            salud: this.fb.group({
+                estadoSalud: [null, Validators.required],
+                causasSalud: [[], Validators.required],
+                conexionHigienico: [null, Validators.required],
+            }),
+            vivienda: this.fb.group({
+                estructuraVivienda: [null, Validators.required],
+                serviciosBasicos: [[], [Validators.minLength(1)]],
+                tenenciaVivienda: [null, Validators.required],
+                documentosPropiedad: [[], Validators.required],
+                numPisos: [null, [Validators.min(1)]],
+                numHabitaciones: [null, [Validators.min(1)]],
+                tipoAlumbrado: [null, Validators.required],
+                abastecimientoAgua: [[], Validators.required],
+                bienesServiciosElectrodomesticos: [[], Validators.required],
+                zonaRiesgo: [null, Validators.required],
+            }),
+            mediosDeVida: this.fb.group({
+                participacionCapacitacion: [null, Validators.required],
+                cuantosTrabajos: [null, [Validators.min(0)]],
+                actividadLaboral: [null, Validators.required],
+                actividadEconomica: [[]],
+                relacionDependencia: [null, Validators.required],
+                cuentaPropia: [null, Validators.required],
+                ingresosMensuales: [null, Validators.required],
+                gastosHogar: [[]],
+                fuentesIngresos: [[], Validators.required],
+            }),
+            redesDeApoyo: this.fb.group({
+                actividadesBarrio: [[], Validators.required],
+                recibeayudaHumanitaria: [[], Validators.required],
+                actividadCantonDentro: [[], Validators.required],
+                actividadCantonFuera: [[], Validators.required],
+                mejorasBarrio: [[], Validators.required],
+                mejoraPlus: [null],
+            }),
+            familiaList: [[]],
         });
     }
     ngOnInit(): void {
@@ -70,6 +95,7 @@ export class SearchComponent implements OnInit {
     uniqueValues: any;
     async fecthuniqueValues() {
         this.registroService.getUniqueValues().subscribe((data: any) => {
+            console.log(data);
             this.uniqueValues = data;
         });
     }

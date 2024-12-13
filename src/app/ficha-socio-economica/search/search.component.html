@@ -1,34 +1,37 @@
 <p-card header="Formulario de Búsqueda" *ngIf="uniqueValues">
     <form [formGroup]="buscarForm" (ngSubmit)="buscar()">
-        <div class="p-fluid p-grid">
-            <!-- Información Registro -->
-            <div
-                class="p-4 bg-surface-0 shadow-2 border-round-xl flex flex-column transition-all hover:shadow-4"
+        <p-accordion>
+            <p-accordionTab
+                header="Información Registro"
+                class="mb-3"
+                formGroupName="informacionRegistro"
             >
-                <h2 class="text-xl font-bold mb-3">Información Registro</h2>
-                <div
-                    class="grid grid-nogutter p-4 gap-4"
-                    style="justify-content: space-around"
-                >
+                <div class="grid grid-nogutter p-4 gap-4">
                     <!-- Rango de Fechas -->
-                    <div class="col-12 sm:col-12 md:col-5 xl:col-5 p-2">
+                    <div
+                        class="col-12 sm:col-12 md:col-2 xl:col-2 p-2"
+                        formGroupName="fecha"
+                    >
                         <label for="fechaInicio">Fecha Inicio</label>
                         <p-calendar
-                            formControlName="fecha.start"
+                            formControlName="start"
                             id="fechaInicio"
                             [showTime]="true"
                             dateFormat="yy-mm-dd"
-                            placeholder="Seleccione fecha inicio"
+                            appendTo="body"
                         ></p-calendar>
                     </div>
-                    <div class="col-12 sm:col-12 md:col-5 xl:col-5 p-2">
+                    <div
+                        class="col-12 sm:col-12 md:col-2 xl:col-2 p-2"
+                        formGroupName="fecha"
+                    >
                         <label for="fechaFin">Fecha Fin</label>
                         <p-calendar
-                            formControlName="fecha.end"
+                            appendTo="body"
+                            formControlName="end"
                             id="fechaFin"
                             [showTime]="true"
                             dateFormat="yy-mm-dd"
-                            placeholder="Seleccione fecha fin"
                         ></p-calendar>
                     </div>
 
@@ -41,21 +44,20 @@
                             formControlName="encuestador"
                             id="encuestador"
                             [options]="uniqueValues.encuestador"
-                            optionLabel="nombre"
+                            optionLabel="label"
                             placeholder="Seleccione el encuestador"
                         ></p-dropdown>
                     </div>
                 </div>
-            </div>
+            </p-accordionTab>
 
-            <div
-                class="p-4 bg-surface-0 shadow-2 border-round-xl flex flex-column transition-all hover:shadow-4"
+            <p-accordionTab
+                header="Información Personal"
+                class="mb-3"
+                formGroupName="informacionPersonal"
             >
-                <h2 class="text-xl font-bold mb-3">Información Personal</h2>
-                <div
-                    class="grid grid-nogutter p-4 gap-4"
-                    style="justify-content: space-around"
-                >
+                <div class="grid grid-nogutter p-4 gap-4">
+                    <!-- Entrevistado -->
                     <div
                         class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
                     >
@@ -97,15 +99,13 @@
                         />
                     </div>
                 </div>
-            </div>
-            <div
-                class="p-4 bg-surface-0 shadow-2 border-round-xl flex flex-column transition-all hover:shadow-4"
+            </p-accordionTab>
+            <p-accordionTab
+                header="Información de Ubicación"
+                class="mb-3"
+                formGroupName="informacionUbicacion"
             >
-                <h2 class="text-xl font-bold mb-3">Información Ubicación</h2>
-                <div
-                    class="grid grid-nogutter p-4 gap-4"
-                    style="justify-content: space-around"
-                >
+                <div class="grid grid-nogutter p-4 gap-4">
                     <!-- Información Ubicación -->
                     <div
                         class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
@@ -154,195 +154,393 @@
                     <div
                         class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
                     >
-                        <label for="familyCount">Número de Familias</label>
+                        <label for="familyCount"
+                            >¿Cuántas familias viven en el hogar?
+                        </label>
                         <input
                             pInputText
-                            formControlName="familyCount"
-                            id="familyCount"
                             type="number"
+                            formControlName="familyCount"
+                            min="0"
+                            id="familyCount"
                         />
                     </div>
                 </div>
-            </div>
-
-            <div
-                class="p-4 bg-surface-0 shadow-2 border-round-xl flex flex-column transition-all hover:shadow-4"
+            </p-accordionTab>
+            <p-accordionTab
+                header="Información de Salud"
+                class="mb-3"
+                formGroupName="salud"
             >
-                <h2 class="text-xl font-bold mb-3">Información Salud</h2>
-                <div
-                    class="grid grid-nogutter p-4 gap-4"
-                    style="justify-content: space-around"
-                >
-                    <!-- Salud -->
+                <div class="grid grid-nogutter p-4 gap-4">
+                    <!-- Información Salud -->
                     <div
                         class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
                     >
-                        <label for="estadoSalud">Estado de Salud</label>
-                        <input
-                            pInputText
+                        <label for="estadoSalud"
+                            >¿Cómo usted evalúa su estado de salud?
+                        </label>
+                        <p-dropdown
                             formControlName="estadoSalud"
-                            id="estadoSalud"
-                        />
+                            [options]="uniqueValues.estadoSaludOptions"
+                            placeholder="Seleccione el estado"
+                        ></p-dropdown>
                     </div>
 
                     <div
                         class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
                     >
-                        <label for="causasSalud">Causas de Salud</label>
-                        <input
-                            pInputText
-                            formControlName="causasSalud"
-                            id="causasSalud"
-                        />
+                        <label for="causasSalud"
+                            >En su opinión, ¿cuáles son las causas de su
+                            problema de salud?
+                        </label>
+                        <div>
+                            <p-multiSelect
+                                id="causasSalud"
+                                appendTo="body"
+                                [filter]="false"
+                                selectedItemsLabel="{0} seleccionado"
+                                [maxSelectedLabels]="1"
+                                [options]="uniqueValues.causasSaludOptions"
+                                formControlName="causasSalud"
+                                placeholder="Seleccione las causas"
+                                optionLabel="label"
+                            ></p-multiSelect>
+                        </div>
                     </div>
 
                     <div
                         class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
                     >
                         <label for="conexionHigienico"
-                            >Conexión Higiénica</label
-                        >
-                        <input
-                            pInputText
+                            >El servicio higiénico que tiene en su vivienda está
+                            conectado a:
+                        </label>
+                        <p-dropdown
                             formControlName="conexionHigienico"
-                            id="conexionHigienico"
-                        />
+                            [options]="uniqueValues.conexionHigienicoOptions"
+                            placeholder="Seleccione la conexión"
+                        ></p-dropdown>
                     </div>
                 </div>
-            </div>
-
-            <div
-                class="p-4 bg-surface-0 shadow-2 border-round-xl flex flex-column transition-all hover:shadow-4"
+            </p-accordionTab>
+            <p-accordionTab
+                header="Información de Vivienda"
+                class="mb-3"
+                formGroupName="vivienda"
             >
-                <h2 class="text-xl font-bold mb-3">Información Vivienda</h2>
-                <div
-                    class="grid grid-nogutter p-4 gap-4"
-                    style="justify-content: space-around"
-                >
-                    <!-- Vivienda -->
+                <div class="grid grid-nogutter p-4 gap-4">
+                    <!-- Información Vivienda -->
                     <div
                         class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
                     >
                         <label for="estructuraVivienda"
-                            >Estructura de Vivienda</label
+                            >Estructura de la Vivienda</label
                         >
-                        <input
-                            pInputText
+                        <p-dropdown
                             formControlName="estructuraVivienda"
-                            id="estructuraVivienda"
-                        />
+                            [options]="uniqueValues.estructuraViviendaOptions"
+                            placeholder="Seleccione la estructura"
+                        ></p-dropdown>
                     </div>
 
                     <div
                         class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
                     >
-                        <label for="numPisos">Número de Pisos</label>
+                        <label for="numPisos"
+                            >¿Cuántos pisos posee la vivienda?
+                        </label>
                         <input
                             pInputText
                             formControlName="numPisos"
-                            id="numPisos"
-                            type="number"
+                            placeholder="Ingrese el número de pisos"
                         />
                     </div>
                 </div>
-            </div>
-
-            <div
-                class="p-4 bg-surface-0 shadow-2 border-round-xl flex flex-column transition-all hover:shadow-4"
+            </p-accordionTab>
+            <!-- Información Medios de Vida -->
+            <p-accordionTab
+                header="Información Medios de Vida"
+                class="mb-3"
+                formGroupName="mediosDeVida"
             >
-                <h2 class="text-xl font-bold mb-3">
-                    Información Medios de Vida
-                </h2>
-                <div
-                    class="grid grid-nogutter p-4 gap-4"
-                    style="justify-content: space-around"
-                >
-                    <!-- Medios de Vida -->
+                <div class="grid grid-nogutter p-4 gap-4">
+                    <!-- Información Medios de Vida -->
                     <div
                         class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
                     >
                         <label for="participacionCapacitacion"
-                            >Participación en Capacitación</label
+                            >Ha participado en algún tipo de capacitación</label
                         >
-                        <input
-                            pInputText
+                        <p-dropdown
                             formControlName="participacionCapacitacion"
-                            id="participacionCapacitacion"
-                        />
+                            [options]="
+                                uniqueValues.participacionCapacitacionOptions
+                            "
+                            placeholder="Seleccione una opción"
+                        ></p-dropdown>
                     </div>
 
                     <div
                         class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
                     >
-                        <label for="actividadLaboral">Actividad Laboral</label>
-                        <input
-                            pInputText
+                        <label for="actividadLaboral"
+                            >En los últimos 12 meses, ha tenido una actividad
+                            laboral:
+                        </label>
+                        <p-dropdown
                             formControlName="actividadLaboral"
-                            id="actividadLaboral"
-                        />
+                            [options]="uniqueValues.actividadLaboralOptions"
+                            placeholder="Seleccione una opción"
+                        ></p-dropdown>
+                    </div>
+
+                    <!-- Tabla de Actividades Económicas -->
+                    <div
+                        class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
+                    >
+                        <label>Qué actividades económica a desempeñado?</label>
+                        <p-multiSelect
+                            id="actividadEconomica"
+                            appendTo="body"
+                            [filter]="false"
+                            selectedItemsLabel="{0} seleccionado"
+                            [maxSelectedLabels]="1"
+                            [options]="uniqueValues.actividadEconomicaOptions"
+                            formControlName="actividadEconomica"
+                            placeholder="Seleccione las actividades"
+                            optionLabel="label"
+                        ></p-multiSelect>
+                    </div>
+
+                    <div
+                        class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
+                    >
+                        <label for="relacionDependencia"
+                            >Trabaja en relación de dependencia?</label
+                        >
+                        <p-dropdown
+                            formControlName="relacionDependencia"
+                            [options]="uniqueValues.relacionDependenciaOptions"
+                            placeholder="Seleccione una opción"
+                        ></p-dropdown>
+                    </div>
+
+                    <div
+                        class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
+                    >
+                        <label for="cuentaPropia"
+                            >Trabaja por cuenta propia?</label
+                        >
+                        <p-dropdown
+                            formControlName="cuentaPropia"
+                            [options]="uniqueValues.cuentaPropiaOptions"
+                            placeholder="Seleccione una opción"
+                        ></p-dropdown>
+                    </div>
+
+                    <div
+                        class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
+                    >
+                        <label for="ingresosMensuales"
+                            >Ingresos mensuales promedios del hogar (sumando los
+                            ingresos de todos los individuos activos)</label
+                        >
+                        <p-dropdown
+                            formControlName="ingresosMensuales"
+                            [options]="uniqueValues.ingresosMensualesOptions"
+                            placeholder="Seleccione una opción"
+                        ></p-dropdown>
+                    </div>
+
+                    <div
+                        class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
+                    >
+                        <label for="gastosHogar"
+                            >Repartición de los gastos del hogar:
+                        </label>
+                        <p-multiSelect
+                            id="gastosHogar"
+                            appendTo="body"
+                            [filter]="false"
+                            selectedItemsLabel="{0} seleccionado"
+                            [maxSelectedLabels]="1"
+                            [options]="uniqueValues.gastosHogarOptions"
+                            formControlName="gastosHogar"
+                            placeholder="Seleccione los gastos"
+                            optionLabel="label"
+                        ></p-multiSelect>
+                    </div>
+
+                    <div
+                        class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
+                    >
+                        <label for="fuentesIngresos"
+                            >Los ingresos mensuales provienen de:
+                        </label>
+                        <div>
+                            <p-multiSelect
+                                id="fuentesIngresos"
+                                appendTo="body"
+                                [filter]="false"
+                                selectedItemsLabel="{0} seleccionado"
+                                [maxSelectedLabels]="1"
+                                [options]="uniqueValues.fuentesIngresosOptions"
+                                formControlName="fuentesIngresos"
+                                placeholder="Seleccione las fuentes de ingresos"
+                                optionLabel="label"
+                            ></p-multiSelect>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <div
-                class="p-4 bg-surface-0 shadow-2 border-round-xl flex flex-column transition-all hover:shadow-4"
+            </p-accordionTab>
+            <p-accordionTab
+                header="Información de Redes de Apoyo"
+                class="mb-3"
+                formGroupName="redesDeApoyo"
             >
-                <h2 class="text-xl font-bold mb-3">Información Vivienda</h2>
-                <div
-                    class="grid grid-nogutter p-4 gap-4"
-                    style="justify-content: space-around"
-                >
-                    <!-- Redes de Apoyo -->
+                <div class="grid grid-nogutter p-4 gap-4">
+                    <!-- Información de Redes de Apoyo -->
                     <div
                         class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
                     >
                         <label for="actividadesBarrio"
-                            >Actividades en el Barrio</label
+                            >Participa en actividades en el barrio</label
                         >
-                        <input
-                            pInputText
-                            formControlName="actividadesBarrio"
-                            id="actividadesBarrio"
-                        />
+
+                        <div>
+                            <p-multiSelect
+                                id="actividadesBarrio"
+                                appendTo="body"
+                                [filter]="false"
+                                selectedItemsLabel="{0} seleccionado"
+                                [maxSelectedLabels]="1"
+                                [options]="
+                                    uniqueValues.actividadesBarrioOptions
+                                "
+                                formControlName="actividadesBarrio"
+                                defaultLabel="Seleccione..."
+                                optionLabel="label"
+                            >
+                            </p-multiSelect>
+                        </div>
                     </div>
 
                     <div
                         class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
                     >
-                        <label for="recibeAyudaHumanitaria"
-                            >Recibe Ayuda Humanitaria</label
+                        <label for="actividadCantonDentro"
+                            >En su tiempo libre, que actividades realizan
+                            (dentro del cantón)</label
                         >
-                        <input
-                            pInputText
-                            formControlName="recibeAyudaHumanitaria"
-                            id="recibeAyudaHumanitaria"
-                        />
+
+                        <div>
+                            <p-multiSelect
+                                id="actividadCantonDentro"
+                                appendTo="body"
+                                [filter]="false"
+                                selectedItemsLabel="{0} seleccionado"
+                                [maxSelectedLabels]="1"
+                                [options]="
+                                    uniqueValues.actividadCantonDentroOptions
+                                "
+                                formControlName="actividadCantonDentro"
+                                defaultLabel="Seleccione..."
+                                optionLabel="label"
+                            >
+                            </p-multiSelect>
+                        </div>
+                    </div>
+                    <div
+                        class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
+                    >
+                        <label for="actividadCantonFuera"
+                            >En su tiempo libre, que actividades realizan (fuera
+                            del cantón)</label
+                        >
+
+                        <div>
+                            <p-multiSelect
+                                id="actividadCantonFuera"
+                                appendTo="body"
+                                [filter]="false"
+                                selectedItemsLabel="{0} seleccionado"
+                                [maxSelectedLabels]="1"
+                                [options]="
+                                    uniqueValues.actividadCantonFueraOptions
+                                "
+                                formControlName="actividadCantonFuera"
+                                defaultLabel="Seleccione..."
+                                optionLabel="label"
+                            >
+                            </p-multiSelect>
+                        </div>
                     </div>
 
                     <div
                         class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
                     >
-                        <label for="mejorasBarrio">Mejoras en el Barrio</label>
-                        <input
-                            pInputText
-                            formControlName="mejorasBarrio"
+                        <label for="mejorasBarrio"
+                            >¿Qué sugiere usted para mejorar su barrio?
+                            (Seleccionar 3)
+                        </label>
+                        <p-multiSelect
                             id="mejorasBarrio"
+                            appendTo="body"
+                            [filter]="false"
+                            selectedItemsLabel="{0} seleccionado"
+                            [maxSelectedLabels]="1"
+                            selectionLimit="3"
+                            [options]="uniqueValues.mejorasBarrioOptions"
+                            formControlName="mejorasBarrio"
+                            defaultLabel="Seleccione..."
+                        >
+                        </p-multiSelect>
+                    </div>
+
+                    <div
+                        class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
+                    >
+                        <label for="mejoraPlus"
+                            >Propuestas adicionales para la mejora del
+                            barrio</label
+                        >
+                        <input
+                            pInputText
+                            formControlName="mejoraPlus"
+                            placeholder="Ingrese el número de pisos"
                         />
                     </div>
                 </div>
-            </div>
-
-            <div
-                class="p-4 bg-surface-0 shadow-2 border-round-xl flex flex-column transition-all hover:shadow-4"
+            </p-accordionTab>
+            <p-accordionTab
+                header="Información de la Familia"
+                class="mb-3"
+                formGroupName="familiaList"
             >
-                <h2 class="text-xl font-bold mb-3">Información Registro</h2>
-                <div
-                    class="grid grid-nogutter p-4 gap-4"
-                    style="justify-content: space-around"
-                ></div>
-            </div>
-
-            <button pButton label="Buscar" type="submit"></button>
-        </div>
+                <div class="grid grid-nogutter p-4 gap-4">
+                    <!-- Información de la Familia -->
+                    <div
+                        class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
+                    >
+                        <label for="familiaList"
+                            >¿Cuántas familias viven en el hogar?
+                        </label>
+                        <p-multiSelect
+                            id="familiaList"
+                            appendTo="body"
+                            [filter]="false"
+                            selectedItemsLabel="{0} seleccionado"
+                            [maxSelectedLabels]="1"
+                            [options]="uniqueValues.familiaList"
+                            formControlName="familiaList"
+                            defaultLabel="Seleccione..."
+                            optionLabel="label"
+                        >
+                        </p-multiSelect>
+                    </div>
+                </div>
+            </p-accordionTab>
+        </p-accordion>
     </form>
 </p-card>

@@ -1,23 +1,31 @@
-<div>
-    <app-search></app-search>
-    <div class="status-knob-container">
-        <p-knob
-            *ngIf="historicoData.total > 0"
-            [(ngModel)]="historicoData.total_filtered"
-            [min]="0"
-            [max]="historicoData.total"
-            [size]="150"
-            [step]="1"
-            [showValue]="true"
-        >
-        </p-knob>
+<p-card>
+    <div class="grid grid-nogutter p-4 gap-4">
+        <div class="col-12 sm:col-12 md:col-8 xl:col-8 p-2">
+            <app-search></app-search>
+        </div>
+        <div class="col-12 sm:col-12 md:col-2 xl:col-2 p-2">
+            <div class="status-knob-container">
+                <p-knob
+                    *ngIf="historicoData.total > 0"
+                    [(ngModel)]="historicoData.total_filtered"
+                    [min]="0"
+                    [max]="historicoData.total"
+                    [size]="150"
+                    [step]="1"
+                    [showValue]="true"
+                >
+                </p-knob>
 
-        <div class="status-info">
-            <i class="pi pi-file" [style.color]="'#007ad9'"></i>
-            <p>Registros Filtrados: {{ historicoData.total_filtered }}</p>
+                <div class="status-info">
+                    <i class="pi pi-file" [style.color]="'#007ad9'"></i>
+                    <p>
+                        Registros Filtrados: {{ historicoData.total_filtered }}
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+</p-card>
 
 <p-tabView *ngIf="!loading">
     <!-- Pestaña Registros Generales -->
