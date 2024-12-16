@@ -3,6 +3,7 @@ import { RegistroService } from '../services/registro.service';
 import { ImportsModule } from 'src/app/demo/services/import';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { InfoRegistroComponent } from './info-registro/info-registro.component';
+import { DialogService } from 'primeng/dynamicdialog';
 
 @Component({
     selector: 'app-search',
@@ -14,7 +15,10 @@ import { InfoRegistroComponent } from './info-registro/info-registro.component';
 export class SearchComponent implements OnInit {
     // Formulario para la búsqueda
     buscarForm: FormGroup;
-
+    visible: boolean = false;
+    bool: boolean = true;
+    minY: number = 0;
+    baseZIndex: number = 1000;
     // Datos de ejemplo para dropdowns (estos deben obtenerse desde un servicio)
     nacionalidades = ['Ecuador', 'Perú', 'Colombia'];
     sectores = ['Sector 1', 'Sector 2', 'Sector 3'];

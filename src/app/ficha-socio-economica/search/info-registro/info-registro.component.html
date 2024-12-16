@@ -1,38 +1,44 @@
 <form action="#" [formGroup]="searchForm">
     <!-- Información Registro -->
-    <p-accordionTab header="Información Registro" class="mb-3">
-        <div class="grid grid-nogutter p-4 gap-4">
-            <!-- Rango de Fechas -->
-            <div class="col-12 sm:col-12 md:col-10 xl:col-5 p-2">
-                <label for="date">Fecha de Registro</label>
-                <div class="p-inputgroup" formGroupName="date">
-                    <p-calendar
-                        formControlName="start"
-                        id="fechaInicio"
-                        [showTime]="true"
-                        dateFormat="yy-mm-dd"
-                        [touchUI]="true"
-                    ></p-calendar>
-                    <p-calendar
-                        formControlName="end"
-                        id="fechaFin"
-                        [showTime]="true"
-                        dateFormat="yy-mm-dd"
-                        [touchUI]="true"
-                    ></p-calendar>
-                </div>
-            </div>
-
-            <div class="col-12 sm:col-12 md:col-10 xl:col-5 p-2">
-                <label for="encuestador">Encuestador</label>
-                <p-multiSelect
-                    formControlName="encuestador"
-                    id="encuestador"
-                    [options]="encuestadores"
-                    optionLabel="label"
-                    placeholder="Seleccione el encuestador"
-                ></p-multiSelect>
+    <div class="grid grid-nogutter p-4 gap-4">
+        <!-- Rango de Fechas -->
+        <div class="col-12 sm:col-12 md:col-10 xl:col-5 p-2">
+            <label for="date">Fecha de Registro</label>
+            <div class="p-inputgroup" formGroupName="date">
+                <p-calendar
+                    formControlName="start"
+                    id="fechaInicio"
+                    [showTime]="true"
+                    dateFormat="yy-mm-dd"
+                    [showIcon]="true"
+                    [showTime]="true"
+                    [touchUI]="true"
+                    placeholder="Fecha de inicio"
+                    appendTo="body"
+                ></p-calendar>
+                <p-calendar
+                    formControlName="end"
+                    id="fechaFin"
+                    [showTime]="true"
+                    dateFormat="yy-mm-dd"
+                    [showIcon]="true"
+                    [touchUI]="true"
+                    placeholder="Fecha de fin"
+                    appendTo="body"
+                ></p-calendar>
             </div>
         </div>
-    </p-accordionTab>
+
+        <div class="col-12 sm:col-12 md:col-10 xl:col-5 p-2">
+            <label for="encuestador">Encuestador</label>
+
+            <p-multiSelect
+                formControlName="encuestador"
+                id="encuestador"
+                [options]="encuestadores"
+                optionLabel="label"
+                placeholder="Seleccione el encuestador"
+            ></p-multiSelect>
+        </div>
+    </div>
 </form>

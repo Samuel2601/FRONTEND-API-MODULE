@@ -1,8 +1,33 @@
+<p-dialog
+    header="header"
+    [(visible)]="visible"
+    [modal]="bool"
+    [responsive]="bool"
+    [minY]="minY"
+    [maximizable]="bool"
+    [baseZIndex]="baseZIndex"
+>
+    <p-accordion>
+        <p-accordionTab header="Información Registro" class="mb-3">
+            <app-info-registro></app-info-registro>
+        </p-accordionTab>
+        <p-accordionTab header="header"> your content </p-accordionTab>
+        <p-accordionTab header="header"> your content </p-accordionTab>
+    </p-accordion>
+</p-dialog>
+<button
+    type="button"
+    (click)="visible = !visible"
+    pButton
+    icon="icon"
+    label="label"
+></button>
+<!--
+
 <p-card header="Formulario de Búsqueda" *ngIf="uniqueValues">
     <p-accordion>
-        <!-- Información Registro -->
-        <app-info-registro></app-info-registro>
-        <!--
+
+
         <p-accordionTab
             header="Información Personal"
             class="mb-3"
@@ -545,6 +570,8 @@
                 </div>
             </div>
         </p-accordionTab>
-    -->
-    </p-accordion>
+
+</p-accordion>
 </p-card>
+
+-->

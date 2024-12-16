@@ -1,23 +1,6 @@
 <p-card>
     <div class="grid grid-nogutter p-4 gap-4">
-        <p-button
-            icon="pi pi-search"
-            label="Ver Filtatrado Avanzado"
-            class="p-button-outlined"
-            (click)="view_filter = !view_filter"
-        ></p-button>
-        <div
-            class="col-12 sm:col-12 md:col-8 xl:col-8 p-2"
-            *ngIf="!view_filter"
-        >
-            <p-button
-                icon="pi pi-times"
-                label="Cerrrar Filtro"
-                class="p-button-outlined"
-                (click)="view_filter = false"
-            ></p-button>
-            <app-search></app-search>
-        </div>
+        <app-search></app-search>
         <div class="col-12 sm:col-12 md:col-2 xl:col-2 p-2">
             <div class="status-knob-container">
                 <p-knob
