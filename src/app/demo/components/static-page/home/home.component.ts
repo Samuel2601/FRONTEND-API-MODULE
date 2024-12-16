@@ -524,6 +524,19 @@ export class HomeComponent implements OnInit {
                                     );
                                 },
                             },
+                            {
+                                label: 'Parque "Las Esmeraldas"',
+                                info: 'Este proyecto innovador transformará por completo el paisaje urbano, creando un espacio vibrante y lleno de energía.',
+                                icon: 'https://i.postimg.cc/RFdnQvqD/parque-Mesa-de-trabajo-1.png',
+                                showInfo: true,
+                                style: true,
+                                command: async () => {
+                                    window.open(
+                                        'https://youtu.be/XQ0kHnpJha8?si=bNgYLIrT1WG5pHTs',
+                                        '_blank'
+                                    );
+                                },
+                            },
                         ],
                     },
                     /*{

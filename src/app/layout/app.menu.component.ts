@@ -80,6 +80,12 @@ export class AppMenuComponent implements OnInit {
                 visible: permissions.canViewregistro,
                 items: [
                     {
+                        label: 'Panel de Control',
+                        icon: 'pi pi-fw pi-slack',
+                        routerLink: ['/ficha-socio-economica/dashboard'],
+                        visible: permissions.canViewregistro,
+                    },
+                    {
                         label: 'Formulario',
                         icon: 'pi pi-fw pi-file-edit',
                         routerLink: ['/ficha-socio-economica/formulario'],

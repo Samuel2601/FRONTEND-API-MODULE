@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { RegistroService } from '../services/registro.service';
 import { ImportsModule } from 'src/app/demo/services/import';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { InfoRegistroComponent } from './info-registro/info-registro.component';
 
 @Component({
     selector: 'app-search',
     standalone: true,
-    imports: [ImportsModule],
+    imports: [ImportsModule, InfoRegistroComponent],
     templateUrl: './search.component.html',
     styleUrl: './search.component.scss',
 })
@@ -30,7 +31,7 @@ export class SearchComponent implements OnInit {
                     start: [null],
                     end: [null],
                 }),
-                encuestador: [],
+                encuestador: [null], // Se inicializa con null en lugar de array vacío para consistencia
             }),
             informacionPersonal: this.fb.group({
                 entrevistado: ['', [Validators.maxLength(100)]],
@@ -39,7 +40,7 @@ export class SearchComponent implements OnInit {
                     min: [null, [Validators.min(1), Validators.max(120)]],
                     max: [null, [Validators.min(1), Validators.max(120)]],
                 }),
-                nacionalidad: [undefined, Validators.required],
+                nacionalidad: [null, Validators.required],
                 phone: [null, [Validators.pattern('^[0-9]+$')]],
             }),
             informacionUbicacion: this.fb.group({
@@ -47,7 +48,7 @@ export class SearchComponent implements OnInit {
                     min: [null, [Validators.min(0)]],
                     max: [null, [Validators.min(0)]],
                 }),
-                posesionTimeUnit: ['years'],
+                posesionTimeUnit: ['years'], // Valor inicial claro
                 sector: [null, Validators.required],
                 barrio: [null, Validators.required],
                 manzana: [null, Validators.required],
@@ -64,14 +65,14 @@ export class SearchComponent implements OnInit {
             }),
             salud: this.fb.group({
                 estadoSalud: [null, Validators.required],
-                causasSalud: [[], Validators.required],
+                causasSalud: this.fb.array([], Validators.required), // Usar FormArray para listas dinámicas
                 conexionHigienico: [null, Validators.required],
             }),
             vivienda: this.fb.group({
                 estructuraVivienda: [null, Validators.required],
-                serviciosBasicos: [[], [Validators.minLength(1)]],
+                serviciosBasicos: this.fb.array([], [Validators.minLength(1)]), // FormArray para listas
                 tenenciaVivienda: [null, Validators.required],
-                documentosPropiedad: [[], Validators.required],
+                documentosPropiedad: this.fb.array([], Validators.required),
                 numPisos: this.fb.group({
                     min: [null, [Validators.min(1)]],
                     max: [null, [Validators.min(1)]],
@@ -81,8 +82,11 @@ export class SearchComponent implements OnInit {
                     max: [null, [Validators.min(1)]],
                 }),
                 tipoAlumbrado: [null, Validators.required],
-                abastecimientoAgua: [[], Validators.required],
-                bienesServiciosElectrodomesticos: [[], Validators.required],
+                abastecimientoAgua: this.fb.array([], Validators.required),
+                bienesServiciosElectrodomesticos: this.fb.array(
+                    [],
+                    Validators.required
+                ),
                 zonaRiesgo: [null, Validators.required],
             }),
             mediosDeVida: this.fb.group({
@@ -92,7 +96,7 @@ export class SearchComponent implements OnInit {
                     max: [null, [Validators.min(0)]],
                 }),
                 actividadLaboral: [null, Validators.required],
-                actividadEconomica: [[]],
+                actividadEconomica: this.fb.array([]), // Usar FormArray para flexibilidad
                 relacionDependencia: [null, Validators.required],
                 cuentaPropia: [null, Validators.required],
                 ingresosMensuales: this.fb.group({
@@ -103,17 +107,17 @@ export class SearchComponent implements OnInit {
                     min: [null, [Validators.min(0)]],
                     max: [null, [Validators.min(0)]],
                 }),
-                fuentesIngresos: [[], Validators.required],
+                fuentesIngresos: this.fb.array([], Validators.required),
             }),
             redesDeApoyo: this.fb.group({
-                actividadesBarrio: [[], Validators.required],
-                recibeayudaHumanitaria: [[], Validators.required],
-                actividadCantonDentro: [[], Validators.required],
-                actividadCantonFuera: [[], Validators.required],
-                mejorasBarrio: [[], Validators.required],
+                actividadesBarrio: this.fb.array([], Validators.required),
+                recibeayudaHumanitaria: this.fb.array([], Validators.required),
+                actividadCantonDentro: this.fb.array([], Validators.required),
+                actividadCantonFuera: this.fb.array([], Validators.required),
+                mejorasBarrio: this.fb.array([], Validators.required),
                 mejoraPlus: [null],
             }),
-            familiaList: [[]],
+            familiaList: this.fb.array([]), // Usar FormArray si necesitas agregar/quitar dinámicamente
         });
     }
     ngOnInit(): void {
@@ -122,7 +126,7 @@ export class SearchComponent implements OnInit {
     uniqueValues: any;
     async fecthuniqueValues() {
         this.registroService.getUniqueValues().subscribe((data: any) => {
-            console.log(data);
+            console.log('Fectch Unique value', data);
             this.uniqueValues = data;
         });
     }

@@ -29,3 +29,6 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 ## VINCULAR .RESOURCES PARA CAPA DE CAPACITOR ANDROID
 
 `cordova-res android --skip-config --copy`
+
+
+`npx cap sync`

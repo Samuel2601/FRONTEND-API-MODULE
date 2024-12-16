@@ -16,6 +16,8 @@ import { SearchComponent } from '../search/search.component';
     styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent implements OnInit {
+    view_filter: boolean = false;
+
     generalData: any = { total: 0 };
     surveyorData: any = { labels: [], datasets: [] };
     timelineData: any = { labels: [], datasets: [] };
