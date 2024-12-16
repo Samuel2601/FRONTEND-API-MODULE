@@ -1,6 +1,7 @@
 <p-card header="Formulario de Búsqueda" *ngIf="uniqueValues">
     <form [formGroup]="buscarForm" (ngSubmit)="buscar()">
         <p-accordion>
+            <!-- Información Registro -->
             <p-accordionTab
                 header="Información Registro"
                 class="mb-3"
@@ -8,73 +9,80 @@
             >
                 <div class="grid grid-nogutter p-4 gap-4">
                     <!-- Rango de Fechas -->
-                    <div
-                        class="col-12 sm:col-12 md:col-2 xl:col-2 p-2"
-                        formGroupName="fecha"
-                    >
-                        <label for="fechaInicio">Fecha Inicio</label>
-                        <p-calendar
-                            formControlName="start"
-                            id="fechaInicio"
-                            [showTime]="true"
-                            dateFormat="yy-mm-dd"
-                            appendTo="body"
-                        ></p-calendar>
-                    </div>
-                    <div
-                        class="col-12 sm:col-12 md:col-2 xl:col-2 p-2"
-                        formGroupName="fecha"
-                    >
-                        <label for="fechaFin">Fecha Fin</label>
-                        <p-calendar
-                            appendTo="body"
-                            formControlName="end"
-                            id="fechaFin"
-                            [showTime]="true"
-                            dateFormat="yy-mm-dd"
-                        ></p-calendar>
+                    <div class="col-12 sm:col-12 md:col-10 xl:col-5 p-2">
+                        <label for="date">Fecha de Registro</label>
+                        <div class="p-inputgroup" formGroupName="date">
+                            <p-calendar
+                                formControlName="start"
+                                id="fechaInicio"
+                                [showTime]="true"
+                                dateFormat="yy-mm-dd"
+                                appendTo="body"
+                            ></p-calendar>
+                            <p-calendar
+                                formControlName="end"
+                                id="fechaFin"
+                                [showTime]="true"
+                                dateFormat="yy-mm-dd"
+                                appendTo="body"
+                            ></p-calendar>
+                        </div>
                     </div>
 
-                    <!-- Entrevistado -->
                     <div
                         class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
                     >
                         <label for="encuestador">Encuestador</label>
-                        <p-dropdown
-                            formControlName="encuestador"
-                            id="encuestador"
-                            [options]="uniqueValues.encuestador"
-                            optionLabel="label"
-                            placeholder="Seleccione el encuestador"
-                        ></p-dropdown>
+                        <div class="p-inputgroup">
+                            <p-multiSelect
+                                formControlName="encuestador"
+                                id="encuestador"
+                                [options]="uniqueValues.encuestador"
+                                optionLabel="label"
+                                placeholder="Seleccione el encuestador"
+                            ></p-multiSelect>
+                        </div>
                     </div>
                 </div>
             </p-accordionTab>
-
+            <!-- Información Personal -->
             <p-accordionTab
                 header="Información Personal"
                 class="mb-3"
                 formGroupName="informacionPersonal"
             >
                 <div class="grid grid-nogutter p-4 gap-4">
-                    <!-- Entrevistado -->
                     <div
                         class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
                     >
-                        <label for="dni">DNI</label>
-                        <input pInputText formControlName="dni" id="dni" />
+                        <label for="dni">Cedula</label>
+                        <div class="p-inputgroup">
+                            <input
+                                pInputText
+                                formControlName="dni"
+                                id="dni"
+                                placeholder="Ingrese su cédula"
+                            />
+                        </div>
                     </div>
-
                     <div
                         class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
                     >
                         <label for="edad">Edad</label>
-                        <input
-                            pInputText
-                            formControlName="edad"
-                            id="edad"
-                            type="number"
-                        />
+                        <div class="p-inputgroup" formGroupName="edad">
+                            <p-inputNumber
+                                formControlName="min"
+                                id="edadMin"
+                                placeholder="Edad mínima"
+                                mode="decimal"
+                            ></p-inputNumber>
+                            <p-inputNumber
+                                formControlName="max"
+                                id="edadMax"
+                                placeholder="Edad máxima"
+                                mode="decimal"
+                            ></p-inputNumber>
+                        </div>
                     </div>
 
                     <div
@@ -91,15 +99,19 @@
                     <div
                         class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
                     >
-                        <label for="telefono">Teléfono</label>
-                        <input
-                            pInputText
-                            formControlName="telefono"
-                            id="telefono"
-                        />
+                        <label for="phone">Teléfono</label>
+                        <div class="p-inputgroup">
+                            <input
+                                pInputText
+                                formControlName="phone"
+                                id="phone"
+                                placeholder="Ingrese su teléfono"
+                            />
+                        </div>
                     </div>
                 </div>
             </p-accordionTab>
+            <!-- Información de Ubicación -->
             <p-accordionTab
                 header="Información de Ubicación"
                 class="mb-3"
@@ -157,16 +169,60 @@
                         <label for="familyCount"
                             >¿Cuántas familias viven en el hogar?
                         </label>
-                        <input
-                            pInputText
-                            type="number"
-                            formControlName="familyCount"
-                            min="0"
-                            id="familyCount"
-                        />
+
+                        <div class="p-inputgroup" formGroupName="familyCount">
+                            <p-inputNumber
+                                formControlName="min"
+                                id="familyCountMin"
+                                placeholder="Familias mínimas"
+                                mode="decimal"
+                            ></p-inputNumber>
+                            <p-inputNumber
+                                formControlName="max"
+                                id="familyCountMax"
+                                placeholder="Familias máximas"
+                                mode="decimal"
+                            ></p-inputNumber>
+                        </div>
+                    </div>
+                    <!-- PeopleCount -->
+                    <div
+                        class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
+                    >
+                        <label for="peopleCount"
+                            >¿Cuántas personas viven en el hogar?
+                        </label>
+                        <div class="p-inputgroup" formGroupName="peopleCount">
+                            <p-inputNumber
+                                formControlName="min"
+                                id="peopleCountMin"
+                                placeholder="Personas mínimas"
+                                mode="decimal"
+                            ></p-inputNumber>
+                            <p-inputNumber
+                                formControlName="max"
+                                id="peopleCountMax"
+                                placeholder="Personas máximas"
+                                mode="decimal"
+                            ></p-inputNumber>
+                        </div>
+                    </div>
+                    <!-- HouseState -->
+                    <div
+                        class="p-field col-12 sm:col-12 md:col-10 xl:col-5 p-2"
+                    >
+                        <label for="houseState">
+                            ¿Cuál es el estado de la vivienda?
+                        </label>
+                        <p-dropdown
+                            formControlName="houseState"
+                            [options]="uniqueValues.estadoViviendaOptions"
+                            placeholder="Seleccione el estado"
+                        ></p-dropdown>
                     </div>
                 </div>
             </p-accordionTab>
+            <!-- Información de Salud -->
             <p-accordionTab
                 header="Información de Salud"
                 class="mb-3"
@@ -224,6 +280,7 @@
                     </div>
                 </div>
             </p-accordionTab>
+            <!-- Información de Vivienda -->
             <p-accordionTab
                 header="Información de Vivienda"
                 class="mb-3"
@@ -394,6 +451,7 @@
                     </div>
                 </div>
             </p-accordionTab>
+            <!-- Información de Redes de Apoyo -->
             <p-accordionTab
                 header="Información de Redes de Apoyo"
                 class="mb-3"
@@ -513,6 +571,7 @@
                     </div>
                 </div>
             </p-accordionTab>
+            <!-- Información de la Familia -->
             <p-accordionTab
                 header="Información de la Familia"
                 class="mb-3"
