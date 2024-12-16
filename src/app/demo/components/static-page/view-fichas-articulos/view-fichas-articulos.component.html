@@ -149,7 +149,7 @@
             </div>
             <div
                 class="line-height-3 text-xl text-900 mb-5"
-                [innerHTML]="ficha.descripcion"
+                [innerHTML]="sanitizedDescripcion"
             ></div>
 
             <div *ngIf="view_map && ficha.direccion_geo">
@@ -214,13 +214,13 @@
 
                 <!--
                  <div class="flex flex-column gap-3">
-                    <div class="w-full h-full p-5 border-round" 
+                    <div class="w-full h-full p-5 border-round"
                          style="background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, #000000 100%)"
                          [ngStyle]="{'background-image': 'url(' + url + 'obtener_imagen/ficha_sectorial/' + currentImage + ')'}">
                         <span class="text-white font-medium mb-3">Post Title</span>
                         <span class="text-white-alpha-70 block line-height-3">Metus aliquam eleifend mi in nulla posuere.</span>
                     </div>
-                    <div class="w-full h-full p-5 border-round" 
+                    <div class="w-full h-full p-5 border-round"
                          style="background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, #000000 100%)"
                          [ngStyle]="{'background-image': 'url(' + url + 'obtener_imagen/ficha_sectorial/' + currentImage + ')'}">
                         <span class="text-white font-medium mb-3">Post Title</span>

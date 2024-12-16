@@ -63,10 +63,23 @@
                         else textareaMode
                     "
                 >
+                    <p-button
+                        icon="pi pi-iconName"
+                        label="Vista Previa"
+                        (click)="onDescripcionChange()"
+                    ></p-button>
                     <p-editor
                         formControlName="descripcion"
                         [style]="{ height: '320px', width: '100%' }"
+                        (onchange)="onDescripcionChange()"
                     ></p-editor>
+                    <div class="p-field p-col-12 p-md-4">
+                        <label for="descripcion">Descripción</label>
+                        <div
+                            *ngIf="fichaSectorialForm.get('es_articulo').value"
+                            [innerHtml]="sanitizedDescripcion"
+                        ></div>
+                    </div>
                 </ng-container>
                 <ng-template #textareaMode>
                     <textarea

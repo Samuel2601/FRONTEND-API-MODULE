@@ -6,6 +6,7 @@ import { MapaMostrarFichasComponent } from '../mapa-mostrar-fichas/mapa-mostrar-
 import { ActivatedRoute, Router } from '@angular/router';
 import { ListService } from 'src/app/demo/services/list.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
     selector: 'app-view-fichas-articulos',
@@ -45,7 +46,8 @@ export class ViewFichasArticulosComponent implements OnInit {
         private route: ActivatedRoute,
         private listService: ListService,
         private auth: AuthService,
-        private router: Router
+        private router: Router,
+        private sanitizer: DomSanitizer
     ) {}
     fichas_sectoriales_arr: any[] = [];
     onHide() {
@@ -60,7 +62,7 @@ export class ViewFichasArticulosComponent implements OnInit {
                 }
             });
     }
-    load:boolean=true;
+    load: boolean = true;
     ngOnInit(): void {
         this.route.params.subscribe((params) => {
             if (params['id']) {
@@ -81,17 +83,19 @@ export class ViewFichasArticulosComponent implements OnInit {
             (response: any) => {
                 if (response.data) {
                     this.ficha = response.data;
+                    console.log(this.ficha);
+                    this.updateSanitizedDescripcion();
                     this.iniciarCambioDeImagen();
                     this.liked = this.checkIfLiked();
                     setTimeout(() => {
                         this.view_map = true;
-                        this.load=false;
+                        this.load = false;
                     }, 500);
                 }
             },
             (error) => {
                 console.error(error);
-                this.load=false;
+                this.load = false;
                 throw new Error(error);
             }
         );
@@ -229,23 +233,56 @@ export class ViewFichasArticulosComponent implements OnInit {
     }
     addAllEventsToCalendar() {
         const title = encodeURIComponent(this.ficha.title_marcador);
-            const startDate = this.formatGoogleCalendarDate(this.ficha.fecha_evento);
-            const endDate = this.formatGoogleCalendarDate(new Date(new Date(this.ficha.fecha_evento).getTime() + 60 * 60 * 1000)); // Duración de 1 hora
-            const details = encodeURIComponent(this.ficha.descripcion);
-            const latitude = this.ficha.direccion_geo.latitud;
-                const longitude = this.ficha.direccion_geo.longitud;
-                const location = `${latitude},${longitude}`;
-                
-            
-            const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${details}&location=${location}`;
-            window.open(url, '_blank');
+        const startDate = this.formatGoogleCalendarDate(
+            this.ficha.fecha_evento
+        );
+        const endDate = this.formatGoogleCalendarDate(
+            new Date(
+                new Date(this.ficha.fecha_evento).getTime() + 60 * 60 * 1000
+            )
+        ); // Duración de 1 hora
+        const details = encodeURIComponent(this.ficha.descripcion);
+        const latitude = this.ficha.direccion_geo.latitud;
+        const longitude = this.ficha.direccion_geo.longitud;
+        const location = `${latitude},${longitude}`;
+
+        const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${details}&location=${location}`;
+        window.open(url, '_blank');
     }
-    formatGoogleCalendarDate(dateString:any): string {
+    formatGoogleCalendarDate(dateString: any): string {
         const date = new Date(dateString);
         // Formato requerido: YYYYMMDDTHHMMSSZ
         return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
     }
     goToHomePage(): void {
         this.router.navigate(['/home']);
-      }
+    }
+
+    sanitizedContent: SafeHtml;
+    cleanHtmlContent(content: string): string {
+        // Limpiar las comillas escapadas en el contenido
+        content = content.replace(/&quot;/g, '"');
+        // Elimina las etiquetas <pre> y permite <iframe>
+        return content.replace(
+            /<pre data-language="plain">(.*?)<\/pre>/gs,
+            (_, innerContent) =>
+                innerContent
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/&amp;/g, '&')
+        );
+    }
+
+    get sanitizedDescripcion(): SafeHtml {
+        //const descripcion = this.fichaSectorialForm.get('descripcion').value;
+        return this.sanitizedContent;
+    }
+    // Método para actualizar el contenido sanitizado
+    updateSanitizedDescripcion(): void {
+        console.log(this.ficha.descripcion);
+        const rawContent = this.ficha.descripcion;
+        const cleanedContent = this.cleanHtmlContent(rawContent);
+        this.sanitizedContent =
+            this.sanitizer.bypassSecurityTrustHtml(cleanedContent);
+    }
 }

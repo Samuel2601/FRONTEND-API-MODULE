@@ -1064,7 +1064,9 @@ export class MapaFichaComponent implements OnInit, OnDestroy {
             //console.log(permission);
             if (permission !== 'granted') {
                 try {
-                    const coordinates = await Geolocation['getCurrentPosition']();
+                    const coordinates = await Geolocation[
+                        'getCurrentPosition'
+                    ]();
                     this.latitud = coordinates.coords.latitude;
                     this.longitud = coordinates.coords.longitude;
                     this.addMarker(
@@ -1107,7 +1109,9 @@ export class MapaFichaComponent implements OnInit, OnDestroy {
                         this.poligonoposition();
                     },
                     (error) => {
-                        console.error('Error getting location: ' + error.message);
+                        console.error(
+                            'Error getting location: ' + error.message
+                        );
                         this.messageService.add({
                             severity: 'error',
                             summary: '404',
@@ -1583,4 +1587,24 @@ export class MapaFichaComponent implements OnInit, OnDestroy {
         const formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
         return `${formattedSize} ${sizes[i]}`;
     }
+
+    // Configuración personalizada del editor
+    editorConfig: any = {
+        toolbar: [
+            ['bold', 'italic', 'underline'], // Formatos básicos
+            ['blockquote', 'code-block'], // Formatos de bloque
+            [{ list: 'ordered' }, { list: 'bullet' }], // Listas
+            [{ header: [1, 2, 3, false] }], // Encabezados
+            ['link', 'image', 'video'], // Enlaces, imágenes, videos
+            ['html'], // Botón para edición de HTML
+        ],
+        modules: {
+            htmlEditButton: {
+                debug: true, // Opcional: habilitar logs para depuración
+                msg: 'Editar HTML',
+                buttonHTML: '<i class="ql-html"></i>',
+                syntax: true, // Opcional: habilitar resaltado de sintaxis (requiere prism.js)
+            },
+        },
+    };
 }

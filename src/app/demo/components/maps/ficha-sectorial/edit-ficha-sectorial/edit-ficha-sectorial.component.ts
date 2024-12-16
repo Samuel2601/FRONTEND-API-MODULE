@@ -16,6 +16,7 @@ import { ListService } from 'src/app/demo/services/list.service';
 import { UpdateService } from 'src/app/demo/services/update.service';
 import { FilterService } from '../../../../services/filter.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
     selector: 'app-edit-ficha-sectorial',
@@ -48,7 +49,8 @@ export class EditFichaSectorialComponent implements OnInit {
         private messageService: MessageService,
         private dialogConfig: DynamicDialogConfig,
         private dialogRef: DynamicDialogRef,
-        private helperService: HelperService
+        private helperService: HelperService,
+        private sanitizer: DomSanitizer
     ) {
         this.fichaSectorialForm = this.createForm();
     }
@@ -78,19 +80,24 @@ export class EditFichaSectorialComponent implements OnInit {
     }
 
     private createForm(): FormGroup {
-        return this.fb.group({
+        const form = this.fb.group({
             direccion_geo: ['', Validators.required],
             actividad: ['', Validators.required],
             fecha_evento: ['', Validators.required],
             estado: ['', Validators.required],
             es_articulo: [false],
-            descripcion: ['', Validators.required],
+            descripcion: [
+                '<iframe width="300" height="200" src="https://www.youtube.com/embed/8GnABhyHlBI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>',
+                Validators.required,
+            ],
             observacion: [''],
             mostrar_en_mapa: [false],
             title_marcador: [''],
             icono_marcador: ['', Validators.pattern('https?://.+')],
             destacado: [false],
         });
+
+        return form;
     }
 
     private async checkPermissions(): Promise<void> {
@@ -214,5 +221,37 @@ export class EditFichaSectorialComponent implements OnInit {
                 detail: error.error.message || 'Error desconocido.',
             });
         }
+    }
+    sanitizedContent: SafeHtml;
+    cleanHtmlContent(content: string): string {
+        // Limpiar las comillas escapadas en el contenido
+        content = content.replace(/&quot;/g, '"');
+        // Elimina las etiquetas <pre> y permite <iframe>
+        return content.replace(
+            /<pre data-language="plain">(.*?)<\/pre>/gs,
+            (_, innerContent) =>
+                innerContent
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/&amp;/g, '&')
+        );
+    }
+
+    get sanitizedDescripcion(): SafeHtml {
+        //const descripcion = this.fichaSectorialForm.get('descripcion').value;
+        return this.sanitizedContent;
+    }
+    // Método para actualizar el contenido sanitizado
+    updateSanitizedDescripcion(): void {
+        console.log(this.fichaSectorialForm.get('descripcion').value);
+        const rawContent = this.fichaSectorialForm.get('descripcion').value;
+        const cleanedContent = this.cleanHtmlContent(rawContent);
+        this.sanitizedContent =
+            this.sanitizer.bypassSecurityTrustHtml(cleanedContent);
+    }
+
+    // Detectar cambios en el formulario (opcional)
+    onDescripcionChange(): void {
+        this.updateSanitizedDescripcion();
     }
 }
