@@ -29,6 +29,7 @@ import { UpdateService } from 'src/app/demo/services/update.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { FilterService } from 'src/app/demo/services/filter.service';
 import { forkJoin } from 'rxjs';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 @Component({
     selector: 'app-index-ficha-sectorial',
     templateUrl: './index-ficha-sectorial.component.html',
@@ -88,7 +89,8 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
         private deleteService: DeleteService,
         private updateService: UpdateService,
         private auth: AuthService,
-        private filter: FilterService
+        private filter: FilterService,
+        private sanitizer: DomSanitizer
     ) {}
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['filtro'] || changes['valor']) {
@@ -489,6 +491,9 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
         if (!this.check.TotalFilter) {
             this.visible = true;
             this.option = incidente;
+            this.option.descripcion = this.cleanHtmlContent(
+                this.option.descripcion || ''
+            );
         }
     }
     navigateToFicha(id: string): void {
@@ -501,8 +506,42 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
         this.load_map = false;
         this.visible = true;
         this.option = register;
+        this.option.descripcion = this.cleanHtmlContent(
+            this.option.descripcion || ''
+        );
         setTimeout(() => {
             this.load_map = true;
         }, 300);
+    }
+
+    truncateAndSanitize(text: string) {
+        if (typeof text !== 'string') {
+            text = text ? String(text) : ''; // Convertir a string si es necesario
+        }
+        text = text.replace(/&quot;/g, '"');
+        text = text.replace(/&nbsp;/g, ' ');
+        const words = text.replace(/<[^>]+>/g, '').split(' '); // Eliminar etiquetas HTML
+        const truncated = words.slice(0, 2).join(' ');
+        const result = words.length > 2 ? `${truncated}...` : truncated;
+        return this.sanitizer.bypassSecurityTrustHtml(result);
+    }
+
+    cleanHtmlContent(content: string): SafeHtml {
+        if (typeof content !== 'string') {
+            content = content ? String(content) : ''; // Convertir a string si es necesario
+        }
+        // Limpiar las comillas escapadas en el contenido
+        content = content.replace(/&quot;/g, '"');
+        content = content.replace(/&nbsp;/g, ' ');
+        // Elimina las etiquetas <pre> y permite <iframe>
+        content = content.replace(
+            /<pre data-language="plain">(.*?)<\/pre>/gs,
+            (_, innerContent) =>
+                innerContent
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/&amp;/g, '&')
+        );
+        return this.sanitizer.bypassSecurityTrustHtml(content);
     }
 }

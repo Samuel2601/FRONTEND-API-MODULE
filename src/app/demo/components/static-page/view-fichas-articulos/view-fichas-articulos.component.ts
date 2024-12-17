@@ -53,31 +53,51 @@ export class ViewFichasArticulosComponent implements OnInit {
     onHide() {
         this.displayFoto = false;
     }
-    listarFichaSectorial(): void {
+    async listarFichaSectorial(): Promise<void> {
         this.listService
             .listarFichaSectorialArticulos()
             .subscribe((response: any) => {
                 if (response.data && response.data.length > 0) {
-                    this.fichas_sectoriales_arr = response.data;
+                    console.log(response.data);
+
+                    // 1. Filtrar solo los elementos con "createdAt" definido
+                    let fichasConFecha = response.data.filter(
+                        (item: any) => item.createdAt && item._id !== this.ficha._id
+                    );
+
+                    // 2. Ordenar las fichas por "createdAt" de más reciente a más antiguo
+                    fichasConFecha.sort((a: any, b: any) => {
+                        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                    });
+
+                    // 3. Guardar las fichas filtradas en el array
+                    this.fichas_sectoriales_arr = fichasConFecha;
+
+                    console.log('Filtradas:', this.fichas_sectoriales_arr);
+                } else {
+                    // Si no hay datos, inicializar el array vacío
+                    this.fichas_sectoriales_arr = [];
+                    console.log('No hay fichas disponibles.');
                 }
             });
     }
+
     load: boolean = true;
     ngOnInit(): void {
-        this.route.params.subscribe((params) => {
+        this.route.params.subscribe(async (params) => {
             if (params['id']) {
                 this.fichaId = params['id'];
             }
 
             // console.log('RECIBIO LA FICHA: ', this.fichaId);
             if (this.fichaId) {
-                this.obtenerFicha();
-                this.listarFichaSectorial();
+                await this.obtenerFicha();
+                await this.listarFichaSectorial();
             }
         });
     }
     view_map: boolean = false;
-    obtenerFicha(): void {
+    async obtenerFicha() {
         this.view_map = false;
         this.filterService.obtenerFichaPublica(this.fichaId).subscribe(
             (response: any) => {
@@ -262,6 +282,7 @@ export class ViewFichasArticulosComponent implements OnInit {
     cleanHtmlContent(content: string): string {
         // Limpiar las comillas escapadas en el contenido
         content = content.replace(/&quot;/g, '"');
+        content = content.replace(/&nbsp;/g, ' ');
         // Elimina las etiquetas <pre> y permite <iframe>
         return content.replace(
             /<pre data-language="plain">(.*?)<\/pre>/gs,

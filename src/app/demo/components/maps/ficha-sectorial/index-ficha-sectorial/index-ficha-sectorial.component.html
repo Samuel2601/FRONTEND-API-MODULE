@@ -1,8 +1,8 @@
 <!--
   [style.height.px]="height"
   [baseZIndex]="1500" (mousedown)="startResize($event)" (touchstart)="startResize($event)"
-(touchstart)="onTouchStart($event)" 
-(touchmove)="onTouchMove($event)" 
+(touchstart)="onTouchStart($event)"
+(touchmove)="onTouchMove($event)"
 (touchend)="onTouchEnd()"
 -->
 <p-toast></p-toast>
@@ -24,7 +24,10 @@
                 <div class="flex pt-4 justify-content-end">
                     <button
                         class="m-3"
-                        *ngIf="check.TotalFilter && check.IndexActividadProyectoComponent"
+                        *ngIf="
+                            check.TotalFilter &&
+                            check.IndexActividadProyectoComponent
+                        "
                         pButton
                         label="Actividades"
                         icon="pi pi-box"
@@ -32,7 +35,10 @@
                     ></button>
                     <button
                         class="m-3"
-                        *ngIf="check.TotalFilter && check.IndexEstadoActividadProyectoComponent"
+                        *ngIf="
+                            check.TotalFilter &&
+                            check.IndexEstadoActividadProyectoComponent
+                        "
                         pButton
                         label="Estados"
                         icon="pi pi-bell"
@@ -153,9 +159,7 @@
                                 pSortableColumn="encargado.name"
                                 style="width: 20%"
                             >
-                                <p-sortIcon
-                                    field="encargado.name"
-                                ></p-sortIcon>
+                                <p-sortIcon field="encargado.name"></p-sortIcon>
                             </th>
                         </div>
                     </th>
@@ -189,19 +193,18 @@
                         >
                         <ng-container
                             *ngIf="!isJSONString(incidente.direccion_geo)"
-                            >
-                            <ng-container
-                                    *ngIf="incidente.direccion_geo.nombre"
-                                >
-                                    {{ incidente.direccion_geo.nombre }}
-                                </ng-container>
-                                <ng-container
-                                    *ngIf="!incidente.direccion_geo.nombre"
-                                >
-                                    {{ incidente.direccion_geo }}
-                                </ng-container>
-                            </ng-container
                         >
+                            <ng-container
+                                *ngIf="incidente.direccion_geo.nombre"
+                            >
+                                {{ incidente.direccion_geo.nombre }}
+                            </ng-container>
+                            <ng-container
+                                *ngIf="!incidente.direccion_geo.nombre"
+                            >
+                                {{ incidente.direccion_geo }}
+                            </ng-container>
+                        </ng-container>
                     </td>
                     <td
                         (click)="
@@ -226,7 +229,8 @@
                         {{ incidente.fecha_evento | date : "medium" : "es" }}
                     </td>
                     <td *ngIf="check.IndexFichaSectorialComponent">
-                        {{ incidente.encargado.name }} {{ incidente.encargado.last_name }}
+                        {{ incidente.encargado.name }}
+                        {{ incidente.encargado.last_name }}
                     </td>
                     <td>
                         <p-tag
@@ -344,7 +348,10 @@
                     <div class="p-fluid p-formgrid grid">
                         <h3>Listado de Ficha Sectorial</h3>
                     </div>
-                    <div class="flex pt-4 justify-content-end" *ngIf="check.TotalFilter">
+                    <div
+                        class="flex pt-4 justify-content-end"
+                        *ngIf="check.TotalFilter"
+                    >
                         <button
                             class="m-3"
                             *ngIf="check.IndexActividadProyectoComponent"
@@ -527,7 +534,7 @@
                                     ></p-sortIcon>
                                 </th>
                             </div>
-                        </th>                       
+                        </th>
                         <th>Foto</th>
                         <th style="min-width: 2rem">
                             <div class="flex align-items-center">
@@ -555,7 +562,7 @@
                     let-incidente
                     let-rowIndex="rowIndex"
                 >
-                    <tr (click)="dialog_view(incidente,rowIndex + 1)">
+                    <tr (click)="dialog_view(incidente, rowIndex + 1)">
                         <td>{{ rowIndex + 1 }}</td>
                         <td>
                             <ng-container
@@ -584,7 +591,12 @@
                         </td>
 
                         <td>
-                            {{ incidente.descripcion }}
+                            <div
+                                *ngIf="incidente.descripcion"
+                                [innerHtml]="
+                                    truncateAndSanitize(incidente.descripcion)
+                                "
+                            ></div>
                         </td>
                         <td>
                             {{
@@ -592,7 +604,8 @@
                             }}
                         </td>
                         <td>
-                            {{ incidente.encargado.name }} {{ incidente.encargado.last_name }}
+                            {{ incidente.encargado.name }}
+                            {{ incidente.encargado.last_name }}
                         </td>
                         <td>
                             <p-tag
@@ -602,7 +615,7 @@
                                 "
                             >
                             </p-tag>
-                        </td>                        
+                        </td>
                         <td>
                             <img
                                 *ngIf="
@@ -627,9 +640,36 @@
                             />
                         </td>
                         <td>
-                            <i class="pi pi-circle-on" [style.color]="incidente.mostrar_en_mapa?'var(--primary-color)':''"> Mapa </i>
-                            <i class="pi pi-circle-on" [style.color]="incidente.destacado?'var(--primary-color)':''"> Destacado</i>
-                            <i class="pi pi-circle-on" [style.color]="incidente.es_articulo?'var(--primary-color)':''"> Artículo</i>
+                            <i
+                                class="pi pi-circle-on"
+                                [style.color]="
+                                    incidente.mostrar_en_mapa
+                                        ? 'var(--primary-color)'
+                                        : ''
+                                "
+                            >
+                                Mapa
+                            </i>
+                            <i
+                                class="pi pi-circle-on"
+                                [style.color]="
+                                    incidente.destacado
+                                        ? 'var(--primary-color)'
+                                        : ''
+                                "
+                            >
+                                Destacado</i
+                            >
+                            <i
+                                class="pi pi-circle-on"
+                                [style.color]="
+                                    incidente.es_articulo
+                                        ? 'var(--primary-color)'
+                                        : ''
+                                "
+                            >
+                                Artículo</i
+                            >
                         </td>
                     </tr>
                 </ng-template>
@@ -683,37 +723,54 @@
                     let-incidente
                     let-rowIndex="rowIndex"
                 >
-                <tr (click)="navigateToFicha(incidente._id)">
-                    <td>{{ rowIndex + 1 }}</td>
-                    <td>
-                        <ng-container *ngIf="isJSONString(incidente.direccion_geo)">
-                            {{ parseJSON(incidente.direccion_geo).nombre }}
-                        </ng-container>
-                        <ng-container *ngIf="!isJSONString(incidente.direccion_geo)">
-                            <ng-container *ngIf="incidente.direccion_geo.nombre">
-                                {{ incidente.direccion_geo.nombre }}
+                    <tr (click)="navigateToFicha(incidente._id)">
+                        <td>{{ rowIndex + 1 }}</td>
+                        <td>
+                            <ng-container
+                                *ngIf="isJSONString(incidente.direccion_geo)"
+                            >
+                                {{ parseJSON(incidente.direccion_geo).nombre }}
                             </ng-container>
-                            <ng-container *ngIf="!incidente.direccion_geo.nombre">
-                                {{ incidente.direccion_geo }}
+                            <ng-container
+                                *ngIf="!isJSONString(incidente.direccion_geo)"
+                            >
+                                <ng-container
+                                    *ngIf="incidente.direccion_geo.nombre"
+                                >
+                                    {{ incidente.direccion_geo.nombre }}
+                                </ng-container>
+                                <ng-container
+                                    *ngIf="!incidente.direccion_geo.nombre"
+                                >
+                                    {{ incidente.direccion_geo }}
+                                </ng-container>
                             </ng-container>
-                        </ng-container>
-                    </td>
-                    <td>{{ incidente.actividad.nombre }}</td>
-                    <td>{{ incidente.title_marcador }}</td>
-                    <td>{{ incidente.fecha_evento | date: "medium" : "es" }}</td>
-                    <td>
-                        <p-button
-                            *ngIf="incidente.foto && incidente.foto.length > 0"
-                            id="fotoButton"
-                            icon="pi bi-camera2-custom"
-                            [raised]="true"
-                            [outlined]="true"
-                            label="Ver"
-                            (click)="displayBasic = true; openModalimagen(incidente.foto); $event.stopPropagation()"
-                        ></p-button>
-                    </td>
-                </tr>
-                
+                        </td>
+                        <td>{{ incidente.actividad.nombre }}</td>
+                        <td>{{ incidente.title_marcador }}</td>
+                        <td>
+                            {{
+                                incidente.fecha_evento | date : "medium" : "es"
+                            }}
+                        </td>
+                        <td>
+                            <p-button
+                                *ngIf="
+                                    incidente.foto && incidente.foto.length > 0
+                                "
+                                id="fotoButton"
+                                icon="pi bi-camera2-custom"
+                                [raised]="true"
+                                [outlined]="true"
+                                label="Ver"
+                                (click)="
+                                    displayBasic = true;
+                                    openModalimagen(incidente.foto);
+                                    $event.stopPropagation()
+                                "
+                            ></p-button>
+                        </td>
+                    </tr>
                 </ng-template>
                 <ng-template pTemplate="emptymessage">
                     <tr>
@@ -852,7 +909,7 @@
 </p-dialog>
 
 <p-dialog
-    [header]="'Detalles de la Ficha Sectorial: '+row"
+    [header]="'Detalles de la Ficha Sectorial: ' + row"
     [(visible)]="visible"
     [modal]="false"
     [style]="{ width: isMobil() ? '100%' : '50vw' }"
@@ -864,8 +921,12 @@
         </p>
         <p>
             <strong>Descripción:</strong>
-            {{ option.descripcion }}
         </p>
+        <div
+            class="card-body mb-3"
+            class="descripcion-container"
+            [innerHtml]="option.descripcion"
+        ></div>
         <p>
             <strong>Encargado:</strong>
             {{ option.encargado.name }} {{ option.encargado.last_name }}
@@ -886,7 +947,10 @@
             <strong>Observación:</strong>
             {{ option.observacion }}
         </p>
-        <app-mapa-mostrar-fichas *ngIf="visible&&option&&load_map" [ficha]="option"></app-mapa-mostrar-fichas>
+        <app-mapa-mostrar-fichas
+            *ngIf="visible && option && load_map"
+            [ficha]="option"
+        ></app-mapa-mostrar-fichas>
         <div class="flex justify-content-between">
             <div class="justify-content-between">
                 <p-button

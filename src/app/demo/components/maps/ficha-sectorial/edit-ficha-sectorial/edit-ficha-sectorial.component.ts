@@ -39,6 +39,10 @@ export class EditFichaSectorialComponent implements OnInit {
         { breakpoint: '560px', numVisible: 1 },
     ];
 
+    get ubicacion(){
+        return JSON.stringify(this.fichaSectorialForm.get('direccion_geo')?.value);
+    }
+
     constructor(
         private fb: FormBuilder,
         private router: Router,
@@ -87,7 +91,7 @@ export class EditFichaSectorialComponent implements OnInit {
             estado: ['', Validators.required],
             es_articulo: [false],
             descripcion: [
-                '<iframe width="300" height="200" src="https://www.youtube.com/embed/8GnABhyHlBI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>',
+                '',
                 Validators.required,
             ],
             observacion: [''],
@@ -119,6 +123,8 @@ export class EditFichaSectorialComponent implements OnInit {
         console.log(response.data);
         this.ficha = response.data || {};
         this.populateForm(this.ficha);
+
+        this.fichaSectorialForm.get('fecha_evento')?.setValue(new Date(this.ficha.fecha_evento));
     }
 
     private populateForm(data: any): void {
@@ -226,6 +232,7 @@ export class EditFichaSectorialComponent implements OnInit {
     cleanHtmlContent(content: string): string {
         // Limpiar las comillas escapadas en el contenido
         content = content.replace(/&quot;/g, '"');
+        content = content.replace(/&nbsp;/g, ' ');
         // Elimina las etiquetas <pre> y permite <iframe>
         return content.replace(
             /<pre data-language="plain">(.*?)<\/pre>/gs,

@@ -18,15 +18,26 @@
         position: relative;
     }
 }
-@media (max-width: 767.98px) { 
-    
+@media (max-width: 767.98px) {
     .main-panel .main-content {
-      bottom: 70px !important;
-      margin-top: 0px;
-      padding: 10px 0px;
+        bottom: 70px !important;
+        margin-top: 0px;
+        padding: 10px 0px;
     }
-  }
-  .custom-modal {
+}
+.custom-modal {
     z-index: 1200 !important;
-  }
-  
+}
+
+.descripcion-container {
+    max-width: 100%; /* Evita que el contenido sobrepase el contenedor */
+    word-wrap: break-word; /* Rompe palabras largas */
+    overflow-wrap: break-word; /* Asegura saltos de línea si es necesario */
+    white-space: normal; /* Permite que el texto se ajuste */
+    line-height: 1.5; /* Mejora la legibilidad del texto */
+}
+
+.p-field {
+    display: flex; /* Aplica flexbox para una mejor alineación */
+    flex-direction: column; /* Alinea los elementos verticalmente */
+}
