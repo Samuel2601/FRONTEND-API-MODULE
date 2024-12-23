@@ -28,7 +28,7 @@ import { DeleteService } from 'src/app/demo/services/delete.service';
 import { UpdateService } from 'src/app/demo/services/update.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { FilterService } from 'src/app/demo/services/filter.service';
-import { forkJoin } from 'rxjs';
+import { forkJoin, map } from 'rxjs';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 @Component({
     selector: 'app-index-ficha-sectorial',
@@ -176,6 +176,11 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
             .subscribe((response: any) => {
                 if (response.data && response.data.length > 0) {
                     this.fichasectorial = response.data;
+                    this.fichasectorial.map((item: any) => {
+                        item.descripcionTable = this.truncateAndSanitize(
+                            item.descripcion
+                        );
+                    });
                     this.limit = true;
                 }
                 this.load_lista = false;
@@ -228,6 +233,11 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
                 (response) => {
                     if (response.data) {
                         this.fichasectorial = response.data;
+                        this.fichasectorial.map((item: any) => {
+                            item.descripcionTable = this.truncateAndSanitize(
+                                item.descripcion
+                            );
+                        });
                         if (
                             this.filtro &&
                             this.valor &&
@@ -490,7 +500,8 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
     showdialog(incidente: any) {
         if (!this.check.TotalFilter) {
             this.visible = true;
-            this.option = incidente;
+            this.option = null;
+            this.option = Object.assign({}, incidente);
             this.option.descripcion = this.cleanHtmlContent(
                 this.option.descripcion || ''
             );
@@ -502,10 +513,11 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
     load_map: boolean = false;
     row: number = -1;
     dialog_view(register: any, num: number) {
+        this.option = null;
         this.row = num;
         this.load_map = false;
         this.visible = true;
-        this.option = register;
+        this.option = Object.assign({}, register);
         this.option.descripcion = this.cleanHtmlContent(
             this.option.descripcion || ''
         );

@@ -593,9 +593,7 @@
                         <td>
                             <div
                                 *ngIf="incidente.descripcion"
-                                [innerHtml]="
-                                    truncateAndSanitize(incidente.descripcion)
-                                "
+                                [innerHtml]="incidente.descripcionTable"
                             ></div>
                         </td>
                         <td>

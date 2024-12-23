@@ -58,8 +58,6 @@ export class ViewFichasArticulosComponent implements OnInit {
             .listarFichaSectorialArticulos()
             .subscribe((response: any) => {
                 if (response.data && response.data.length > 0) {
-                    console.log(response.data);
-
                     // 1. Filtrar solo los elementos con "createdAt" definido
                     let fichasConFecha = response.data.filter(
                         (item: any) => item.createdAt && item._id !== this.ficha._id
@@ -73,7 +71,6 @@ export class ViewFichasArticulosComponent implements OnInit {
                     // 3. Guardar las fichas filtradas en el array
                     this.fichas_sectoriales_arr = fichasConFecha;
 
-                    console.log('Filtradas:', this.fichas_sectoriales_arr);
                 } else {
                     // Si no hay datos, inicializar el array vacío
                     this.fichas_sectoriales_arr = [];
@@ -92,7 +89,7 @@ export class ViewFichasArticulosComponent implements OnInit {
             // console.log('RECIBIO LA FICHA: ', this.fichaId);
             if (this.fichaId) {
                 await this.obtenerFicha();
-                await this.listarFichaSectorial();
+
             }
         });
     }
@@ -103,13 +100,13 @@ export class ViewFichasArticulosComponent implements OnInit {
             (response: any) => {
                 if (response.data) {
                     this.ficha = response.data;
-                    console.log(this.ficha);
                     this.updateSanitizedDescripcion();
                     this.iniciarCambioDeImagen();
                     this.liked = this.checkIfLiked();
-                    setTimeout(() => {
+                    setTimeout(async () => {
                         this.view_map = true;
                         this.load = false;
+                        await this.listarFichaSectorial();
                     }, 500);
                 }
             },
@@ -300,7 +297,6 @@ export class ViewFichasArticulosComponent implements OnInit {
     }
     // Método para actualizar el contenido sanitizado
     updateSanitizedDescripcion(): void {
-        console.log(this.ficha.descripcion);
         const rawContent = this.ficha.descripcion;
         const cleanedContent = this.cleanHtmlContent(rawContent);
         this.sanitizedContent =

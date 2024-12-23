@@ -171,21 +171,21 @@ export class HomeComponent implements OnInit {
                         label: 'Más Usados',
                         items: [
                             {
-                                label: 'ESVIAL',
+                                label: 'ESMEVIAL',
                                 info: 'Puedes reportar Incidentes o mirar las Infracciones de tránsito',
                                 icon: 'https://i.postimg.cc/bYKqrncJ/Iconos-disen-o-09.png',
                                 showInfo: false,
                                 style: false,
                                 items: [
                                     {
-                                        label: 'Incidentes ESVIAL',
-                                        info: 'Puedes reportar los incidentes y denuncias con respecto a ESVIAL.',
+                                        label: 'Incidentes ESMEVIAL',
+                                        info: 'Puedes reportar los incidentes y denuncias con respecto a ESMEVIAL.',
                                         icon: 'https://i.postimg.cc/C51r9XxQ/Imagen-de-Whats-App-2024-06-26-a-las-12-09-30-1cfaf812-fotor-bg-remover-20240626121913.png',
                                         dev: true,
                                         showInfo: false,
                                         command: async () => {
                                             this.incidente(
-                                                'ESVIAL',
+                                                'ESMEVIAL',
                                                 'Transporte terrestre y seguridad vial'
                                             );
                                         },
@@ -206,7 +206,7 @@ export class HomeComponent implements OnInit {
                                     {
                                         label: 'Página oficial',
                                         info: 'Conoce su sitio oficial',
-                                        icon: 'https://i.postimg.cc/7YnWXf1v/375591046-633240775578090-7070193202552108562-n-removebg-preview-1.png',
+                                        icon: 'https://i.postimg.cc/9FPpzkYH/descarga-5.png',
                                         dev: true,
                                         showInfo: false,
                                         command: async () => {

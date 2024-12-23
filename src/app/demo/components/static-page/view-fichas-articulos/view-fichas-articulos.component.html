@@ -164,25 +164,14 @@
             ></div>
         </div>
         <div
-            class="col-12 lg:col-3 lg:border-left-1 surface-border"
+            class="col-12 lg:col-12 lg:border-left-1 surface-border"
             *ngIf="fichas_sectoriales_arr.length > 0"
         >
             <div class="p-3">
-                <!--
-                 <div class="flex border-bottom-1 surface-border pb-4 mb-5" >
-                    <img src="assets/images/blocks/avatars/circle/avatar-f-1.png" class="mr-3 h-5rem w-5rem">
-                    <div class="flex flex-column align-items-start">
-                        <span class="text-lg text-900 font-medium mb-1">Jessica Doe</span>
-                        <span class="text-600 font-medium mb-2">1.7K Followers</span>
-                        <button pButton pRipple label="Follow" class="p-button-rounded p-button-primary"></button>
-                    </div>
-                </div>
-                -->
-
                 <span class="text-900 font-medium text-xl block mb-5"
                     >Otros Articulos</span
                 >
-                <p-scrollPanel [style]="{ width: '100%', height: '550px' }">
+                <p-scrollPanel [style]="{ width: '100%', height: '350px' }">
                     <ng-container *ngFor="let item of fichas_sectoriales_arr">
                         <div
                             class="flex pb-4"
@@ -211,23 +200,6 @@
                         </div>
                     </ng-container>
                 </p-scrollPanel>
-
-                <!--
-                 <div class="flex flex-column gap-3">
-                    <div class="w-full h-full p-5 border-round"
-                         style="background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, #000000 100%)"
-                         [ngStyle]="{'background-image': 'url(' + url + 'obtener_imagen/ficha_sectorial/' + currentImage + ')'}">
-                        <span class="text-white font-medium mb-3">Post Title</span>
-                        <span class="text-white-alpha-70 block line-height-3">Metus aliquam eleifend mi in nulla posuere.</span>
-                    </div>
-                    <div class="w-full h-full p-5 border-round"
-                         style="background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, #000000 100%)"
-                         [ngStyle]="{'background-image': 'url(' + url + 'obtener_imagen/ficha_sectorial/' + currentImage + ')'}">
-                        <span class="text-white font-medium mb-3">Post Title</span>
-                        <span class="text-white-alpha-70 block line-height-3">Metus aliquam eleifend mi in nulla posuere.</span>
-                    </div>
-                </div>
-                -->
             </div>
         </div>
     </div>

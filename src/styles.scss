@@ -199,6 +199,21 @@ $gutter: 1rem; //for primeflex grid system
     ); /* Ajustar altura incluyendo el espacio seguro */
 }
 
+.responsive-iframe {
+    width: 50vw;
+    height: 315px;
+}
+.ql-align-justify img {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+    margin: 0 auto;
+}
+iframe {
+    width: 100% !important;
+}
 @import "assets/layout/styles/layout/layout.scss";
 
 /* PrimeNG */
