@@ -35,6 +35,7 @@ import { MessageService } from 'primeng/api';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { MessagesModule } from 'primeng/messages';
 import { MapaMostrarFichasComponent } from '../static-page/mapa-mostrar-fichas/mapa-mostrar-fichas.component';
+import { DropdownModule } from 'primeng/dropdown';
 @NgModule({
     imports: [
         MapaMostrarFichasComponent,
@@ -61,7 +62,8 @@ import { MapaMostrarFichasComponent } from '../static-page/mapa-mostrar-fichas/m
         MultiSelectModule,
         ReactiveFormsModule,
         SelectButtonModule,
-        MessagesModule
+        MessagesModule,
+        DropdownModule
     ],
     declarations: [DashboardComponent,
         StackBarriosComponent,

@@ -173,9 +173,9 @@ export class HomeComponent implements OnInit {
                             {
                                 label: 'ESMEVIAL',
                                 info: 'Puedes reportar Incidentes o mirar las Infracciones de tránsito',
-                                icon: 'https://i.postimg.cc/bYKqrncJ/Iconos-disen-o-09.png',
+                                icon: 'https://i.postimg.cc/9FPpzkYH/descarga-5.png',
                                 showInfo: false,
-                                style: false,
+                                style: true,
                                 items: [
                                     {
                                         label: 'Incidentes ESMEVIAL',

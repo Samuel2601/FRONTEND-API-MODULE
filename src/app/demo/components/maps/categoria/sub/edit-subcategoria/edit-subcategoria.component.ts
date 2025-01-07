@@ -36,7 +36,7 @@ export class EditSubcategoriaComponent implements OnInit {
       await this.listarcategoria();
     }catch{
       this.modalService.dismissAll();
-    } 
+    }
     finally{
       setTimeout(() => {
         this.loadcategoria=true;
@@ -72,7 +72,7 @@ export class EditSubcategoriaComponent implements OnInit {
       this.subcategoria=response.data;
       //console.log(this.subcategoria);
     });
-   
+
   }
   cerrar(){
     this.modalService.dismissAll();
@@ -82,9 +82,9 @@ export class EditSubcategoriaComponent implements OnInit {
     this.update.actualizarSubcategoria(this.token,this.id,this.subcategoria).subscribe(response=>{
       if(response.data){
         let data=response.data;
-        //console.log(data);
+        console.log(response);
          this.messageService.add({severity: 'success', summary: 'Ingreso', detail: 'Bienvenido'});
-        setTimeout(() => {          
+        setTimeout(() => {
           this.modalService.dismissAll();
         }, 1000);
       }

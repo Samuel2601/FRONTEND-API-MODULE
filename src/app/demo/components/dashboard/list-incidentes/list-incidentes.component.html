@@ -462,7 +462,122 @@
             </tr>
         </ng-template>
     </p-table>
-    <app-mapa-mostrar-fichas *ngIf="load_map" [ficha]="incidente" [incidente]="true"></app-mapa-mostrar-fichas>
+    <app-mapa-mostrar-fichas
+        *ngIf="load_map"
+        [ficha]="incidente"
+        [incidente]="true"
+    ></app-mapa-mostrar-fichas>
+</div>
+<div class="card">
+    <div
+        class="surface-section px-4 py-8 md:px-6 lg:px-8"
+        *ngIf="load_linechart"
+    >
+        <div class="flex justify-content-between">
+            <h5>Incidentes por {{ selectedTimeUnitLabel }}</h5>
+
+            <p-dropdown
+                class="p-input-icon-left ml-2"
+                [options]="timeUnits"
+                [(ngModel)]="selectedTimeUnit"
+                placeholder="Seleccionar unidad de tiempo"
+                (onChange)="grafigDateTime()"
+            >
+            </p-dropdown>
+
+            <p-dropdown
+                class="p-input-icon-left ml-2"
+                [options]="timeSortOrder"
+                [(ngModel)]="selectedSortOrder"
+                (onChange)="grafigDateTime(fechaInicio, fechaFin)"
+                placeholder="Ordenar por fecha"
+                appendTo="body"
+            >
+            </p-dropdown>
+            <p-button
+                class="p-input-icon-left ml-2"
+                label="Img."
+                (click)="exportChart(chart1, exportCanvas2, selectedTimeUnit)"
+                [raised]="true"
+                [outlined]="true"
+            ></p-button>
+        </div>
+        <p-chart
+            #chart1
+            type="line"
+            [data]="dataLineaDeTiempo"
+            [options]="optionsLineaDeTiempo"
+            style="height: 400px"
+            (onChartReady)="onChartReady($event)"
+            (onMouseMove)="onMouseMove($event)"
+        >
+        </p-chart>
+        <canvas #exportCanvas2 style="display: none"></canvas>
+
+        <div *ngIf="dataLineaDeTiempo.tableData">
+            <h3>Resumen de la Línea de Tiempo</h3>
+            <p-table
+                #dt1
+                [value]="dataLineaDeTiempo.labels"
+                [paginator]="true"
+                [rows]="isMobil() ? 5 : 10"
+                [rowsPerPageOptions]="[5, 10, 20, 1000]"
+            >
+                <!-- Tu caption actual -->
+                <ng-template pTemplate="caption">
+                    <div class="table-header">
+                        <div class="table-header-container">
+                            <div class="table-title">
+                                Resumen de la Línea de Tiempo
+                            </div>
+                            <div class="table-subtitle">
+                                Fecha:
+                                {{ fechaInicio | date : "medium" : "es" }}
+                                a
+                                {{ fechaFin | date : "medium" : "es" }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex">
+                        <p-button
+                            class="p-input-icon-left ml-auto"
+                            label="CSV"
+                            (click)="exportToCSVLineTime(dataLineaDeTiempo)"
+                            [raised]="true"
+                            [outlined]="true"
+                        ></p-button>
+                    </div>
+                </ng-template>
+
+                <!-- Tu header actual -->
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th *ngFor="let column of dataLineaDeTiempo.columns">
+                            {{ column.header }}
+                        </th>
+                    </tr>
+                </ng-template>
+
+                <!-- Agregando el body -->
+                <ng-template pTemplate="body" let-fecha>
+                    <tr>
+                        <td>{{ fecha }}</td>
+                        <ng-container
+                            *ngFor="let column of dataLineaDeTiempo.columns"
+                        >
+                            <td *ngIf="column.field !== 'fecha'">
+                                {{
+                                    dataLineaDeTiempo.tableData[fecha][
+                                        column.field
+                                    ] || 0
+                                }}
+                            </td>
+                        </ng-container>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
 </div>
 
 <ng-container *ngIf="load_table && incidente.length > 0">
@@ -483,7 +598,7 @@
                     #dt1
                     [value]="getEntries(totales[item.clave])"
                     [paginator]="true"
-                    [rows]="isMobil()?5:10"
+                    [rows]="isMobil() ? 5 : 10"
                     [rowsPerPageOptions]="[5, 10, 20, 1000]"
                 >
                     <ng-template pTemplate="caption">
@@ -562,7 +677,6 @@
     />
 </div>
 
-
 <!--GALERIA DE IMAGENES DE CADA INCIDENTE-->
 <p-dialog
     appendTo="body"
@@ -597,7 +711,9 @@
             <ng-template pTemplate="thumbnail" let-item>
                 <div class="grid grid-nogutter justify-content-center">
                     <img
-                        [src]="url + 'obtener_imagen/incidentes_denuncia/' + item"
+                        [src]="
+                            url + 'obtener_imagen/incidentes_denuncia/' + item
+                        "
                         style="display: block"
                         style="width: 30%; max-height: 20vh"
                     />
@@ -606,7 +722,6 @@
         </p-galleria>
     </ng-template>
 </p-dialog>
-
 
 <p-dialog
     appendTo="body"

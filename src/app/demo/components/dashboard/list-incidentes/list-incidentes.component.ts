@@ -16,6 +16,8 @@ import { Router } from '@angular/router';
 import { firstValueFrom, forkJoin } from 'rxjs';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import 'chartjs-adapter-date-fns'; // o 'chartjs-adapter-moment' si estás usando moment
+import 'chartjs-plugin-annotation';
 
 @Component({
     selector: 'app-list-incidentes',
@@ -54,26 +56,28 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
 
         this.filterForm = this.formBuilder.group({
             fecha_inicio: [firstDayOfMonth],
-            fecha_fin: [lastDayOfMonth], 
+            fecha_fin: [lastDayOfMonth],
             categoria: [[], [Validators.minLength(1)]],
             subcategoria: [[], [Validators.minLength(1)]],
             estado: [[], [Validators.minLength(1)]],
             direccion: [[], [Validators.minLength(1)]],
             view: [true],
         });
-        
     }
     viewmentOptions: any[] = [
         { name: 'Todos', value: null },
         { name: 'Visibles', value: true },
         { name: 'Ocultos', value: false },
     ];
-    @ViewChild('fechaInicio', { static: true }) fechaInicio: ElementRef;
+
     ngAfterViewInit() {
         // Deshabilitar autofocus en el campo fecha_inicio
         //this.fechaInicio.nativeElement.querySelector('input').blur();
     }
     load_map: boolean = false;
+    dataLineaDeTiempo: any;
+    optionsLineaDeTiempo: any;
+    load_linechart: boolean = false;
     filtro() {
         this.load_map = false;
         this.helper.llamarspinner('filtro lista incidente');
@@ -150,12 +154,299 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
         this.totales = this.sortTotalesByRegistros(this.totales);
         this.dataForm = this.sortDataAndLabels(this.dataForm);
         this.table_items = this.convertirObjetoEnArreglo(this.dataForm);
+        this.fechaInicio = fechaInicio;
+        this.fechaFin = fechaFin;
+        this.grafigDateTime(fechaInicio, fechaFin);
         this.load_table = true;
+
         setTimeout(() => {
             this.load_map = true;
             this.helper.cerrarspinner('filtro lista incidente');
         }, 500);
     }
+    fechaFin: Date;
+    fechaInicio: Date;
+    timeUnits = [
+        { label: 'Días', value: 'days' },
+        { label: 'Semanas', value: 'weeks' },
+        { label: 'Meses', value: 'months' },
+        { label: 'Años', value: 'years' },
+    ];
+
+    selectedTimeUnit: string = 'days'; // Valor por defecto
+    get selectedTimeUnitLabel(): string {
+        return this.timeUnits.find(
+            (unit) => unit.value === this.selectedTimeUnit
+        )?.label;
+    }
+    // Opciones de orden
+    timeSortOrder = [
+        { label: 'Ascendente', value: 'asc' },
+        { label: 'Descendente', value: 'desc' },
+    ];
+    selectedSortOrder: string = 'asc'; // Valor por defecto
+
+    grafigDateTime(fechaInicio?: Date, fechaFin?: Date) {
+        if (!fechaInicio) {
+            fechaInicio = new Date(this.fechaInicio);
+        }
+        if (!fechaFin) {
+            fechaFin = this.fechaFin;
+        }
+        this.load_linechart = false;
+        this.dataLineaDeTiempo = this.crearDatosLineaDeTiempo(
+            this.incidente,
+            fechaInicio,
+            fechaFin
+        );
+        const documentStyle = getComputedStyle(document.documentElement);
+        const textColor = documentStyle.getPropertyValue('--p-text-color');
+        const textColorSecondary = documentStyle.getPropertyValue(
+            '--p-text-muted-color'
+        );
+        const surfaceBorder = documentStyle.getPropertyValue(
+            '--p-content-border-color'
+        );
+
+        this.optionsLineaDeTiempo = {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    mode: 'index', // Muestra los datos de todos los puntos que comparten el mismo valor en el eje X
+                    intersect: false, // El tooltip aparece aunque el cursor no esté sobre un punto específico
+                    callbacks: {
+                        label: (context) => {
+                            return `${context.dataset.label}: ${context.raw.y} incidentes`;
+                        },
+                    },
+                },
+                annotation: {
+                    annotations: [
+                        {
+                            type: 'line',
+                            mode: 'vertical',
+                            scaleID: 'x',
+                            value: 0, // Este valor se actualizará dinámicamente según el cursor
+                            borderColor: 'red',
+                            borderWidth: 2,
+                            label: {
+                                enabled: true,
+                                content: 'Posición',
+                                position: 'top',
+                            },
+                        },
+                    ],
+                },
+            },
+            scales: {
+                x: {
+                    type: 'category',
+                    title: {
+                        display: true,
+                        text: 'Fecha',
+                    },
+                    ticks: {
+                        source: 'labels',
+                    },
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Cantidad de Incidentes',
+                    },
+                },
+            },
+            interaction: {
+                mode: 'index', // Muestra los puntos a lo largo del eje X que coinciden
+                intersect: false, // Muestra los puntos sin tener que estar directamente sobre ellos
+            },
+        };
+
+        this.load_linechart = true;
+    }
+
+    chartInstance: any; // Guarda la referencia del gráfico para actualizarlo
+
+    onChartReady(chart) {
+        this.chartInstance = chart; // Guarda la referencia del gráfico
+    }
+
+    onMouseMove(event: any) {
+        const points = this.chartInstance.getElementsAtEventForMode(
+            event,
+            'index',
+            { intersect: false },
+            false
+        );
+        if (points.length) {
+            const xIndex = points[0].index;
+            const value = this.dataLineaDeTiempo.labels[xIndex]; // Obtiene el valor en el eje X
+            // Actualizar la posición de la línea de referencia
+            this.chartInstance.options.plugins.annotation.annotations[0].value =
+                value;
+            this.chartInstance.update();
+        }
+    }
+
+    crearDatosLineaDeTiempo(
+        incidentes: any[],
+        fechaInicio: Date,
+        fechaFin: Date
+    ) {
+        const estadosAgrupados: { [key: string]: any[] } = {};
+        const estados: string[] = [];
+        const fechas: string[] = [];
+
+        // Iterar sobre los incidentes y agrupar por estado y fecha
+        incidentes.forEach((incidente) => {
+            const estado = incidente.estado.nombre;
+            const fecha = new Date(incidente.updatedAt || incidente.createdAt);
+
+            // Filtrar por el rango de fechas
+            if (fecha >= fechaInicio && fecha <= fechaFin) {
+                const fechaFormateada = this.formatearFecha(
+                    fecha,
+                    fechaInicio,
+                    fechaFin
+                ); // Para días, semanas, meses, años
+
+                if (!estadosAgrupados[estado]) {
+                    estadosAgrupados[estado] = [];
+                    estados.push(estado);
+                }
+
+                // Inicializar la fecha si no existe
+                if (!estadosAgrupados[estado][fechaFormateada]) {
+                    estadosAgrupados[estado][fechaFormateada] = 0;
+                }
+
+                // Incrementar el contador de incidentes para ese estado y fecha
+                estadosAgrupados[estado][fechaFormateada]++;
+                if (!fechas.includes(fechaFormateada)) {
+                    fechas.push(fechaFormateada);
+                }
+            }
+        });
+        // Ordenar las fechas según el orden seleccionado
+        fechas.sort((a, b) => {
+            const dateA = this.convertirFechaNumerica(a);
+            const dateB = this.convertirFechaNumerica(b);
+            if (!dateA || !dateB) {
+                console.log('No se pudo convertir la fecha a número', a, b);
+            }
+            if (this.selectedSortOrder === 'asc') {
+                return dateA - dateB; // Orden ascendente
+            } else {
+                return dateB - dateA; // Orden descendente
+            }
+        });
+
+        // Crear dataset para cada estado
+        const datasets = Object.keys(estadosAgrupados).map((estado, index) => {
+            const data = fechas.map((fecha) => ({
+                x: fecha,
+                y: estadosAgrupados[estado][fecha] || 0, // Si no hay incidentes, poner 0
+            }));
+
+            return {
+                label: estado,
+                data,
+                borderColor: this.obtenerColorEstado(index),
+                backgroundColor: this.obtenerColorEstado(index, true),
+                fill: true,
+                tension: 0.6,
+            };
+        });
+
+        // Crear datos para la tabla con fechas como filas y estados como columnas
+        const tableData: { [fecha: string]: { [estado: string]: number } } = {};
+        fechas.forEach((fecha) => {
+            tableData[fecha] = {};
+            Object.keys(estadosAgrupados).forEach((estado) => {
+                tableData[fecha][estado] = estadosAgrupados[estado][fecha] || 0; // Poner 0 si no hay datos
+            });
+        });
+        const columns = [
+            { field: 'fecha', header: 'Fecha' },
+            ...estados.map((estado: string) => ({
+                field: estado,
+                header: estado,
+            })),
+        ];
+        console.log(datasets, fechas, tableData, columns);
+        return {
+            datasets,
+            labels: fechas,
+            tableData,
+            columns,
+        };
+    }
+
+    convertirFechaNumerica(fecha: string): number {
+        const [anio, mes, dia] = fecha.split('-');
+        // Convertir de "DD/MM/YYYY" a "YYYY-MM-DD"
+        if (fecha.includes('/')) {
+            const [dia, mes, anio] = fecha.split('/');
+            fecha = `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+        }
+        if (fecha.includes('W')) {
+            // Si es una semana (Ej: "2024-W1")
+            const semana = parseInt(fecha.split('W')[1], 10);
+            return parseInt(anio) * 100 + semana; // Ej: 2024-W1 -> 202401
+        }
+        if (fecha.length === 4) {
+            // Si es solo el año (Ej: "2024")
+            return parseInt(anio);
+        }
+        if (fecha.length === 7) {
+            // Si es un mes (Ej: "2024-08")
+            const [year, month] = fecha.split('-');
+            return parseInt(year) * 100 + parseInt(month); // Ej: "2024-08" -> 202408
+        }
+        return new Date(fecha).getTime(); // Para días, ya es una fecha válida
+    }
+
+    formatearFecha(fecha: Date, fechaInicio: Date, fechaFin: Date): string {
+        const differenceInMilliseconds =
+            fechaFin.getTime() - fechaInicio.getTime();
+        const differenceInDays = differenceInMilliseconds / (1000 * 3600 * 24);
+        const esMeses = differenceInDays > 30; // Si la diferencia es mayor a 30 días, usamos meses
+        const esAños = differenceInDays > 365; // Si la diferencia es mayor a 365 días, usamos años
+
+        switch (this.selectedTimeUnit) {
+            case 'weeks':
+                const weekStart = new Date(fecha);
+                const weekNumber = this.getWeekNumber(weekStart); // Obtener la semana del año
+                return `${fecha.getFullYear()}-W${weekNumber}`;
+            case 'months':
+                return `${fecha.getFullYear()}-${(fecha.getMonth() + 1)
+                    .toString()
+                    .padStart(2, '0')}`; // Año-Mes
+            case 'years':
+                return `${fecha.getFullYear()}`; // Solo el año
+            default: // Días
+                return fecha.toLocaleDateString('es-EC'); // Día-Mes-Año
+        }
+    }
+
+    // Método para calcular el número de la semana
+    getWeekNumber(date: Date): number {
+        const startDate = new Date(date.getFullYear(), 0, 1);
+        const days = Math.floor(
+            (date.getTime() - startDate.getTime()) / (1000 * 3600 * 24)
+        );
+        return Math.ceil((days + startDate.getDay() + 1) / 7);
+    }
+
+    obtenerColorEstado(index: number, background: boolean = false) {
+        const colores = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'];
+        const color = colores[index % colores.length];
+        return background ? `${color}33` : color; // Con transparencia para fondo
+    }
+
     sortTotalesByRegistros(totales: any) {
         // Iterar sobre cada propiedad en `totales`
         for (const key in totales) {
@@ -564,6 +855,51 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
         let ext = '.csv';
         a.download = titulo ? titulo + ext : 'IncidentesFiltrado' + ext;
         a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    exportToCSVLineTime(dataLineaDeTiempo: any) {
+        // Preparar los headers
+        const headers = dataLineaDeTiempo.columns.map(col => col.header).join(';');
+
+        // Preparar las filas
+        const rows = dataLineaDeTiempo.labels.map(fecha => {
+            const row = [fecha]; // Primera columna es la fecha
+
+            // Agregar los demás campos
+            dataLineaDeTiempo.columns.forEach(column => {
+                if (column.field !== 'fecha') {
+                    // Obtener el valor y manejar casos donde sea undefined o null
+                    const value = dataLineaDeTiempo.tableData[fecha][column.field] ?? 0;
+
+                    // Si es número, reemplazar punto por coma para formato español
+                    const formattedValue = typeof value === 'number'
+                        ? value.toString().replace('.', ',')
+                        : value;
+
+                    // Si es string, envolver en comillas y escapar comillas existentes
+                    row.push(typeof formattedValue === 'string'
+                        ? `"${formattedValue.replace(/"/g, '""')}"`
+                        : formattedValue
+                    );
+                }
+            });
+
+            return row.join(';');
+        });
+
+        // Unir headers y rows
+        const csvContent = '\uFEFF' + [headers, ...rows].join('\n');
+
+        // Crear y descargar el archivo
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `LineaDeTiempo_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(url);
     }
     private resolveFieldData(data: any, field: any): any {

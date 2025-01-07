@@ -50,6 +50,8 @@
     "browser-image-compression": "^2.0.2",
     "capacitor-native-biometric": "^4.2.2",
     "chart.js": "^4.4.7",
+    "chartjs-adapter-date-fns": "^3.0.0",
+    "chartjs-plugin-annotation": "^3.1.0",
     "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
     "howler": "^2.2.4",
