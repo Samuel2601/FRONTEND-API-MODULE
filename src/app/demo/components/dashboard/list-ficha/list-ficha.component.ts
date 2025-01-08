@@ -108,6 +108,8 @@ export class ListFichaComponent implements OnInit {
                     );
                 }
             }
+            this.totales = this.sortTotalesByRegistros(this.totales);
+            this.dataForm = this.sortDataAndLabels(this.dataForm);
         } catch (error) {
             console.error(error);
         } finally {
@@ -115,6 +117,70 @@ export class ListFichaComponent implements OnInit {
             this.load_table = true;
             this.helper.cerrarspinner('Filtro lista de fichas');
         }
+    }
+
+    sortTotalesByRegistros(totales: any) {
+        // Iterar sobre cada propiedad en `totales`
+        for (const key in totales) {
+            if (totales.hasOwnProperty(key)) {
+                const item = totales[key];
+                // Verificar si el valor es un objeto que contiene `registros`
+                if (typeof item === 'object') {
+                    // Convertir el objeto en un array de pares [clave, valor]
+                    const entriesArray = Object.entries(item);
+
+                    // Ordenar el array en función de `registros` de mayor a menor
+                    entriesArray.sort(
+                        (a: any, b: any) => b[1].registros - a[1].registros
+                    );
+
+                    // Convertir de nuevo el array ordenado a un objeto
+                    totales[key] = Object.fromEntries(entriesArray);
+                }
+            }
+        }
+
+        return totales;
+    }
+    sortDataAndLabels(dataForm: any) {
+        // Función para ordenar datasets y labels
+        const sortDataSet = (datasets: any[], labels: string[]) => {
+            // Obtener el dataset que contiene los datos
+            const data = datasets[0].data;
+
+            // Crear una lista de pares [valor, label] para ordenarla
+            const combined = data.map((value: number, index: number) => ({
+                value,
+                label: labels[index],
+            }));
+
+            // Ordenar de mayor a menor basado en el valor
+            combined.sort((a, b) => b.value - a.value);
+
+            // Actualizar los datasets y labels con el nuevo orden
+            datasets[0].data = combined.map((item) => item.value);
+            return combined.map((item) => item.label);
+        };
+
+        // Ordenar categorias, direcciones, estados, y subcategorias
+        dataForm.actividades.labels = sortDataSet(
+            dataForm.actividades.datasets,
+            dataForm.actividades.labels
+        );
+        dataForm.encargados.labels = sortDataSet(
+            dataForm.encargados.datasets,
+            dataForm.encargados.labels
+        );
+        dataForm.estados.labels = sortDataSet(
+            dataForm.estados.datasets,
+            dataForm.estados.labels
+        );
+        dataForm.direcciones.labels = sortDataSet(
+            dataForm.direcciones.datasets,
+            dataForm.direcciones.labels
+        );
+
+        return dataForm;
     }
 
     totales: any;
