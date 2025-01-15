@@ -1,449 +1,340 @@
-<div
-    class="px-4 py-8 md:px-6 lg:px-8"
-    style="
-        background: url('assets/signin.jpg') no-repeat;
-        background-size: cover;
-    "
->
-    <p-toast></p-toast>
-    <div class="flex flex-wrap">
-        <div class="w-full lg:w-6 p-4 lg:p-7 surface-card">
-            <form (ngSubmit)="registrarse()" [formGroup]="formulario">
-                <div
-                    class="flex flex-column gap-2 mx-auto"
-                    style="min-height: 20rem; max-width: 30rem"
-                >
-                    <div class="text-center mt-3 mb-3 text-xl font-semibold">
-                        Información de contacto
-                    </div>
-                    <div class="field p-fluid">
-                        <p-iconField>
-                            <p-inputIcon>
-                                <i class="pi pi-user"></i>
-                            </p-inputIcon>
-                            <input
-                                formControlName="name"
-                                pInputText
-                                id="name"
-                                type="text"
-                                placeholder="Nombres"
-                                required
-                            />
-                        </p-iconField>
-                    </div>
-                    <div class="field p-fluid">
-                        <p-iconField>
-                            <p-inputIcon>
-                                <i class="pi pi-user"></i>
-                            </p-inputIcon>
-                            <input
-                                formControlName="last_name"
-                                pInputText
-                                id="last_name"
-                                type="text"
-                                placeholder="Apellidos"
-                                required
-                            />
-                        </p-iconField>
-                    </div>
-                    <div class="field p-fluid">
-                        <p-iconField>
-                            <p-inputIcon>
-                                <i class="pi pi-phone"></i>
-                            </p-inputIcon>
-                            <input
-                                formControlName="telf"
-                                pInputText
-                                id="telf"
-                                type="text"
-                                placeholder="Teléfono"
-                                required
-                            />
-                        </p-iconField>
-                    </div>
-                    <div class="field p-fluid">
-                        <p-iconField>
-                            <p-inputIcon>
-                                <i class="pi pi-envelope"></i>
-                            </p-inputIcon>
-                            <input
-                                formControlName="email"
-                                pInputText
-                                id="email"
-                                type="email"
-                                placeholder="Correo"
-                                required
-                            />
-                        </p-iconField>
+<div class="grid min-h-screen m-0">
+    <!-- Info Section -->
+    <div
+        class="col-12 md:col-6 bg-green-50 p-4"
+        [ngStyle]="{
+            'background-image': 'url(assets/layout/images/fondo.jpg)'
+        }"
+    >
+        <div
+            class="flex flex-column align-items-center justify-content-center h-full"
+            style="background-color: #c1dfcd47"
+        >
+            <div class="max-w-30rem">
+                <img
+                    src="assets/icon/logo.png"
+                    alt="Logo"
+                    height="50"
+                    class="mb-5"
+                />
+
+                <h3 class="text-2xl font-bold mb-4">
+                    Bienvenido a
+                    <span class="text-green-500">Esmeraldas la Bella</span>
+                </h3>
+
+                <p class="text-700 line-height-3 mb-5">
+                    Su privacidad es importante para nosotros. Los datos
+                    proporcionados son estrictamente confidenciales y no serán
+                    compartidos con terceros.
+                </p>
+
+                <div class="flex flex-column gap-4">
+                    <div class="flex align-items-start">
+                        <span
+                            class="flex align-items-center justify-content-center bg-green-400 border-round"
+                            style="width: 3rem; height: 3rem"
+                        >
+                            <i class="pi pi-inbox text-xl text-white"></i>
+                        </span>
+                        <div class="ml-3">
+                            <span class="font-medium text-900"
+                                >Denuncias e Incidentes</span
+                            >
+                            <p class="text-700 line-height-3 mt-2">
+                                Recopilamos información sobre incidentes para
+                                brindar una rápida respuesta.
+                            </p>
+                        </div>
                     </div>
 
-                    <div class="field p-fluid">
-                        <p-password
-                            styleClass=" mb-5"
-                            inputStyleClass="w-full p-3 md:w-30rem"
-                            formControlName="password"
-                            [toggleMask]="true"
-                            placeholder="Contraseña"
-                            required
-                        />
-                        <p-password
-                            styleClass=" mb-5"
-                            inputStyleClass="w-full p-3 md:w-30rem"
-                            formControlName="passwordConfirmation"
-                            [toggleMask]="true"
-                            placeholder="Confirmación de Contraseña"
-                            required
-                        />
+                    <div class="flex align-items-start">
+                        <span
+                            class="flex align-items-center justify-content-center bg-green-400 border-round"
+                            style="width: 3rem; height: 3rem"
+                        >
+                            <i class="pi pi-shield text-xl text-white"></i>
+                        </span>
+                        <div class="ml-3">
+                            <span class="font-medium text-900">Seguridad</span>
+                            <p class="text-700 line-height-3 mt-2">
+                                Nos comprometemos a proteger sus datos
+                                personales.
+                            </p>
+                        </div>
                     </div>
-                    <div class="flex pt-4 justify-content-between">
-                        <p-inputSwitch
-                            formControlName="checked"
-                            (onChange)="ver()"
-                        ></p-inputSwitch>
-                        <label for="">
-                            Estas de acuerdo con nuestras politicas de
-                            seguridad?
-                        </label>
-                        <p-button
-                            icon="pi pi-external-link"
-                            label="ver"
-                            (click)="llamarmodal()"
-                            type="button"
-                            [text]="true"
-                            [raised]="true"
-                        ></p-button>
-                    </div>
-                    <div class="flex pt-4 justify-content-between">
-                        <p-button
-                            [disabled]="!formulario.get('checked').value"
-                            label="Enviar"
-                            icon="pi pi-check"
-                            iconPos="right"
-                            type="submit"
-                        ></p-button>
+
+                    <div class="flex align-items-start">
+                        <span
+                            class="flex align-items-center justify-content-center bg-green-400 border-round"
+                            style="width: 3rem; height: 3rem"
+                        >
+                            <i class="pi pi-globe text-xl text-white"></i>
+                        </span>
+                        <div class="ml-3">
+                            <span class="font-medium text-900"
+                                >Disponibilidad garantizada</span
+                            >
+                            <p class="text-700 line-height-3 mt-2">
+                                Disponible 24/7 para su conveniencia.
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </form>
-            <div class="mt-6 text-center text-600">
-                <div
-                    *ngIf="
-                        formulario.get('name').invalid &&
-                        (formulario.get('name').dirty ||
-                            formulario.get('name').touched)
-                    "
-                >
-                    <p-tag severity="danger">
-                        <div class="flex align-items-center gap-2">
-                            <i class="pi pi-times text-xs"></i>
-                            <span class="text-base">{{
-                                getErrorMessage("name")
-                            }}</span>
-                        </div>
-                    </p-tag>
-                </div>
-                <div
-                    *ngIf="
-                        formulario.get('last_name').invalid &&
-                        (formulario.get('last_name').dirty ||
-                            formulario.get('last_name').touched)
-                    "
-                >
-                    <p-tag severity="danger">
-                        <div class="flex align-items-center gap-2">
-                            <i class="pi pi-times text-xs"></i>
-                            <span class="text-base">{{
-                                getErrorMessage("last_name")
-                            }}</span>
-                        </div>
-                    </p-tag>
-                </div>
-
-                <div
-                    *ngIf="
-                        formulario.get('telf').invalid &&
-                        (formulario.get('telf').dirty ||
-                            formulario.get('telf').touched)
-                    "
-                >
-                    <p-tag severity="danger">
-                        <div class="flex align-items-center gap-2">
-                            <i class="pi pi-times text-xs"></i>
-                            <span class="text-base">{{
-                                getErrorMessage("telf")
-                            }}</span>
-                        </div>
-                    </p-tag>
-                </div>
-
-                <div
-                    *ngIf="
-                        formulario.get('email').invalid &&
-                        (formulario.get('email').dirty ||
-                            formulario.get('email').touched)
-                    "
-                >
-                    <p-tag severity="danger">
-                        <div class="flex align-items-center gap-2">
-                            <i class="pi pi-times text-xs"></i>
-                            <span class="text-base">{{
-                                getErrorMessage("email")
-                            }}</span>
-                        </div>
-                    </p-tag>
-                </div>
-
-                <div
-                    *ngIf="
-                        formulario.get('password').invalid &&
-                        (formulario.get('password').dirty ||
-                            formulario.get('password').touched)
-                    "
-                >
-                    <p-tag severity="danger">
-                        <div class="flex align-items-center gap-2">
-                            <i class="pi pi-times text-xs"></i>
-                            <span class="text-base">{{
-                                getErrorMessage("password")
-                            }}</span>
-                        </div>
-                    </p-tag>
-                </div>
-                <div
-                    *ngIf="
-                        formulario.get('passwordConfirmation').invalid &&
-                        (formulario.get('passwordConfirmation').dirty ||
-                            formulario.get('passwordConfirmation').touched)
-                    "
-                >
-                    <p-tag severity="danger">
-                        <div class="flex align-items-center gap-2">
-                            <i class="pi pi-times text-xs"></i>
-                            <span class="text-base">{{
-                                getErrorMessage("passwordConfirmation")
-                            }}</span>
-                        </div>
-                    </p-tag>
-                </div>
-            </div>
-
-            <div class="mt-6 text-center text-600">
-                Ya tienes una cuenta?
-                <a
-                    tabindex="0"
-                    class="font-medium text-blue-500"
-                    [routerLink]="'/auth/login'"
-                    >Incia sesión</a
-                >
             </div>
         </div>
+    </div>
+    <!-- Form Section -->
+    <div class="col-12 md:col-6 p-4 surface-section">
         <div
-            class="w-full lg:w-6 p-4 lg:p-7"
-            style="background-color: rgba(255, 255, 255, 0.7)"
+            class="flex flex-column align-items-center justify-content-center h-full"
         >
-            <img
-                src="assets/icon/logo.png"
-                alt="Image"
-                height="50"
-                class="mb-6"
-            />
-            <div class="text-xl text-900 font-500 mb-3">
-                Bienvenido a <span class="text-600">Esmeraldas la Bella</span>
+            <div
+                class="surface-card p-4 shadow-2 border-round w-full max-w-30rem"
+            >
+                <h2 class="text-center text-2xl font-bold mb-4">
+                    Registro de Usuario
+                </h2>
+
+                <form [formGroup]="formRegister" (ngSubmit)="onSubmit()">
+                    <div class="flex flex-column gap-3">
+                        <!-- Personal Information -->
+                        <div class="p-float-label">
+                            <p-inputGroup>
+                                <p-inputGroupAddon>
+                                    <i class="pi pi-user"></i>
+                                </p-inputGroupAddon>
+                                <p-floatLabel style="flex: 1 1 auto">
+                                    <input
+                                        pInputText
+                                        id="name"
+                                        formControlName="name"
+                                        type="text"
+                                    />
+                                    <label for="name">Nombres</label>
+                                </p-floatLabel>
+                            </p-inputGroup>
+                            <small
+                                class="p-error"
+                                *ngIf="
+                                    formRegister.get('name')?.invalid &&
+                                    formRegister.get('name')?.touched
+                                "
+                            >
+                                {{ getErrorMessage("name") }}
+                            </small>
+                        </div>
+
+                        <div class="p-float-label">
+                            <p-inputGroup>
+                                <p-inputGroupAddon>
+                                    <i class="pi pi-user"></i>
+                                </p-inputGroupAddon>
+                                <p-floatLabel style="flex: 1 1 auto">
+                                    <input
+                                        pInputText
+                                        id="last_name"
+                                        formControlName="last_name"
+                                        type="text"
+                                    />
+                                    <label for="last_name">Apellidos</label>
+                                </p-floatLabel>
+                            </p-inputGroup>
+                            <small
+                                class="p-error"
+                                *ngIf="
+                                    formRegister.get('last_name')?.invalid &&
+                                    formRegister.get('last_name')?.touched
+                                "
+                            >
+                                {{ getErrorMessage("last_name") }}
+                            </small>
+                        </div>
+
+                        <div class="p-float-label">
+                            <p-inputGroup>
+                                <p-inputGroupAddon>
+                                    <i class="pi pi-id-card"></i>
+                                </p-inputGroupAddon>
+                                <p-floatLabel style="flex: 1 1 auto">
+                                    <input
+                                        pInputText
+                                        id="dni"
+                                        formControlName="dni"
+                                        type="text"
+                                    />
+                                    <label for="dni">Cédula</label>
+                                </p-floatLabel>
+                            </p-inputGroup>
+                            <small
+                                class="p-error"
+                                *ngIf="
+                                    formRegister.get('dni')?.invalid &&
+                                    formRegister.get('dni')?.touched
+                                "
+                            >
+                                {{ getErrorMessage("dni") }}
+                            </small>
+                        </div>
+
+                        <div class="p-float-label">
+                            <p-inputGroup>
+                                <p-inputGroupAddon>
+                                    <i class="pi pi-phone"></i>
+                                </p-inputGroupAddon>
+                                <p-floatLabel style="flex: 1 1 auto">
+                                    <input
+                                        pInputText
+                                        id="telf"
+                                        formControlName="telf"
+                                        type="tel"
+                                    />
+                                    <label for="telf">Teléfono</label>
+                                </p-floatLabel>
+                            </p-inputGroup>
+                            <small
+                                class="p-error"
+                                *ngIf="
+                                    formRegister.get('telf')?.invalid &&
+                                    formRegister.get('telf')?.touched
+                                "
+                            >
+                                {{ getErrorMessage("telf") }}
+                            </small>
+                        </div>
+
+                        <div class="p-float-label">
+                            <p-inputGroup>
+                                <p-inputGroupAddon>
+                                    <i class="pi pi-envelope"></i>
+                                </p-inputGroupAddon>
+                                <p-floatLabel style="flex: 1 1 auto">
+                                    <input
+                                        pInputText
+                                        id="email"
+                                        formControlName="email"
+                                        type="email"
+                                    />
+                                    <label for="email"
+                                        >Correo electrónico</label
+                                    >
+                                </p-floatLabel>
+                            </p-inputGroup>
+                            <small
+                                class="p-error"
+                                *ngIf="
+                                    formRegister.get('email')?.invalid &&
+                                    formRegister.get('email')?.touched
+                                "
+                            >
+                                {{ getErrorMessage("email") }}
+                            </small>
+                        </div>
+
+                        <!-- Password Section -->
+                        <div class="p-float-label">
+                            <p-password
+                                inputStyleClass="w-full"
+                                [style.flex]="'1 1 auto'"
+                                formControlName="password"
+                                [toggleMask]="true"
+                                [feedback]="true"
+                                styleClass="w-full"
+                                [strongRegex]="
+                                    '^(?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9])(?=.*[a-z]).{8,}$'
+                                "
+                            ></p-password>
+                            <small
+                                class="p-error"
+                                *ngIf="
+                                    formRegister.get('password')?.invalid &&
+                                    formRegister.get('password')?.touched
+                                "
+                            >
+                                {{ getErrorMessage("password") }}
+                            </small>
+                        </div>
+
+                        <div class="p-float-label">
+                            <p-password
+                                inputStyleClass="w-full"
+                                [style.flex]="'1 1 auto'"
+                                formControlName="passwordConfirmation"
+                                [toggleMask]="true"
+                                styleClass="w-full"
+                            ></p-password>
+                            <small
+                                class="p-error"
+                                *ngIf="
+                                    formRegister.get('passwordConfirmation')
+                                        ?.invalid &&
+                                    formRegister.get('passwordConfirmation')
+                                        ?.touched
+                                "
+                            >
+                                {{ getErrorMessage("passwordConfirmation") }}
+                            </small>
+                        </div>
+
+                        <!-- Terms and Conditions -->
+                        <div
+                            class="flex align-items-center justify-content-between"
+                        >
+                            <div class="flex align-items-center">
+                                <p-checkbox
+                                    formControlName="acceptTerms"
+                                    [binary]="true"
+                                    inputId="acceptTerms"
+                                ></p-checkbox>
+                                <label for="acceptTerms" class="ml-2"
+                                    >Acepto términos y condiciones</label
+                                >
+                            </div>
+                            <p-button
+                                icon="pi pi-external-link"
+                                (onClick)="llamarmodal()"
+                                styleClass="p-button-text p-button-sm"
+                            ></p-button>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <p-button
+                            type="submit"
+                            [loading]="loading"
+                            [disabled]="!formRegister.get('acceptTerms')?.value"
+                            styleClass="w-full"
+                            label="Registrarse"
+                            icon="pi pi-check"
+                        ></p-button>
+
+                        <!-- Login Link -->
+                        <div class="text-center mt-3">
+                            <span class="text-600"
+                                >¿Ya tienes una cuenta?
+                            </span>
+                            <a
+                                routerLink="/auth/login"
+                                class="font-medium text-blue-500 no-underline"
+                                >Inicia sesión</a
+                            >
+                        </div>
+                    </div>
+                </form>
             </div>
-
-            <p class="text-600 line-height-3 mt-0 mb-6">
-                Su privacidad es importante para nosotros. Los datos que nos
-                proporcione son estrictamente confidenciales y no serán
-                compartidos con terceros. Solo recopilamos información esencial
-                para establecer contacto y brindarle el mejor servicio posible.
-            </p>
-            <ul class="list-none p-0 m-0">
-                <li class="flex align-items-start mb-4">
-                    <div>
-                        <span
-                            class="flex align-items-center justify-content-center bg-purple-400"
-                            style="
-                                width: 38px;
-                                height: 38px;
-                                border-radius: 10px;
-                            "
-                            ><i class="text-xl text-white pi pi-inbox"></i
-                        ></span>
-                    </div>
-
-                    <div class="ml-3">
-                        <span class="font-medium text-900"
-                            >Denuncias e Incidentes</span
-                        >
-                        <p class="mt-2 mb-0 text-600 line-height-3">
-                            Esta función está diseñada para recopilar
-                            información sobre cualquier inconveniente dentro del
-                            poblado, permitiéndonos brindar una rápida respuesta
-                            a la ciudadanía.
-                        </p>
-                    </div>
-                </li>
-                <li class="flex align-items-start mb-4">
-                    <div>
-                        <span
-                            class="flex align-items-center justify-content-center bg-purple-400"
-                            style="
-                                width: 38px;
-                                height: 38px;
-                                border-radius: 10px;
-                            "
-                            ><i class="text-xl text-white pi pi-shield"></i
-                        ></span>
-                    </div>
-                    <div class="ml-3">
-                        <span class="font-medium text-900">Seguridad</span>
-                        <p class="mt-2 mb-0 text-600 line-height-3">
-                            Nos comprometemos a asegurar sus datos y a no
-                            divulgarlos bajo ninguna circunstancia.
-                        </p>
-                    </div>
-                </li>
-                <li class="flex align-items-start">
-                    <div>
-                        <span
-                            class="flex align-items-center justify-content-center bg-purple-400"
-                            style="
-                                width: 38px;
-                                height: 38px;
-                                border-radius: 10px;
-                            "
-                            ><i class="text-xl text-white pi pi-globe"></i
-                        ></span>
-                    </div>
-                    <div class="ml-3">
-                        <span class="font-medium text-900"
-                            >Disponibilidad garantizada</span
-                        >
-                        <p class="mt-2 mb-0 text-600 line-height-3">
-                            Nuestro sitio web está diseñado para garantizar su
-                            disponibilidad las 24 horas del día, los 7 días de
-                            la semana, para que pueda acceder a él en cualquier
-                            momento que lo necesite.
-                        </p>
-                    </div>
-                </li>
-            </ul>
         </div>
     </div>
 </div>
+
+<!-- Terms Modal -->
 <p-dialog
-    header="Cargada de datos"
+    header="Términos y Condiciones"
     [(visible)]="visible"
     [style]="{ width: '50vw' }"
+    [modal]="true"
 >
-    <div style="display: flex; justify-content: center">
-        <p-progressSpinner ariaLabel="loading"></p-progressSpinner>
-    </div>
+    <p class="text-700 line-height-3">
+        Contenido de términos y condiciones aquí...
+    </p>
 </p-dialog>
 
-<!--
-      <p-stepperPanel style="display: none">
-                        <ng-template
-                            pTemplate="header"
-                            let-onClick="onClick"
-                            let-index="index"
-                        >
-                            <button
-                                class="bg-transparent border-none inline-flex flex-column gap-2"
-                                (onClick)="onClick.emit()"
-                            >
-                                <span
-                                    class="border-round border-2 w-3rem h-3rem inline-flex align-items-center justify-content-center"
-                                    [ngClass]="{
-                                        'bg-primary border-primary':
-                                            index <= active,
-                                        'surface-border': index > active
-                                    }"
-                                >
-                                    <i class="pi pi-image"></i>
-                                </span>
-                            </button>
-                        </ng-template>
-                        <ng-template
-                            pTemplate="content"
-                            let-prevCallback="prevCallback"
-                        >
-                            <div
-                                class="flex flex-column gap-2 mx-auto"
-                                style="min-height: 16rem; max-width: 24rem"
-                            >
-                                <div
-                                    class="text-center mt-3 mb-3 text-xl font-semibold"
-                                >
-                                    Foto de perfil
-                                </div>
-                                <div
-                                    class="flex justify-content-center align-items-center"
-                                    style="
-                                        height: 200px;
-                                        width: 200px;
-                                        border-radius: 50%;
-                                        border: 2px dashed #ccc;
-                                        cursor: pointer;
-                                        margin-left: 70px;
-                                    "
-                                >
-                                    <img
-                                        *ngIf="
-                                            !load_imagen &&
-                                            imagenesSeleccionadas
-                                        "
-                                        [src]="imagenesSeleccionadas"
-                                        alt="Descripción de la imagen"
-                                        style="
-                                            max-width: 100%;
-                                            max-height: 100%;
-                                            cursor: pointer;
-                                        "
-                                        (click)="
-                                            load_imagen = true;
-                                            imagenesSeleccionadas = undefined;
-                                            selectedFiles = undefined
-                                        "
-                                    />
-                                    <p-fileUpload
-                                        *ngIf="!isMobil() && load_imagen"
-                                        mode="basic"
-                                        name="demo[]"
-                                        [style]="{
-                                            'height': '200px',
-                                        'width': '200px',
-                                        'border-radius': '50%',
-                                        'border':' 2px dashed #ccc',
-                                        'cursor': 'pointer',
-                                        }"
-                                        url="https://www.primefaces.org/cdn/api/upload.php"
-                                        accept="image/*"
-                                        [maxFileSize]="1000000"
-                                        (onUpload)="onFilesSelected($event)"
-                                        [auto]="true"
-                                        chooseLabel=""
-                                    ></p-fileUpload>
-                                    <p-button
-                                        *ngIf="isMobil() && load_imagen"
-                                        icon="pi pi-plus"
-                                        (click)="tomarFotoYEnviar($event)"
-                                    ></p-button>
-                                </div>
-                                <div class="flex pt-4 justify-content-between">
-                                    <p-button
-                                        (onClick)="prevCallback.emit()"
-                                        label="Atras"
-                                        severity="secondary"
-                                        icon="pi pi-arrow-left"
-                                    ></p-button>
-                                    <p-button
-                                        label="Enviar"
-                                        icon="pi pi-check"
-                                        iconPos="right"
-                                        type="submit"
-                                    ></p-button>
-                                </div>
-                            </div>
-                        </ng-template>
-                    </p-stepperPanel>
--->
+<p-toast></p-toast>

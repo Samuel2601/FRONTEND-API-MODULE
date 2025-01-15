@@ -2,6 +2,12 @@
 
 <div
     class="surface-ground flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden"
+    [ngStyle]="{
+        'background-image': 'url(assets/layout/images/fondo.jpg)',
+        'background-position': 'center',
+        'background-repeat': 'no-repeat',
+        'background-size': 'cover'
+    }"
 >
     <!--
         <img
@@ -29,7 +35,10 @@
         >
             <div
                 class="w-full surface-card py-4 px-5 sm:px-8"
-                style="border-radius: 53px"
+                style="
+                    border-radius: 53px;
+                    background-color: #c9e3d58c !important;
+                "
             >
                 <div class="text-center mb-5">
                     <p-avatar
@@ -41,10 +50,11 @@
                             [src]="
                                 fotoUsuario && fotoUsuario.startsWith('http')
                                     ? fotoUsuario
-                                    : url +
-                                          'obtener_imagen/usuario/' +
-                                          fotoUsuario ||
-                                      'assets/icon/silueta.png'
+                                    : fotoUsuario
+                                    ? url +
+                                      'obtener_imagen/usuario/' +
+                                      fotoUsuario
+                                    : 'assets/icon/silueta.png'
                             "
                             alt="Image"
                             height="150"
@@ -109,9 +119,9 @@
                         </div>
                         <a
                             class="font-medium no-underline ml-2 text-right cursor-pointer"
-                            style="color: var(--primary-color)"
+                            style="color: var(--primary-color); font-size: 15px;"
                             [routerLink]="'/auth/signup'"
-                            >No tienes una cuenta?</a
+                            >No tienes una cuenta? Registrate</a
                         >
                     </div>
                     <div

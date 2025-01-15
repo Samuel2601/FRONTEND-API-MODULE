@@ -502,10 +502,27 @@ export class HomeComponent implements OnInit {
                                 info: 'Esta es una encuesta para saber en qué lugares desean tener WiFi por parte de la alcaldía.',
                                 icon: 'https://i.postimg.cc/Cx0YHVKp/Iconos-disen-o-10.png',
                                 showInfo: false,
+                                view: false,
                                 style: false,
                                 command: async () => {
                                     window.open(
                                         'https://docs.google.com/forms/d/e/1FAIpQLSdZT_1XTiaHWSx5BCw1wZwAcr_FqpcQlsZHg6amCT-crdBtug/viewform',
+                                        '_blank'
+                                    );
+                                },
+                            },
+                            {
+                                label: 'Impuesto Predial',
+                                info: 'Consulte sus valores a pagar y obtenga su certificado de pago digital.',
+                                icon: 'https://i.postimg.cc/c1DXcVt7/Sin-t-tulo-1472-x-832-px-1.png',
+                                showInfo: false,
+                                style: false,
+                                command: async () => {
+                                    window.open(
+                                        this.auth.authToken()
+                                            ? 'https://consulta.esmeraldas.gob.ec/index.jsp?id=' +
+                                                  this.auth.authToken().sub
+                                            : 'https://consulta.esmeraldas.gob.ec/index.jsp',
                                         '_blank'
                                     );
                                 },

@@ -343,7 +343,7 @@ export class AuthService {
             // Verificamos que el datatoken sea de tipo string
             if (!datatoken || typeof datatoken !== 'string') {
                 console.error('Token inválido o no encontrado.');
-                return;
+                return false;
             }
 
             // Si el usuario está autenticado, decodificamos el token
@@ -353,7 +353,7 @@ export class AuthService {
             }
         } catch (error) {
             console.error('Error al decodificar el token:', error);
-            return '';
+            return false;
         }
     }
 

@@ -107,67 +107,88 @@ export class SignupComponent {
         private dialogService: DialogService,
         private ref: DynamicDialogRef
     ) {
-        this.formulario = this.formBuilder.group({
-            /*dni: [
-                '',
-                [
-                    Validators.minLength(10),
-                    Validators.maxLength(10),
-                    Validators.pattern('^[0-9]+$'),
+        this.formRegister = this.formBuilder.group(
+            {
+                dni: [
+                    '',
+                    [
+                        Validators.required,
+                        Validators.minLength(10),
+                        Validators.maxLength(10),
+                        Validators.pattern('^[0-9]+$'),
+                    ],
                 ],
-            ],*/
-            name: [
-                '',
-                [
-                    Validators.required,
-                    Validators.pattern('^[a-zA-ZáéíóúÑñ ]+$'),
+                name: [
+                    '',
+                    [
+                        Validators.required,
+                        Validators.pattern('^[a-zA-ZáéíóúÑñ ]+$'),
+                    ],
                 ],
-            ],
-            last_name: [
-                '',
-                [
-                    Validators.required,
-                    Validators.pattern('^[a-zA-ZáéíóúÑñ ]+$'),
+                last_name: [
+                    '',
+                    [
+                        Validators.required,
+                        Validators.pattern('^[a-zA-ZáéíóúÑñ ]+$'),
+                    ],
                 ],
-            ],
-            telf: [
-                '',
-                [
-                    Validators.required,
-                    Validators.minLength(10),
-                    Validators.maxLength(10),
-                    Validators.pattern('^[0-9]+$'),
+                telf: [
+                    '',
+                    [
+                        Validators.required,
+                        Validators.minLength(10),
+                        Validators.maxLength(10),
+                        Validators.pattern('^[0-9]+$'),
+                    ],
                 ],
-            ],
-            email: ['', [Validators.required, this.customEmailValidator()]],
-            password: ['', [Validators.required, Validators.minLength(4)]],
-            passwordConfirmation: [
-                '',
-                [Validators.required, Validators.minLength(4)],
-            ],
-            checked: [false],
-        });
+                email: ['', [Validators.required, this.customEmailValidator()]],
+                password: ['', [Validators.required, Validators.minLength(4)]],
+                passwordConfirmation: [
+                    '',
+                    [Validators.required, Validators.minLength(4)],
+                ],
+                acceptTerms: [false],
+            },
+            {
+                validators: this.passwordMatchValidator,
+            }
+        );
 
-        this.formulario.get('dni')?.valueChanges.subscribe((value: any) => {
-            if (this.formulario.get('dni')?.valid) {
+        this.formRegister.get('dni')?.valueChanges.subscribe((value: any) => {
+            if (this.formRegister.get('dni')?.valid) {
                 this.consultar(value);
             }
         });
         // Eliminar espacios en blanco del email electrónico
-        this.formulario.get('email').valueChanges.subscribe((value) => {
+        this.formRegister.get('email').valueChanges.subscribe((value) => {
             const correoSinEspacios = value.replace(/\s/g, '');
             const correoMinusculas = correoSinEspacios.toLowerCase();
-            this.formulario.patchValue(
+            this.formRegister.patchValue(
                 { email: correoMinusculas },
                 { emitEvent: false }
             );
         });
-        /* this.formulario.get('email')?.valueChanges.subscribe((value: any) => {
-            if (this.formulario.get('email')?.valid) {
+        /* this.formRegister.get('email')?.valueChanges.subscribe((value: any) => {
+            if (this.formRegister.get('email')?.valid) {
                 this.consultarcorreo(value);
             }
         });*/
     }
+    passwordMatchValidator(form: FormGroup) {
+        const password = form.get('password');
+        const confirmPassword = form.get('passwordConfirmation');
+
+        if (
+            password &&
+            confirmPassword &&
+            password.value !== confirmPassword.value
+        ) {
+            confirmPassword.setErrors({ passwordMismatch: true });
+        } else {
+            confirmPassword.setErrors(null);
+        }
+    }
+
     customEmailValidator(): ValidatorFn {
         return (control: AbstractControl): ValidationErrors | null => {
             const email = control.value;
@@ -176,8 +197,12 @@ export class SignupComponent {
             return emailPattern.test(email) ? null : { invalidEmail: true };
         };
     }
+    showTermsModal() {
+        this.visible = true;
+    }
+
     getErrorMessage(fieldName: string): string {
-        const field = this.formulario.get(fieldName);
+        const field = this.formRegister.get(fieldName);
         if (!field || !field.errors) return '';
 
         const errors = [];
@@ -195,11 +220,9 @@ export class SignupComponent {
         return errors.join('\n');
     }
 
-    ver() {
-        ////console.log(this.formulario.get('checked'));
-    }
     checked: boolean | null = null;
     visible: boolean = false;
+    loading: boolean = false;
     consultar(id: any) {
         this.visible = true;
         this.admin.getCiudadano(id).subscribe(
@@ -208,26 +231,27 @@ export class SignupComponent {
                 setTimeout(() => {
                     this.visible = false;
                     if (response.name) {
-                        this.formulario.get('name')?.setValue(response.name);
-                        //this.formulario.get('email')?.setErrors({ 'status': "VALID" });
-                        this.formulario.get('name')?.disable();
+                        this.formRegister.get('name')?.setValue(response.name);
+                        //this.formRegister.get('email')?.setErrors({ 'status': "VALID" });
+                        this.formRegister.get('name')?.disable();
                     }
                 }, 1000);
             },
             (error) => {
                 this.visible = false;
 
-                this.formulario.get('name')?.setValue('');
-                this.formulario.get('name')?.enable();
+                this.formRegister.get('name')?.setValue('');
+                this.formRegister.get('name')?.enable();
                 this.messageService.add({
                     severity: 'error',
                     summary: ('(' + error.status + ')').toString(),
                     detail:
                         error.error.message +
                             ': ' +
-                            this.formulario.get('dni')?.value || 'Sin conexión',
+                            this.formRegister.get('dni')?.value ||
+                        'Sin conexión',
                 });
-                this.formulario.get('dni')?.setValue('');
+                this.formRegister.get('dni')?.setValue('');
             }
         );
     }
@@ -251,21 +275,21 @@ export class SignupComponent {
                     summary: 'Invalido',
                     detail: 'Correo electronico ya existente',
                 });
-                this.formulario
+                this.formRegister
                     .get('email')
                     ?.setErrors({ invalido: true, type: 'duplicidad' });
-                ////console.log(this.formulario.get('email'));
+                ////console.log(this.formRegister.get('email'));
             }
             setTimeout(() => {
                 this.visible = false;
             }, 1000);
         });
     }
-    registrarse() {
+    onSubmit() {
         this.visible = true;
-        if (this.formulario.valid) {
-            this.formulario.get('name')?.enable();
-            this.create.registrarUsuario(this.formulario.value).subscribe(
+        if (this.formRegister.valid) {
+            this.formRegister.get('name')?.enable();
+            this.create.registrarUsuario(this.formRegister.value).subscribe(
                 (response) => {
                     //console.log(response);
                     this.messageService.add({
@@ -275,12 +299,7 @@ export class SignupComponent {
                     });
                     setTimeout(() => {
                         // Redirigir a la página de inicio de sesión con los datos de email y contraseña
-                        this.router.navigate(['/auth/login'], {
-                            queryParams: {
-                                correo: this.formulario.get('email').value,
-                                password: this.formulario.get('password').value,
-                            },
-                        });
+                        this.router.navigate(['/auth/login']);
                     }, 1000);
                 },
                 (error) => {
@@ -293,8 +312,8 @@ export class SignupComponent {
                 }
             );
         } else {
-            ////console.log(this.formulario.valid);
-            ////console.log(this.formulario);
+            ////console.log(this.formRegister.valid);
+            ////console.log(this.formRegister);
             this.messageService.add({
                 severity: 'error',
                 summary: 'Invalido',
@@ -363,6 +382,6 @@ export class SignupComponent {
             ////console.error('Error al obtener la cadena base64 de la imagen.');
         }
     }
-    formulario: any = {};
+    formRegister: any = {};
     active: number | undefined = 0;
 }

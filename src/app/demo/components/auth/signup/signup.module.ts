@@ -139,7 +139,6 @@ import { FloatLabelModule } from 'primeng/floatlabel';
         SkeletonModule,
         TreeTableModule,
         StepperModule,
-
         AccordionModule,
         AvatarModule,
         AvatarGroupModule,
