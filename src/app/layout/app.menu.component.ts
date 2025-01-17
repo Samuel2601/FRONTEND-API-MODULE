@@ -75,7 +75,7 @@ export class AppMenuComponent implements OnInit {
         };
 
         this.model = [
-            /*{
+            {
                 label: 'Ficha Socio Economica',
                 visible: permissions.canViewregistro,
                 items: [
@@ -98,7 +98,7 @@ export class AppMenuComponent implements OnInit {
                         visible: permissions.canViewregistro,
                     },
                 ],
-            },*/
+            },
             {
                 label: 'Recolectores',
                 visible:

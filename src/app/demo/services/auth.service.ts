@@ -356,6 +356,15 @@ export class AuthService {
             return false;
         }
     }
+    redirect_external(token: any): Observable<any> {
+        const headers = new HttpHeaders({
+            'Content-Type': 'application/json',
+            Authorization: token,
+        });
+        return this.http.get(GLOBAL.url + '/user/redirect', {
+            headers: headers,
+        });
+    }
 
     roleUserToken(token?: string) {
         try {

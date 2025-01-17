@@ -15,6 +15,7 @@ import { MapaMostrarFichasComponent } from '../mapa-mostrar-fichas/mapa-mostrar-
 import { MostrarFichasArticulosComponent } from '../mostrar-fichas-articulos/mostrar-fichas-articulos.component';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { SocketService } from 'src/app/demo/services/socket.io.service';
+import { HttpClient } from '@angular/common/http';
 @Component({
     selector: 'app-home',
     standalone: true,
@@ -53,7 +54,8 @@ export class HomeComponent implements OnInit {
         public dialogService: DialogService,
         private router: Router,
         private auth: AuthService,
-        private socket: SocketService
+        private socket: SocketService,
+        private http: HttpClient
     ) {
         //socket.inicializador();
         this.incidencia = this.fb.group({
@@ -518,13 +520,26 @@ export class HomeComponent implements OnInit {
                                 showInfo: false,
                                 style: false,
                                 command: async () => {
-                                    window.open(
-                                        this.auth.authToken()
-                                            ? 'https://consulta.esmeraldas.gob.ec/index.jsp?id=' +
-                                                  this.auth.authToken().sub
-                                            : 'https://consulta.esmeraldas.gob.ec/index.jsp',
-                                        '_blank'
-                                    );
+                                    const idCiudadano =
+                                        this.auth.authToken()?.sub;
+
+                                    if (idCiudadano) {
+                                        this.auth
+                                            .redirect_external(this.auth.token())
+                                            .subscribe({
+                                                next: (res) => {
+                                                    window.open(res, '_blank');
+                                                },
+                                                error: (err) => {
+                                                    console.error(err);
+                                                },
+                                            });
+                                    } else {
+                                        window.open(
+                                            'https://consulta.esmeraldas.gob.ec/index.jsp',
+                                            '_blank'
+                                        );
+                                    }
                                 },
                             },
                             {
