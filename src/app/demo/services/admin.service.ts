@@ -72,11 +72,11 @@ export class AdminService {
         });
     }
 
-    /*getCiudadano(id: string): Observable<any> {
+    getCiudadano(id: string): Observable<any> {
         let headers = new HttpHeaders().set('Content-Type', 'application/json');
         const url = `https://geoapi.esmeraldas.gob.ec/new/dinardap/consultar?identificacion=${id}&codigoPaquete=3789`;
         return this._http.get(url, { headers: headers });
-    }*/
+    }
 
     getCiudadanoInfo(dni: string): Observable<any> {
         let headers = new HttpHeaders().set('Content-Type', 'application/json');

@@ -182,10 +182,8 @@ export class SignupComponent {
 
         // Detectar cambios en el DNI
         this.formRegister.get('dni')?.valueChanges.subscribe((dni: any) => {
-            if (dni.length === 10) {
+            if (this.formRegister.get('dni')?.valid) {
                 this.consultar(dni);
-            } else {
-                this.formRegister.get('date_exp')?.updateValueAndValidity(); // 🔄 Revalidar
             }
         });
         // Eliminar espacios en blanco del email electrónico
@@ -258,31 +256,30 @@ export class SignupComponent {
         this.admin.getCiudadanoInfo(id).subscribe(
             (response) => {
                 console.log(response);
+                if (response.nombre) {
+                    const fullName = response.nombre.trim().split(/\s+/); // Dividir por espacios y eliminar excesos
 
+                    let lastName = fullName.slice(0, 2).join(' '); // Tomar las dos primeras palabras como apellido
+                    let name = fullName.slice(2).join(' '); // El resto es el nombre
+
+                    // Si hay 5 palabras y la primera o segunda es "DE", extender el apellido
+                    if (
+                        fullName.length === 5 &&
+                        (fullName[0].toUpperCase() === 'DE' ||
+                            fullName[1].toUpperCase() === 'DE')
+                    ) {
+                        lastName = fullName.slice(0, 3).join(' '); // Tomar 3 palabras como apellido
+                        name = fullName.slice(3).join(' '); // El resto es el nombre
+                    }
+
+                    // Asignar valores a los campos del formulario
+                    this.formRegister.get('last_name')?.setValue(lastName);
+                    this.formRegister.get('last_name')?.disable();
+                    this.formRegister.get('name')?.setValue(name);
+                    this.formRegister.get('name')?.disable();
+                }
                 setTimeout(() => {
                     this.visible = false;
-                    if (response.nombre) {
-                        const fullName = response.nombre.trim().split(/\s+/); // Dividir por espacios y eliminar excesos
-
-                        let lastName = fullName.slice(0, 2).join(' '); // Tomar las dos primeras palabras como apellido
-                        let name = fullName.slice(2).join(' '); // El resto es el nombre
-
-                        // Si hay 5 palabras y la primera o segunda es "DE", extender el apellido
-                        if (
-                            fullName.length === 5 &&
-                            (fullName[0].toUpperCase() === 'DE' ||
-                                fullName[1].toUpperCase() === 'DE')
-                        ) {
-                            lastName = fullName.slice(0, 3).join(' '); // Tomar 3 palabras como apellido
-                            name = fullName.slice(3).join(' '); // El resto es el nombre
-                        }
-
-                        // Asignar valores a los campos del formulario
-                        this.formRegister.get('last_name')?.setValue(lastName);
-                        this.formRegister.get('last_name')?.disable();
-                        this.formRegister.get('name')?.setValue(name);
-                        this.formRegister.get('name')?.disable();
-                    }
                 }, 1000);
             },
             (error) => {
@@ -379,7 +376,8 @@ export class SignupComponent {
             this.formRegister.get('name')?.disable();
 
             this.create.registrarUsuario(data).subscribe(
-                (response) => {
+                (response: any) => {
+                    console.log(response);
                     this.messageService.add({
                         severity: 'success',
                         summary: 'Excelente',
