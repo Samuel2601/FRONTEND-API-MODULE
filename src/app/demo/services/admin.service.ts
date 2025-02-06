@@ -6,7 +6,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
     providedIn: 'root',
 })
 export class AdminService {
-    public url:string;
+    public url: string;
 
     constructor(private _http: HttpClient) {
         this.url = GLOBAL.url;
@@ -71,18 +71,39 @@ export class AdminService {
             headers: headers,
         });
     }
-    
-    getCiudadano(id: string): Observable<any> {
+
+    /*getCiudadano(id: string): Observable<any> {
         let headers = new HttpHeaders().set('Content-Type', 'application/json');
-        return this._http.get(this.url + 'getciudadano/' + id, {
+        const url = `https://geoapi.esmeraldas.gob.ec/new/dinardap/consultar?identificacion=${id}&codigoPaquete=3789`;
+        return this._http.get(url, { headers: headers });
+    }*/
+
+    getCiudadanoInfo(dni: string): Observable<any> {
+        let headers = new HttpHeaders().set('Content-Type', 'application/json');
+        const url =
+            this.url + `dinardap/consultar_nombres?identificacion=${dni}`; // Ahora usa el nuevo endpoint
+        return this._http.get(url, {
             headers: headers,
         });
     }
+
+    getCiudadanoFechaExpedicion(
+        dni: string,
+        fechaExp: string
+    ): Observable<any> {
+        let headers = new HttpHeaders().set('Content-Type', 'application/json');
+        const url =
+            this.url +
+            `dinardap/consultar_date_exp?identificacion=${dni}&fechaExpedicion=${fechaExp}`;
+        return this._http.get(url, {
+            headers: headers,
+        });
+    }
+
     verificarCorreo(id: string): Observable<any> {
         let headers = new HttpHeaders().set('Content-Type', 'application/json');
         return this._http.get(this.url + 'verificarcorreo/' + id, {
             headers: headers,
         });
     }
-    
 }

@@ -98,6 +98,60 @@
 
                 <form [formGroup]="formRegister" (ngSubmit)="onSubmit()">
                     <div class="flex flex-column gap-3">
+                        <div class="p-float-label">
+                            <p-inputGroup>
+                                <p-inputGroupAddon>
+                                    <i class="pi pi-id-card"></i>
+                                </p-inputGroupAddon>
+                                <p-floatLabel style="flex: 1 1 auto">
+                                    <input
+                                        pInputText
+                                        id="dni"
+                                        formControlName="dni"
+                                        type="text"
+                                    />
+                                    <label for="dni">Cédula</label>
+                                </p-floatLabel>
+                            </p-inputGroup>
+                            <small
+                                class="p-error"
+                                *ngIf="
+                                    formRegister.get('dni')?.invalid &&
+                                    formRegister.get('dni')?.touched
+                                "
+                            >
+                                {{ getErrorMessage("dni") }}
+                            </small>
+                        </div>
+
+                        <div class="p-float-label">
+                            <p-inputGroup>
+                                <p-inputGroupAddon>
+                                    <i class="pi pi-calendar"></i>
+                                </p-inputGroupAddon>
+                                <p-floatLabel style="flex: 1 1 auto">
+                                    <input
+                                        pInputText
+                                        id="date_exp"
+                                        formControlName="date_exp"
+                                        type="text"
+                                    />
+                                    <label for="date_exp"
+                                        >Fecha de Expedición</label
+                                    >
+                                </p-floatLabel>
+                            </p-inputGroup>
+                            <small
+                                class="p-error"
+                                *ngIf="
+                                    formRegister.get('date_exp')?.invalid &&
+                                    formRegister.get('date_exp')?.touched
+                                "
+                            >
+                                {{ getErrorMessage("date_exp") }}
+                            </small>
+                        </div>
+
                         <!-- Personal Information -->
                         <div class="p-float-label">
                             <p-inputGroup>
@@ -148,32 +202,6 @@
                                 "
                             >
                                 {{ getErrorMessage("last_name") }}
-                            </small>
-                        </div>
-
-                        <div class="p-float-label">
-                            <p-inputGroup>
-                                <p-inputGroupAddon>
-                                    <i class="pi pi-id-card"></i>
-                                </p-inputGroupAddon>
-                                <p-floatLabel style="flex: 1 1 auto">
-                                    <input
-                                        pInputText
-                                        id="dni"
-                                        formControlName="dni"
-                                        type="text"
-                                    />
-                                    <label for="dni">Cédula</label>
-                                </p-floatLabel>
-                            </p-inputGroup>
-                            <small
-                                class="p-error"
-                                *ngIf="
-                                    formRegister.get('dni')?.invalid &&
-                                    formRegister.get('dni')?.touched
-                                "
-                            >
-                                {{ getErrorMessage("dni") }}
                             </small>
                         </div>
 
@@ -327,14 +355,12 @@
 
 <!-- Terms Modal -->
 <p-dialog
-    header="Términos y Condiciones"
+    header="Procesando datos..."
     [(visible)]="visible"
     [style]="{ width: '50vw' }"
     [modal]="true"
 >
-    <p class="text-700 line-height-3">
-        Contenido de términos y condiciones aquí...
-    </p>
+    <p class="text-700 line-height-3">Podrías esperar un momento...</p>
 </p-dialog>
 
 <p-toast></p-toast>

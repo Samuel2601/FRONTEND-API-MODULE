@@ -27,6 +27,8 @@ import {
     styleUrls: ['./signup.component.scss'],
 })
 export class SignupComponent {
+    formRegister: any = {};
+    active: number | undefined = 0;
     // Mensajes de error personalizados
     validationMessages = {
         dni: [
@@ -42,6 +44,21 @@ export class SignupComponent {
             {
                 type: 'pattern',
                 message: 'La cédula debe contener solo números.',
+            },
+        ],
+        date_exp: [
+            {
+                type: 'required',
+                message: 'La fecha de expedición es requerida.',
+            },
+            {
+                type: 'pattern',
+                message: 'Ingrese una fecha válida en formato DD-MM-YYYY.',
+            },
+            {
+                type: 'fechaIncorrecta',
+                message:
+                    'La fecha de expedición debe ser igual a la de la persona.',
             },
         ],
         name: [
@@ -97,6 +114,8 @@ export class SignupComponent {
         ],
     };
 
+    fechaExpedicionReal: string | null = null; // Almacena la fecha correcta
+
     constructor(
         private router: Router,
         private formBuilder: FormBuilder,
@@ -116,6 +135,13 @@ export class SignupComponent {
                         Validators.minLength(10),
                         Validators.maxLength(10),
                         Validators.pattern('^[0-9]+$'),
+                    ],
+                ],
+                date_exp: [
+                    '',
+                    [
+                        Validators.required,
+                        Validators.pattern(/^\d{2}\/\d{2}\/\d{4}$/),
                     ],
                 ],
                 name: [
@@ -154,9 +180,12 @@ export class SignupComponent {
             }
         );
 
-        this.formRegister.get('dni')?.valueChanges.subscribe((value: any) => {
-            if (this.formRegister.get('dni')?.valid) {
-                this.consultar(value);
+        // Detectar cambios en el DNI
+        this.formRegister.get('dni')?.valueChanges.subscribe((dni: any) => {
+            if (dni.length === 10) {
+                this.consultar(dni);
+            } else {
+                this.formRegister.get('date_exp')?.updateValueAndValidity(); // 🔄 Revalidar
             }
         });
         // Eliminar espacios en blanco del email electrónico
@@ -174,6 +203,7 @@ export class SignupComponent {
             }
         });*/
     }
+
     passwordMatchValidator(form: FormGroup) {
         const password = form.get('password');
         const confirmPassword = form.get('passwordConfirmation');
@@ -209,7 +239,7 @@ export class SignupComponent {
         for (const errorType in field.errors) {
             if (field.errors.hasOwnProperty(errorType)) {
                 const error = this.validationMessages[fieldName].find(
-                    (msg) => msg.type === errorType
+                    (msg: any) => msg.type === errorType
                 );
                 if (error) {
                     errors.push(error.message);
@@ -225,14 +255,32 @@ export class SignupComponent {
     loading: boolean = false;
     consultar(id: any) {
         this.visible = true;
-        this.admin.getCiudadano(id).subscribe(
+        this.admin.getCiudadanoInfo(id).subscribe(
             (response) => {
-                ////console.log(response);
+                console.log(response);
+
                 setTimeout(() => {
                     this.visible = false;
-                    if (response.name) {
-                        this.formRegister.get('name')?.setValue(response.name);
-                        //this.formRegister.get('email')?.setErrors({ 'status': "VALID" });
+                    if (response.nombre) {
+                        const fullName = response.nombre.trim().split(/\s+/); // Dividir por espacios y eliminar excesos
+
+                        let lastName = fullName.slice(0, 2).join(' '); // Tomar las dos primeras palabras como apellido
+                        let name = fullName.slice(2).join(' '); // El resto es el nombre
+
+                        // Si hay 5 palabras y la primera o segunda es "DE", extender el apellido
+                        if (
+                            fullName.length === 5 &&
+                            (fullName[0].toUpperCase() === 'DE' ||
+                                fullName[1].toUpperCase() === 'DE')
+                        ) {
+                            lastName = fullName.slice(0, 3).join(' '); // Tomar 3 palabras como apellido
+                            name = fullName.slice(3).join(' '); // El resto es el nombre
+                        }
+
+                        // Asignar valores a los campos del formulario
+                        this.formRegister.get('last_name')?.setValue(lastName);
+                        this.formRegister.get('last_name')?.disable();
+                        this.formRegister.get('name')?.setValue(name);
                         this.formRegister.get('name')?.disable();
                     }
                 }, 1000);
@@ -285,41 +333,84 @@ export class SignupComponent {
             }, 1000);
         });
     }
-    onSubmit() {
+    async onSubmit() {
         this.visible = true;
-        if (this.formRegister.valid) {
+
+        // Revalidar el campo date_exp
+        if (!this.formRegister.valid) {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Inválido',
+                detail: 'Rellene todos los campos correctamente',
+            });
+            this.visible = false;
+            return;
+        }
+
+        try {
+            // Verificar la fecha de expedición antes de continuar
+            const response = await this.admin
+                .getCiudadanoFechaExpedicion(
+                    this.formRegister.value.dni,
+                    this.formRegister.value.date_exp
+                )
+                .toPromise();
+
+            console.log(response);
+
+            if (!response.success) {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: response.mensaje,
+                });
+                this.visible = false;
+                return; // DETENER EL PROCESO SI NO COINCIDE LA FECHA
+            }
+
+            // Si la fecha de expedición es correcta, proceder con el registro
+
+            this.formRegister.get('last_name')?.enable();
             this.formRegister.get('name')?.enable();
-            this.create.registrarUsuario(this.formRegister.value).subscribe(
+
+            const data = this.formRegister.value;
+
+            this.formRegister.get('last_name')?.disable();
+            this.formRegister.get('name')?.disable();
+
+            this.create.registrarUsuario(data).subscribe(
                 (response) => {
-                    //console.log(response);
                     this.messageService.add({
                         severity: 'success',
                         summary: 'Excelente',
                         detail: 'Registrado Correctamente',
                     });
+
                     setTimeout(() => {
-                        // Redirigir a la página de inicio de sesión con los datos de email y contraseña
-                        this.router.navigate(['/auth/login']);
+                        this.router.navigate(['/auth/login']); // Redirigir al login
                     }, 1000);
                 },
                 (error) => {
                     console.error(error);
                     this.messageService.add({
                         severity: 'error',
-                        summary: ('(' + error.status + ')').toString(),
+                        summary: `(${error.status})`,
                         detail: error.error.message || 'Sin conexión',
                     });
                 }
             );
-        } else {
-            ////console.log(this.formRegister.valid);
-            ////console.log(this.formRegister);
+        } catch (error) {
+            console.error(
+                'Error en la validación de fecha de expedición:',
+                error
+            );
             this.messageService.add({
                 severity: 'error',
-                summary: 'Invalido',
-                detail: 'Rellene todos los campos',
+                summary: 'Error',
+                detail: 'No se pudo validar la fecha de expedición',
             });
         }
+
         setTimeout(() => {
             this.visible = false;
         }, 1000);
@@ -382,6 +473,4 @@ export class SignupComponent {
             ////console.error('Error al obtener la cadena base64 de la imagen.');
         }
     }
-    formRegister: any = {};
-    active: number | undefined = 0;
 }
