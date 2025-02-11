@@ -73,7 +73,7 @@ export class LoginComponent implements OnInit {
     }
 
     async ngOnInit(): Promise<void> {
-        this.helper.llamarspinner('login');
+        //this.helper.llamarspinner('login');
         await this.biometricocredential();
         this.handleQueryParams();
         this.playIntroAudio();

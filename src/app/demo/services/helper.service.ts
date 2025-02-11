@@ -127,7 +127,7 @@ export class HelperService {
         //console.log("CERRO",id);
         // console.log(`Llamadas activas: ${this.llamadasActivas}`);
 
-        if (this.llamadasActivas == 0) {
+        if (this.llamadasActivas <= 0) {
             setTimeout(() => {
                 if (this.spiner !== null) {
                     try {

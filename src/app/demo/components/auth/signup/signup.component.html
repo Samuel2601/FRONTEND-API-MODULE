@@ -262,7 +262,8 @@
                         <!-- Password Section -->
                         <div class="p-float-label">
                             <p-password
-                                inputStyleClass="w-full"
+                                inputStyleClass="w-full custom-password"
+                                [inputStyle]="{ height: '50px' }"
                                 [style.flex]="'1 1 auto'"
                                 formControlName="password"
                                 [toggleMask]="true"
@@ -272,6 +273,7 @@
                                     '^(?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9])(?=.*[a-z]).{8,}$'
                                 "
                             ></p-password>
+
                             <small
                                 class="p-error"
                                 *ngIf="
@@ -285,7 +287,8 @@
 
                         <div class="p-float-label">
                             <p-password
-                                inputStyleClass="w-full"
+                                inputStyleClass="w-full custom-password"
+                                [inputStyle]="{ height: '50px' }"
                                 [style.flex]="'1 1 auto'"
                                 formControlName="passwordConfirmation"
                                 [toggleMask]="true"
