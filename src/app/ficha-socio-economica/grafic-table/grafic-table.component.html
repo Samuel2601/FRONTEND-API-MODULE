@@ -26,7 +26,7 @@
             >
                 <div
                     class="col-12 p-0"
-                    *ngFor="let item of group.components"
+                    *ngFor="let item of group.components; let j = index"
                     cdkDrag
                 >
                     <p-panel>
@@ -67,6 +67,18 @@
                                 [scrollable]="true"
                                 [scrollHeight]="'500px'"
                             >
+                                <!-- Agregamos botón de exportación -->
+                                <ng-template pTemplate="caption">
+                                    <div class="flex justify-content-end">
+                                        <button
+                                            pButton
+                                            label="Excel"
+                                            icon="pi pi-file-excel"
+                                            class="p-button-success mr-2"
+                                            (click)="exportExcel(j)"
+                                        ></button>
+                                    </div>
+                                </ng-template>
                                 <ng-template pTemplate="header">
                                     <tr>
                                         <th
@@ -139,11 +151,11 @@
                 style="justify-content: space-around"
                 cdkDropList
                 [cdkDropListData]="group.components"
-                (cdkDropListDropped)="onDrop($event, 'grid',i)"
+                (cdkDropListDropped)="onDrop($event, 'grid', i)"
             >
                 <div
                     class="col-12 sm:col-12 md:col-10 xl:col-5 p-2"
-                    *ngFor="let item of group.components"
+                    *ngFor="let item of group.components; let j = index"
                     cdkDrag
                 >
                     <div
@@ -206,6 +218,18 @@
                                 [scrollable]="true"
                                 [scrollHeight]="'200px'"
                             >
+                                <!-- Agregamos botón de exportación -->
+                                <ng-template pTemplate="caption">
+                                    <div class="flex justify-content-end">
+                                        <button
+                                            pButton
+                                            label="Excel"
+                                            icon="pi pi-file-excel"
+                                            class="p-button-success mr-2"
+                                            (click)="exportExcel(j)"
+                                        ></button>
+                                    </div>
+                                </ng-template>
                                 <ng-template pTemplate="header">
                                     <tr>
                                         <th

@@ -53,7 +53,7 @@ export class SignupComponent {
             },
             {
                 type: 'pattern',
-                message: 'Ingrese una fecha válida en formato DD-MM-YYYY.',
+                message: 'Ingrese una fecha válida en formato DD/MM/YYYY.',
             },
             {
                 type: 'fechaIncorrecta',

@@ -20,9 +20,12 @@ import { UpdateService } from 'src/app/demo/services/update.service';
     imports: [CommonModule, TableModule, ButtonModule, DragDropModule], // Importa el módulo de DragDrop
     template: `
         <div class="card flex flex-wrap gap-3">
-            <div class="p-2 border-1 surface-border border-round" [style.width]="isMobile()?'100%':'49%'">
+            <div
+                class="p-2 border-1 surface-border border-round"
+                [style.width]="isMobile() ? '100%' : '49%'"
+            >
                 <p class="text-center surface-border border-bottom-1">
-                    Permisos Disponibles ({{permisosDisponibles.length}})
+                    Permisos Disponibles ({{ permisosDisponibles.length }})
                 </p>
                 <ul class="list-none flex flex-column gap-2 p-0 m-0">
                     <li
@@ -54,10 +57,10 @@ import { UpdateService } from 'src/app/demo/services/update.service';
                 class="p-2 border-1 surface-border border-round"
                 pDroppable
                 (onDrop)="drop()"
-                [style.width]="isMobile()?'100%':'49%'"
+                [style.width]="isMobile() ? '100%' : '49%'"
             >
                 <p class="text-center surface-border border-bottom-1">
-                    Permisos Asignados ({{permisosAsignados.length}})
+                    Permisos Asignados ({{ permisosAsignados.length }})
                 </p>
                 <ul class="list-none flex flex-column gap-2 p-0 m-0">
                     <li
@@ -98,21 +101,23 @@ export class PermisosDemo implements OnInit {
         private dialogService: DialogService,
         private ref: DynamicDialogRef,
         private config: DynamicDialogConfig,
-        private helper:HelperService,
-        private update:UpdateService
+        private helper: HelperService,
+        private update: UpdateService
     ) {}
-    getSeverity(method: string): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast'  {
+    getSeverity(
+        method: string
+    ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
         switch (method.toUpperCase()) {
             case 'POST':
-                return "success";
+                return 'success';
             case 'GET':
-                return "info";
+                return 'info';
             case 'PUT':
-                return "warning";
+                return 'warning';
             case 'DELETE':
-                return "danger";
+                return 'danger';
             default:
-                return "contrast";
+                return 'contrast';
         }
     }
     isMobile(): boolean {
@@ -122,13 +127,14 @@ export class PermisosDemo implements OnInit {
     ngOnInit() {
         if (this.config.data.role) {
             this.role = this.config.data.role;
+            console.log(this.role);
             this.permisosAsignados = this.role.permisos;
+            console.log(this.permisosAsignados);
             this.listarPermisosDisponibles();
         }
     }
     token = this.authService.token();
     listarPermisosDisponibles(): void {
-        
         this.listService.ListarPermisos(this.token).subscribe(
             (response) => {
                 // Filtrar los permisos disponibles que no estén ya asignados al rol
@@ -143,7 +149,7 @@ export class PermisosDemo implements OnInit {
                 console.error('Error al listar permisos:', error);
             }
         );
-       // console.log("Lista de permisos:",this.permisosAsignados, this.permisosDisponibles);
+        // console.log("Lista de permisos:",this.permisosAsignados, this.permisosDisponibles);
     }
 
     dragStart(permiso: any) {
@@ -181,11 +187,15 @@ export class PermisosDemo implements OnInit {
 
     actualizarRoles() {
         if (this.role) {
-            this.role.permisos = this.permisosAsignados.map(permiso => permiso._id);
+            this.role.permisos = this.permisosAsignados.map(
+                (permiso) => permiso._id
+            );
         }
         //console.log(this.role);
-        this.update.actualizarRolUsuario(this.token,this.role._id,this.role).subscribe(response=>{
-          //  console.log(response);
-        })
+        this.update
+            .actualizarRolUsuario(this.token, this.role._id, this.role)
+            .subscribe((response) => {
+                //  console.log(response);
+            });
     }
 }

@@ -1,27 +1,6 @@
-<p-card>
+<p-card *ngIf="false">
     <div class="grid grid-nogutter p-4 gap-4">
         <app-search></app-search>
-        <div class="col-12 sm:col-12 md:col-2 xl:col-2 p-2">
-            <div class="status-knob-container">
-                <p-knob
-                    *ngIf="historicoData.total > 0"
-                    [(ngModel)]="historicoData.total_filtered"
-                    [min]="0"
-                    [max]="historicoData.total"
-                    [size]="150"
-                    [step]="1"
-                    [showValue]="true"
-                >
-                </p-knob>
-
-                <div class="status-info">
-                    <i class="pi pi-file" [style.color]="'#007ad9'"></i>
-                    <p>
-                        Registros Filtrados: {{ historicoData.total_filtered }}
-                    </p>
-                </div>
-            </div>
-        </div>
     </div>
 </p-card>
 
@@ -29,6 +8,33 @@
     <!-- Pestaña Registros Generales -->
     <p-tabPanel header="Registros Generales">
         <div class="p-grid p-nogutter dashboard-container">
+            <div
+                class="flex flex-column align-items-center justify-content-center h-full"
+            >
+                <div class="col-12 sm:col-12 md:col-2 xl:col-2 p-2">
+                    <div class="status-knob-container">
+                        <p-knob
+                            *ngIf="historicoData.total > 0"
+                            [(ngModel)]="historicoData.total_filtered"
+                            [min]="0"
+                            [max]="historicoData.total"
+                            [size]="150"
+                            [step]="1"
+                            [showValue]="true"
+                        >
+                        </p-knob>
+
+                        <div class="status-info">
+                            <i class="pi pi-file" [style.color]="'#007ad9'"></i>
+                            <p>
+                                Registros Filtrados:
+                                {{ historicoData.total_filtered }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <app-grafic-table
                 *ngIf="
                     generalData.components_arr &&
@@ -172,27 +178,34 @@
             <div
                 class="grid grid-nogutter"
                 style="justify-content: space-around"
+                *ngIf="statusList && statusList.length > 0"
             >
-                <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
+                <div
+                    class="col-12 sm:col-2 md:col-2 xl:col-2 p-2"
+                    *ngFor="let status of statusList[0]"
+                >
                     <div class="status-knob-container">
                         <p-knob
-                            [(ngModel)]="knobValue"
+                            [(ngModel)]="status.value"
                             [min]="0"
                             [max]="100"
                             [step]="1"
                             [readonly]="true"
-                            [valueColor]="knobColor"
+                            [valueColor]="status.color"
                             [textColor]="'#000'"
                             [showValue]="true"
                             [size]="150"
-                            valueTemplate="{{ knobValue }}%"
+                            valueTemplate="{{ status.value }}%"
                         ></p-knob>
                         <div class="status-info">
                             <i
-                                [class]="'pi ' + icon"
-                                [style.color]="knobColor"
+                                [class]="'pi ' + status.icon"
+                                [style.color]="status.color"
                             ></i>
-                            <p>{{ majorState }}</p>
+                            <p>{{ status.state }}</p>
+                            <p>
+                                <b>{{ status.id }}</b>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -213,27 +226,34 @@
             <div
                 class="grid grid-nogutter"
                 style="justify-content: space-around"
+                *ngIf="statusList && statusList.length > 0"
             >
-                <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
+                <div
+                    class="col-12 sm:col-2 md:col-2 xl:col-2 p-2"
+                    *ngFor="let status of statusList[1]"
+                >
                     <div class="status-knob-container">
                         <p-knob
-                            [(ngModel)]="knobValue"
+                            [(ngModel)]="status.value"
                             [min]="0"
                             [max]="100"
                             [step]="1"
                             [readonly]="true"
-                            [valueColor]="knobColor"
+                            [valueColor]="status.color"
                             [textColor]="'#000'"
                             [showValue]="true"
                             [size]="150"
-                            valueTemplate="{{ knobValue }}%"
+                            valueTemplate="{{ status.value }}%"
                         ></p-knob>
                         <div class="status-info">
                             <i
-                                [class]="'pi ' + icon"
-                                [style.color]="knobColor"
+                                [class]="'pi ' + status.icon"
+                                [style.color]="status.color"
                             ></i>
-                            <p>{{ majorState }}</p>
+                            <p>{{ status.state }}</p>
+                            <p>
+                                <b>{{ status.id }}</b>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -254,27 +274,34 @@
             <div
                 class="grid grid-nogutter"
                 style="justify-content: space-around"
+                *ngIf="statusList && statusList.length > 0"
             >
-                <div class="col-12 sm:col-2 md:col-2 xl:col-2 p-2">
+                <div
+                    class="col-12 sm:col-2 md:col-2 xl:col-2 p-2"
+                    *ngFor="let status of statusList[2]"
+                >
                     <div class="status-knob-container">
                         <p-knob
-                            [(ngModel)]="knobValue"
+                            [(ngModel)]="status.value"
                             [min]="0"
                             [max]="100"
                             [step]="1"
                             [readonly]="true"
-                            [valueColor]="knobColor"
+                            [valueColor]="status.color"
                             [textColor]="'#000'"
                             [showValue]="true"
                             [size]="150"
-                            valueTemplate="{{ knobValue }}%"
+                            valueTemplate="{{ status.value }}%"
                         ></p-knob>
                         <div class="status-info">
                             <i
-                                [class]="'pi ' + icon"
-                                [style.color]="knobColor"
+                                [class]="'pi ' + status.icon"
+                                [style.color]="status.color"
                             ></i>
-                            <p>{{ majorState }}</p>
+                            <p>{{ status.state }}</p>
+                            <p>
+                                <b>{{ status.id }}</b>
+                            </p>
                         </div>
                     </div>
                 </div>

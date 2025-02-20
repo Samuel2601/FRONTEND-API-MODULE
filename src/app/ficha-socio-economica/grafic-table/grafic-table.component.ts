@@ -4,6 +4,9 @@ import { HelperService } from 'src/app/demo/services/helper.service';
 import { ImportsModule } from 'src/app/demo/services/import';
 import { Chart, registerables } from 'chart.js';
 
+import * as ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+
 // Registrar los plugins y componentes de Chart.js
 Chart.register(...registerables);
 
@@ -399,6 +402,101 @@ export class GraficTableComponent implements OnInit {
                 event.previousIndex,
                 currentIndex
             );
+        }
+    }
+
+    async exportExcel(index: number) {
+        //console.log('Index, components_arr', index, this.components_arr);
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Datos');
+
+        // Obtener el componente específico
+        const component = this.components_arr[0].components[index];
+
+        if (!component || !component.table) {
+            console.error('No hay datos para exportar');
+            return;
+        }
+
+        // Configurar los estilos
+        const headerStyle = {
+            font: { bold: true, color: { argb: 'FFFFFF' } },
+            fill: {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: '4472C4' },
+            },
+            alignment: { horizontal: 'center', vertical: 'middle' },
+        };
+
+        const totalStyle = {
+            font: { bold: true },
+            fill: {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'D9E1F2' },
+            },
+            alignment: { horizontal: 'center' },
+        };
+
+        // Agregar el título del componente
+        worksheet.addRow([component.title]).eachCell((cell) => {
+            cell.font = { bold: true, size: 14 };
+        });
+        worksheet.addRow([]); // Espacio en blanco
+
+        // Agregar encabezados
+        const headerRow = worksheet.addRow(component.columnOrder);
+        /*headerRow.eachCell((cell) => {
+            cell.style = headerStyle;
+        });*/
+
+        // Agregar datos
+        component.table.forEach((row) => {
+            const rowData = component.columnOrder.map((col) => row[col]);
+            const dataRow = worksheet.addRow(rowData);
+            dataRow.eachCell((cell) => {
+                cell.alignment = { horizontal: 'center' };
+            });
+        });
+
+        // Agregar fila de totales
+        //const totalsRow = worksheet.addRow();
+        const totalCells = component.columnOrder.map((col, i) => {
+            if (i === 0) return 'Total';
+            if (col === 'Conteo') {
+                return component.table.reduce(
+                    (sum, row) => sum + (Number(row[col]) || 0),
+                    0
+                );
+            }
+            if (col === 'Porcentaje') return '100%';
+            return '';
+        });
+        //totalsRow.values = totalCells;
+        /*totalsRow.eachCell((cell) => {
+            cell.style = totalStyle;
+        });*/
+
+        // Ajustar el ancho de las columnas
+        worksheet.columns.forEach((column) => {
+            column.width = 20;
+        });
+
+        // Generar y descargar el archivo
+        try {
+            const buffer = await workbook.xlsx.writeBuffer();
+            const fileName = `${component.title}_${
+                new Date().toISOString().split('T')[0]
+            }.xlsx`;
+            saveAs(
+                new Blob([buffer], {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                }),
+                fileName
+            );
+        } catch (error) {
+            console.error('Error al generar el archivo Excel:', error);
         }
     }
 }
