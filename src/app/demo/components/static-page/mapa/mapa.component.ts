@@ -1023,7 +1023,9 @@ export class MapaComponent implements OnInit, OnDestroy {
             //console.log(permission);
             if (permission !== 'granted') {
                 try {
-                    const coordinates = await Geolocation['getCurrentPosition']();
+                    const coordinates = await Geolocation[
+                        'getCurrentPosition'
+                    ]();
                     this.latitud = coordinates.coords.latitude;
                     this.longitud = coordinates.coords.longitude;
                     this.addMarker(
@@ -1066,7 +1068,9 @@ export class MapaComponent implements OnInit, OnDestroy {
                         this.poligonoposition();
                     },
                     (error) => {
-                        console.error('Error getting location: ' + error.message);
+                        console.error(
+                            'Error getting location: ' + error.message
+                        );
                         this.messageService.add({
                             severity: 'error',
                             summary: '404',
@@ -1178,7 +1182,7 @@ export class MapaComponent implements OnInit, OnDestroy {
         this.list
             .listarSubcategorias(this.token, { categoria: cateogria._id })
             .subscribe((response) => {
-                //console.log(response);
+                // console.log(response);
                 if (response.data) {
                     this.subcategorias = response.data;
                     if (this.sub) {
@@ -1314,9 +1318,7 @@ export class MapaComponent implements OnInit, OnDestroy {
         //console.log(this.selectedFilesnew);
 
         ////console.log(this.nuevoIncidenteDenuncia.value);
-        this.incidencia
-            .get('ciudadano')
-            ?.setValue(this.auth.idUserToken());
+        this.incidencia.get('ciudadano')?.setValue(this.auth.idUserToken());
 
         if (this.incidencia.valid) {
             this.createService

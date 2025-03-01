@@ -122,7 +122,7 @@ interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
         ConfirmDialogModule,
         ToastModule,
         BadgeModule,
-        CalendarModule,
+        CalendarModule
     ],
     templateUrl: './mapa-ficha.component.html',
     styleUrl: './mapa-ficha.component.scss',
@@ -254,6 +254,7 @@ export class MapaFichaComponent implements OnInit, OnDestroy {
             estado: [undefined, Validators.required],
             actividad: [undefined, Validators.required],
             fecha_evento: [''],
+            view_date_evento: [true],
             observacion: [''],
             foto: [],
             es_articulo: [false],

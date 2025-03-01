@@ -1,0 +1,251 @@
+.map-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 3px 6px !important;
+    background: rgba(255, 255, 255, 0.952) !important;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1) !important;
+    border-bottom: 2px solid var(--border-color, #cccccc41) !important;
+    z-index: 1000; // Asegura que esté sobre otros elementos
+}
+
+/* Ajusta la altura de la imagen dentro del header */
+header img {
+    height: 40px; /* Reduce el tamaño del logo */
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+}
+
+.chip-container {
+    position: absolute;
+    top: 45px;
+    left: 5px;
+    right: 10px; /* Asegura que no se desborde */
+    display: flex;
+    flex-wrap: wrap; /* Permite que las chips se ajusten */
+    gap: 8px;
+    z-index: 10;
+    //background: var(--surface, rgba(255, 255, 255, 0.171));
+    padding: 8px;
+    border-radius: 12px;
+    //border: 1px solid var(--primary-color, #2196f3); /* Usa el color principal */
+    //box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.chip {
+    display: flex;
+    align-items: center;
+    background: var(--text-color, var(--primary-dark));
+    color: white;
+    padding: 6px 12px;
+    border-radius: 16px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s ease, transform 0.2s ease;
+
+    &.active {
+        background: var(--primary-color);
+        border: 2px solid var(--primary-dark);
+        transform: scale(1.1);
+    }
+}
+
+.chip-checkbox {
+    display: none; // Oculta completamente el checkbox
+}
+
+.chip-icon {
+    width: 15px;
+    height: 15px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: white;
+    padding: 2px;
+}
+
+:host ::ng-deep {
+    .dock-window {
+        width: 100%;
+        height: 450px;
+        position: relative;
+        background-repeat: no-repeat;
+        background-size: cover;
+    }
+
+    .p-dock {
+        z-index: 1000;
+    }
+}
+
+/* Estilos para el menú */
+.menu-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    //background-color: #ffffff;
+    //border-top: 2px solid #e0e0e0;
+    //box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+    padding: 8px 0;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 10px 10px 0 0;
+    padding: 8px;
+    width: 60px;
+    transition: all 0.2s ease;
+}
+
+.menu-item img {
+    width: 35px;
+    height: 35px;
+}
+
+.menu-item.active {
+    background-color: var(--primary-color) !important;
+    border-top: 2px solid var(--primary-dark) !important;
+    transform: scale(1.05);
+}
+/* Estilo para versión de escritorio */
+@media (min-width: 768px) {
+    .map-container {
+        padding-bottom: 0; /* Elimina el padding inferior en escritorio */
+    }
+
+    .main-content {
+        padding-left: 70px; /* Espacio para el menú lateral */
+    }
+
+    .menu-container {
+        top: 60px; /* Justo debajo del header */
+        bottom: auto;
+        width: 60px;
+        height: calc(100vh - 60px);
+        flex-direction: column;
+        border-top: none;
+        border-right: 2px solid #e0e0e0;
+    }
+
+    .menu-item {
+        width: 100%;
+        border-radius: 0;
+        border-top: none;
+        border-left: 3px solid transparent;
+        margin: 5px 0;
+    }
+
+    .menu-item.active {
+        border-top: none !important;
+        border-left: 3px solid var(--primary-dark) !important;
+    }
+
+    .card {
+        margin: 0 20px 20px 20px;
+    }
+}
+
+/* Añade estos estilos a tu archivo scss */
+
+:host ::ng-deep {
+    /* Estilos generales para el diálogo */
+    .ficha-dialog {
+        &.p-dialog {
+            border-radius: 12px;
+            overflow: hidden;
+
+            .p-dialog-header {
+                padding: 0.75rem 1rem;
+                background-color: var(--surface-card);
+                border-bottom: 1px solid var(--surface-border);
+            }
+
+            .p-dialog-content {
+                padding: 0;
+                overflow-x: hidden;
+            }
+        }
+
+        /* Estilos específicos para móviles */
+        @media (max-width: 767px) {
+            &.p-dialog {
+                margin: 0;
+                max-height: 95vh !important;
+                width: 100vw !important;
+
+                .p-dialog-header {
+                    padding: 0.5rem 1rem;
+                }
+
+                /* Animación para aparecer desde abajo */
+                animation: slide-up 0.3s ease-out;
+
+                /* Asegura bordes redondeados solo en la parte superior */
+                border-radius: 16px 16px 0 0 !important;
+            }
+        }
+
+        /* Estilos para botón de cierre */
+        .p-dialog-header-close {
+            width: 2rem;
+            height: 2rem;
+
+            &:hover {
+                background-color: var(--surface-hover);
+            }
+        }
+    }
+
+    /* Arreglar problemas con la máscara del diálogo en móviles */
+    .p-dialog-mask {
+        &.p-component-overlay {
+            backdrop-filter: blur(2px);
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+    }
+
+    /* Animación de entrada para el diálogo en móviles */
+    @keyframes slide-up {
+        from {
+            transform: translateY(100%);
+        }
+        to {
+            transform: translateY(0);
+        }
+    }
+}
+
+/* Mejoras para el contenido del diálogo */
+.dialog-content {
+    width: 100%;
+    position: relative;
+
+    /* Evitar desbordamiento horizontal */
+    overflow-x: hidden;
+
+    /* Scroll suave */
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}

@@ -1,0 +1,193 @@
+.map-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* Permite desplazamiento vertical */
+    overflow-x: hidden; /* Evita desplazamiento horizontal innecesario */
+    scroll-behavior: smooth; /* Suaviza el desplazamiento */
+    padding-bottom: 70px; /* Espacio para el menú móvil en la parte inferior */
+}
+
+header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 50px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 3px 6px !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1) !important;
+    border-bottom: 2px solid var(--border-color, #cccccc41) !important;
+    z-index: 1000; /* Asegura que esté sobre otros elementos */
+}
+
+/* Ajusta la altura de la imagen dentro del header */
+header img {
+    height: 40px; /* Reduce el tamaño del logo */
+}
+
+.main-content {
+    padding-top: 60px; /* Espacio para el header fijo */
+    flex: 1;
+    width: 100%;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+}
+
+.chip-container {
+    position: relative; /* Cambiado de absoluto a relativo */
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap; /* Permite que las chips se ajusten */
+    gap: 8px;
+    z-index: 10;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+}
+
+.chip {
+    display: flex;
+    align-items: center;
+    background: var(--text-color, var(--primary-dark));
+    color: white;
+    padding: 6px 12px;
+    border-radius: 16px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.chip.active {
+    background: var(--primary-color);
+    border: 2px solid var(--primary-dark);
+    transform: scale(1.05);
+}
+
+.chip-checkbox {
+    display: none; /* Oculta completamente el checkbox */
+}
+
+.chip-icon {
+    width: 22px;
+    height: 22px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: white;
+    padding: 2px;
+}
+
+.img-icon {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.img-grid {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* Estilos para el menú */
+.menu-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    //background-color: #ffffff;
+    //border-top: 2px solid #e0e0e0;
+    //box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+    padding: 8px 0;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 10px 10px 0 0;
+    padding: 8px;
+    width: 60px;
+    transition: all 0.2s ease;
+}
+
+.menu-item img {
+    width: 35px;
+    height: 35px;
+}
+
+.menu-item.active {
+    background-color: var(--primary-color) !important;
+    border-top: 2px solid var(--primary-dark) !important;
+    transform: scale(1.05);
+}
+
+/* Estilos para el card de DataView */
+.card {
+    margin: 0 10px 15px 10px;
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilo para versión de escritorio */
+@media (min-width: 768px) {
+    .map-container {
+        padding-bottom: 0; /* Elimina el padding inferior en escritorio */
+    }
+
+    .main-content {
+        padding-left: 70px; /* Espacio para el menú lateral */
+    }
+
+    .menu-container {
+        top: 60px; /* Justo debajo del header */
+        bottom: auto;
+        width: 60px;
+        height: calc(100vh - 60px);
+        flex-direction: column;
+        border-top: none;
+        border-right: 2px solid #e0e0e0;
+    }
+
+    .menu-item {
+        width: 100%;
+        border-radius: 0;
+        border-top: none;
+        border-left: 3px solid transparent;
+        margin: 5px 0;
+    }
+
+    .menu-item.active {
+        border-top: none !important;
+        border-left: 3px solid var(--primary-dark) !important;
+    }
+
+    .card {
+        margin: 0 20px 20px 20px;
+    }
+}
+
+.p-dataview-content {
+    background: var(--p-dataview-content-background) !important;
+    border-color: var(--p-dataview-content-border-color) !important;
+    border-width: var(--p-dataview-content-border-width) !important;
+    border-style: solid !important;
+    color: var(--p-dataview-content-color) !important;
+    padding: var(--p-dataview-content-padding) !important;
+    border-radius: var(--p-dataview-content-border-radius) !important;
+}

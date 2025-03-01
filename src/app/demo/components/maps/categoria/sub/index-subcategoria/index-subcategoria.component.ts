@@ -53,7 +53,7 @@ export class IndexSubcategoriaComponent {
     listarSubcategorias(): void {
         this.load_lista = true;
         this.listService
-            .listarSubcategorias(this.token, 'categoria', this.id)
+            .listarSubcategorias(this.token, { categoria: this.id })
             .subscribe(
                 (response) => {
                     this.subcategorias = response.data;

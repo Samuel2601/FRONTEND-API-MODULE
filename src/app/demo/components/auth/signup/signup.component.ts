@@ -35,11 +35,19 @@ export class SignupComponent {
             { type: 'required', message: 'La cédula es requerida.' },
             {
                 type: 'minlength',
-                message: 'La cédula debe tener 10 caracteres.',
+                getMessage: () => {
+                    const isCompany =
+                        this.formRegister?.get('isCompany')?.value;
+                    return `Debe tener ${isCompany ? 13 : 10} caracteres.`;
+                },
             },
             {
                 type: 'maxlength',
-                message: 'La cédula debe tener 10 caracteres.',
+                getMessage: () => {
+                    const isCompany =
+                        this.formRegister?.get('isCompany')?.value;
+                    return `Debe tener ${isCompany ? 13 : 10} caracteres.`;
+                },
             },
             {
                 type: 'pattern',
@@ -128,19 +136,15 @@ export class SignupComponent {
     ) {
         this.formRegister = this.formBuilder.group(
             {
+                isCompany: [false],
                 dni: [
                     '',
-                    [
-                        Validators.required,
-                        Validators.minLength(10),
-                        Validators.maxLength(10),
-                        Validators.pattern('^[0-9]+$'),
-                    ],
+                    [Validators.required, Validators.pattern('^[0-9]+$')],
                 ],
                 date_exp: [
                     '',
                     [
-                        Validators.required,
+                        //Validators.required,
                         Validators.pattern(/^\d{2}\/\d{2}\/\d{4}$/),
                     ],
                 ],
@@ -180,9 +184,28 @@ export class SignupComponent {
             }
         );
 
+        // Escuchar cambios en isCompany para actualizar validaciones de dni
+        this.formRegister
+            .get('isCompany')
+            ?.valueChanges.subscribe((isCompany) => {
+                const dniControl = this.formRegister.get('dni');
+                if (dniControl) {
+                    dniControl.setValidators([
+                        Validators.required,
+                        Validators.pattern('^[0-9]+$'),
+                        Validators.minLength(isCompany ? 13 : 10),
+                        Validators.maxLength(isCompany ? 13 : 10),
+                    ]);
+                    dniControl.updateValueAndValidity(); // Aplicar los nuevos validadores
+                }
+            });
+
         // Detectar cambios en el DNI
         this.formRegister.get('dni')?.valueChanges.subscribe((dni: any) => {
-            if (this.formRegister.get('dni')?.valid) {
+            if (
+                this.formRegister.get('dni')?.valid &&
+                !this.formRegister.get('isCompany')?.value
+            ) {
                 this.consultar(dni);
             }
         });
@@ -345,26 +368,25 @@ export class SignupComponent {
         }
 
         try {
-            // Verificar la fecha de expedición antes de continuar
-            const response = await this.admin
-                .getCiudadanoFechaExpedicion(
-                    this.formRegister.value.dni,
-                    this.formRegister.value.date_exp
-                )
-                .toPromise();
+            if (this.formRegister.get('isCompany')?.value == false) {
+                // Verificar la fecha de expedición antes de continuar
+                const response = await this.admin
+                    .getCiudadanoFechaExpedicion(
+                        this.formRegister.value.dni,
+                        this.formRegister.value.date_exp
+                    )
+                    .toPromise();
 
-            console.log(response);
-
-            if (!response.success) {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: response.mensaje,
-                });
-                this.visible = false;
-                return; // DETENER EL PROCESO SI NO COINCIDE LA FECHA
+                if (!response.success) {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: response.mensaje,
+                    });
+                    this.visible = false;
+                    return; // DETENER EL PROCESO SI NO COINCIDE LA FECHA
+                }
             }
-
             // Si la fecha de expedición es correcta, proceder con el registro
 
             this.formRegister.get('last_name')?.enable();

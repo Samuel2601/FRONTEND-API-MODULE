@@ -711,11 +711,9 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
                 // Crear un array de promesas
                 const promises = categoriaSeleccionada.map((element) =>
                     firstValueFrom(
-                        this.listar.listarSubcategorias(
-                            this.token,
-                            'categoria',
-                            element._id
-                        )
+                        this.listar.listarSubcategorias(this.token, {
+                            categoria: element._id,
+                        })
                     )
                 );
 
@@ -860,27 +858,32 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
 
     exportToCSVLineTime(dataLineaDeTiempo: any) {
         // Preparar los headers
-        const headers = dataLineaDeTiempo.columns.map(col => col.header).join(';');
+        const headers = dataLineaDeTiempo.columns
+            .map((col) => col.header)
+            .join(';');
 
         // Preparar las filas
-        const rows = dataLineaDeTiempo.labels.map(fecha => {
+        const rows = dataLineaDeTiempo.labels.map((fecha) => {
             const row = [fecha]; // Primera columna es la fecha
 
             // Agregar los demás campos
-            dataLineaDeTiempo.columns.forEach(column => {
+            dataLineaDeTiempo.columns.forEach((column) => {
                 if (column.field !== 'fecha') {
                     // Obtener el valor y manejar casos donde sea undefined o null
-                    const value = dataLineaDeTiempo.tableData[fecha][column.field] ?? 0;
+                    const value =
+                        dataLineaDeTiempo.tableData[fecha][column.field] ?? 0;
 
                     // Si es número, reemplazar punto por coma para formato español
-                    const formattedValue = typeof value === 'number'
-                        ? value.toString().replace('.', ',')
-                        : value;
+                    const formattedValue =
+                        typeof value === 'number'
+                            ? value.toString().replace('.', ',')
+                            : value;
 
                     // Si es string, envolver en comillas y escapar comillas existentes
-                    row.push(typeof formattedValue === 'string'
-                        ? `"${formattedValue.replace(/"/g, '""')}"`
-                        : formattedValue
+                    row.push(
+                        typeof formattedValue === 'string'
+                            ? `"${formattedValue.replace(/"/g, '""')}"`
+                            : formattedValue
                     );
                 }
             });
@@ -892,11 +895,15 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
         const csvContent = '\uFEFF' + [headers, ...rows].join('\n');
 
         // Crear y descargar el archivo
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob([csvContent], {
+            type: 'text/csv;charset=utf-8;',
+        });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `LineaDeTiempo_${new Date().toISOString().split('T')[0]}.csv`;
+        a.download = `LineaDeTiempo_${
+            new Date().toISOString().split('T')[0]
+        }.csv`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

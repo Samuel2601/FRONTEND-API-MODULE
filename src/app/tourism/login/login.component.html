@@ -1,0 +1,123 @@
+<div class="card flex justify-center">
+    <p-dialog
+        appendTo="body"
+        [(visible)]="visible"
+        (onHide)="visibleChange.emit(false)"
+        [dismissableMask]="true"
+        [modal]="true"
+        [style]="{ width: '90vw', maxWidth: '30rem' }"
+    >
+        <ng-template pTemplate="header">
+            <div class="inline-flex items-center justify-center gap-2">
+                <p-avatar image="assets/icon/logo.png" shape="circle" />
+                <span class="font-bold whitespace-nowrap"
+                    >Inicio de Sesión</span
+                >
+            </div>
+        </ng-template>
+        <form
+            [formGroup]="loginForm"
+            (ngSubmit)="postLogin()"
+            class="flex flex-column gap-3"
+        >
+            <label for="correo" class="block text-900 text-lg font-medium"
+                >Correo electrónico</label
+            >
+            <input
+                id="correo"
+                type="text"
+                formControlName="correo"
+                placeholder="Correo Electrónico"
+                pInputText
+                class="w-full p-3"
+            />
+
+            <label for="password1" class="block text-900 font-medium text-lg"
+                >Contraseña</label
+            >
+            <p-password
+                id="password1"
+                formControlName="pass"
+                placeholder="Contraseña"
+                styleClass="w-full"
+                [toggleMask]="true"
+                inputStyleClass="w-full p-3"
+                [feedback]="false"
+            ></p-password>
+        </form>
+        <ng-template pTemplate="footer">
+            <div class="flex justify-end gap-2">
+                <p-button
+                    label="Cancelar"
+                    (click)="visible = false"
+                    text
+                    severity="secondary"
+                />
+                <p-button
+                    label="Ingresar"
+                    type="submit"
+                    (click)="postLogin()"
+                    severity="primary"
+                />
+            </div>
+        </ng-template>
+    </p-dialog>
+
+    <p-dialog
+        appendTo="body"
+        [(visible)]="visible2"
+        [style]="{ width: '90vw', maxWidth: '25rem' }"
+    >
+        <ng-template pTemplate="headless">
+            <div
+                class="flex flex-column px-6 py-4 gap-4"
+                style="
+                    border-radius: 12px;
+                    background: linear-gradient(
+                        135deg,
+                        var(--primary-400),
+                        var(--primary-700)
+                    );
+                "
+            >
+                <div class="card flex justify-content-center">
+                    <p-inputOtp
+                        [(ngModel)]="codevalid"
+                        class="flex justify-center"
+                    >
+                        <ng-template
+                            pTemplate="input"
+                            let-token
+                            let-events="events"
+                        >
+                            <input
+                                pInputText
+                                class="custom-otp-input text-center w-12 h-12 text-lg font-bold"
+                                (input)="events.input($event)"
+                                (keydown)="events.keydown($event)"
+                                type="text"
+                                [attr.value]="token"
+                                [maxLength]="1"
+                            />
+                        </ng-template>
+                    </p-inputOtp>
+                </div>
+                <div class="flex flex-column gap-2 w-full">
+                    <p-button
+                        label="Enviar"
+                        (click)="verifiCode()"
+                        class="p-3 w-full"
+                        severity="primary"
+                    />
+                    <p-button
+                        label="Cancelar"
+                        (click)="close()"
+                        class="p-3 w-full"
+                        text
+                        severity="info"
+                    />
+                </div>
+            </div>
+        </ng-template>
+    </p-dialog>
+</div>

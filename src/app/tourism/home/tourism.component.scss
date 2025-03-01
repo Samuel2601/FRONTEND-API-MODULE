@@ -1,0 +1,202 @@
+/* 📱 En móviles (barra inferior) */
+.bottom-bar {
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    justify-content: center;
+}
+
+/* 💻 En pantallas grandes (barra lateral derecha) */
+.right-bar {
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    width: 60px;
+    height: auto;
+    flex-direction: column;
+}
+
+/* Estilos para el menú */
+.menu-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    //background-color: #ffffff;
+    //border-top: 2px solid #e0e0e0;
+    //box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+    padding: 8px 0;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 10px 10px 0 0;
+    padding: 8px;
+    width: 60px;
+    transition: all 0.2s ease;
+}
+
+.menu-item img {
+    width: 35px;
+    height: 35px;
+}
+
+.menu-item.active {
+    background-color: var(--primary-color) !important;
+    border-top: 2px solid var(--primary-dark) !important;
+    transform: scale(1.05);
+}
+/* Estilo para versión de escritorio */
+@media (min-width: 768px) {
+    .map-container {
+        padding-bottom: 0; /* Elimina el padding inferior en escritorio */
+    }
+
+    .main-content {
+        padding-left: 70px; /* Espacio para el menú lateral */
+    }
+
+    .menu-container {
+        top: 60px; /* Justo debajo del header */
+        bottom: auto;
+        width: 60px;
+        height: calc(100vh - 60px);
+        flex-direction: column;
+        border-top: none;
+        border-right: 2px solid #e0e0e0;
+    }
+
+    .menu-item {
+        width: 100%;
+        border-radius: 0;
+        border-top: none;
+        border-left: 3px solid transparent;
+        margin: 5px 0;
+    }
+
+    .menu-item.active {
+        border-top: none !important;
+        border-left: 3px solid var(--primary-dark) !important;
+    }
+
+    .card {
+        margin: 0 20px 20px 20px;
+    }
+}
+
+/* Estilos para el contenedor del spinner */
+.loading-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.7);
+    z-index: 9999;
+}
+
+/* Personalizaciones adicionales para el spinner */
+:host ::ng-deep .custom-spinner .p-progress-spinner-circle {
+    stroke: var(--primary-color);
+    animation-duration: 1s;
+}
+
+/* 📱 En móviles (barra inferior) */
+.bottom-bar {
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    justify-content: center;
+}
+
+/* 💻 En pantallas grandes (barra lateral derecha) */
+.right-bar {
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    width: 60px;
+    height: auto;
+    flex-direction: column;
+}
+
+/* Estilos para el menú */
+.menu-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    //background-color: #ffffff;
+    //border-top: 2px solid #e0e0e0;
+    //box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+    padding: 8px 0;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 10px 10px 0 0;
+    padding: 8px;
+    width: 60px;
+    transition: all 0.2s ease;
+}
+
+.menu-item img {
+    width: 35px;
+    height: 35px;
+}
+
+.menu-item.active {
+    background-color: var(--primary-color) !important;
+    border-top: 2px solid var(--primary-dark) !important;
+    transform: scale(1.05);
+}
+/* Estilo para versión de escritorio */
+@media (min-width: 768px) {
+    .map-container {
+        padding-bottom: 0; /* Elimina el padding inferior en escritorio */
+    }
+
+    .main-content {
+        padding-left: 70px; /* Espacio para el menú lateral */
+    }
+
+    .menu-container {
+        top: 60px; /* Justo debajo del header */
+        bottom: auto;
+        width: 60px;
+        height: calc(100vh - 60px);
+        flex-direction: column;
+        border-top: none;
+        border-right: 2px solid #e0e0e0;
+    }
+
+    .menu-item {
+        width: 100%;
+        border-radius: 0;
+        border-top: none;
+        border-left: 3px solid transparent;
+        margin: 5px 0;
+    }
+
+    .menu-item.active {
+        border-top: none !important;
+        border-left: 3px solid var(--primary-dark) !important;
+    }
+
+    .card {
+        margin: 0 20px 20px 20px;
+    }
+}

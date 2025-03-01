@@ -342,7 +342,11 @@
                         width: '-webkit-fill-available'
                     }"
                 >
-                <div [innerHTML]="fichaSectorialForm.get('descripcion').value"></div>
+                    <div
+                        [innerHTML]="
+                            fichaSectorialForm.get('descripcion').value
+                        "
+                    ></div>
                 </p-editor>
                 <div class="mb-5">
                     <h4 for="fecha_evento" class="form-label">
@@ -366,12 +370,24 @@
                             appendTo="body"
                             inputId="buttondisplay"
                         ></p-calendar>
-                        <p style="margin: 1rem">
-                            Quieres que se muestre en los mapas?
-                        </p>
-                        <p-inputSwitch formControlName="mostrar_en_mapa" />
+                        <p style="margin: 1rem">Mostrar fecha de evento?</p>
+                        <p-inputSwitch formControlName="view_date_evento" />
                     </div>
                 </div>
+                <div
+                    class="mb-5"
+                    style="
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-start;
+                    "
+                >
+                    <p style="margin: 1rem">
+                        Quieres que se muestre en los mapas?
+                    </p>
+                    <p-inputSwitch formControlName="mostrar_en_mapa" />
+                </div>
+
                 <div
                     class="mb-5"
                     *ngIf="fichaSectorialForm.get('mostrar_en_mapa').value"

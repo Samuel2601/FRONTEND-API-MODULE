@@ -114,7 +114,7 @@ export class IndexCategoriaComponent implements OnInit {
             const categoriasResponse = await this.listService
                 .listarCategorias(this.token)
                 .toPromise();
-           // console.log(categoriasResponse);
+            // console.log(categoriasResponse);
             if (categoriasResponse.data) {
                 this.listadocategoria = categoriasResponse.data;
 
@@ -207,8 +207,8 @@ export class IndexCategoriaComponent implements OnInit {
     visibledelete = false;
     catbool: boolean = false;
     async remoRow(row: any, cat: boolean) {
-        this.load_btn_delte = true
-        this.responsemodal=undefined;
+        this.load_btn_delte = true;
+        this.responsemodal = undefined;
         this.iddelete = undefined;
         //console.log(row, cat);
         this.catbool = cat;
@@ -216,16 +216,18 @@ export class IndexCategoriaComponent implements OnInit {
             this.responsemodal = await this.deleteService
                 .verificarCategoria(this.token, row._id)
                 .toPromise();
-            this.responsemodal.cantidadSubcategorias = this.responsemodal.data.length;
+            this.responsemodal.cantidadSubcategorias =
+                this.responsemodal.data.length;
         } else {
             this.responsemodal = await this.deleteService
                 .verificarSubCategoria(this.token, row._id)
                 .toPromise();
-            this.responsemodal.cantidadIncidentes = this.responsemodal.data.length;
+            this.responsemodal.cantidadIncidentes =
+                this.responsemodal.data.length;
         }
-       // console.log(this.responsemodal.cantidadIncidentes,this.responsemodal.cantidadSubcategorias);
-        if(this.responsemodal.data.length==0){
-            this.load_btn_delte=false;
+        // console.log(this.responsemodal.cantidadIncidentes,this.responsemodal.cantidadSubcategorias);
+        if (this.responsemodal.data.length == 0) {
+            this.load_btn_delte = false;
         }
         setTimeout(() => {
             this.iddelete = row;
@@ -248,13 +250,13 @@ export class IndexCategoriaComponent implements OnInit {
                 data.eliminarSubcategorias = true;
             }
             if (this.iddelete.cat) {
-              //  console.log(this.responsemodal.data);
-                
+                //  console.log(this.responsemodal.data);
+
                 this.deleteService
                     .eliminarCategoria(this.token, this.iddelete._id)
                     .subscribe(
                         (response) => {
-                           // console.log(response);
+                            // console.log(response);
                             this.messageService.add({
                                 severity: 'success',
                                 summary: 'Eliminación',
@@ -273,7 +275,7 @@ export class IndexCategoriaComponent implements OnInit {
                     );
             } else {
                 //console.log(this.responsemodal.data);
-                
+
                 this.deleteService
                     .eliminarSubcategoria(this.token, this.iddelete._id)
                     .subscribe(
@@ -382,10 +384,10 @@ export class IndexCategoriaComponent implements OnInit {
                     descripcion_sub,
                 ].join(';');
             });
-           // console.log(resul);
+            // console.log(resul);
             csv.push(...resul);
         });
-       // console.log(csv);
+        // console.log(csv);
         csv.map((value: any) => {
             if (typeof value === 'string') {
                 return '"' + value.replace(/"/g, '""') + '"';

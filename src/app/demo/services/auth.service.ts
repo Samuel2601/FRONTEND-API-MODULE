@@ -299,7 +299,7 @@ export class AuthService {
         return this.http.post(this.url + 'validcode', data, { headers });
     }
 
-    token(): string | boolean {
+    token(notRederit: boolean = false): string | boolean {
         const token =
             sessionStorage.getItem('token') || localStorage.getItem('token');
         if (token) {
@@ -307,12 +307,12 @@ export class AuthService {
             if (aux <= 0) {
                 this.clearSession();
                 // console.log('regreso a  login');
-                this.redirectToLoginIfNeeded();
+                this.redirectToLoginIfNeeded(notRederit);
                 return null;
             }
         } else {
             // console.log('regreso a  login');
-            this.redirectToLoginIfNeeded();
+            this.redirectToLoginIfNeeded(notRederit);
         }
         return token || false;
     }
@@ -597,13 +597,20 @@ export class AuthService {
 
     public redirectToLoginIfNeeded(home: boolean = false) {
         const currentUrl = this.router.url;
-
+        console.log(
+            'redirectToLoginIfNeeded',
+            !['/home', '/'].includes(currentUrl) &&
+                !currentUrl.startsWith('/auth/login') &&
+                !currentUrl.startsWith('/ver-ficha') &&
+                !home
+        );
         // Verifica si la URL actual contiene '/auth/login' independientemente de los parámetros adicionales
         if (
-            (!['/home', '/'].includes(currentUrl) &&
-                !currentUrl.startsWith('/auth/login') &&
-                !currentUrl.startsWith('/ver-ficha')) ||
-            home
+            !['/home', '/'].includes(currentUrl) &&
+            !currentUrl.startsWith('/auth/login') &&
+            !currentUrl.startsWith('/ver-ficha') &&
+            !currentUrl.startsWith('/mapa-turistico') &&
+            !home
         ) {
             // console.log('Redirigiendo a login');
             this.router.navigate(['/auth/login']);

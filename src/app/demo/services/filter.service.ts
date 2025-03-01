@@ -60,6 +60,21 @@ export class FilterService {
         );
     }
 
+    agregarComentario(
+        token: string,
+        id_ficha: string,
+        id_user: string,
+        contenido: string,
+        calificacion: number = 0
+    ): Observable<any> {
+        const headers = this.getHeaders(token);
+        return this.http.put(
+            `${this.url}actualizar_ficha_comentario/${id_ficha}`,
+            { id_user, contenido, calificacion },
+            { headers }
+        );
+    }
+
     obtenerIncidenteDenuncia(token: any, id: string): Observable<any> {
         const headers = this.getHeaders(token);
         let params = new HttpParams();

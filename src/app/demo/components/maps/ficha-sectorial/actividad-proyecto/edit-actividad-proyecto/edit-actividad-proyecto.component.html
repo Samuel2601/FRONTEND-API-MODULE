@@ -40,9 +40,7 @@
                     />
                 </div>
                 <div class="field col-12 md:col-6">
-                    <label for="nombre" class="form-label"
-                        >URL del icono</label
-                    >
+                    <label for="nombre" class="form-label">URL del icono</label>
                     <input
                         type="text"
                         class="form-control"
@@ -50,6 +48,24 @@
                         placeholder="URL del ICONO"
                         pInputText
                         [(ngModel)]="categoria.icono"
+                    />
+                </div>
+                <div class="field col-12 md:col-6">
+                    <p-checkbox
+                        [(ngModel)]="categoria.is_tourism"
+                        [binary]="true"
+                        label="Es parte del turismo"
+                    ></p-checkbox>
+                </div>
+                <div class="field col-12 md:col-6">
+                    <label for="nombre" class="form-label">Previo PDF</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="icono"
+                        placeholder="URL del ICONO"
+                        pInputText
+                        [(ngModel)]="categoria.url_pdf"
                     />
                 </div>
             </ng-container>

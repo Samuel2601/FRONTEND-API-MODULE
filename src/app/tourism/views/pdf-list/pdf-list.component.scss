@@ -1,0 +1,49 @@
+.pdf-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.pdf-viewer {
+    width: 100%;
+    height: 80vh;
+    max-height: 600px; // Máximo de 600px en pantallas grandes
+    min-height: 300px; // Mínimo de 300px en pantallas pequeñas
+    border: none;
+}
+
+// Ajustes para pantallas pequeñas
+@media (max-width: 768px) {
+    .pdf-viewer {
+        height: 90vh; // Usa más espacio en pantallas pequeñas
+        max-height: none; // Permite que crezca dinámicamente
+    }
+}
+
+// Estilos responsive para pantallas pequeñas
+@media (max-width: 768px) {
+    .pdf-container {
+        iframe,
+        embed,
+        ngx-extended-pdf-viewer {
+            height: 70vh !important;
+        }
+    }
+}
+
+// Estilos para dispositivos móviles
+@media (max-width: 576px) {
+    .pdf-container {
+        iframe,
+        embed,
+        ngx-extended-pdf-viewer {
+            height: 60vh !important;
+        }
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+}

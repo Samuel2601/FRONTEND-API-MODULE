@@ -1,0 +1,169 @@
+.gallery-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-height: 60vh;
+    overflow: hidden;
+}
+
+.gallery-image {
+    width: auto;
+    height: 100%;
+    max-height: 60vh;
+    object-fit: contain;
+    display: block;
+}
+
+.gallery-thumbnail {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 2px solid #ccc;
+}
+
+.thumbnail-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+/* Añade estos estilos al archivo SCSS de tu ItemComponent */
+
+:host {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+/* Contenedor principal con scroll adecuado */
+.item-container {
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch; /* Para iOS */
+}
+
+/* Estado de carga */
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 200px;
+}
+
+/* Mejoras específicas para PrimeNG */
+:host ::ng-deep {
+    /* Mejoras para Carousel dentro del Item */
+    .p-carousel {
+        .p-carousel-indicators {
+            button {
+                width: 0.5rem;
+                height: 0.5rem;
+                margin: 0 0.2rem;
+            }
+        }
+
+        .p-carousel-item {
+            display: flex;
+            justify-content: center;
+        }
+    }
+
+    /* Mejoras para las tarjetas en Item */
+    .p-card {
+        margin-bottom: 1rem;
+
+        .p-card-body {
+            padding: 1rem;
+        }
+
+        .p-card-content {
+            padding: 0.5rem 0;
+        }
+    }
+
+    /* Mejoras para imágenes */
+    img {
+        max-width: 100%;
+        height: auto;
+        object-fit: contain;
+    }
+}
+
+/* Estilos específicos para móviles */
+@media (max-width: 767px) {
+    .item-container {
+        padding: 0.75rem;
+    }
+
+    /* Elementos de interacción más grandes para móviles */
+    button,
+    .p-button {
+        min-height: 44px; /* Tamaño mínimo para interacción táctil confortable */
+    }
+
+    /* Mejorar scrolling en iOS */
+    :host ::ng-deep .p-scrollpanel-content {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Añade estos estilos a tu archivo de componente */
+
+:host ::ng-deep {
+
+    /* Estilos para el botón de como llegar */
+    .p-button.p-button-success {
+        /* Más destacado para móviles y en general */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        &:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Ícono del botón */
+        .p-button-icon {
+            font-size: 1.1rem;
+        }
+    }
+
+    /* Versión móvil con botón más grande */
+    @media (max-width: 767px) {
+        .p-button.p-button-success {
+            font-size: 1.1rem;
+            padding: 0.75rem 1.5rem;
+            width: auto;
+
+            .p-button-icon {
+                font-size: 1.2rem;
+            }
+        }
+    }
+}
+
+/* Contenedor flotante para el botón en móviles */
+@media (max-width: 767px) {
+    .floating-map-button {
+        position: fixed;
+        bottom: 70px;
+        /* Ajusta esto según la altura de tu menú inferior si tienes uno */
+        right: 16px;
+        z-index: 1000;
+    }
+}

@@ -1,0 +1,179 @@
+<div class="tourism-app min-h-screen">
+    <header
+        class="sticky top-0 left-0 w-full flex align-items-center justify-content-between p-3 surface-card shadow-1 border-b-2 border-gray-300 z-10"
+    >
+        <button
+            pButton
+            icon="pi pi-arrow-left"
+            class="p-button-text"
+            (click)="goBack()"
+        ></button>
+        <img
+            src="assets/icon/ESMERALDAS_LA_BELLA.png"
+            height="50"
+            alt="Esmeraldas Turismo"
+        />
+        <div></div>
+        <button
+            *ngIf="false"
+            pButton
+            icon="pi pi-search"
+            class="p-button-text"
+        ></button>
+    </header>
+
+    <!-- Spinner de carga -->
+    <div
+        *ngIf="load"
+        class="loading-container flex align-items-center justify-content-center"
+    >
+        <p-progressSpinner
+            strokeWidth="8"
+            fill="var(--surface-ground)"
+            animationDuration=".5s"
+            [style]="{ width: '50px', height: '50px' }"
+            styleClass="custom-spinner"
+        ></p-progressSpinner>
+    </div>
+
+    <!-- Contenido principal (solo se muestra cuando no está cargando) -->
+    <ng-container *ngIf="!load">
+        <div
+            class="flex flex-wrap gap-3 justify-content-center xl:w-10 lg:w-11 md:w-12 w-full mx-auto"
+            style="
+                background: url('assets/layout/images/fondo.jpg') center/cover
+                    no-repeat;
+                padding: 20px;
+            "
+        >
+            <div class="grid gap-3 justify-content-center w-full">
+                <div
+                    *ngFor="let item of menuItems"
+                    class="col-5 sm:col-4 md:col-3 lg:col-4"
+                >
+                    <div
+                        class="tourism-card cursor-pointer p-3 border-round-lg flex flex-column align-items-center justify-content-center w-full"
+                        style="
+                            border: 2px solid var(--primary-color);
+                            background-color: var(--surface-a);
+                            height: 150px;
+                        "
+                        (click)="goList(item.label)"
+                    >
+                        <img
+                            [src]="item.icon"
+                            alt=""
+                            class="max-w-6rem w-auto mb-2"
+                        />
+                        <span
+                            class="text-sm font-medium text-center"
+                            style="color: var(--text-color)"
+                        >
+                            {{ item.label }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div
+            class="p-3 xl:w-8 lg:w-9 md:w-10 sm:w-11 w-full mx-auto"
+            style="
+                border: 2px solid var(--surface-border);
+                background: rgba(var(--surface-card), 0.6);
+            "
+        >
+            <h2 class="text-xl font-medium mb-3 ml-3">Los más visitados</h2>
+            <p-carousel
+                [value]="mostVisited"
+                [numVisible]="3"
+                [numScroll]="1"
+                [circular]="true"
+                [autoplayInterval]="4000"
+                [responsiveOptions]="responsiveOptions"
+            >
+                <ng-template let-place pTemplate="item">
+                    <p-card
+                        [header]="place.title_marcador"
+                        styleClass="shadow-1 h-full"
+                        (click)="goMaps(place.title)"
+                    >
+                        <ng-template pTemplate="header">
+                            <div class="flex justify-content-center">
+                                <img
+                                    [src]="
+                                        url +
+                                        'obtener_imagen/ficha_sectorial/' +
+                                        place.foto[0]
+                                    "
+                                    style="
+                                        max-height: 100px;
+                                        width: auto;
+                                        display: block;
+                                    "
+                                />
+                            </div>
+                        </ng-template>
+                        <ng-template pTemplate="content">
+                            <div
+                                class="flex flex-column gap-2 justify-content-center"
+                            >
+                                <h3>{{ place.title }}</h3>
+                            </div>
+
+                            <div
+                                class="flex justify-content-between align-items-center mt-2"
+                            >
+                                <span class="flex align-items-center gap-2">
+                                    <i class="pi pi-thumbs-up text-primary"></i>
+                                    <span class="text-sm">{{
+                                        place.me_gusta.length
+                                    }}</span>
+                                </span>
+                                <span class="flex align-items-center gap-2">
+                                    <i
+                                        class="pi pi-comments text-secondary"
+                                    ></i>
+                                    <span class="text-sm">{{
+                                        place.comentarios.length
+                                    }}</span>
+                                </span>
+                            </div>
+                        </ng-template>
+                    </p-card>
+                </ng-template>
+            </p-carousel>
+        </div>
+    </ng-container>
+
+    <!-- Menú inferior (móvil) o lateral (escritorio) -->
+    <div
+        *ngIf="isMobil()"
+        class="menu-container"
+        style="background-color: #ffffff00 !important"
+    >
+        <div
+            *ngFor="let item of menuItemssub"
+            class="menu-item"
+            [ngClass]="{ active: item.active }"
+            style="
+                border-top: 2px solid var(--primary-color);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 10px 10px 0px 0px;
+                background-color: var(--surface-a);
+                margin-bottom: -10px;
+                width: 100%;
+            "
+            (click)="
+                item.command &&
+                    item.command({ originalEvent: $event, item: item })
+            "
+        >
+            <img [src]="item.icon" alt="icono" />
+        </div>
+    </div>
+</div>
+
+<app-login-modal [(visible)]="loginVisible"></app-login-modal>

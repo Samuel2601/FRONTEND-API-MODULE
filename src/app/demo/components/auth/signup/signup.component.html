@@ -98,6 +98,19 @@
 
                 <form [formGroup]="formRegister" (ngSubmit)="onSubmit()">
                     <div class="flex flex-column gap-3">
+                        <!-- Add this before the DNI field -->
+                        <div class="flex align-items-center mb-3">
+                            <p-checkbox
+                                formControlName="isCompany"
+                                [binary]="true"
+                                inputId="isCompany"
+                            ></p-checkbox>
+                            <label for="isCompany" class="ml-2"
+                                >¿Eres una empresa?</label
+                            >
+                        </div>
+
+                        <!-- Modify the DNI/RUC field label -->
                         <div class="p-float-label">
                             <p-inputGroup>
                                 <p-inputGroupAddon>
@@ -110,7 +123,11 @@
                                         formControlName="dni"
                                         type="text"
                                     />
-                                    <label for="dni">Cédula</label>
+                                    <label for="dni">{{
+                                        formRegister.get("isCompany")?.value
+                                            ? "RUC"
+                                            : "Cédula"
+                                    }}</label>
                                 </p-floatLabel>
                             </p-inputGroup>
                             <small
@@ -124,7 +141,10 @@
                             </small>
                         </div>
 
-                        <div class="p-float-label">
+                        <div
+                            class="p-float-label"
+                            *ngIf="!formRegister.get('isCompany')?.value"
+                        >
                             <p-inputGroup>
                                 <p-inputGroupAddon>
                                     <i class="pi pi-calendar"></i>
@@ -349,6 +369,27 @@
                                 class="font-medium text-blue-500 no-underline"
                                 >Inicia sesión</a
                             >
+                        </div>
+
+                        <!-- Support Email Section -->
+                        <div
+                            class="text-center mt-4 p-3 surface-100 border-round"
+                        >
+                            <i
+                                class="pi pi-envelope text-xl text-green-600 mb-2"
+                            ></i>
+                            <p class="text-600 mb-2">
+                                ¿Tienes consultas sobre el registro?
+                            </p>
+                            <p class="text-700">
+                                Escríbenos a
+                                <a
+                                    href="mailto:aplicaciones@esmeraldas.gob.ec"
+                                    class="font-medium text-green-600 no-underline"
+                                >
+                                    aplicaciones&#64;esmeraldas.gob.ec
+                                </a>
+                            </p>
                         </div>
                     </div>
                 </form>

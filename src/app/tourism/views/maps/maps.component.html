@@ -1,0 +1,112 @@
+<div class="map-container">
+    <header
+        class="sticky top-0 left-0 w-full flex align-items-center justify-content-between p-3 surface-card shadow-1 border-b-2 border-gray-300 z-10"
+    >
+        <button
+            pButton
+            icon="pi pi-arrow-left"
+            class="p-button-text"
+            (click)="goBack()"
+        ></button>
+        <img
+            src="assets/icon/ESMERALDAS_LA_BELLA.png"
+            alt="Esmeraldas Turismo"
+        />
+        <div></div>
+        <button
+            *ngIf="false"
+            pButton
+            icon="pi pi-search"
+            class="p-button-text"
+        ></button>
+    </header>
+    <div *ngIf="actividad.length > 0" class="chip-container">
+        <span
+            *ngFor="let act of actividad"
+            class="chip"
+            [class.active]="selectedActivities.has(act._id)"
+            (click)="toggleActivity(act)"
+        >
+            <input
+                type="checkbox"
+                [checked]="selectedActivities.has(act._id)"
+                class="chip-checkbox"
+            />
+            <img [src]="act.icon" alt="{{ act.label }}" class="chip-icon" />
+            {{ act.label }}
+        </span>
+    </div>
+    <div
+        id="map"
+        style="height: 100%; width: 100%; position: absolute; top: 0; left: 0"
+    ></div>
+
+    <!-- Menú inferior (móvil) o lateral (escritorio) -->
+    <div
+        *ngIf="isMobil()"
+        class="menu-container"
+        style="background-color: #ffffff00 !important"
+    >
+        <div
+            *ngFor="let item of menuItems"
+            class="menu-item"
+            [ngClass]="{ active: item.active }"
+            style="
+                border-top: 2px solid var(--primary-color);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 10px 10px 0px 0px;
+                background-color: var(--surface-a);
+                margin-bottom: -10px;
+                width: 100%;
+            "
+            (click)="
+                item.command &&
+                    item.command({ originalEvent: $event, item: item })
+            "
+        >
+            <img [src]="item.icon" alt="icono" />
+        </div>
+    </div>
+</div>
+
+<p-dialog
+    [(visible)]="displayFichaDialog"
+    [modal]="true"
+    [dismissableMask]="true"
+    [position]="isMobil() ? 'bottom' : 'center'"
+    [style]="getDialogStyle()"
+    [contentStyle]="getContentStyle()"
+    [showHeader]="true"
+    [closable]="true"
+    [closeOnEscape]="true"
+    [baseZIndex]="10000"
+    styleClass="ficha-dialog"
+    [draggable]="false"
+    [resizable]="false"
+>
+    <ng-template pTemplate="header">
+        <div class="flex justify-content-between align-items-center w-full">
+            <div class="flex align-items-center">
+                <i class="pi pi-folder text-xl sm:text-2xl mr-2"></i>
+                <h4
+                    class="m-0 font-medium text-overflow-ellipsis overflow-hidden white-space-nowrap"
+                    style="max-width: 80vw"
+                >
+                    {{ selectedFichaId.title_marcador }}
+                </h4>
+            </div>
+        </div>
+    </ng-template>
+
+    <div class="dialog-content">
+        <app-item
+            [fichaId]="selectedFichaId._id"
+            *ngIf="displayFichaDialog && selectedFichaId && selectedFichaId._id"
+            (onClose)="displayFichaDialog = false"
+        ></app-item>
+    </div>
+</p-dialog>
+
+<app-login-modal [(visible)]="loginVisible"></app-login-modal>

@@ -10,6 +10,7 @@ import {
     DynamicDialogConfig,
 } from 'primeng/dynamicdialog';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { Checkbox } from 'primeng/checkbox';
 @Component({
     selector: 'app-edit-actividad-proyecto',
     templateUrl: './edit-actividad-proyecto.component.html',
@@ -27,7 +28,7 @@ export class EditActividadProyectoComponent {
         private modalService: NgbModal,
         private messageService: MessageService,
         private config: DynamicDialogConfig,
-        private auth:AuthService
+        private auth: AuthService
     ) {}
 
     ngOnInit(): void {
@@ -54,7 +55,11 @@ export class EditActividadProyectoComponent {
     updateCate() {
         //console.log(this.categoria);
         this.update
-            .actualizarTipoActividadProyecto(this.token, this.id, this.categoria)
+            .actualizarTipoActividadProyecto(
+                this.token,
+                this.id,
+                this.categoria
+            )
             .subscribe(
                 (response) => {
                     if (response.data) {

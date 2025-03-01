@@ -30,5 +30,6 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 
 `cordova-res android --skip-config --copy`
 
-
 `npx cap sync`
+
+`ng build --configuration=production --output-hashing=all`

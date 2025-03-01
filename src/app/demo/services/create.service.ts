@@ -75,6 +75,7 @@ export class CreateService {
         formData.append('estado', data.estado._id);
         formData.append('actividad', data.actividad._id);
         formData.append('fecha_evento', data.fecha_evento);
+        formData.append('view_date_evento', data.view_date_evento);
         formData.append('observacion', data.observacion);
 
         formData.append('es_articulo', data.es_articulo);

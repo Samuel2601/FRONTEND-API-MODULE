@@ -170,6 +170,21 @@ export class HomeComponent implements OnInit {
                 await this.listarfichasHome();
                 this.setbuttons = [
                     {
+                        label: 'Núevo',
+                        items: [
+                            {
+                                label: 'Túrismo',
+                                info: 'Descubre el turismo de la ciudad.',
+                                icon: 'https://i.postimg.cc/NMs6mNNj/Dise-o-sin-t-tulo-2.png',
+                                showInfo: false,
+                                style: true,
+                                command: async () => {
+                                    this.router.navigate(['/mapa-turistico']);
+                                },
+                            },
+                        ],
+                    },
+                    {
                         label: 'Más Usados',
                         items: [
                             {
@@ -330,6 +345,42 @@ export class HomeComponent implements OnInit {
                                 command: async () => {
                                     this.incidente();
                                 },
+                                items: this.check.DashboardComponent
+                                    ? [
+                                          {
+                                              label: 'Reporte de Incidentes',
+                                              info: 'Puedes reportar los incidentes y denuncias con respecto a BOMBEROS.',
+                                              icon: 'https://i.postimg.cc/GpFfDvfq/Imagen-de-Whats-App-2024-06-26-a-las-12-09-30-57f62e61-removebg-preview.png',
+                                              dev: true,
+                                              showInfo: false,
+                                              command: async () => {
+                                                this.incidente();
+                                              },
+                                          },
+                                          {
+                                              label: 'Crear un Incidente',
+                                              info: 'Encuentralos, más cerca de ti',
+                                              icon: 'https://i.postimg.cc/NG4bqngb/Imagen-de-Whats-App-2024-06-26-a-las-12-07-36-c26979b6-fotor-bg-remover-20240626121035.png',
+                                              style: true,
+                                              showInfo: false,
+                                              command: async () => {
+                                                  this.auth.token()
+                                                      ? ''
+                                                      : this.auth.redirectToLoginIfNeeded(
+                                                            true
+                                                        );
+                                                  this.isMobil()
+                                                      ? this.router.navigate([
+                                                            '/crear-ficha',
+                                                        ])
+                                                      : ((this.visible_incidente =
+                                                            false),
+                                                        (this.visible_incidente =
+                                                            true));
+                                              },
+                                          },
+                                      ]
+                                    : undefined,
                             },
                             {
                                 label: 'Fichas Sectoriales',
@@ -525,7 +576,9 @@ export class HomeComponent implements OnInit {
 
                                     if (idCiudadano) {
                                         this.auth
-                                            .redirect_external(this.auth.token())
+                                            .redirect_external(
+                                                this.auth.token()
+                                            )
                                             .subscribe({
                                                 next: (res) => {
                                                     window.open(res, '_blank');
@@ -536,7 +589,7 @@ export class HomeComponent implements OnInit {
                                             });
                                     } else {
                                         window.open(
-                                            'https://consulta.esmeraldas.gob.ec/index.jsp',
+                                            'https://consulta.esmeraldas.gob.ec/valorespagados.jsp',
                                             '_blank'
                                         );
                                     }

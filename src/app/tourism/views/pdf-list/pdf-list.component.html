@@ -1,0 +1,88 @@
+<div class="p-3 surface-card shadow-2 border-round w-full">
+    <div
+        class="flex justify-content-between align-items-center mb-4 p-3 border-round-lg"
+        style="
+            background: linear-gradient(135deg, #398a38, #c6eec0);
+            color: white;
+        "
+    >
+        <div class="flex align-items-center">
+            <i class="pi pi-folder text-3xl mr-3"></i>
+            <h2 class="m-0 font-bold">
+                {{ name || "Documentos disponibles" }}
+            </h2>
+        </div>
+
+        <button
+            pButton
+            icon="pi pi-arrow-left"
+            label="Ver todos"
+            class="p-button-rounded p-button-text p-button-secondary shadow-md transition-transform transform hover:scale-105"
+            (click)="showAllPdfs()"
+            *ngIf="name"
+        ></button>
+    </div>
+
+    <p-toast></p-toast>
+
+    <div
+        *ngIf="loading"
+        class="flex align-items-center justify-content-center"
+        style="min-height: 70vh"
+    >
+        <p-progressSpinner
+            strokeWidth="5"
+            animationDuration="1s"
+        ></p-progressSpinner>
+        <span class="ml-3 text-lg font-medium">Cargando documento...</span>
+    </div>
+
+    <div
+        *ngIf="error && !loading"
+        class="p-4 flex align-items-center justify-content-center flex-column"
+        style="min-height: 70vh"
+    >
+        <i class="pi pi-exclamation-circle text-6xl text-orange-500 mb-3"></i>
+        <h3 class="text-xl font-semibold">Error al cargar el documento</h3>
+        <p class="text-md">{{ error }}</p>
+    </div>
+    {{ pdfUrl }}
+    <div
+        *ngIf="pdfUrl && !loading"
+        class="pdf-container border-round-lg p-2 shadow-md"
+    >
+        <embed
+            [src]="pdfUrl"
+            type="application/pdf"
+            width="100%"
+            style="height: 85vh"
+        />
+    </div>
+</div>
+
+<!--
+ <div *ngIf="!name && !loading" class="p-4">
+        <p-panel
+            header="📂 Documentos disponibles"
+            class="shadow-2 border-round-lg"
+        >
+            <p class="text-lg text-gray-600 mb-3">
+                Selecciona un documento para visualizarlo:
+            </p>
+
+            <ul class="list-none p-0">
+                <li
+                    *ngFor="let key of pdfKeys"
+                    class="flex align-items-center p-3 border-round-lg cursor-pointer transition-all hover:bg-blue-100 hover:shadow-md"
+                    (click)="selectPdf(key)"
+                >
+                    <i class="pi pi-file-pdf text-2xl text-red-500 mr-3"></i>
+                    <span class="text-lg font-medium text-gray-700">{{
+                        key
+                    }}</span>
+                </li>
+            </ul>
+        </p-panel>
+    </div>
+
+-->

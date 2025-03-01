@@ -10,6 +10,7 @@ import { MapaComponent } from './demo/components/static-page/mapa/mapa.component
 import { ViewFichasArticulosComponent } from './demo/components/static-page/view-fichas-articulos/view-fichas-articulos.component';
 import { MapaTrashComponent } from './demo/components/static-page/mapa-trash/mapa-trash.component';
 import { MostrarFichasArticulosComponent } from './demo/components/static-page/mostrar-fichas-articulos/mostrar-fichas-articulos.component';
+import { TourismRoutingModule } from './tourism/tourism-routing.module';
 
 @NgModule({
     imports: [
@@ -55,6 +56,7 @@ import { MostrarFichasArticulosComponent } from './demo/components/static-page/m
                             //canActivate: [AuthGuard] // Aplica el guard aquí
                         },
                         { path: 'home', component: HomeComponent },
+
                         {
                             path: 'crear-ficha',
                             component: MapaFichaComponent,
@@ -93,7 +95,7 @@ import { MostrarFichasArticulosComponent } from './demo/components/static-page/m
                         },
                     ],
                 },
-
+                { path: 'mapa-turistico', loadChildren: () => import('./tourism/tourism-routing.module').then(m => m.TourismRoutingModule) },
                 {
                     path: 'auth',
                     loadChildren: () =>

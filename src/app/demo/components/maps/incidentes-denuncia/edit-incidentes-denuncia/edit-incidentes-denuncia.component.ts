@@ -81,9 +81,18 @@ export class EditIncidentesDenunciaComponent implements OnInit {
     async ngOnInit() {
         this.helper.llamarspinner('edit incidente');
         const checkObservables = {
-            EditIncidentesDenunciaComponent: this.auth.hasPermissionComponent('/incidentes_denuncia/:id', 'put'),
-            EditIncidenteAll: this.auth.hasPermissionComponent('/incidentes_denuncia/:id', 'put'),
-            ContestarIncidente: this.auth.hasPermissionComponent('/incidentes_denuncia/:id', 'put'),
+            EditIncidentesDenunciaComponent: this.auth.hasPermissionComponent(
+                '/incidentes_denuncia/:id',
+                'put'
+            ),
+            EditIncidenteAll: this.auth.hasPermissionComponent(
+                '/incidentes_denuncia/:id',
+                'put'
+            ),
+            ContestarIncidente: this.auth.hasPermissionComponent(
+                '/incidentes_denuncia/:id',
+                'put'
+            ),
         };
 
         forkJoin(checkObservables).subscribe(async (check) => {
@@ -111,33 +120,45 @@ export class EditIncidentesDenunciaComponent implements OnInit {
     }
 
     obtenerincidente() {
-        this.filter.obtenerIncidenteDenuncia(this.token, this.id).subscribe((response) => {
-            if (response.data) {
-                const incidente = response.data;
-                for (const key in incidente) {
-                    if (Object.prototype.hasOwnProperty.call(incidente, key)) {
-                        const element = incidente[key];
-                        const campo = this.incidencia.get(key);
-                        if (campo) {
-                            campo.setValue(element);
-                            if (key == 'categoria') {
-                                this.selectcategoria(false, element._id);
-                            }
-                            if ((incidente.ciudadano._id != this.id_user ||this.check.EditIncidentesDenunciaComponent) && key == 'estado') {
-                                this.habilitarCampos(key);
-                            }
-                            if (incidente.ciudadano._id == this.id_user && key == 'descripcion') {
-                                this.habilitarCampos(key);
+        this.filter
+            .obtenerIncidenteDenuncia(this.token, this.id)
+            .subscribe((response) => {
+                if (response.data) {
+                    const incidente = response.data;
+                    for (const key in incidente) {
+                        if (
+                            Object.prototype.hasOwnProperty.call(incidente, key)
+                        ) {
+                            const element = incidente[key];
+                            const campo = this.incidencia.get(key);
+                            if (campo) {
+                                campo.setValue(element);
+                                if (key == 'categoria') {
+                                    this.selectcategoria(false, element._id);
+                                }
+                                if (
+                                    (incidente.ciudadano._id != this.id_user ||
+                                        this.check
+                                            .EditIncidentesDenunciaComponent) &&
+                                    key == 'estado'
+                                ) {
+                                    this.habilitarCampos(key);
+                                }
+                                if (
+                                    incidente.ciudadano._id == this.id_user &&
+                                    key == 'descripcion'
+                                ) {
+                                    this.habilitarCampos(key);
+                                }
                             }
                         }
                     }
+                    if (incidente.foto) {
+                        this.imagenModal = incidente.foto;
+                    }
+                    this.load_form = true;
                 }
-                if (incidente.foto) {
-                    this.imagenModal = incidente.foto;
-                }
-                this.load_form = true;
-            }
-        });
+            });
     }
 
     enviar() {
@@ -193,7 +214,7 @@ export class EditIncidentesDenunciaComponent implements OnInit {
         if (event) {
             const id = event;
             this.listService
-                .listarSubcategorias(this.token, 'categoria', id)
+                .listarSubcategorias(this.token, { categoria: id })
                 .subscribe(
                     (response) => {
                         ////console.log(response)

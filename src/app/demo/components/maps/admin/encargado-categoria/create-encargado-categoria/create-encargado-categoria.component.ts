@@ -55,10 +55,10 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
             .subscribe(async (response) => {
                 if (response.data) {
                     this.roles = response.data;
-                    //console.log(this.roles);
+                    console.log(this.roles);
                     const list_user = await Promise.all(
                         this.roles.map(async (role: any) => {
-                            //console.log(role);
+                            console.log(role);
                             if (role.orden == 3 || role.orden > 4) {
                                 const listusuarios = await this.listService
                                     .listarUsuarios(this.token, {
@@ -72,9 +72,10 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
                     list_user.forEach((element) => {
                         if (element) {
                             this.usuarios.push(...element.data);
-                            this.usuarios = this.usuarios.map(usuarios => ({
+                            this.usuarios = this.usuarios.map((usuarios) => ({
                                 ...usuarios,
-                                fullName: `${usuarios.name} ${usuarios.last_name}`}));
+                                fullName: `${usuarios.name} ${usuarios.last_name}`,
+                            }));
                         }
                     });
 
@@ -98,7 +99,7 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
     registrarEncargo() {
         if (this.encargadosSeleccionados.length > 0 && this.categoriaselect) {
             //console.log(this.encargadosSeleccionados,this.categoriaselect);
-            
+
             this.createService
                 .registrarEncargadoCategoria(this.token, {
                     encargado: this.encargadosSeleccionados,
@@ -122,7 +123,6 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
                         });
                     }
                 );
-                
         }
     }
 }

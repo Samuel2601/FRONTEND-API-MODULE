@@ -1,0 +1,353 @@
+<!-- HTML Template -->
+<div class="map-container">
+    <!-- Header fijo -->
+    <header>
+        <button
+            pButton
+            icon="pi pi-arrow-left"
+            class="p-button-text"
+            (click)="goBack()"
+        ></button>
+        <img
+            src="assets/icon/ESMERALDAS_LA_BELLA.png"
+            alt="Esmeraldas Turismo"
+        />
+        <div></div>
+        <button
+            *ngIf="false"
+            pButton
+            icon="pi pi-search"
+            class="p-button-text"
+        ></button>
+    </header>
+
+    <!-- Contenedor principal con padding-top para dejar espacio al header fijo -->
+    <div class="main-content">
+        <!-- Filtros de actividades -->
+        <div *ngIf="actividad.length > 0" class="chip-container">
+            <span
+                *ngFor="let act of actividad"
+                class="chip"
+                [class.active]="selectedActivities.has(act._id)"
+                (click)="toggleActivity(act)"
+            >
+                <input
+                    type="checkbox"
+                    [checked]="selectedActivities.has(act._id)"
+                    class="chip-checkbox"
+                />
+                <img [src]="act.icon" alt="{{ act.label }}" class="chip-icon" />
+                {{ act.label }}
+            </span>
+        </div>
+
+        <!-- DataView with Paginator -->
+        <div class="card" *ngIf="load_dataview">
+            <p-dataView
+                #dv
+                [value]="mostVisited()"
+                [layout]="layout"
+                [paginator]="true"
+                [rows]="5"
+                [totalRecords]="mostVisited().length"
+                [rowsPerPageOptions]="[5, 10, 20]"
+                [alwaysShowPaginator]="true"
+            >
+                <ng-template pTemplate="header">
+                    <div
+                        class="flex flex-column sm:flex-row justify-content-between align-items-center"
+                    >
+                        <div>
+                            <span class="text-xl font-medium"
+                                >Lugares más visitados</span
+                            >
+                        </div>
+                        <div class="flex align-items-center gap-2">
+                            <p-dropdown
+                                [options]="sortOptions"
+                                placeholder="Ordenar por"
+                                (onChange)="onSortChange($event)"
+                                styleClass="mb-2 sm:mb-0"
+                            ></p-dropdown>
+                            <p-selectButton
+                                [(ngModel)]="layout"
+                                [options]="['list', 'grid']"
+                                [allowEmpty]="false"
+                            >
+                                <ng-template pTemplate="item" let-item>
+                                    <i
+                                        class="pi"
+                                        [ngClass]="{
+                                            'pi-list': item === 'list',
+                                            'pi-th-large': item === 'grid'
+                                        }"
+                                    ></i>
+                                </ng-template>
+                            </p-selectButton>
+                        </div>
+                    </div>
+                </ng-template>
+                <ng-template pTemplate="list" let-items>
+                    <div class="grid grid-nogutter">
+                        <div
+                            class="col-12"
+                            *ngFor="let item of items; let first = first"
+                        >
+                            <div
+                                class="flex flex-column sm:flex-row sm:align-items-center p-4 gap-3"
+                                [ngClass]="{
+                                    'border-top-1 surface-border': !first
+                                }"
+                            >
+                                <div
+                                    class="md:w-10rem relative"
+                                    style="max-width: 20vw"
+                                >
+                                    <img
+                                        class="block xl:block mx-auto border-round w-full"
+                                        [src]="
+                                            url +
+                                            'obtener_imagen/ficha_sectorial/' +
+                                            item.foto[0]
+                                        "
+                                        [alt]="item.title_marcador"
+                                    />
+                                </div>
+                                <div
+                                    class="flex flex-column md:flex-row justify-content-between md:align-items-center flex-1 gap-4"
+                                >
+                                    <div
+                                        class="flex flex-row md:flex-column justify-content-between align-items-start gap-2"
+                                    >
+                                        <div>
+                                            <div
+                                                class="text-lg font-medium mt-2"
+                                            >
+                                                {{ item.title_marcador }}
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="surface-100 p-1"
+                                            style="border-radius: 30px"
+                                        >
+                                            <div
+                                                class="surface-0 flex align-items-center gap-2 justify-content-center py-1 px-2"
+                                                style="
+                                                    border-radius: 30px;
+                                                    box-shadow: 0px 1px 2px 0px
+                                                            rgba(0, 0, 0, 0.04),
+                                                        0px 1px 2px 0px
+                                                            rgba(0, 0, 0, 0.06);
+                                                "
+                                            >
+                                                <span
+                                                    class="text-900 font-medium text-sm"
+                                                >
+                                                    {{
+                                                        item.me_gusta?.length ||
+                                                            0
+                                                    }}
+                                                </span>
+                                                <i
+                                                    class="pi pi-star-fill text-yellow-500"
+                                                ></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="flex flex-column md:align-items-end gap-5"
+                                    >
+                                        <span class="text-xl font-semibold">
+                                            <i class="pi pi-comment"></i>
+                                            {{
+                                                item.comentarios?.length || 0
+                                            }}</span
+                                        >
+                                        <div
+                                            class="flex flex-row-reverse md:flex-row gap-2"
+                                        >
+                                            <p-button
+                                                icon="pi pi-heart"
+                                                [outlined]="!isLiked(item)"
+                                                [severity]="
+                                                    isLiked(item)
+                                                        ? 'danger'
+                                                        : 'secondary'
+                                                "
+                                                (onClick)="toggleLike(item)"
+                                            ></p-button>
+                                            <p-button
+                                                icon="pi pi-map-marker"
+                                                label="Ver"
+                                                class="flex-auto md:flex-initial white-space-nowrap"
+                                                (onClick)="
+                                                    goMaps(item.title_marcador)
+                                                "
+                                            >
+                                            </p-button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </ng-template>
+                <ng-template pTemplate="grid" let-items>
+                    <div class="grid grid-nogutter">
+                        <div
+                            *ngFor="let item of items"
+                            class="col-12 sm:col-6 md:col-4 xl:col-6 p-2"
+                        >
+                            <div
+                                class="p-4 border-1 surface-border surface-card border-round flex flex-column"
+                            >
+                                <div
+                                    class="surface-50 flex justify-content-center border-round p-3"
+                                >
+                                    <div class="relative mx-auto">
+                                        <img
+                                            class="border-round w-full"
+                                            [src]="
+                                                url +
+                                                'obtener_imagen/ficha_sectorial/' +
+                                                item.foto[0]
+                                            "
+                                            [alt]="item.title_marcador"
+                                            style="max-width: 300px"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="pt-4">
+                                    <div
+                                        class="flex flex-row justify-content-between align-items-start gap-2"
+                                    >
+                                        <div>
+                                            <span
+                                                class="font-medium text-secondary text-sm"
+                                            >
+                                                {{
+                                                    item.actividadNombre ||
+                                                        "Sin actividad"
+                                                }}
+                                            </span>
+                                            <div
+                                                class="text-lg font-medium mt-1"
+                                            >
+                                                {{ item.title_marcador }}
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="surface-100 p-1"
+                                            style="
+                                                border-radius: 30px;
+                                                height: 100%;
+                                            "
+                                        >
+                                            <div
+                                                class="surface-0 flex align-items-center gap-2 justify-content-center py-1 px-2"
+                                                style="
+                                                    border-radius: 30px;
+                                                    box-shadow: 0px 1px 2px 0px
+                                                            rgba(0, 0, 0, 0.04),
+                                                        0px 1px 2px 0px
+                                                            rgba(0, 0, 0, 0.06);
+                                                "
+                                            >
+                                                <span
+                                                    class="text-900 font-medium text-sm"
+                                                    >{{
+                                                        item.me_gusta?.length ||
+                                                            0
+                                                    }}</span
+                                                >
+                                                <i
+                                                    class="pi pi-star-fill text-yellow-500"
+                                                ></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-column gap-4 mt-4">
+                                        <span class="text-2xl font-semibold">{{
+                                            item.direccion
+                                        }}</span>
+                                        <div class="flex gap-2">
+                                            <p-button
+                                                icon="pi pi-map-marker"
+                                                label="Ver en Mapa"
+                                                class="flex-auto white-space-nowrap"
+                                                (onClick)="
+                                                    goMaps(item.title_marcador)
+                                                "
+                                            >
+                                            </p-button>
+                                            <p-button
+                                                icon="pi pi-heart"
+                                                [outlined]="!isLiked(item)"
+                                                [severity]="
+                                                    isLiked(item)
+                                                        ? 'danger'
+                                                        : 'secondary'
+                                                "
+                                                (onClick)="toggleLike(item)"
+                                            ></p-button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </ng-template>
+                <ng-template pTemplate="paginatorleft">
+                    <p>Total: {{ mostVisited().length }} lugares</p>
+                </ng-template>
+                <ng-template pTemplate="paginatorright">
+                    <p-button
+                        type="button"
+                        icon="pi pi-refresh"
+                        (onClick)="refreshData()"
+                        styleClass="p-button-text"
+                    ></p-button>
+                </ng-template>
+            </p-dataView>
+        </div>
+        <div *ngIf="!load_dataview" class="flex justify-content-center">
+            <p-progressSpinner
+                strokeWidth="8"
+                fill="transparent"
+                animationDuration=".5s"
+                [style]="{ width: '50px', height: '50px' }"
+            ></p-progressSpinner>
+        </div>
+    </div>
+
+    <!-- Menú inferior (móvil) o lateral (escritorio) -->
+    <div
+        *ngIf="isMobil()"
+        class="menu-container"
+        style="background-color: #ffffff00 !important"
+    >
+        <div
+            *ngFor="let item of menuItems"
+            class="menu-item"
+            [ngClass]="{ active: item.active }"
+            style="
+                border-top: 2px solid var(--primary-color);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 10px 10px 0px 0px;
+                background-color: var(--surface-a);
+                margin-bottom: -10px;
+                width: 100%;
+            "
+            (click)="
+                item.command &&
+                    item.command({ originalEvent: $event, item: item })
+            "
+        >
+            <img [src]="item.icon" alt="icono" />
+        </div>
+    </div>
+</div>
+
+<app-login-modal [(visible)]="loginVisible"></app-login-modal>

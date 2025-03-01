@@ -39,8 +39,10 @@ export class EditFichaSectorialComponent implements OnInit {
         { breakpoint: '560px', numVisible: 1 },
     ];
 
-    get ubicacion(){
-        return JSON.stringify(this.fichaSectorialForm.get('direccion_geo')?.value);
+    get ubicacion() {
+        return JSON.stringify(
+            this.fichaSectorialForm.get('direccion_geo')?.value
+        );
     }
 
     constructor(
@@ -88,12 +90,10 @@ export class EditFichaSectorialComponent implements OnInit {
             direccion_geo: ['', Validators.required],
             actividad: ['', Validators.required],
             fecha_evento: ['', Validators.required],
+            view_date_evento: [true],
             estado: ['', Validators.required],
             es_articulo: [false],
-            descripcion: [
-                '',
-                Validators.required,
-            ],
+            descripcion: ['', Validators.required],
             observacion: [''],
             mostrar_en_mapa: [false],
             title_marcador: [''],
@@ -124,7 +124,9 @@ export class EditFichaSectorialComponent implements OnInit {
         this.ficha = response.data || {};
         this.populateForm(this.ficha);
 
-        this.fichaSectorialForm.get('fecha_evento')?.setValue(new Date(this.ficha.fecha_evento));
+        this.fichaSectorialForm
+            .get('fecha_evento')
+            ?.setValue(new Date(this.ficha.fecha_evento));
     }
 
     private populateForm(data: any): void {

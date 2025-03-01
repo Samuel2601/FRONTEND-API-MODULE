@@ -66,15 +66,23 @@ export class ListService {
     }
 
     listarFichaSectorial(
-        token: any,
+        token?: any,
         campos: any = {},
         all: boolean = true
     ): Observable<any> {
         //console.log(campos);
-        let headers = new HttpHeaders({
-            'Content-Type': 'application/json',
-            Authorization: token,
-        });
+        //console.log(campos);
+        let headers;
+        if (token) {
+            headers = new HttpHeaders({
+                'Content-Type': 'application/json',
+                Authorization: token,
+            });
+        } else {
+            headers = new HttpHeaders({
+                'Content-Type': 'application/json',
+            });
+        }
         const params = this.paramsf(campos, all);
         return this.http.get(this.url + 'ficha_sectorial', {
             headers: headers,
@@ -260,15 +268,23 @@ export class ListService {
     }
 
     listarTiposActividadesProyecto(
-        token: any,
+        token?: any,
         campos: any = {},
         all: boolean = true
     ): Observable<any> {
         //console.log(campos);
-        let headers = new HttpHeaders({
-            'Content-Type': 'application/json',
-            Authorization: token,
-        });
+        let headers;
+        if (token) {
+            headers = new HttpHeaders({
+                'Content-Type': 'application/json',
+                Authorization: token,
+            });
+        } else {
+            headers = new HttpHeaders({
+                'Content-Type': 'application/json',
+            });
+        }
+
         const params = this.paramsf(campos, all);
         return this.http.get(this.url + 'actividad_proyecto', {
             headers: headers,

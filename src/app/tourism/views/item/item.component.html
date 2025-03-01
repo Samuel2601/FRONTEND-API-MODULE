@@ -1,0 +1,341 @@
+<p-dialog
+    *ngIf="ficha?.foto?.length > 0"
+    appendTo="body"
+    [(visible)]="displayFoto"
+    [modal]="true"
+    [dismissableMask]="true"
+    [style]="{
+        'max-width': isMobile() ? '80vw' : '60vw',
+        'max-height': isMobile() ? '80vh' : '70vh'
+    }"
+>
+    <ng-template pTemplate="headless">
+        <p-galleria
+            [value]="ficha.foto"
+            [responsiveOptions]="responsiveOptions"
+            [numVisible]="3"
+            [circular]="true"
+            [fullScreen]="false"
+            [showItemNavigators]="true"
+            [showThumbnails]="true"
+            [thumbnailsPosition]="'bottom'"
+        >
+            <ng-template pTemplate="item" let-item>
+                <div class="gallery-item">
+                    <img
+                        [src]="url + 'obtener_imagen/ficha_sectorial/' + item"
+                        class="gallery-image"
+                    />
+                </div>
+            </ng-template>
+
+            <ng-template pTemplate="thumbnail" let-item>
+                <div class="gallery-thumbnail">
+                    <img
+                        [src]="url + 'obtener_imagen/ficha_sectorial/' + item"
+                        class="thumbnail-image"
+                    />
+                </div>
+            </ng-template>
+        </p-galleria>
+    </ng-template>
+</p-dialog>
+
+<div class="surface-section px-4 md:px-6 lg:px-8" *ngIf="ficha && !load">
+    <p-toast></p-toast>
+    <div
+        class="surface-section py-8"
+        [ngStyle]="
+            currentImage
+                ? {
+                      'background-image':
+                          'url(' +
+                          url +
+                          'obtener_imagen/ficha_sectorial/' +
+                          currentImage +
+                          ')',
+                      'background-size': 'cover',
+                      'background-position': 'center'
+                  }
+                : {
+                      'background-image': 'url(assets/layout/images/fondo.jpg)',
+                      'background-size': 'cover',
+                      'background-position': 'center'
+                  }
+        "
+        (click)="displayFoto = true"
+    >
+        <div
+            class="py-4 text-center md:text-left border-round h-7rem lg:h-10rem flex flex-column justify-content-end mb-5"
+        >
+            <div class="grid">
+                <div class="col lg:col-offset-2 px-5 bg-green-500">
+                    <div class="text-5xl font-bold text-white">
+                        {{ ficha.title_marcador }}
+                    </div>
+                    <p
+                        *ngIf="ficha.view_date_evento && ficha.fecha_evento"
+                        class="line-height-3 text-white text-lg text-center md:text-left mt-3"
+                    >
+                        Fecha del evento:
+                        {{
+                            ficha.fecha_evento
+                                | date
+                                    : "dd/MM/yyyy HH:mm"
+                                    : "America/Guayaquil"
+                        }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid" style="border: 1px solid var(--surface-border)">
+        <div class="col-12 lg:col-2">
+            <div
+                class="flex flex-row lg:flex-column lg:border-right-1 surface-border gap-5 mb-4 lg:px-5"
+            >
+                <div
+                    class="text-900 flex flex-row align-items-center justify-content-end"
+                >
+                    <span class="font-semibold mr-3">{{
+                        ficha.compartido || 0
+                    }}</span>
+                    <i class="pi pi-bookmark"></i>
+                </div>
+                <div
+                    class="text-900 flex flex-row align-items-center justify-content-end"
+                    (click)="toggleMeGusta()"
+                >
+                    <span class="font-semibold mr-3">{{
+                        ficha.me_gusta?.length || 0
+                    }}</span>
+                    <i
+                        [class]="
+                            liked
+                                ? 'pi pi-heart-fill text-red-500'
+                                : 'pi pi-heart'
+                        "
+                        class="cursor-pointer"
+                    ></i>
+                </div>
+                <div
+                    class="text-900 flex flex-row align-items-center justify-content-end"
+                >
+                    <span class="font-semibold mr-3">{{
+                        ficha.comentarios?.length || 0
+                    }}</span>
+                    <i class="pi pi-comments"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 lg:col lg:px-5">
+            <div
+                class="flex flex-wrap align-items-center justify-content-between mb-5 gap-5"
+            >
+                <div class="flex flex-row">
+                    <span
+                        class="text-900 surface-100 inline-flex font-semibold py-2 px-3 mr-2 border-round"
+                    >
+                        {{ ficha.actividad.nombre }}
+                    </span>
+                    <span
+                        *ngIf="ficha.view_date_evento"
+                        class="text-900 font-semibold py-2 px-3 mr-2 border-round"
+                        [ngClass]="getSeverityClass(ficha.estado.nombre)"
+                    >
+                        {{ ficha.estado.nombre }}
+                    </span>
+                </div>
+                <!-- Dirección en texto -->
+                <div class="flex align-items-center">
+                    <button
+                        pButton
+                        class="p-button-success p-button-raised"
+                        icon="pi pi-map-marker"
+                        label="Cómo llegar"
+                        (click)="abrirGoogleMaps()"
+                    ></button>
+                </div>
+                <div class="flex align-items-center gap-4">
+                    <i
+                        class="pi pi-calendar-plus cursor-pointer"
+                        (click)="addAllEventsToCalendar()"
+                    ></i>
+                    <i
+                        class="pi pi-twitter cursor-pointer"
+                        (click)="compartirEnTwitter()"
+                    ></i>
+                    <i
+                        class="pi pi-facebook cursor-pointer"
+                        (click)="compartirEnFacebook()"
+                    ></i>
+                    <i
+                        class="pi pi-link cursor-pointer"
+                        (click)="copiarEnlace()"
+                    ></i>
+                </div>
+            </div>
+
+            <div
+                class="descripcion-container line-height-3 text-xl text-900 mb-5"
+                [innerHTML]="sanitizedDescripcion"
+                style="
+                    max-width: 100%;
+                    overflow-wrap: break-word;
+                    word-break: break-word;
+                    white-space: normal;
+                "
+            ></div>
+        </div>
+    </div>
+
+    <!-- Sección de comentarios -->
+    <p-panel header="Comentarios" [toggleable]="true" styleClass="mt-5">
+        <ng-template pTemplate="icons">
+            <span class="pi pi-comments text-primary mr-2"></span>
+            <p-badge
+                *ngIf="ficha.comentarios?.length"
+                [value]="ficha.comentarios.length.toString()"
+                severity="info"
+            ></p-badge>
+        </ng-template>
+
+        <!-- Formulario para añadir comentario -->
+        <div class="flex flex-column gap-3 mb-4">
+            <div class="p-inputgroup">
+                <span class="p-inputgroup-addon">
+                    <i class="pi pi-user"></i>
+                </span>
+                <textarea
+                    pInputTextarea
+                    [(ngModel)]="nuevoComentario"
+                    rows="3"
+                    placeholder="Escribe un comentario..."
+                    [autoResize]="true"
+                    class="w-full"
+                ></textarea>
+            </div>
+
+            <div
+                class="flex justify-content-between align-items-center flex-wrap gap-2"
+            >
+                <div class="flex align-items-center gap-2">
+                    <p-button
+                        label="Comentar"
+                        icon="pi pi-send"
+                        [loading]="enviandoComentario"
+                        (onClick)="agregarComentario()"
+                        [disabled]="!nuevoComentario?.trim()"
+                    ></p-button>
+                    <p-button
+                        icon="pi pi-times"
+                        styleClass="p-button-text p-button-danger"
+                        (onClick)="nuevoComentario = ''"
+                        *ngIf="nuevoComentario?.trim()"
+                        pTooltip="Borrar comentario"
+                    ></p-button>
+                </div>
+                <div class="flex align-items-center gap-2">
+                    <label for="rating" class="font-medium">Valoración:</label>
+                    <p-rating
+                        id="rating"
+                        [cancel]="false"
+                        [(ngModel)]="hitrate"
+                        [readonly]="false"
+                        [stars]="5"
+                        styleClass="text-yellow-500"
+                        pTooltip="Califica tu experiencia"
+                    ></p-rating>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de comentarios -->
+        <p-divider></p-divider>
+
+        <p-scrollPanel
+            [style]="{ width: '100%', maxHeight: '400px' }"
+            styleClass="custombar1"
+            *ngIf="ficha.comentarios?.length > 0; else noComments"
+        >
+            <div *ngFor="let comentario of ficha.comentarios" class="mb-3">
+                <p-card>
+                    <ng-template pTemplate="header">
+                        <div
+                            class="flex justify-content-between align-items-center p-3 border-bottom-1 surface-border"
+                        >
+                            <div class="flex align-items-center gap-2">
+                                <p-avatar
+                                    [label]="
+                                        getInitials(comentario.usuario.name)
+                                    "
+                                    styleClass="mr-2"
+                                    [size]="'normal'"
+                                ></p-avatar>
+                                <div class="font-medium text-900">
+                                    {{ comentario.usuario.name }}
+                                </div>
+                                <p-rating
+                                    id="rating"
+                                    [cancel]="false"
+                                    [(ngModel)]="comentario.calificacion"
+                                    [readonly]="false"
+                                    [stars]="5"
+                                    styleClass="text-yellow-500"
+                                    pTooltip="Califica tu experiencia"
+                                ></p-rating>
+                            </div>
+                            <p-chip
+                                *ngIf="esComentarioPropio(comentario)"
+                                label="Tu comentario"
+                                icon="pi pi-user"
+                                styleClass="mr-2"
+                            ></p-chip>
+                        </div>
+                    </ng-template>
+                    <div class="p-3">
+                        <p class="text-700 line-height-3 m-0">
+                            {{ comentario.contenido }}
+                        </p>
+                    </div>
+                    <ng-template pTemplate="footer">
+                        <div class="flex justify-content-between">
+                            <span class="text-500 text-sm">
+                                {{
+                                    comentario.fecha | date : "dd/MM/yyyy HH:mm"
+                                }}
+                            </span>
+                            <div style="display: none">
+                                <p-button
+                                    *ngIf="esComentarioPropio(comentario)"
+                                    icon="pi pi-trash"
+                                    styleClass="p-button-rounded p-button-text p-button-danger"
+                                    pTooltip="Eliminar comentario"
+                                    (onClick)="
+                                        eliminarComentario(comentario._id)
+                                    "
+                                ></p-button>
+                            </div>
+                        </div>
+                    </ng-template>
+                </p-card>
+            </div>
+        </p-scrollPanel>
+
+        <ng-template #noComments>
+            <p-message
+                severity="info"
+                text="Aún no hay comentarios. Sé el primero en comentar."
+                styleClass="w-full justify-content-center"
+            >
+            </p-message>
+        </ng-template>
+    </p-panel>
+</div>
+
+<app-login-modal
+    *ngIf="loginVisible"
+    [(visible)]="loginVisible"
+></app-login-modal>
