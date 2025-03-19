@@ -188,6 +188,10 @@ export class FilterService {
     }
 
     getciudadano(id: string) {
-        return this.http.get(this.url + 'getciudadano/' + id);
+        return this.http.get(
+            this.url +
+                'dinardap/consultar?codigoPaquete=3789&identificacion=' +
+                id
+        );
     }
 }

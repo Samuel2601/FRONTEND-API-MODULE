@@ -3,3 +3,97 @@
     width: 150px; /* Puedes ajustar este valor según tus necesidades */
     height: 50px; /* Puedes ajustar este valor según tus necesidades */
 }
+
+/* Improved styles for the assignment list component */
+
+:host ::ng-deep {
+    // Card styling
+    .p-card {
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+        .p-card-header {
+            font-weight: 600;
+            font-size: 1.2rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+    }
+
+    // Table styling
+    .p-datatable {
+        .p-datatable-header {
+            background-color: #f8f9fa;
+            padding: 0.75rem 1rem;
+        }
+
+        th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+
+        tr:hover {
+            background-color: #f1f5f9;
+            cursor: pointer;
+        }
+
+        .action-column {
+            min-width: 160px;
+
+            // When more space is available, allow buttons to expand
+            @media screen and (min-width: 992px) {
+                min-width: 200px;
+            }
+        }
+    }
+
+    // Button styling
+    .p-button {
+        &.p-button-sm {
+            padding: 0.4rem;
+
+            .p-button-icon {
+                font-size: 0.9rem;
+            }
+        }
+    }
+
+    // Avatar styling
+    .p-avatar {
+        &:hover {
+            transform: scale(1.05);
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+    }
+
+    // Mobile optimizations
+    @media screen and (max-width: 768px) {
+        .p-dialog {
+            .p-button {
+                margin-bottom: 0.5rem;
+            }
+        }
+    }
+}
+
+// Additional custom styles
+.action-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-start;
+}
+
+.mobile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+// Equal size button class (preserved from original)
+.equal-size-btn {
+    width: 150px;
+    height: 50px;
+}

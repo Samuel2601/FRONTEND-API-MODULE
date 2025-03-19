@@ -13,6 +13,7 @@ import { DeleteService } from 'src/app/demo/services/delete.service';
 import { GLOBAL } from '../../demo/services/GLOBAL';
 import { FilterService } from 'src/app/demo/services/filter.service';
 import { FormBuilder, FormGroup } from '@angular/forms';
+import { ImportsModule } from 'src/app/demo/services/import';
 
 @Component({
     selector: 'app-listar-recolectores',
@@ -23,6 +24,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
         MessageService,
         DynamicDialogRef,
         DialogService,
+        ImportsModule,
     ],
 })
 export class ListarRecolectoresComponent implements OnInit {
@@ -141,7 +143,7 @@ export class ListarRecolectoresComponent implements OnInit {
         } else {
             this.ref = this.dialogService.open(AgregarRecolectorComponent, {
                 header: 'Asignación de Recolectores',
-                width: '30%',
+                width: '50%',
             });
             App.addListener('backButton', (data) => {
                 this.ref.close();

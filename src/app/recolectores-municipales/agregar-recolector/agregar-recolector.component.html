@@ -1,275 +1,405 @@
-<div class="card" *ngIf="isMobil()">
+<!-- Desktop Version -->
+<div class="card">
     <div class="card-header">
-        <h3>Asignación de Recolectores</h3>
+        <h3><i class="pi pi-truck"></i> Asignación de Recolectores</h3>
     </div>
     <div class="p-fluid">
         <form [formGroup]="formulario" (ngSubmit)="onSubmit()">
-            <div class="p-field p-5">
-                <label for="role">Seleccionar Funcionario o Externo</label>
-                <p-checkbox
-                    name="role"
-                    binary="true"
-                    label="Externo"
-                    [(ngModel)]="isExterno"
-                    formControlName="isExterno"
-                ></p-checkbox>
+            <!-- Selección de rol (Funcionario/Externo) -->
+            <div class="p-field">
+                <label for="role">
+                    <i class="pi pi-users"></i> Tipo de Recolector
+                </label>
+                <div class="p-formgroup-inline">
+                    <p-checkbox
+                        name="role"
+                        binary="true"
+                        label="¿Es un recolector externo?"
+                        [(ngModel)]="isExterno"
+                        formControlName="isExterno"
+                    ></p-checkbox>
+                    <span class="helper-text" *ngIf="!isExterno">
+                        Seleccione esta opción si el recolector no es un
+                        funcionario.
+                    </span>
+                </div>
             </div>
 
-            <div *ngIf="!isExterno" class="p-field p-5">
-                <label for="funcionario">Funcionario</label>
+            <!-- Campo de Funcionario -->
+            <div *ngIf="!isExterno" class="p-field form-transition">
+                <label for="funcionario">
+                    <i class="pi pi-user"></i> Funcionario
+                </label>
                 <p-dropdown
-                    appendTo="body"
                     id="funcionario"
                     [options]="funcionarios"
                     formControlName="funcionario"
                     optionLabel="fullName"
                     placeholder="Seleccione un funcionario"
+                    [style]="{ width: '100%' }"
+                    appendTo="body"
+                    [filter]="true"
+                    filterBy="fullName"
                 ></p-dropdown>
             </div>
 
-            <div *ngIf="isExterno" class="p-field p-5">
-                <ng-container *ngIf="externos.length > 0; else noExternos">
-                    <label for="externo">Externo</label>
-                    <p-dropdown
-                        id="externo"
-                        [options]="externos"
-                        formControlName="externo"
-                        optionLabel="name"
-                        placeholder="Seleccione un externo"
-                    ></p-dropdown>
-                    <button
-                        pButton
-                        type="button"
-                        label="Añadir Externo"
-                        (click)="showExternoForm = true"
-                    ></button>
-                </ng-container>
-                <ng-template #noExternos formGroupName="externo_register">
-                    <label for="externo" class="p-d-flex p-ai-center">
-                        <i class="pi pi-user-edit p-mr-2"></i> Registrar Externo
-                    </label>
-                    <input
-                        id="name"
-                        type="text"
-                        pInputText
-                        formControlName="name"
-                        placeholder="Nombre del Externo"
-                        class="p-inputtext-lg p-mb-3 my-5"
-                    />
-                    <p-inputGroup class="p-inputtext-lg p-mb-3 my-5">
-                        <button
-                            type="button"
-                            pButton
-                            label="Consultar"
-                            (click)="getCiudadano()"
-                        ></button>
-                        <input
-                            id="dni"
-                            type="text"
-                            pInputText
-                            formControlName="dni"
-                            placeholder="DNI del Externo"
-                        />
-                    </p-inputGroup>
+            <!-- Campo de Externo -->
+            <div *ngIf="isExterno" class="p-field form-transition">
+                <!-- Botones de navegación entre Existentes y Nuevo -->
+                <div class="p-grid">
+                    <div class="p-col-12">
+                        <div class="tab-buttons">
+                            <button
+                                type="button"
+                                pButton
+                                icon="pi pi-search"
+                                label="Buscar Existente"
+                                class="tab-button"
+                                [ngClass]="{
+                                    'p-button-primary':
+                                        externoMode === 'existente',
+                                    'p-button-outlined':
+                                        externoMode !== 'existente'
+                                }"
+                                (click)="
+                                    externoMode = 'existente';
+                                    showExternoForm = false
+                                "
+                                [disabled]="externos.length === 0"
+                            ></button>
+                            <button
+                                type="button"
+                                pButton
+                                icon="pi pi-plus"
+                                label="Registrar Nuevo"
+                                class="tab-button p-button-success"
+                                [ngClass]="{
+                                    'p-button-success': externoMode === 'nuevo',
+                                    'p-button-outlined p-button-success':
+                                        externoMode !== 'nuevo'
+                                }"
+                                (click)="
+                                    externoMode = 'nuevo';
+                                    showExternoForm = true
+                                "
+                            ></button>
+                        </div>
+                    </div>
+                </div>
 
+                <!-- Lista de externos existentes -->
+                <ng-container *ngIf="externos.length > 0 && !showExternoForm">
+                    <div class="p-field">
+                        <label for="externo">
+                            <i class="pi pi-user-plus"></i> Buscar Externo
+                        </label>
+
+                        <!-- Componente de búsqueda mejorado -->
+                        <div class="external-search">
+                            <input
+                                type="text"
+                                pInputText
+                                class="search-input"
+                                placeholder="Buscar por nombre o DNI"
+                                [(ngModel)]="searchTerm"
+                                [ngModelOptions]="{ standalone: true }"
+                                (input)="filterExternos()"
+                            />
+                            <i class="pi pi-search search-icon"></i>
+
+                            <!-- Modificación en la sección de resultados de búsqueda -->
+                            <!-- Resultados de búsqueda -->
+                            <div class="search-results" *ngIf="searchTerm">
+                                <!-- Resultados encontrados -->
+                                <div *ngIf="filteredExternos.length > 0">
+                                    <div
+                                        *ngFor="let externo of filteredExternos"
+                                        class="search-item"
+                                        [class.active]="
+                                            formulario.get('externo').value
+                                                ?._id === externo._id
+                                        "
+                                        (click)="selectExterno(externo)"
+                                    >
+                                        <div class="item-details">
+                                            <span>{{ externo.name }}</span>
+                                            <span class="item-dni">{{
+                                                externo.dni
+                                            }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sin resultados pero con cédula válida - NUEVA SECCIÓN -->
+                                <div
+                                    *ngIf="
+                                        filteredExternos.length === 0 &&
+                                        isCedulaValida(searchTerm)
+                                    "
+                                    class="search-item no-results"
+                                >
+                                    <div class="item-details">
+                                        <span
+                                            >No se encontraron externos con este
+                                            número de cédula</span
+                                        >
+                                    </div>
+                                    <div class="add-new-container">
+                                        <button
+                                            pButton
+                                            type="button"
+                                            icon="pi pi-plus"
+                                            label="Crear nuevo externo con esta cédula"
+                                            class="p-button-sm p-button-success"
+                                            (click)="crearExternoDesdeSearch()"
+                                        ></button>
+                                    </div>
+                                </div>
+
+                                <!-- Sin resultados con búsqueda no válida como cédula -->
+                                <div
+                                    *ngIf="
+                                        filteredExternos.length === 0 &&
+                                        !isCedulaValida(searchTerm)
+                                    "
+                                    class="search-item no-results"
+                                >
+                                    <div class="item-details">
+                                        <span
+                                            >No se encontraron resultados</span
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Muestra el externo seleccionado -->
+                    <div
+                        *ngIf="formulario.get('externo').value"
+                        class="selected-external p-mt-3"
+                    >
+                        <p-card>
+                            <div class="p-grid">
+                                <div class="p-col-12 p-md-6">
+                                    <div class="p-card-title">
+                                        {{
+                                            formulario.get("externo").value.name
+                                        }}
+                                    </div>
+                                    <div class="p-card-subtitle">
+                                        <strong>DNI:</strong>
+                                        {{
+                                            formulario.get("externo").value.dni
+                                        }}
+                                    </div>
+                                </div>
+                                <div class="p-col-12 p-md-6">
+                                    <div
+                                        *ngIf="
+                                            formulario.get('externo').value
+                                                .phone
+                                        "
+                                    >
+                                        <strong>Teléfono:</strong>
+                                        {{
+                                            formulario.get("externo").value
+                                                .phone
+                                        }}
+                                    </div>
+                                    <div
+                                        *ngIf="
+                                            formulario.get('externo').value
+                                                .email
+                                        "
+                                    >
+                                        <strong>Email:</strong>
+                                        {{
+                                            formulario.get("externo").value
+                                                .email
+                                        }}
+                                    </div>
+                                    <div
+                                        *ngIf="
+                                            formulario.get('externo').value
+                                                .address
+                                        "
+                                    >
+                                        <strong>Dirección:</strong>
+                                        {{
+                                            formulario.get("externo").value
+                                                .address
+                                        }}
+                                    </div>
+                                </div>
+                            </div>
+                            <ng-template pTemplate="footer">
+                                <button
+                                    pButton
+                                    type="button"
+                                    icon="pi pi-times"
+                                    label="Eliminar Selección"
+                                    class="p-button-text p-button-danger"
+                                    (click)="
+                                        formulario.get('externo').setValue(null)
+                                    "
+                                ></button>
+                            </ng-template>
+                        </p-card>
+                    </div>
+
+                    <div
+                        *ngIf="!formulario.get('externo').value"
+                        class="p-mt-3"
+                    >
+                        <p-message
+                            severity="info"
+                            text="Busque y seleccione un recolector externo para continuar"
+                        ></p-message>
+                    </div>
+                </ng-container>
+
+                <!-- Formulario para registrar un nuevo externo -->
+                <ng-container *ngIf="showExternoForm">
+                    <div formGroupName="externo_register" class="p-mt-3">
+                        <label>
+                            <i class="pi pi-user-edit"></i> Registrar Nuevo
+                            Externo
+                        </label>
+
+                        <div class="p-grid">
+                            <!-- Primera fila -->
+                            <div class="p-col-12">
+                                <div class="p-field">
+                                    <input
+                                        id="name"
+                                        type="text"
+                                        pInputText
+                                        formControlName="name"
+                                        placeholder="Nombre Completo"
+                                    />
+                                </div>
+                            </div>
+
+                            <!-- Segunda fila -->
+                            <div class="p-col-12 p-md-6">
+                                <div class="p-field">
+                                    <div class="p-inputgroup">
+                                        <input
+                                            id="dni"
+                                            type="text"
+                                            pInputText
+                                            formControlName="dni"
+                                            placeholder="DNI"
+                                        />
+                                        <button
+                                            type="button"
+                                            pButton
+                                            icon="pi pi-search"
+                                            class="p-button-success"
+                                            (click)="getCiudadano()"
+                                        ></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-col-12 p-md-6">
+                                <div class="p-field">
+                                    <input
+                                        id="phone"
+                                        type="text"
+                                        pInputText
+                                        formControlName="phone"
+                                        placeholder="Teléfono"
+                                    />
+                                </div>
+                            </div>
+
+                            <!-- Tercera fila -->
+                            <div class="p-col-12 p-md-6">
+                                <div class="p-field">
+                                    <input
+                                        id="email"
+                                        type="email"
+                                        pInputText
+                                        formControlName="email"
+                                        placeholder="Email"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="p-col-12 p-md-6">
+                                <div class="p-field">
+                                    <input
+                                        id="address"
+                                        type="text"
+                                        pInputText
+                                        formControlName="address"
+                                        placeholder="Dirección"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+            </div>
+
+            <!-- Campo de Recolectores -->
+            <div class="p-field">
+                <label for="deviceId">
+                    <i class="pi pi-tablet"></i> Recolectores
+                </label>
+                <ng-container
+                    *ngIf="devices.length > 0; else inputRecolectorDesktop"
+                >
+                    <p-dropdown
+                        appendTo="body"
+                        id="deviceId"
+                        [options]="devices"
+                        formControlName="deviceId"
+                        optionLabel="name"
+                        placeholder="Seleccione un dispositivo"
+                        [style]="{ width: '100%' }"
+                        [filter]="true"
+                        filterBy="name,id"
+                    >
+                        <ng-template let-device pTemplate="item">
+                            <div class="device-item">
+                                <span>{{ device.name }}</span>
+                                <span class="status-online"
+                                    ><i class="pi pi-check-circle"></i>
+                                    Online</span
+                                >
+                            </div>
+                        </ng-template>
+                    </p-dropdown>
+                </ng-container>
+                <ng-template #inputRecolectorDesktop>
                     <input
-                        id="phone"
+                        id="deviceId"
                         type="text"
                         pInputText
-                        formControlName="phone"
-                        placeholder="Teléfono del Externo"
-                        class="p-inputtext-lg p-mb-3 my-5"
+                        formControlName="deviceId"
+                        placeholder="Ingrese el código del recolector"
                     />
-                    <input
-                        id="email"
-                        type="email"
-                        pInputText
-                        formControlName="email"
-                        placeholder="Email del Externo"
-                        style="margin-top: 2rem; margin-bottom: 2rem"
-                    />
-                    <input
-                        id="address"
-                        type="text"
-                        pInputText
-                        formControlName="address"
-                        placeholder="Dirección del Externo"
-                        class="p-inputtext-lg my-5"
-                    />
+                    <small class="helper-text">
+                        Ingrese el código directamente cuando no hay
+                        dispositivos en la lista.
+                    </small>
                 </ng-template>
             </div>
 
-            <div class="p-field p-5">
-                <label for="deviceId">Recolectores</label>
-                <p-dropdown
-                    appendTo="body"
-                    id="deviceId"
-                    [options]="devices"
-                    formControlName="deviceId"
-                    optionLabel="name"
-                    placeholder="Seleccione un dispositivo"
-                ></p-dropdown>
-            </div>
-
             <div class="p-field">
-                <button pButton type="submit" label="Registrar"></button>
+                <button
+                    pButton
+                    type="submit"
+                    label="Registrar"
+                    icon="pi pi-check"
+                    class="p-button-success"
+                    [disabled]="formulario.invalid"
+                    style="width: 100%"
+                ></button>
             </div>
         </form>
     </div>
-</div>
-
-<div class="p-fluid" *ngIf="!isMobil()">
-    <form [formGroup]="formulario" (ngSubmit)="onSubmit()" class="p-fluid">
-        <div *ngIf="!isExterno" class="p-field p-5">
-            <label for="funcionario" class="p-d-flex p-ai-center">
-                <i class="pi pi-user p-mr-2"></i> Funcionario
-            </label>
-            <p-dropdown
-                id="funcionario"
-                [options]="funcionarios"
-                formControlName="funcionario"
-                optionLabel="fullName"
-                placeholder="Seleccione un funcionario"
-                class="p-inputtext-lg p-d-block"
-                [style]="{ width: '100%' }"
-            ></p-dropdown>
-        </div>
-        <div class="p-field p-5">
-            <label for="role" class="p-d-flex p-ai-center">
-                <i class="pi pi-users p-mr-2"></i> No está en lista? puedes
-                ingresarlo como un chofer externo: <br />
-                <br />
-            </label>
-            <p-checkbox
-                appendTo="body"
-                name="role"
-                binary="true"
-                label="Externo"
-                [(ngModel)]="isExterno"
-                (onChange)="showExternoForm = false"
-                formControlName="isExterno"
-                class="p-d-block"
-            ></p-checkbox>
-        </div>
-
-        <div *ngIf="isExterno" class="p-field p-5">
-            <ng-container
-                *ngIf="externos.length > 0 && !showExternoForm; else noExternos"
-            >
-                <label for="externo" class="p-d-flex p-ai-center">
-                    <i class="pi pi-user-plus p-mr-2"></i> Externo
-                </label>
-                <p-dropdown
-                    id="externo"
-                    [options]="externos"
-                    formControlName="externo"
-                    optionLabel="name"
-                    placeholder="Seleccione un externo"
-                    class="p-inputtext-lg p-d-block"
-                    [style]="{ width: '100%' }"
-                >
-                    <ng-template let-externo pTemplate="item">
-                        <div class="flex align-items-center gap-2">
-                            <div>
-                                {{ externo.name }} ({{ externo.dni }})
-                                <!--
-                                 <p-button
-                                    (click)="ondeleteExterno(externo._id)"
-                                    label="Eliminar"
-                                ></p-button>
-                                -->
-                            </div>
-                        </div>
-                    </ng-template>
-                </p-dropdown>
-                <button
-                    pButton
-                    type="button"
-                    label="Añadir Externo"
-                    icon="pi pi-plus"
-                    class="p-button-secondary p-mt-2"
-                    (click)="showExternoForm = true"
-                ></button>
-            </ng-container>
-            <ng-template #noExternos formGroupName="externo_register">
-                <label for="externo" class="p-d-flex p-ai-center">
-                    <i class="pi pi-user-edit p-mr-2"></i> Registrar Externo
-                </label>
-                <input
-                    id="name"
-                    type="text"
-                    pInputText
-                    formControlName="name"
-                    placeholder="Nombre del Externo"
-                    class="p-inputtext-lg p-mb-3 my-5"
-                />
-                <p-inputGroup class="p-inputtext-lg p-mb-3 my-5">
-                    <button
-                        type="button"
-                        pButton
-                        label="Consultar"
-                        (click)="getCiudadano()"
-                    ></button>
-                    <input
-                        id="dni"
-                        type="text"
-                        pInputText
-                        formControlName="dni"
-                        placeholder="DNI del Externo"
-                    />
-                </p-inputGroup>
-
-                <input
-                    id="phone"
-                    type="text"
-                    pInputText
-                    formControlName="phone"
-                    placeholder="Teléfono del Externo"
-                    class="p-inputtext-lg p-mb-3 my-5"
-                />
-                <input
-                    id="email"
-                    type="email"
-                    pInputText
-                    formControlName="email"
-                    placeholder="Email del Externo"
-                    style="margin-top: 2rem; margin-bottom: 2rem"
-                />
-                <input
-                    id="address"
-                    type="text"
-                    pInputText
-                    formControlName="address"
-                    placeholder="Dirección del Externo"
-                    class="p-inputtext-lg my-5"
-                />
-            </ng-template>
-        </div>
-
-        <div class="p-field p-5">
-            <label for="deviceId" class="p-d-flex p-ai-center">
-                <i class="pi pi-tablet p-mr-2"></i> Recolectores
-            </label>
-            <p-dropdown
-                appendTo="body"
-                id="deviceId"
-                [options]="devices"
-                formControlName="deviceId"
-                optionLabel="name"
-                placeholder="Seleccione un dispositivo"
-                class="p-inputtext-lg p-d-block"
-                [style]="{ width: '100%' }"
-            ></p-dropdown>
-        </div>
-
-        <div class="p-field p-d-flex p-jc-end">
-            <button
-                pButton
-                type="submit"
-                label="Registrar"
-                icon="pi pi-check"
-                class="p-button-primary"
-            ></button>
-        </div>
-    </form>
 </div>

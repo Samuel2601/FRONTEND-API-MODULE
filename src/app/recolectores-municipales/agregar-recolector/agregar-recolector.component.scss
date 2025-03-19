@@ -1,0 +1,303 @@
+// Theming variables - definidas al inicio para usarlas en todo el archivo
+$primary-color: #3f51b5;
+$secondary-color: #f8f9fa;
+$text-color: #495057;
+$error-color: #f44336;
+$success-color: #4caf50;
+$warning-color: #ff9800;
+
+// Main container styling
+:host {
+    display: block;
+
+    .card {
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        background-color: white;
+
+        &-header {
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 8px 8px 0 0;
+            border-bottom: 1px solid #e9ecef;
+
+            h3 {
+                margin: 0;
+                font-size: 1.25rem;
+                font-weight: 600;
+                color: #495057;
+            }
+        }
+    }
+}
+
+// Form styling
+.p-fluid {
+    .p-field {
+        margin-bottom: 1.2rem;
+        padding: 0 1rem;
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #495057;
+
+            i {
+                margin-right: 0.5rem;
+            }
+        }
+    }
+
+    // Input field styling
+    input.p-inputtext {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+
+        &:focus {
+            box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.2);
+            border-color: $primary-color;
+        }
+
+        &::placeholder {
+            color: #adb5bd;
+        }
+    }
+
+    // Add spacing between form elements
+    .my-5 {
+        margin-top: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    // Adjust dropdown styling
+    .p-dropdown {
+        width: 100%;
+
+        .p-dropdown-label {
+            padding: 0.75rem;
+        }
+    }
+
+    // Adjust checkbox styling
+    .p-checkbox {
+        margin-right: 0.5rem;
+    }
+
+    // Input group styling
+    .p-inputgroup {
+        margin-bottom: 1rem;
+        display: flex;
+
+        input {
+            flex: 1;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        button {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+    }
+}
+
+// Animation for form transitions
+.form-transition {
+    transition: all 0.3s ease;
+}
+
+// Tooltip styles
+.helper-text {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+// Tab button styling
+.tab-buttons {
+    display: flex;
+    margin-bottom: 1rem;
+    width: 100%;
+
+    .tab-button {
+        flex: 1;
+        border-radius: 0;
+        margin: 0;
+
+        &:first-child {
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+        }
+
+        &:last-child {
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+    }
+}
+
+// Improved external search component
+.external-search {
+    position: relative;
+    margin-bottom: 1rem;
+
+    .search-input {
+        padding-right: 2.5rem !important;
+    }
+
+    .search-icon {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        cursor: pointer;
+
+        &:hover {
+            color: $primary-color;
+        }
+    }
+
+    .search-results {
+        position: absolute;
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        background-color: white;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+
+        .search-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #f8f9fa;
+            cursor: pointer;
+
+            &:hover {
+                background-color: #f8f9fa;
+            }
+
+            &.active {
+                background-color: rgba($primary-color, 0.1);
+            }
+
+            &.no-results {
+                cursor: default;
+
+                &:hover {
+                    background-color: white;
+                }
+            }
+
+            .item-details {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 0.5rem;
+            }
+
+            .add-new-container {
+                display: flex;
+                justify-content: center;
+                margin-top: 0.5rem;
+
+                button {
+                    font-size: 0.85rem;
+                }
+            }
+        }
+    }
+}
+
+// Grid system for form layout
+.p-grid {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -0.5rem;
+    margin-left: -0.5rem;
+
+    .p-col-12 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        padding: 0 0.5rem;
+    }
+
+    .p-md-6 {
+        @media screen and (min-width: 769px) {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+    }
+}
+
+// Status indicators
+.status {
+    &-online {
+        color: $success-color;
+    }
+
+    &-offline {
+        color: $error-color;
+    }
+}
+
+// Error message styling
+.error-message {
+    color: $error-color;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+// Success message styling
+.success-message {
+    color: $success-color;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+// Fix for Primeng components
+:host ::ng-deep {
+    // Improve button styling
+    .p-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &.p-button-success {
+            background-color: $success-color;
+            border-color: $success-color;
+        }
+
+        .p-button-icon {
+            margin-right: 0.5rem;
+        }
+    }
+
+    // Fix checkbox alignment
+    .p-checkbox-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+// Selected external card styling
+.selected-external {
+    margin-top: 1rem;
+
+    .p-card {
+        .p-card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .p-card-subtitle {
+            font-size: 0.9rem;
+        }
+    }
+}

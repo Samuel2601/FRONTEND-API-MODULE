@@ -28,6 +28,18 @@ export class AgregarRecolectorComponent {
     isExterno = false; // Controla si se seleccionó Externo
     showExternoForm = false; // Controla la visibilidad del formulario de Externo
     externos: any[] = [];
+
+    // Búsqueda y filtrado de externos
+    searchTerm: string = '';
+    filteredExternos: any[] = [];
+
+    // Opciones para el SelectButton
+    externoMode: string = 'existente';
+    externoModeOptions = [
+        { label: 'Buscar Existente', value: 'existente', icon: 'pi pi-search' },
+        { label: 'Registrar Nuevo', value: 'nuevo', icon: 'pi pi-plus' },
+    ];
+
     constructor(
         private fb: FormBuilder,
         private messageService: MessageService,
@@ -64,71 +76,154 @@ export class AgregarRecolectorComponent {
         await this.fetchDevices();
         await this.listarExterno();
         //await this.cedula_validator();
+
+        // Inicializar el modo de externo basado en si hay externos disponibles
+        if (this.isExterno) {
+            this.externoMode = this.externos.length > 0 ? 'existente' : 'nuevo';
+            this.showExternoForm = this.externoMode === 'nuevo';
+        }
+
+        // Inicializar la lista filtrada
+        this.filteredExternos = [...this.externos];
     }
 
-    async cedula_validator() {
-        console.log(
-            'Función: esIdentificacionValida()',
-            'Valor enviado: 0803768530',
-            ': ',
-            ValidacionCedulaRucService.esIdentificacionValida('0803768530')
-        );
-        console.log(
-            'Función: esIdentificacionValida()',
-            'Valor enviado: 0803768530',
-            ': ',
-            ValidacionCedulaRucService.esIdentificacionValida('0803768530')
-        );
-        console.log(
-            'Función: esCedulaValida()',
-            'Valor enviado: 0803768530',
-            ': ',
-            ValidacionCedulaRucService.esCedulaValida('0803768530')
-        );
-        console.log(
-            'Función: esRucValido()',
-            'Valor enviado: 0803768530',
-            ': ',
-            ValidacionCedulaRucService.esRucValido('0803768530')
-        );
-        console.log(
-            'Función: esRucPersonaNaturalValido()',
-            'Valor enviado: 0803768530',
-            ': ',
-            ValidacionCedulaRucService.esRucPersonaNaturalValido('0803768530')
-        );
-        console.log(
-            'Función: esRucSociedadPrivadaValido()',
-            'Valor enviado: 0803768530',
-            ': ',
-            ValidacionCedulaRucService.esRucSociedadPrivadaValido('0803768530')
-        );
-        console.log(
-            'Función: esRucSociedadPublicaValido()',
-            'Valor enviado: 0803768530',
-            ': ',
-            ValidacionCedulaRucService.esRucSociedadPublicaValido('0803768530')
-        );
+    // Método para validar si una cadena es una cédula ecuatoriana válida (10 dígitos)
+    isCedulaValida(cedula: string): boolean {
+        // Verificar que sea exactamente 10 dígitos
+        const regex = /^[0-9]{10}$/;
+        return regex.test(cedula);
     }
+
+    // Método para crear un nuevo externo a partir de la cédula ingresada en la búsqueda
+    crearExternoDesdeSearch(): void {
+        // Cambiar al modo de registro de nuevo externo
+        this.externoMode = 'nuevo';
+        this.showExternoForm = true;
+
+        // Establecer la cédula en el formulario
+        this.formulario
+            .get('externo_register')
+            .get('dni')
+            .setValue(this.searchTerm);
+
+        // Limpiar el término de búsqueda
+        this.searchTerm = '';
+
+        // Consultar automáticamente los datos del ciudadano
+        setTimeout(() => {
+            this.getCiudadano();
+        }, 100);
+
+        // Mostrar mensaje informativo
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Creando nuevo externo',
+            detail: 'Complete los datos del nuevo recolector externo',
+        });
+    }
+
+    // Método para filtrar externos basado en la búsqueda
+    filterExternos() {
+        if (!this.searchTerm) {
+            this.filteredExternos = [...this.externos];
+            return;
+        }
+
+        const term = this.searchTerm.toLowerCase();
+        this.filteredExternos = this.externos.filter(
+            (externo) =>
+                externo.name.toLowerCase().includes(term) ||
+                externo.dni.toLowerCase().includes(term)
+        );
+
+        // Verificar si la búsqueda podría ser una cédula y no se encontraron resultados
+        const isCedulaSearch = this.isCedulaValida(this.searchTerm);
+
+        // Verificar si no hay resultados Y es una posible cédula
+        if (this.filteredExternos.length === 0 && isCedulaSearch) {
+            // Verificar que no existe ya un externo con esa cédula
+            const existeCedula = this.externos.some(
+                (externo) => externo.dni === this.searchTerm
+            );
+
+            // Si no existe, permitir crear un nuevo externo
+            if (!existeCedula) {
+                // Aquí no hacemos nada más, porque la vista se encargará de mostrar el botón
+                // cuando filteredExternos está vacío y searchTerm es una cédula válida
+            }
+        }
+    }
+
+    // Método para seleccionar un externo de la lista filtrada
+    selectExterno(externo: any) {
+        this.formulario.get('externo').setValue(externo);
+        this.searchTerm = ''; // Limpiar la búsqueda
+        this.filteredExternos = [...this.externos]; // Restaurar la lista completa
+
+        // Mostrar mensaje de confirmación
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Externo seleccionado',
+            detail: `Se ha seleccionado a ${externo.name}`,
+        });
+    }
+
     getCiudadano() {
         this.filterser
             .getciudadano(this.formulario.get('externo_register').value.dni)
             .subscribe(
                 (response: any) => {
                     console.log(response);
-                    if (response.nombres) {
-                        this.formulario
-                            .get('externo_register')
-                            .get('name')
-                            .setValue(response.nombres);
+                    // Verificamos que la respuesta tenga la estructura esperada
+                    if (
+                        response.success &&
+                        response.datos &&
+                        response.datos.entidades &&
+                        response.datos.entidades.length > 0
+                    ) {
+                        // Buscamos los datos demográficos del Registro Civil
+                        const registroCivil = response.datos.entidades.find(
+                            (entidad: any) =>
+                                entidad.nombre ===
+                                'Datos Demográficos (Registro Civil)'
+                        );
+
+                        if (
+                            registroCivil &&
+                            registroCivil.data &&
+                            registroCivil.data.length > 0
+                        ) {
+                            const datos = registroCivil.data[0];
+
+                            // Asignamos el nombre completo al campo name
+                            if (datos.nombre) {
+                                this.formulario
+                                    .get('externo_register')
+                                    .get('name')
+                                    .setValue(datos.nombre);
+
+                                // Mostramos mensaje de éxito
+                                this.messageService.add({
+                                    severity: 'success',
+                                    summary: 'Información encontrada',
+                                    detail: 'Datos del ciudadano cargados correctamente',
+                                });
+                            }
+                        }
+                    } else {
+                        this.messageService.add({
+                            severity: 'warn',
+                            summary: 'Sin datos',
+                            detail: 'No se encontraron datos para este número de identificación',
+                        });
                     }
                 },
                 (error) => {
                     console.error(error);
                     this.messageService.add({
                         severity: 'error',
-                        summary: 'Algo salio mal',
-                        detail: 'Parece no estar en nuestros registros',
+                        summary: 'Algo salió mal',
+                        detail: 'No se pudo consultar la información del ciudadano',
                     });
                 }
             );
@@ -155,7 +250,6 @@ export class AgregarRecolectorComponent {
 
     async fetchDevices() {
         this.ubicar.obtenerDeviceGPS().subscribe(async (response) => {
-            //console.log(response);
             this.devices = response.filter((e) => e.status == 'online');
             await this.checkExistingRegistrations();
         });
@@ -166,6 +260,7 @@ export class AgregarRecolectorComponent {
         const dateOnly = `${today.getFullYear()}-${
             today.getMonth() + 1
         }-${today.getDate()}`;
+
         this.list
             .listarAsignacionRecolectores(
                 this.token,
@@ -189,13 +284,11 @@ export class AgregarRecolectorComponent {
                                 (e) => e.dni != element_data.externo.dni
                             );
                         }
-                        /* console.log(this.devices.filter(
-                            (element) => element.id != element_data.deviceId
-                        ));*/
                     });
                 }
             });
     }
+
     ondeleteExterno(id: string) {
         this.deleteser
             .RemoveRecolectoresExterno(this.token, id)
@@ -220,7 +313,10 @@ export class AgregarRecolectorComponent {
 
             this.formulario
                 .get('deviceId')
-                .setValue(this.formulario.get('deviceId').value.id);
+                .setValue(
+                    this.formulario.get('deviceId').value.id ||
+                        this.formulario.get('deviceId').value
+                );
 
             if (
                 this.formulario.get('isExterno').value &&
@@ -290,6 +386,7 @@ export class AgregarRecolectorComponent {
             );
     }
 }
+
 enum TipoIdentificacionEnum {
     CEDULA,
     RUC_PERSONA_NATURAL,

@@ -1,13 +1,16 @@
 <p-card header="Lista de Asignaciones de Recolectores a Funcionarios">
-    <div style="display: flex; justify-content: flex-end">
+    <!-- Header section with Add button -->
+    <div class="mb-3 flex justify-content-end">
         <p-button
             *ngIf="check_create"
             icon="pi pi-plus-circle"
             label="Añadir"
+            styleClass="p-button-primary"
             (onClick)="llamar_asignacion_Form()"
         ></p-button>
     </div>
 
+    <!-- Table component -->
     <p-table
         [value]="arr_asignacion"
         styleClass="p-datatable-striped"
@@ -18,6 +21,7 @@
         sortMode="multiple"
         [paginator]="true"
         currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+        responsiveLayout="scroll"
     >
         <ng-template pTemplate="header">
             <tr>
@@ -27,13 +31,17 @@
                 <th>Funcionario</th>
                 <th *ngIf="!isMobil()">Horas Registradas</th>
                 <th *ngIf="!isMobil()">Puntos de Recolección</th>
-                <th *ngIf="!isMobil()">Acciones</th>
+                <th *ngIf="!isMobil()" style="width: 260px">Acciones</th>
             </tr>
         </ng-template>
 
         <ng-template pTemplate="body" let-product let-rowIndex="rowIndex">
-            <tr (click)="viewregister = product; visible = true">
-                <!-- Mostrar el número de fila en orden descendente -->
+            <tr
+                (click)="
+                    viewregister = product; isMobil() ? (visible = true) : null
+                "
+            >
+                <!-- Row number -->
                 <td>
                     {{ arr_asignacion.length - rowIndex }}
                     <i
@@ -53,27 +61,26 @@
                     ></i>
                 </td>
 
-                <!-- Mostrar la fecha -->
+                <!-- Date -->
                 <td>{{ product.dateOnly | date : "shortDate" }}</td>
 
-                <!-- Mostrar el recolector -->
+                <!-- Collector -->
                 <td>{{ getDeviceGPS(product.deviceId) }}</td>
 
-                <!-- Mostrar el nombre completo del funcionario -->
+                <!-- Official's full name -->
                 <td>
                     <ng-container *ngIf="product.externo">
-                        {{ product.externo.name }}
-                        <p-tag icon="pi pi-user" value="(Externo)" />
+                        <div class="flex align-items-center">
+                            {{ product.externo.name }}
+                            <p-tag
+                                icon="pi pi-user"
+                                value="(Externo)"
+                                styleClass="ml-2"
+                            />
+                        </div>
                     </ng-container>
                     <ng-container *ngIf="!product.externo">
-                        <div
-                            style="
-                                display: flex;
-                                flex-direction: row;
-                                justify-content: flex-start;
-                                align-items: center;
-                            "
-                        >
+                        <div class="flex align-items-center">
                             <p-avatar
                                 (click)="
                                     onAvatarClick(
@@ -94,41 +101,48 @@
                                 size="large"
                                 shape="circle"
                             ></p-avatar>
-
-                            {{ product.funcionario?.name }}
-                            {{ product.funcionario?.last_name }}
+                            <span
+                                >{{ product.funcionario?.name }}
+                                {{ product.funcionario?.last_name }}</span
+                            >
                         </div>
                     </ng-container>
                 </td>
+
+                <!-- Registered hours -->
                 <td *ngIf="!isMobil()">
-                    <ng-container *ngIf="product.ruta.length > 1">{{
-                        calculateTimeDifference(
-                            product.ruta[0].fixTime,
-                            product.ruta[product.ruta.length - 1].fixTime
-                        )
-                    }}</ng-container>
+                    <ng-container *ngIf="product.ruta.length > 1">
+                        {{
+                            calculateTimeDifference(
+                                product.ruta[0].fixTime,
+                                product.ruta[product.ruta.length - 1].fixTime
+                            )
+                        }}
+                    </ng-container>
                     <ng-container *ngIf="product.ruta.length <= 1"
                         >Sin Registro</ng-container
                     >
                 </td>
+
+                <!-- Collection points -->
                 <td *ngIf="!isMobil()">
-                    <ng-container
-                        *ngIf="product.puntos_recoleccion.length > 0"
-                        >{{ product.puntos_recoleccion.length }}</ng-container
-                    >
+                    <ng-container *ngIf="product.puntos_recoleccion.length > 0">
+                        {{ product.puntos_recoleccion.length }}
+                    </ng-container>
                     <ng-container *ngIf="product.puntos_recoleccion.length == 0"
                         >Sin Registro</ng-container
                     >
                 </td>
 
-                <!-- Columna de acciones con botones -->
-                <td *ngIf="!isMobil()">
-                    <div class="action-buttons">
+                <!-- Action buttons column -->
+                <td *ngIf="!isMobil()" class="action-column">
+                    <div class="flex flex-wrap gap-2 justify-content-start">
                         <p-button
-                            class="mx-2"
                             (onClick)="op.toggle($event); showoverlay(product)"
                             icon="pi pi-receipt"
-                            label="Capacidad"
+                            styleClass="p-button-sm"
+                            pTooltip="Capacidad"
+                            tooltipPosition="top"
                             [badge]="
                                 getBadgeValue(product)
                                     ? getBadgeValue(product).toString()
@@ -143,34 +157,211 @@
                         ></p-button>
 
                         <p-button
-                            class="mx-2"
                             icon="pi pi-map"
-                            label="Ver"
+                            styleClass="p-button-sm p-button-secondary"
+                            pTooltip="Ver Ruta"
+                            tooltipPosition="top"
                             (onClick)="verRuta(product)"
                         ></p-button>
 
                         <p-button
-                            class="mx-2"
                             icon="pi pi-search"
-                            severity="info"
-                            label="Observación"
+                            styleClass="p-button-sm p-button-info"
+                            pTooltip="Observación"
+                            tooltipPosition="top"
                             (onClick)="observacionDialog(product)"
                         ></p-button>
 
                         <p-button
                             *ngIf="deleteRegister"
-                            class="mx-2"
-                            icon="pi pi-eraser"
-                            severity="warning"
-                            label="Eliminar"
+                            icon="pi pi-trash"
+                            styleClass="p-button-sm p-button-danger"
+                            pTooltip="Eliminar"
+                            tooltipPosition="top"
                             (onClick)="confirm($event, product)"
                         ></p-button>
                     </div>
                 </td>
             </tr>
         </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="7" class="text-center p-4">
+                    No se encontraron registros.
+                </td>
+            </tr>
+        </ng-template>
     </p-table>
 </p-card>
+
+<!--
+<p-dialog
+    [(visible)]="visible"
+    [style]="{ width: '90%' }"
+    [modal]="true"
+    header="Detalles de Asignación"
+>
+    <div *ngIf="viewregister" class="p-fluid">
+        <div class="grid p-formgrid">
+            <div class="col-12 mb-2">
+                <div class="flex justify-content-center gap-3">
+                    <p-button
+                        icon="pi pi-receipt"
+                        label="Capacidad"
+                        (onClick)="
+                            op.toggle($event);
+                            showoverlay(viewregister);
+                            visible = false
+                        "
+                        [badge]="
+                            getBadgeValue(viewregister)
+                                ? getBadgeValue(viewregister).toString()
+                                : viewregister.capacidad_retorno.length
+                        "
+                        [severity]="
+                            getBadgeValue(viewregister) &&
+                            getBadgeValue(viewregister) > 0
+                                ? 'danger'
+                                : 'success'
+                        "
+                    ></p-button>
+
+                    <p-button
+                        icon="pi pi-map"
+                        label="Ver Ruta"
+                        styleClass="p-button-secondary"
+                        (onClick)="verRuta(viewregister); visible = false"
+                    ></p-button>
+                </div>
+            </div>
+
+            <div class="col-12 mb-2">
+                <div class="flex justify-content-center gap-3">
+                    <p-button
+                        icon="pi pi-search"
+                        label="Observación"
+                        styleClass="p-button-info"
+                        (onClick)="
+                            observacionDialog(viewregister); visible = false
+                        "
+                    ></p-button>
+
+                    <p-button
+                        *ngIf="deleteRegister"
+                        icon="pi pi-trash"
+                        label="Eliminar"
+                        styleClass="p-button-danger"
+                        (onClick)="
+                            confirm($event, viewregister); visible = false
+                        "
+                    ></p-button>
+                </div>
+            </div>
+        </div>
+    </div>
+</p-dialog>
+
+<p-overlayPanel #op [showCloseIcon]="true" [style]="{ width: '300px' }">
+    <div *ngIf="register" class="p-grid">
+        <div class="p-col-12">
+            <h5>Capacidad de Retorno</h5>
+            <div
+                *ngFor="let punto of register.capacidad_retorno; let i = index"
+                class="mb-2"
+            >
+                <div class="flex align-items-center gap-2">
+                    <p-dropdown
+                        [options]="capacidadOpciones"
+                        [(ngModel)]="punto.value"
+                        [disabled]="punto.verificacion"
+                        styleClass="w-full"
+                    ></p-dropdown>
+                    <div class="flex align-items-center">
+                        <i
+                            *ngIf="punto.verificacion"
+                            class="pi pi-check-circle text-green-500 text-xl"
+                        ></i>
+                        <i
+                            *ngIf="!punto.verificacion"
+                            class="pi pi-exclamation-circle text-yellow-500 text-xl"
+                        ></i>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3 flex justify-content-end">
+                <p-button
+                    label="Guardar"
+                    icon="pi pi-save"
+                    styleClass="p-button-sm"
+                    (onClick)="updateCapacidad(register)"
+                ></p-button>
+            </div>
+        </div>
+    </div>
+</p-overlayPanel>
+
+<p-dialog
+    [(visible)]="displayVerificador"
+    [style]="{ width: '450px' }"
+    [modal]="true"
+    header="Observación"
+>
+    <div *ngIf="registerObservacion && loader_verificador" class="p-fluid">
+        <form [formGroup]="observacion">
+            <div class="field mb-3">
+                <label class="font-bold">Verificación</label>
+                <p-inputSwitch formControlName="verificacion"></p-inputSwitch>
+            </div>
+            <div class="field mb-3">
+                <label class="font-bold">Comentario</label>
+                <textarea
+                    pInputTextarea
+                    formControlName="comentario"
+                    rows="5"
+                    styleClass="w-full"
+                ></textarea>
+            </div>
+            <div class="flex justify-content-end">
+                <p-button
+                    label="Guardar"
+                    icon="pi pi-save"
+                    (onClick)="guardarObservacion()"
+                    [disabled]="observacion.get('verificador').disabled"
+                ></p-button>
+            </div>
+        </form>
+    </div>
+    <div *ngIf="!loader_verificador" class="flex justify-content-center">
+        <p-progressSpinner></p-progressSpinner>
+    </div>
+</p-dialog>
+
+<p-dialog
+    [(visible)]="displayBasic"
+    [style]="{ width: '80vw' }"
+    [modal]="true"
+    [dismissableMask]="true"
+>
+    <p-galleria
+        *ngIf="imagenModal"
+        [value]="imagenModal"
+        [responsiveOptions]="responsiveOptions"
+        [containerStyle]="{ 'max-width': '800px' }"
+        [numVisible]="5"
+    >
+        <ng-template pTemplate="item" let-item>
+            <img [src]="item" style="width: 100%" />
+        </ng-template>
+        <ng-template pTemplate="thumbnail" let-item>
+            <div class="p-grid p-nogutter justify-content-center">
+                <img [src]="item" style="max-height: 60px" />
+            </div>
+        </ng-template>
+    </p-galleria>
+</p-dialog>
+-->
+
 <p-dialog
     appendTo="body"
     header="Verificación y Observación"
