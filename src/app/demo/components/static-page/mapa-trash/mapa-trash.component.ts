@@ -6,35 +6,29 @@ import {
     TemplateRef,
     ApplicationRef,
     OnDestroy,
+    NgZone,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import * as L from 'leaflet';
 import { CommonModule } from '@angular/common';
 import * as turf from '@turf/turf';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
-import { Subscription, debounceTime, map } from 'rxjs';
+import { Subscription, debounceTime, takeUntil, Subject } from 'rxjs';
 import { Plugins } from '@capacitor/core';
 const { Geolocation } = Plugins;
 import { App } from '@capacitor/app';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
-declare global {
-    interface JQueryStatic {
-        Finger: any;
-    }
-}
-import { FormControl, FormsModule } from '@angular/forms';
-import { HelperService } from 'src/app/demo/services/helper.service';
 
-import { Loader } from '@googlemaps/js-api-loader';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { HelperService } from 'src/app/demo/services/helper.service';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
-import {
-    DialogService,
-    DynamicDialogConfig,
-    DynamicDialogRef,
-} from 'primeng/dynamicdialog';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { AdminService } from 'src/app/demo/services/admin.service';
-import { AutoCompleteModule } from 'primeng/autocomplete';
+import { AuthService } from 'src/app/demo/services/auth.service';
+import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
+
+// Import Angular and PrimeNG modules
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
@@ -44,7 +38,6 @@ import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { StepperModule } from 'primeng/stepper';
 import { EditorModule } from 'primeng/editor';
-import { ReactiveFormsModule } from '@angular/forms';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { FileUploadModule } from 'primeng/fileupload';
@@ -53,8 +46,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { BadgeModule } from 'primeng/badge';
 import { CalendarModule } from 'primeng/calendar';
-import { AuthService } from 'src/app/demo/services/auth.service';
-import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
+
 interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
     id?: string;
 }
@@ -91,103 +83,94 @@ interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
     providers: [
         MessageService,
         DialogService,
-        DynamicDialogConfig,
         DynamicDialogRef,
         ConfirmationService,
     ],
 })
 export class MapaTrashComponent implements OnInit, OnDestroy {
     @ViewChild('formulariomap', { static: true }) formularioMapRef!: ElementRef;
+    @ViewChild('infoWindowTemplate', { static: true })
+    infoWindowTemplate!: TemplateRef<any>;
 
-    mapOptions = {
-        center: {
-            lat: 0,
-            lng: 0,
-        },
-        zoom: 4,
-    };
-    mapCustom: google.maps.Map;
+    // Map configuration
+    mapCustom!: google.maps.Map;
     markers: google.maps.Marker[] = [];
-    //VARIABLES
-    showCrosshair: boolean = false;
+
+    // Core variables
     url = GLOBAL.url;
     myControl = new FormControl();
-    public filter: any = [];
-    showOptions: boolean = false;
-    latitud: number;
-    longitud: number;
-    wfsPolylayer: any;
-    buscarPolylayer: any;
-    capasInteractivas: any[] = [];
-    editing: boolean = false;
-    googleStreets: any;
-    lista_feature: any = ([] = []);
-    bton: any;
-    opcionb: any;
-    color = 'red'; // Cambia 'red' por el color deseado
-    iconUrl = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14" fill="${this.color}" width="14" height="14">
-<path d="M0 0h24v24H0z" fill="none"/>
-<path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/>
-</svg>`;
+    filter: any[] = [];
+    latitud!: number;
+    longitud!: number;
+    lista_feature: any[] = [];
+    token = this.auth.token() || undefined;
 
-    redIcon = L.icon({
-        iconUrl: this.iconUrl,
-        shadowUrl:
-            'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41],
-    });
-    isLongPress = false;
-    longPressTimeout: any;
-    mostrarCreateDireccion = false;
-    mostrarficha = false;
-    mostrarincidente = false;
-    capaActiva: boolean = false;
-    capaActivaWIFI: boolean = true;
+    // UI state variables
+    showOptions = false;
+    sidebarVisible = false;
+    canpopup = false;
+    load_fullscreen = false;
+    visible = false;
+    mostrarfiltro = true;
+    visiblepath = false;
+    pushmenu = false;
+
+    // Map state variables
+    editing = false;
+    capaActiva = false;
+    capaActivaWIFI = true;
+
+    // Marker and polygon configuration
+    color = 'red';
+    iconUrl = this.createIconUrl();
+    arr_polygon: google.maps.Polygon[] = [];
+    temp_poligon?: google.maps.Polygon;
+
+    // Service endpoints
     urlgeoserwifi =
         'https://geoapi.esmeraldas.gob.ec/geoserver/catastro/wms?service=WFS&version=1.1.0&request=GetFeature&srsname=EPSG%3A4326&typeName=catastro%3Apuntos-wifi&outputFormat=application%2Fjson';
     urlgeoserruta =
         'https://geoapi.esmeraldas.gob.ec/geoserver/catastro/wms?service=WFS&version=1.1.0&request=GetFeature&srsname=EPSG%3A4326&typeName=catastro%3ARUTA2-CARRO2&outputFormat=application%2Fjson';
     urlgeoserruta2 =
         'https://geoapi.esmeraldas.gob.ec/geoserver/catastro/wms?service=WFS&version=1.1.0&request=GetFeature&srsname=EPSG%3A4326&typeName=catastro%3ACAPAS-RUTAS&outputFormat=application%2Fjson';
-    //ACAPAS-RUTAS
     urlgeoser =
         'https://geoapi.esmeraldas.gob.ec/geoserver/catastro/wms?service=WFS&version=1.1.0&request=GetFeature&srsname=EPSG%3A4326&typeName=catastro%3Ageo_barrios&outputFormat=application%2Fjson';
-    urlgeolocal =
-        'http://192.168.120.35/geoserver/catastro/wms?service=WFS&version=1.1.0&request=GetFeature&srsname=EPSG%3A4326&typeName=catastro%3Ageo_barrios&outputFormat=application%2Fjson';
-    token = this.auth.token() || undefined;
+
+    // Style variables
+    fillColor = '';
+    strokeColor = '';
+    fillColor2 = '';
+    strokeColor2 = '';
+    backgroundColor = '';
+
+    // Data storage
     check: any = {};
-    sidebarVisible: boolean = false;
+    opcionb: any;
+    categorias: any[] = [];
+    categoria!: string;
+    subcategoria!: string;
+    rutas: any[] = [];
+    pathselect: any[] = [];
+    pathson: any[] = [];
+    selectpath: any;
+    inforecolector: any[] = [];
+    markersrecolectores: Map<string, any> = new Map();
+    popupStates: boolean[] = [];
+    features: { [id: string]: any } = {};
+
+    // Search and info variables
+    query!: string;
+    predictions: google.maps.places.AutocompletePrediction[] = [];
     private openInfoWindow: google.maps.InfoWindow | null = null;
-    arr_polygon: any[] = [];
-    canpopup: boolean = false;
-    load_fullscreen: boolean = false;
-    items: MenuItem[] = [];
-    visible: boolean = false;
-    temp_poligon: any;
-    //CONSTRUCTOR
-    fillColor = getComputedStyle(document.documentElement).getPropertyValue(
-        '--primary-color'
-    );
-    strokeColor = getComputedStyle(document.documentElement).getPropertyValue(
-        '--gray-900'
-    );
-    fillColor2 = getComputedStyle(document.documentElement).getPropertyValue(
-        '--blue-500'
-    );
-    strokeColor2 = getComputedStyle(document.documentElement).getPropertyValue(
-        '--blue-900'
-    );
-    backgroundColor = getComputedStyle(
-        document.documentElement
-    ).getPropertyValue('--surface-0');
+    infoWindowActual!: google.maps.InfoWindow;
+    feature_img: any;
+    url_imag = '';
+    id_feature: any;
 
-    subscription!: Subscription;
-
-    query: string;
-    predictions: google.maps.places.AutocompletePrediction[];
+    // Async control
+    private destroy$ = new Subject<void>();
+    private subscription!: Subscription;
+    private intervalId: any;
 
     constructor(
         private helperService: HelperService,
@@ -197,22 +180,118 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
         private admin: AdminService,
         private appRef: ApplicationRef,
         private auth: AuthService,
-        private googlemaps: GoogleMapsService
-    ) {
+        private googlemaps: GoogleMapsService,
+        private ngZone: NgZone
+    ) {}
+
+    ngOnInit(): void {
+        this.setupLayoutSubscription();
+        this.initMapAndData();
+        this.setupBackButtonListener();
+    }
+
+    private setupLayoutSubscription(): void {
         this.subscription = this.layoutService.configUpdate$
-            .pipe(debounceTime(25))
-            .subscribe((config) => {
-                const documentStyle = getComputedStyle(
-                    document.documentElement
-                );
-                this.fillColor =
-                    documentStyle.getPropertyValue('--primary-color');
-                this.strokeColor = documentStyle.getPropertyValue('--gray-900');
-                this.backgroundColor =
-                    documentStyle.getPropertyValue('--surface-0');
+            .pipe(debounceTime(25), takeUntil(this.destroy$))
+            .subscribe(() => {
+                this.updateThemeColors();
                 this.actualizarpoligono();
             });
     }
+
+    private updateThemeColors(): void {
+        const documentStyle = getComputedStyle(document.documentElement);
+        this.fillColor = documentStyle.getPropertyValue('--primary-color');
+        this.strokeColor = documentStyle.getPropertyValue('--gray-900');
+        this.backgroundColor = documentStyle.getPropertyValue('--surface-0');
+        this.fillColor2 = documentStyle.getPropertyValue('--blue-500');
+        this.strokeColor2 = documentStyle.getPropertyValue('--blue-900');
+    }
+
+    private setupBackButtonListener(): void {
+        App.addListener('backButton', () => {
+            this.ngZone.run(() => {
+                if (this.sidebarVisible) {
+                    this.sidebarVisible = false;
+                    return;
+                }
+                if (this.mostrarficha) {
+                    this.mostrarficha = false;
+                    return;
+                }
+                if (this.mostrarincidente) {
+                    this.mostrarincidente = false;
+                    return;
+                }
+            });
+        });
+    }
+
+    // Error tracking properties
+    private errorCount = 0;
+    private maxRetries = 3;
+    private isServiceAvailable = true;
+
+    private async initMapAndData(): Promise<void> {
+        try {
+            this.helperService.llamarspinner('init mapa basurero');
+
+            // Load theme colors initially
+            this.updateThemeColors();
+
+            // Load geojson data
+            await this.getWFSgeojson(this.urlgeoser);
+
+            // Initialize map
+            this.recargarmapa();
+
+            // Reset error counts on successful initialization
+            this.errorCount = 0;
+            this.isServiceAvailable = true;
+
+            // Load truck/collector data initially
+            await this.cargarRecolectores();
+
+            // Set up interval for refreshing truck positions with error handling
+            this.intervalId = setInterval(() => {
+                // Only continue making API calls if we haven't exceeded retry limit
+                if (this.isServiceAvailable) {
+                    this.cargarRecolectores();
+                }
+            }, 10000); // 10 seconds interval to reduce server load
+
+            // Load routes
+            this.loadRoutes();
+        } catch (error) {
+            console.error('Error initializing map and data:', error);
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'No se pudo inicializar el mapa correctamente',
+            });
+        } finally {
+            setTimeout(() => {
+                this.helperService.cerrarspinner('init mapa basurero');
+            }, 1500);
+        }
+    }
+
+    private async loadRoutes(): Promise<void> {
+        try {
+            const routeData = await this.getWFSgeojson(this.urlgeoserruta2);
+
+            setTimeout(() => {
+                if (this.mapCustom && routeData?.features) {
+                    this.rutas = routeData.features;
+                    // Don't load routes automatically - wait for user to request them
+                }
+            }, 1000);
+        } catch (error) {
+            console.error('Error loading routes:', error);
+        }
+    }
+
+    // Search methods
     search(event: any): void {
         this.helperService
             .searchStreets(event.query)
@@ -224,92 +303,142 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
                 this.messageService.add({
                     severity: 'error',
                     summary: '404',
-                    detail: 'Sin conincidencias',
+                    detail: 'Sin coincidencias',
                 });
             });
     }
-    imprimir(prediction: any) {
-        ////console.log(prediction)
+
+    imprimir(prediction: any): void {
+        if (!prediction || !prediction.description) return;
+
         this.helperService
             .getLatLngFromAddress(prediction.description)
             .then((location) => {
                 this.latitud = location.lat();
                 this.longitud = location.lng();
                 this.poligonoposition(false);
-                ////console.log('Latitude:', location.lat(), 'Longitude:', location.lng());
-                //this.addMarker(location,'NUEVO SISTEMA DE BUSQUEDA');
             })
             .catch((error) => {
                 console.error('Error getting location:', error);
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'No se pudo obtener la ubicación',
+                });
             });
     }
 
-    async ngOnInit() {
-        try {
-            this.helperService.llamarspinner('init mapa basurero');
-            App.addListener('backButton', (data) => {
-                this.sidebarVisible ? (this.sidebarVisible = false) : '';
-                this.mostrarficha ? (this.mostrarficha = false) : '';
-                this.mostrarincidente ? (this.mostrarincidente = false) : '';
+    // Map initialization
+    initmap(): void {
+        this.googlemaps
+            .getLoader()
+            .then(() => {
+                this.initializeGoogleServices();
+                this.createMap();
+            })
+            .catch((error) => {
+                console.error('Error loading Google Maps:', error);
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'No se pudo cargar Google Maps',
+                });
             });
-
-            await this.getWFSgeojson(this.urlgeoser);
-            this.recargarmapa();
-            this.cargarRecolectores();
-
-            this.intervalId = setInterval(() => {
-                this.cargarRecolectores();
-            }, 1000);
-            setTimeout(() => {
-                this.helperService.cerrarspinner('init mapa basurero');
-            }, 1500);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            const aux = await this.getWFSgeojson(this.urlgeoserruta2);
-            setTimeout(() => {
-                if(this.mapCustom){
-                    if (aux && aux.features) {
-                        this.rutas = aux.features;
-                        this.rutas.forEach((element) => {
-                           // console.log('mostrar ruta');
-                            this.pathpush(element);
-                        });
-                    } else {
-                        this.messageService.add({
-                            severity: 'error',
-                            summary: 'Ocurrio Algo',
-                            detail: 'Sin conexión',
-                        });
-                    }
-                }
-            }, 1000);
-            
-        }
     }
-    addtemplateBG() {
+
+    private initializeGoogleServices(): void {
+        this.helperService.autocompleteService =
+            new google.maps.places.AutocompleteService();
+        this.helperService.geocoderService = new google.maps.Geocoder();
+    }
+
+    // Inicializar mapa con controles de ubicación integrados
+    private createMap(): void {
+        const defaultCenter = { lat: 0.977035, lng: -79.655415 };
+
+        this.mapCustom = new google.maps.Map(
+            document.getElementById('map2') as HTMLElement,
+            {
+                zoom: 15,
+                center: defaultCenter,
+                mapTypeId: 'terrain',
+                fullscreenControl: true,
+                mapTypeControlOptions: {
+                    style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+                    position: google.maps.ControlPosition.LEFT_BOTTOM,
+                },
+                gestureHandling: 'greedy',
+                // Desactivar POIs para un mapa más limpio
+                styles: [
+                    {
+                        featureType: 'poi',
+                        elementType: 'labels',
+                        stylers: [{ visibility: 'off' }],
+                    },
+                ],
+            }
+        );
+
+        // Agregar control de ubicación nativo de Google Maps
+        this.addLocationControl();
+
+        // Inicializar control de pantalla completa personalizado
+        //this.initFullscreenControl();
+
+        // Utilizar un controlador de clics con debounce para evitar múltiples clics rápidos
+        this.mapCustom.addListener('click', (event: any) => {
+            this.onClickHandlerMap(event);
+        });
+    }
+
+    // Agregar control de ubicación nativo de Google Maps
+    private addLocationControl(): void {
+        // Crear el control de ubicación
+        const locationControlDiv = document.createElement('div');
+        const locationControl = this.createLocationControl();
+        locationControlDiv.appendChild(locationControl);
+
+        // Posicionar el control en el mapa
+        this.mapCustom.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(
+            locationControlDiv
+        );
+    }
+
+    // Crear el elemento HTML para el control de ubicación
+    private createLocationControl(): HTMLDivElement {
+        const controlUI = document.createElement('div');
+        controlUI.className = 'custom-map-control location-control';
+        controlUI.title = 'Obtener mi ubicación';
+        controlUI.innerHTML = `
+        <button class="control-button">
+            <i class="pi pi-map-marker" style="font-size: 1.2rem;"></i>
+        </button>
+    `;
+
+        // Agregar evento de clic
+        controlUI.addEventListener('click', () => {
+            this.getLocation();
+        });
+
+        return controlUI;
+    }
+
+    private createIconUrl(): string {
+        return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14" fill="${this.color}" width="14" height="14">
+            <path d="M0 0h24v24H0z" fill="none"/>
+            <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/>
+            </svg>`;
+    }
+
+    // Map controls and UI
+    addtemplateBG(): void {
         setTimeout(() => {
-            const speedDial = document.createElement('button');
-            speedDial.className = 'p-button p-button-icon-only';
-            speedDial.innerHTML =
-                '<span class="bi bi-crosshair" style="font-size: 24px;"></span>';
-            speedDial.title = 'Ubicación';
-            speedDial.style.position = 'absolute';
-            speedDial.style.bottom = '10px';
-            speedDial.style.right = '10px';
-            speedDial.style.width = '3rem';
-            speedDial.style.height = '3rem';
-            speedDial.style['border-radius'] = '50%';
-            speedDial.style.color = '#f90017';
-            speedDial.style.background = 'var(--surface-0)';
-
-            speedDial.addEventListener('click', () => {
-                this.getLocation();
-            });
-            // Verificar si el speedDial ya está en el mapa antes de agregarlo
             const customControlDiv = document.createElement('div');
+            const speedDial = this.createLocationButton();
+
             customControlDiv.appendChild(speedDial);
-            // Añadir el speedDial al control solo si no está agregado
+
+            // Only add the control if it's not already present
             if (!this.isFormularioBG()) {
                 this.mapCustom.controls[
                     google.maps.ControlPosition.RIGHT_BOTTOM
@@ -317,27 +446,49 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
             }
         }, 1000);
     }
+
+    private createLocationButton(): HTMLButtonElement {
+        const speedDial = document.createElement('button');
+        speedDial.className = 'p-button p-button-icon-only';
+        speedDial.innerHTML =
+            '<span class="bi bi-crosshair" style="font-size: 24px;"></span>';
+        speedDial.title = 'Ubicación';
+        speedDial.style.position = 'absolute';
+        speedDial.style.bottom = '10px';
+        speedDial.style.right = '10px';
+        speedDial.style.width = '3rem';
+        speedDial.style.height = '3rem';
+        speedDial.style.borderRadius = '50%';
+        speedDial.style.color = '#f90017';
+        speedDial.style.background = 'var(--surface-0)';
+
+        speedDial.addEventListener('click', () => {
+            this.getLocation();
+        });
+
+        return speedDial;
+    }
+
     isFormularioBG(): boolean {
-        // Verificar si el formulario ya está en el mapa
         const mapControls =
             this.mapCustom.controls[
                 google.maps.ControlPosition.RIGHT_BOTTOM
             ].getArray();
         for (let i = 0; i < mapControls.length; i++) {
             const control = mapControls[i] as HTMLElement;
-            if (control.contains(this.formularioMapRef.nativeElement)) {
-                return true; // El formulario ya está agregado al mapa
+            if (control.querySelector('.bi-crosshair')) {
+                return true;
             }
         }
-        return false; // El formulario no está agregado al mapa
+        return false;
     }
 
-    addtemplateFR() {
+    addtemplateFR(): void {
+        if (!this.formularioMapRef) return;
+
         setTimeout(() => {
-            let formularioMap = undefined;
-            if (this.formularioMapRef) {
-                formularioMap = this.formularioMapRef.nativeElement;
-            }
+            const formularioMap = this.formularioMapRef.nativeElement;
+
             if (this.load_fullscreen) {
                 if (!this.isFormularioMapAdded()) {
                     const customControlDiv = document.createElement('div');
@@ -346,17 +497,15 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
                         google.maps.ControlPosition.BOTTOM_CENTER
                     ].push(customControlDiv);
                 }
-            } else {
-                // Quitar el div del mapa si está agregado
-                if (this.isFormularioMapAdded()) {
-                    const formularioMapDiv = formularioMap.parentElement;
-                    formularioMapDiv.removeChild(formularioMap);
-                }
+            } else if (this.isFormularioMapAdded()) {
+                // Remove from map if fullscreen is disabled
+                const formularioMapDiv = formularioMap.parentElement;
+                formularioMapDiv.removeChild(formularioMap);
             }
         }, 1000);
     }
+
     isFormularioMapAdded(): boolean {
-        // Verificar si el formulario ya está en el mapa
         const mapControls =
             this.mapCustom.controls[
                 google.maps.ControlPosition.BOTTOM_CENTER
@@ -364,261 +513,25 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
         for (let i = 0; i < mapControls.length; i++) {
             const control = mapControls[i] as HTMLElement;
             if (control.contains(this.formularioMapRef.nativeElement)) {
-                return true; // El formulario ya está agregado al mapa
+                return true;
             }
         }
-        return false; // El formulario no está agregado al mapa
-    }
-    categorias: any[] = [];
-    categoria: string;
-    subcategoria: string;
-    mostrarfiltro: boolean = true;
-
-    load_truck: boolean = true;
-    intervalId: any;
-    pushmenu: boolean = false;
-
-    //CONEXION DE FEATURE
-    async getWFSgeojson(url: any) {
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
-            this.guardarfeature(data);
-            if (this.lista_feature.length == 0) {
-                //this.reloadmap(data);
-            }
-            return data;
-        } catch (error) {
-            console.error('error:', error);
-            return null;
-        }
+        return false;
     }
 
-    guardarfeature(data: any) {
-        if (data.features) {
-            var aux = [];
-            aux.push(data.features);
-            this.lista_feature.push(...aux[0]);
-            this.filter = this.lista_feature;
-        }
-    }
-    //INICIALIZADOR DEL MAPA
-    initmap() {
-        this.googlemaps.getLoader().then(() => {
-            this.helperService.autocompleteService =
-                new google.maps.places.AutocompleteService();
-            this.helperService.geocoderService = new google.maps.Geocoder();
-
-            const haightAshbury = { lat: 0.977035, lng: -79.655415 };
-            this.mapCustom = new google.maps.Map(
-                document.getElementById('map2') as HTMLElement,
-                {
-                    zoom: 15,
-                    center: haightAshbury,
-                    mapTypeId: 'terrain',
-                    fullscreenControl: false,
-                    mapTypeControlOptions: {
-                        style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
-                        position: google.maps.ControlPosition.LEFT_BOTTOM,
-                    },
-                    gestureHandling: 'greedy', //'cooperative', // Control de gestos
-                }
-            );
-
-            this.initFullscreenControl();
-            this.mapCustom.addListener('click', (event: any) => {
-                this.onClickHandlerMap(event);
-            });
-        });
-    }
-    visiblepath: boolean = false;
-    rutas: any[] = [];
-    buttonrutas = {
-        icon: 'pi bi-path',
-        label: 'Ver Rutas',
-        styleClass: 'itemcustom',
-        command: async () => {
-            //  console.log("llamar rutas");
-            if (this.rutas.length == 0) {
-                const aux = await this.getWFSgeojson(this.urlgeoserruta2);
-                if (aux && aux.features) {
-                    this.rutas = aux.features;
-                    this.rutas.forEach((element) => {
-                        //console.log('mostrar ruta');
-                        this.pathpush(element);
-                    });
-                    this.visiblepath = true;
-                } else {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Ocurrio Algo',
-                        detail: 'Sin conexión',
-                    });
-                }
-            } else {
-                this.visiblepath = true;
-            }
-        },
-    };
-
-    pathselect: any[] = [];
-    pathson: any[] = [];
-    selectpath: any;
-    pathpush(item: any) {
-        if (item) {
-            if (!this.pathselect.includes(item)) {
-                this.pathselect.push(item);
-            } else {
-                const index = this.pathselect.indexOf(item);
-                if (index !== -1) {
-                    this.pathselect.splice(index, 1);
-                }
-            }
-            this.rutasdialog();
-        }
-    }
-    rutasdialog() {
-        const colors = [
-            '#2196f3',
-            '#f57c00',
-            '#3f51b5',
-            '#009688',
-            '#f57c00',
-            '#9c27b0',
-            '#ff4032',
-            '#4caf50',
-        ];
-        if (this.pathson.length > 0) {
-            this.pathson.forEach((element: any) => {
-                element.setMap(null);
-            });
-        }
-        this.pathson = [];
-        this.pathselect.forEach((element: any, index: number) => {
-            const path = [];
-            if (element.geometry.coordinates) {
-                //console.log(element.geometry.coordinates);
-                element.geometry.coordinates.forEach((paths: any) => {
-                    for (const coord of paths) {
-                        path.push({ lat: coord[1], lng: coord[0] });
-                    }
-                });
-            }
-
-            const route = new google.maps.Polyline({
-                path: path,
-                geodesic: true,
-                strokeColor: colors[index % colors.length],
-                strokeOpacity: 1.0,
-                strokeWeight: 6, // Ajusta este valor para hacer la línea más ancha
-            });
-
-            route.addListener('click', (event: any) => {
-                const infoWindow = new google.maps.InfoWindow({
-                    content: element.properties.nombre,
-                });
-
-                infoWindow.setPosition(event.latLng);
-                infoWindow.open(this.mapCustom);
-            });
-
-            route.setMap(this.mapCustom);
-            this.pathson.push(route);
-        });
-    }
-
-    //ver recolector / Reportar
-    inforecolector: any[] = [];
-    markersrecolectores: Map<string, any> = new Map();
-
-    async cargarRecolectores() {
-        try {
-            const response = await this.admin.obtenerGPS().toPromise();
-
-            if (response) {
-                const promises = response.map(async (feature: any) => {
-                    let device = this.inforecolector.find(
-                        (element) => element.deviceId == feature.deviceId
-                    );
-
-                    if (!device) {
-                        const response2 = await this.admin
-                            .obtenerNameGPS(feature.deviceId)
-                            .toPromise();
-                        device = {
-                            deviceId: feature.deviceId,
-                            ...response2[0],
-                        };
-                        this.inforecolector.push(device);
-                    }
-
-                    const latlng = new google.maps.LatLng(
-                        feature.latitude,
-                        feature.longitude
-                    );
-
-                    if (this.markersrecolectores.has(feature.deviceId)) {
-                        // Actualizar la posición del marcador existente
-                        const marker = this.markersrecolectores.get(
-                            feature.deviceId
-                        );
-                        marker.setPosition(latlng);
-                        marker.setIcon({
-                            url: feature.attributes.motion
-                                ? './assets/menu/camionON.png'
-                                : './assets/menu/camionOFF.png',
-                            scaledSize: new google.maps.Size(40, 40),
-                            anchor: new google.maps.Point(13, 41),
-                        });
-                    } else {
-                        // Crear un nuevo marcador si no existe
-                        const marker = new google.maps.Marker({
-                            position: latlng,
-                            map: this.mapCustom,
-                            icon: {
-                                url: feature.attributes.motion
-                                    ? './assets/menu/camionON.png'
-                                    : './assets/menu/camionOFF.png',
-                                scaledSize: new google.maps.Size(40, 40),
-                                anchor: new google.maps.Point(13, 41),
-                            },
-                        });
-
-                        const infoWindow = new google.maps.InfoWindow({
-                            content: `<div style="font-family: Arial, sans-serif; font-size: 14px; width:200px">
-                                        <b style="text-align: center">${device.name}</b>
-                                      </div>`,
-                        });
-
-                        marker.addListener('click', () => {
-                            this.mapCustom.setCenter(latlng);
-                            infoWindow.open(this.mapCustom, marker);
-                        });
-
-                        this.markersrecolectores.set(feature.deviceId, marker);
-                    }
-                });
-
-                await Promise.all(promises);
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    }
-    clearMarkers() {
-        this.markersrecolectores.forEach((element) => {
-            element.setMap(null);
-        });
-    }
     initFullscreenControl(): void {
         const elementToSendFullscreen = this.mapCustom.getDiv()
             .firstChild as HTMLElement;
         const fullscreenControl = document.querySelector(
             '.fullscreen-control'
         ) as HTMLElement;
+
+        if (!fullscreenControl) return;
+
         this.mapCustom.controls[google.maps.ControlPosition.RIGHT_TOP].push(
             fullscreenControl
         );
+
         fullscreenControl.onclick = () => {
             if (this.isFullscreen(elementToSendFullscreen)) {
                 this.mapCustom.setOptions({ mapTypeControl: true });
@@ -629,6 +542,7 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
                 this.mapCustom.setOptions({ mapTypeControl: false });
                 this.requestFullscreen(elementToSendFullscreen);
             }
+            this.addtemplateFR();
         };
 
         document.onfullscreenchange = () => {
@@ -639,15 +553,17 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
             }
         };
     }
+
     isFullscreen(element: any): boolean {
         return (
             (document.fullscreenElement ||
                 (document as any).webkitFullscreenElement ||
                 (document as any).mozFullScreenElement ||
-                (document as any).msFullscreenElement) == element
+                (document as any).msFullscreenElement) === element
         );
     }
-    requestFullscreen(element: any) {
+
+    requestFullscreen(element: any): void {
         if (element.requestFullscreen) {
             element.requestFullscreen();
         } else if (element.webkitRequestFullScreen) {
@@ -658,7 +574,8 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
             element.msRequestFullScreen();
         }
     }
-    exitFullscreen() {
+
+    exitFullscreen(): void {
         if (document.exitFullscreen) {
             document.exitFullscreen();
         } else if ((document as any).webkitExitFullscreen) {
@@ -669,84 +586,113 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
             (document as any).msExitFullscreen();
         }
     }
-    onClickHandlerMap = async (e: any) => {
-        if (this.mapCustom) {
-            this.opcionb = false;
-            this.latitud = e.latLng.lat();
-            this.longitud = e.latLng.lng();
-            this.myControl.setValue(
-                (this.latitud + ';' + this.longitud).toString()
-            );
 
-            this.poligonoposition();
+    // Data fetching
+    async getWFSgeojson(url: string): Promise<any> {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            this.guardarfeature(data);
+            return data;
+        } catch (error) {
+            console.error('Error fetching GeoJSON:', error);
+            return null;
         }
+    }
+
+    guardarfeature(data: any): void {
+        if (data?.features?.length) {
+            this.lista_feature.push(...data.features);
+            this.filter = this.lista_feature;
+        }
+    }
+
+    // Map interaction handlers
+    onClickHandlerMap = (e: any): void => {
+        if (!this.mapCustom) return;
+
+        this.opcionb = false;
+        this.latitud = e.latLng.lat();
+        this.longitud = e.latLng.lng();
+        this.myControl.setValue(`${this.latitud};${this.longitud}`);
+
+        this.poligonoposition();
     };
-    popupStates: boolean[] = [];
-    // Adds a marker to the map and push to the array.
+
+    // Marker management
     addMarker(
         position: google.maps.LatLng | google.maps.LatLngLiteral,
         tipo: 'Wifi' | 'Poligono' | 'Ubicación' | string,
         message?: string,
         feature?: any
-    ) {
+    ): void {
         if (feature) this.opcionb = feature;
+
+        // Clear existing markers
         this.deleteMarkers('');
-        const map = this.mapCustom;
+
+        // Create new marker
         const marker = new google.maps.Marker({
             position,
-            map,
+            map: this.mapCustom,
             title: tipo,
         });
-        // Cerrar el popup actualmente abierto
+
+        // Close any open info windows
         if (this.openInfoWindow) {
             this.openInfoWindow.close();
         }
 
-        // Abrir un nuevo popup con el nombre del barrio
+        // Create and open new info window
         const infoWindow = new google.maps.InfoWindow({
             ariaLabel: tipo,
-            content: message ? message : 'Marcador',
+            content: message || 'Marcador',
         });
+
         infoWindow.setPosition(position);
         infoWindow.open(this.mapCustom);
 
         this.openInfoWindow = infoWindow;
         this.markers.push(marker);
         this.popupStates.push(false);
-        // Añade un listener para el evento 'click' en el marcador
+
+        // Add click listener to marker
         marker.addListener('click', () => {
-            //this.mapCustom.setZoom(18);
             infoWindow.open(this.mapCustom, marker);
         });
+
+        // Zoom to location
         this.mapCustom.setZoom(18);
+        this.mapCustom.panTo(position);
     }
 
-    // Sets the map on all markers in the array.
-    setMapOnAll(map: google.maps.Map | null) {
-        for (let i = 0; i < this.markers.length; i++) {
-            this.markers[i].setMap(map);
+    setMapOnAll(map: google.maps.Map | null): void {
+        for (const marker of this.markers) {
+            marker.setMap(map);
         }
     }
 
-    // Removes the markers from the map, but keeps them in the array.
     hideMarkers(): void {
         this.setMapOnAll(null);
     }
 
-    // Shows any markers currently in the array.
     showMarkers(): void {
         this.setMapOnAll(this.mapCustom);
     }
 
-    // Deletes all markers in the array by removing references to them.
-    deleteMarkers(tipo: any): void {
+    deleteMarkers(tipo: string): void {
         this.hideMarkers();
         this.markers = this.markers.filter(
             (marker) => marker.getTitle() !== tipo
         );
     }
 
-    actualizarpoligono() {
+    // Polygon management
+    actualizarpoligono(): void {
         this.arr_polygon.forEach((polygon: google.maps.Polygon) => {
             polygon.setOptions({
                 fillColor: this.fillColor,
@@ -757,14 +703,13 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
         });
     }
 
-    mostrarpoligono() {
+    mostrarpoligono(): void {
         if (this.capaActiva) {
             this.arr_polygon.forEach((polygon: google.maps.Polygon) => {
                 polygon.setMap(null);
             });
             this.capaActiva = false;
         } else {
-            //console.log(this.arr_polygon);
             this.arr_polygon.forEach((polygon: google.maps.Polygon) => {
                 polygon.setMap(this.mapCustom);
             });
@@ -772,63 +717,57 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
             this.centrarMap();
         }
     }
-    centrarMap() {
-        if (this.mapCustom) {
-            const bounds = new google.maps.LatLngBounds();
 
-            // Calcular los límites que abarcan todos los polígonos
-            this.arr_polygon.forEach((polygon: google.maps.Polygon) => {
-                polygon
-                    .getPath()
-                    .getArray()
-                    .forEach((latLng) => {
-                        bounds.extend(latLng);
-                    });
-            });
+    centrarMap(): void {
+        if (!this.mapCustom || this.arr_polygon.length === 0) return;
 
-            // Ajustar el mapa para que abarque todos los polígonos
-            this.mapCustom.fitBounds(bounds);
+        const bounds = new google.maps.LatLngBounds();
 
-            // Obtener el centro y el nivel de zoom adecuado para incluir todos los polígonos
-            const center = bounds.getCenter();
-            const zoom = this.calculateZoomLevel(bounds);
-            //console.log(center, zoom);
-            // Ajustar el mapa para que abarque todos los polígonos
-            this.mapCustom.setCenter({ lat: 0.935233, lng: -79.681929 });
-            this.mapCustom.setZoom(zoom);
-        }
+        // Calculate bounds that include all polygons
+        this.arr_polygon.forEach((polygon: google.maps.Polygon) => {
+            polygon
+                .getPath()
+                .getArray()
+                .forEach((latLng) => {
+                    bounds.extend(latLng);
+                });
+        });
+
+        // Set center to Esmeraldas and appropriate zoom level
+        this.mapCustom.setCenter({ lat: 0.935233, lng: -79.681929 });
+        this.mapCustom.setZoom(this.calculateZoomLevel(bounds));
     }
-    // Método auxiliar para calcular el nivel de zoom adecuado
+
     calculateZoomLevel(bounds: google.maps.LatLngBounds): number {
-        const GLOBE_WIDTH = 256; // ancho de un tile en el nivel de zoom 0
+        const GLOBE_WIDTH = 256; // Width of a tile at zoom level 0
         const angle = bounds.toSpan().lng();
         const mapDiv = this.mapCustom.getDiv();
         const width = mapDiv.offsetWidth;
-        const zoom = Math.floor(
+
+        return Math.floor(
             Math.log((width * 360) / angle / GLOBE_WIDTH) / Math.LN2
         );
-        return zoom;
     }
 
-    borrarpoligonos() {
+    borrarpoligonos(): void {
         this.arr_polygon.forEach((polygon: google.maps.Polygon) => {
             polygon.setMap(null);
         });
         this.arr_polygon = [];
     }
 
-    //IMPLEMENTOS
-
-    reloadmap() {
+    reloadmap(): void {
         this.capaActiva = true;
         this.arr_polygon = [];
+
         this.lista_feature.forEach((feature: any) => {
             this.poligonoview(false, feature);
         });
+
         this.centrarMap();
     }
 
-    poligonoview(ver: boolean, featurecall: any, search?: boolean) {
+    poligonoview(ver: boolean, featurecall: any, search?: boolean): void {
         if (search) {
             this.latitud = undefined;
             this.longitud = undefined;
@@ -837,24 +776,23 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
 
         if (typeof featurecall !== 'string') {
             const feature = featurecall;
-            if (ver) {
-                // this.latitud = null;
-                //this.longitud = null;
 
+            if (ver) {
                 if (this.capaActiva) {
                     this.arr_polygon.forEach((polygon: google.maps.Polygon) => {
                         polygon.setMap(null);
                     });
                     this.capaActiva = false;
                 }
-                //this.myControl.setValue(feature.properties.nombre);
                 this.opcionb = feature;
             }
+
             const geometry = feature.geometry;
             const properties = feature.properties;
 
             if (geometry && properties) {
                 const coordinates = geometry.coordinates;
+
                 if (coordinates) {
                     let paths: google.maps.LatLng[][] = [];
 
@@ -869,15 +807,16 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
                         });
                         paths.push(path);
                     });
+
                     const polygonId = feature.id;
                     const polygon = new google.maps.Polygon({
                         paths: paths,
                         strokeColor: !ver
                             ? this.strokeColor
-                            : this.strokeColor2, // "#FF0000",
+                            : this.strokeColor2,
                         strokeOpacity: 0.8,
                         strokeWeight: 2,
-                        fillColor: !ver ? this.fillColor : this.fillColor2, //"#FF0000",
+                        fillColor: !ver ? this.fillColor : this.fillColor2,
                         fillOpacity: 0.35,
                         map: this.mapCustom,
                         id: polygonId,
@@ -889,18 +828,18 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
                         }
                         this.temp_poligon = polygon;
                         this.temp_poligon.setMap(this.mapCustom);
-                    } else {
-                        if (
-                            !this.arr_polygon.some(
-                                (item) => item.id == polygonId
-                            )
-                        ) {
-                            this.arr_polygon.push(polygon);
-                        }
+                    } else if (
+                        !this.arr_polygon.some(
+                            (item) => item.get('id') === polygonId
+                        )
+                    ) {
+                        this.arr_polygon.push(polygon);
                     }
-                    // Agregar evento de clic al polígono para mostrar el popup
+
+                    // Add click event to polygon
                     this.levantarpopup(polygon, feature);
-                    // Trasladar el mapa a la posición del polígono si ver es true
+
+                    // Zoom to polygon if requested
                     if (ver) {
                         const bounds = new google.maps.LatLngBounds();
                         paths.forEach((path) => {
@@ -908,71 +847,76 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
                                 bounds.extend(latlng);
                             });
                         });
-                        // this.mapCustom.panToBounds(bounds);
-                        this.mapCustom.fitBounds(bounds); //zoom automatico
+                        this.mapCustom.fitBounds(bounds);
                     }
                 }
             }
         }
     }
-    poligonoposition(nomostrar?: boolean) {
-        let buscarbol = false;
-        const puntoUsuario = turf.point([this.longitud, this.latitud]);
-        for (const feature of this.lista_feature) {
-            if (
-                feature.geometry &&
-                feature.geometry.coordinates &&
-                feature.geometry.coordinates[0] &&
-                feature.geometry.coordinates[0][0].length > 4
-            ) {
-                const poligono = turf.polygon(feature.geometry.coordinates[0]);
+    mostrarficha = false;
+    mostrarincidente = false;
+    poligonoposition(nomostrar?: boolean): void {
+        let foundPolygon = false;
 
-                if (turf.booleanContains(poligono, puntoUsuario)) {
-                    this.opcionb = feature;
-                    /*if (this.check.DashboardComponent&&this.isMobil()) {
-            this.sidebarVisible = true;
-          }*/
-                    this.poligonoview(true, feature);
-                    buscarbol = true;
-                    break;
+        if (!this.latitud || !this.longitud) return;
+
+        // Create a Turf.js point from user's clicked location
+        const puntoUsuario = turf.point([this.longitud, this.latitud]);
+
+        // Check if point is inside any polygon
+        for (const feature of this.lista_feature) {
+            if (feature.geometry?.coordinates?.[0]?.[0]?.length > 4) {
+                try {
+                    const poligono = turf.polygon(
+                        feature.geometry.coordinates[0]
+                    );
+
+                    if (turf.booleanContains(poligono, puntoUsuario)) {
+                        this.opcionb = feature;
+                        this.poligonoview(true, feature);
+                        foundPolygon = true;
+                        break;
+                    }
+                } catch (error) {
+                    console.error('Error processing polygon:', error);
                 }
             }
         }
-        if (!buscarbol) {
+
+        if (!foundPolygon) {
             this.messageService.add({
                 severity: 'info',
                 summary: 'Info',
                 detail: 'Tu ubicación no se encuentra dentro de uno de los barrios',
             });
         }
-        if (!nomostrar) {
-            if (
-                (!this.mostrarficha &&
-                    this.check.CreateIncidentesDenunciaComponent) ||
-                !this.token
-            ) {
-                this.addMarker(
-                    { lat: this.latitud, lng: this.longitud },
-                    buscarbol ? 'Poligono' : 'Ubicación',
-                    buscarbol ? this.opcionb.properties.nombre : undefined
-                );
-            }
+
+        // Add marker if not hidden
+        if (
+            !nomostrar &&
+            ((!this.mostrarficha &&
+                this.check.CreateIncidentesDenunciaComponent) ||
+                !this.token)
+        ) {
+            this.addMarker(
+                { lat: this.latitud, lng: this.longitud },
+                foundPolygon ? 'Poligono' : 'Ubicación',
+                foundPolygon ? this.opcionb.properties.nombre : undefined
+            );
         }
     }
-    feature_img: any;
-    url_imag: string = '';
-    infoWindowActual: google.maps.InfoWindow;
-    public features: { [id: string]: any } = {};
-    id_feature: any;
-    levantarpopup(polygon: any, feature: any) {
+
+    levantarpopup(polygon: any, feature: any): void {
         if (this.infoWindowActual && !this.capaActiva) {
             this.infoWindowActual.close();
             this.infoWindowActual = null;
             this.url_imag = null;
         }
+
         this.features[polygon.id] = null;
+
         polygon.addListener('click', (event: any) => {
-            if (this.features[polygon.id] == feature && !this.capaActiva) {
+            if (this.features[polygon.id] === feature && !this.capaActiva) {
                 this.latitud = event.latLng.lat();
                 this.longitud = event.latLng.lng();
                 this.addMarker(
@@ -982,46 +926,57 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
                     feature
                 );
             } else {
-                this.openInfoWindow.open(null);
+                // Close any open info window
+                if (this.openInfoWindow) {
+                    this.openInfoWindow.close();
+                }
+
+                // Close existing info window
                 if (this.infoWindowActual) {
                     this.infoWindowActual.close();
                     this.features[polygon.id] = null;
                     this.infoWindowActual = null;
                 }
 
-                if (!this.infoWindowActual) {
-                    this.features[polygon.id] = feature;
-                    this.id_feature = polygon.id;
-                    this.url_imag = `${this.url}obtener_imagen/direccion_geo/${
-                        this.features[this.id_feature].id
-                    }`;
+                // Create new info window
+                this.features[polygon.id] = feature;
+                this.id_feature = polygon.id;
+                this.url_imag = `${this.url}obtener_imagen/direccion_geo/${
+                    this.features[this.id_feature].id
+                }`;
 
-                    const content = this.createInfoWindowContent(feature);
+                const content = this.createInfoWindowContent(feature);
+                this.infoWindowActual = new google.maps.InfoWindow({
+                    content: content,
+                    ariaLabel: 'info',
+                });
 
-                    this.infoWindowActual = new google.maps.InfoWindow({
-                        content: content,
-                        ariaLabel: 'info',
-                    });
+                // Add close listener
+                google.maps.event.addListener(
+                    this.infoWindowActual,
+                    'closeclick',
+                    () => {
+                        this.infoWindowActual = null;
+                    }
+                );
 
-                    google.maps.event.addListener(
-                        this.infoWindowActual,
-                        'closeclick',
-                        () => {
-                            this.infoWindowActual = null;
-                        }
-                    );
-
-                    this.infoWindowActual.setPosition(event.latLng);
-                    this.infoWindowActual.open(this.mapCustom);
-                } else {
-                    this.infoWindowActual.setPosition(event.latLng);
-                    this.infoWindowActual.open(this.mapCustom);
-                }
+                // Open the info window
+                this.infoWindowActual.setPosition(event.latLng);
+                this.infoWindowActual.open(this.mapCustom);
             }
         });
     }
-    @ViewChild('infoWindowTemplate', { static: true })
-    infoWindowTemplate: TemplateRef<any>;
+    seleccionarTodasRutas(): void {
+        this.rutas.forEach((item) => {
+            this.pathselect.push(item);
+        });
+        this.renderRoutes();
+    }
+    ocultarTodasRutas(): void {
+        this.pathselect = [];
+        this.renderRoutes();
+    }
+
     createInfoWindowContent(feature: any): HTMLElement {
         const view = this.infoWindowTemplate.createEmbeddedView({ feature });
         const div = document.createElement('div');
@@ -1030,37 +985,320 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
         return div;
     }
 
-    responsiveimage(): string {
-        let aux = window.innerWidth - 120;
-        return (aux + 'px').toString();
+    // Route management
+    readonly buttonrutas = {
+        icon: 'pi bi-path',
+        label: 'Ver Rutas',
+        styleClass: 'itemcustom',
+        command: () => {
+            this.toggleRouteVisibility();
+        },
+    };
+
+    private async toggleRouteVisibility(): Promise<void> {
+        if (this.rutas.length === 0) {
+            await this.loadRoutesData();
+        } else {
+            this.visiblepath = true;
+        }
     }
-    isMobil() {
+
+    private async loadRoutesData(): Promise<void> {
+        try {
+            const routeData = await this.getWFSgeojson(this.urlgeoserruta2);
+
+            if (routeData?.features) {
+                this.rutas = routeData.features;
+                // Don't automatically show routes - wait for dialog selection
+                this.visiblepath = true;
+            } else {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'No se pudieron cargar las rutas',
+                });
+            }
+        } catch (error) {
+            console.error('Error loading routes:', error);
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Error al cargar las rutas',
+            });
+        }
+    }
+
+    pathpush(item: any): void {
+        if (!item) return;
+
+        const index = this.pathselect.findIndex(
+            (route) => route.properties.nombre === item.properties.nombre
+        );
+
+        if (index === -1) {
+            this.pathselect.push(item);
+        } else {
+            this.pathselect.splice(index, 1);
+        }
+
+        this.renderRoutes();
+    }
+
+    renderRoutes(): void {
+        // Clear existing route lines
+        this.clearRouteLines();
+
+        // Define colors for routes
+        const colors = [
+            '#2196f3',
+            '#f57c00',
+            '#3f51b5',
+            '#009688',
+            '#f57c00',
+            '#9c27b0',
+            '#ff4032',
+            '#4caf50',
+        ];
+
+        // Create route lines for each selected route
+        this.pathselect.forEach((route, index) => {
+            this.createRouteLine(route, colors[index % colors.length]);
+        });
+    }
+
+    private clearRouteLines(): void {
+        if (this.pathson.length > 0) {
+            this.pathson.forEach((polyline) => {
+                polyline.setMap(null);
+            });
+            this.pathson = [];
+        }
+    }
+
+    private createRouteLine(route: any, color: string): void {
+        // Extract path coordinates
+        const path: google.maps.LatLngLiteral[] = [];
+
+        if (route.geometry.coordinates) {
+            route.geometry.coordinates.forEach((paths: any) => {
+                for (const coord of paths) {
+                    path.push({ lat: coord[1], lng: coord[0] });
+                }
+            });
+        }
+
+        // Create polyline
+        const polyline = new google.maps.Polyline({
+            path: path,
+            geodesic: true,
+            strokeColor: color,
+            strokeOpacity: 1.0,
+            strokeWeight: 5,
+        });
+
+        // Add click listener to show route name
+        polyline.addListener('click', (event: any) => {
+            const infoWindow = new google.maps.InfoWindow({
+                content: route.properties.nombre,
+            });
+
+            infoWindow.setPosition(event.latLng);
+            infoWindow.open(this.mapCustom);
+        });
+
+        // Add to map and store reference
+        polyline.setMap(this.mapCustom);
+        this.pathson.push(polyline);
+    }
+
+    // Truck/collector management
+    async cargarRecolectores(): Promise<void> {
+        try {
+            // Don't attempt if service is already marked as unavailable
+            if (!this.isServiceAvailable) return;
+
+            const response = await this.admin.obtenerGPS().toPromise();
+
+            if (!response || !this.mapCustom) return;
+
+            // Reset error count on successful API call
+            this.errorCount = 0;
+
+            const promises = response.map(async (feature: any) => {
+                // Find or fetch device info
+                let device = this.inforecolector.find(
+                    (element) => element.deviceId === feature.deviceId
+                );
+
+                if (!device) {
+                    try {
+                        const deviceInfo = await this.admin
+                            .obtenerNameGPS(feature.deviceId)
+                            .toPromise();
+                        if (deviceInfo && deviceInfo[0]) {
+                            device = {
+                                deviceId: feature.deviceId,
+                                ...deviceInfo[0],
+                            };
+                            this.inforecolector.push(device);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching device info:', error);
+                        return;
+                    }
+                }
+
+                if (!device) return;
+
+                // Create or update marker
+                const position = new google.maps.LatLng(
+                    feature.latitude,
+                    feature.longitude
+                );
+
+                if (this.markersrecolectores.has(feature.deviceId)) {
+                    // Update existing marker
+                    const marker = this.markersrecolectores.get(
+                        feature.deviceId
+                    );
+                    marker.setPosition(position);
+                    marker.setIcon({
+                        url: feature.attributes.motion
+                            ? './assets/menu/camionON.png'
+                            : './assets/menu/camionOFF.png',
+                        scaledSize: new google.maps.Size(40, 40),
+                        anchor: new google.maps.Point(13, 41),
+                    });
+                } else {
+                    // Create new marker
+                    const marker = new google.maps.Marker({
+                        position: position,
+                        map: this.mapCustom,
+                        icon: {
+                            url: feature.attributes.motion
+                                ? './assets/menu/camionON.png'
+                                : './assets/menu/camionOFF.png',
+                            scaledSize: new google.maps.Size(40, 40),
+                            anchor: new google.maps.Point(13, 41),
+                        },
+                    });
+
+                    // Add info window
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: `<div style="font-family: Arial, sans-serif; font-size: 14px; width:200px">
+                                <b style="text-align: center">${device.name}</b>
+                              </div>`,
+                    });
+
+                    marker.addListener('click', () => {
+                        this.mapCustom.setCenter(position);
+                        infoWindow.open(this.mapCustom, marker);
+                    });
+
+                    this.markersrecolectores.set(feature.deviceId, marker);
+                }
+            });
+
+            await Promise.all(promises);
+        } catch (error) {
+            console.error('Error loading truck data:', error);
+
+            // Increment error count
+            this.errorCount++;
+
+            // Check if we've exceeded the retry limit
+            if (this.errorCount >= this.maxRetries) {
+                this.isServiceAvailable = false;
+                this.ngZone.run(() => {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'Servicio no disponible',
+                        detail: 'No se pudo conectar con el servicio de rastreo después de varios intentos',
+                        life: 5000,
+                    });
+                });
+
+                // Optionally clear the interval if we've exceeded retries
+                if (this.intervalId) {
+                    clearInterval(this.intervalId);
+                    this.intervalId = null;
+                }
+            }
+        }
+    }
+
+    // Method to reset and retry the service in case it was previously unavailable
+    resetGPSService(): void {
+        // Only attempt to reset if service was previously marked unavailable
+        if (!this.isServiceAvailable) {
+            this.isServiceAvailable = true;
+            this.errorCount = 0;
+
+            // Attempt to load data
+            this.cargarRecolectores();
+
+            // Restart interval if it was cleared
+            if (!this.intervalId) {
+                this.intervalId = setInterval(() => {
+                    if (this.isServiceAvailable) {
+                        this.cargarRecolectores();
+                    }
+                }, 10000);
+            }
+
+            this.messageService.add({
+                severity: 'info',
+                summary: 'Reconectando',
+                detail: 'Intentando reconectar con el servicio de rastreo',
+                life: 3000,
+            });
+        }
+    }
+
+    clearMarkers(): void {
+        this.markersrecolectores.forEach((marker) => {
+            marker.setMap(null);
+        });
+        this.markersrecolectores.clear();
+    }
+
+    // Utility methods
+    responsiveimage(): string {
+        const width = window.innerWidth - 120;
+        return `${width}px`;
+    }
+
+    isMobil(): boolean {
         return this.helperService.isMobil();
     }
 
-    async getLocation() {
-        if (this.isMobil()) {
+    async getLocation(): Promise<void> {
+        try {
+            if (this.isMobil()) {
+                await this.getMobileLocation();
+            } else {
+                await this.getBrowserLocation();
+            }
+        } catch (error) {
+            console.error('Error getting location:', error);
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'No se pudo obtener tu ubicación',
+            });
+        }
+    }
+
+    private async getMobileLocation(): Promise<void> {
+        try {
             const permission = await Geolocation['requestPermissions']();
-            //console.log(permission);
-            if (permission !== 'granted') {
-                try {
-                    const coordinates = await Geolocation['getCurrentPosition']();
-                    this.latitud = coordinates.coords.latitude;
-                    this.longitud = coordinates.coords.longitude;
-                    this.addMarker(
-                        { lat: this.latitud, lng: this.longitud },
-                        'Ubicación',
-                        'Tu ubicación Actual'
-                    );
-                    this.poligonoposition();
-                } catch (error) {
-                    console.error('Error getting location: ' + error.message);
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: '404',
-                        detail: error.message || 'Sin conexión',
-                    });
-                }
+
+            if (permission.location !== 'denied') {
+                const coordinates = await Geolocation['getCurrentPosition']();
+                this.updateUserLocation(
+                    coordinates.coords.latitude,
+                    coordinates.coords.longitude
+                );
             } else {
                 this.messageService.add({
                     severity: 'error',
@@ -1068,56 +1306,61 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
                     detail: 'No se pudo obtener el permiso de ubicación.',
                 });
             }
-        } else {
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    private getBrowserLocation(): Promise<void> {
+        return new Promise((resolve, reject) => {
             this.messageService.add({
                 severity: 'info',
                 summary: 'Info',
                 detail: 'Tu ubicación puede ser no exacta',
             });
+
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
-                        this.latitud = position.coords.latitude;
-                        this.longitud = position.coords.longitude;
-                        this.addMarker(
-                            { lat: this.latitud, lng: this.longitud },
-                            'Ubicación',
-                            'Tu ubicación Actual'
+                        this.updateUserLocation(
+                            position.coords.latitude,
+                            position.coords.longitude
                         );
-                        this.poligonoposition();
+                        resolve();
                     },
                     (error) => {
-                        console.error('Error getting location: ' + error.message);
-                        this.messageService.add({
-                            severity: 'error',
-                            summary: '404',
-                            detail: error.message || 'Sin conexión',
-                        });
+                        reject(error);
                     }
                 );
             } else {
-                console.error('Geolocation is not supported by this browser.');
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'ERROR',
-                    detail: 'Geolocation is not supported by this browser.',
-                });
+                reject(
+                    new Error('Geolocation is not supported by this browser.')
+                );
             }
-        }
+        });
     }
 
-    recargarmapa() {
+    private updateUserLocation(lat: number, lng: number): void {
+        this.latitud = lat;
+        this.longitud = lng;
+
+        this.addMarker({ lat, lng }, 'Ubicación', 'Tu ubicación actual');
+
+        this.poligonoposition();
+    }
+
+    recargarmapa(): void {
         setTimeout(() => {
             this.initmap();
             this.addtemplateBG();
             this.addtemplateFR();
-            //console.log(this.opcionb, this.latitud, this.longitud);
+
             if (this.latitud && this.longitud) {
                 setTimeout(() => {
                     this.addMarker(
                         { lat: this.latitud, lng: this.longitud },
                         'Ubicación',
-                        'Tu ubicación elejida'
+                        'Tu ubicación elegida'
                     );
                     this.poligonoposition();
                 }, 1000);
@@ -1126,12 +1369,36 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
             }
         }, 500);
     }
+
     ngOnDestroy(): void {
-        // Limpia el mapa cuando el componente se destruye
+        // Clear map listeners
         if (this.mapCustom) {
             google.maps.event.clearInstanceListeners(this.mapCustom);
             this.mapCustom = null;
-            // console.log("Mapa liberado");
+        }
+
+        // Clear markers
+        this.clearMarkers();
+        this.deleteMarkers('');
+
+        // Clear polygons
+        this.borrarpoligonos();
+
+        // Clear route lines
+        this.clearRouteLines();
+
+        // Clear interval
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+        }
+
+        // Complete observables
+        this.destroy$.next();
+        this.destroy$.complete();
+
+        // Unsubscribe from layout changes
+        if (this.subscription) {
+            this.subscription.unsubscribe();
         }
     }
 }

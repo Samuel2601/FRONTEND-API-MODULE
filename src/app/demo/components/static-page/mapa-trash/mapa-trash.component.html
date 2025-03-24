@@ -1,6 +1,10 @@
 <div class="grid p-fluid">
     <div class="col-12">
-        <div class="flex">
+        <!-- Search and controls header -->
+        <div
+            class="flex justify-content-between align-items-center search-container"
+        >
+            <!-- Search box -->
             <span class="p-float-label mb-3 mt-3" *ngIf="!load_fullscreen">
                 <p-autoComplete
                     appendTo="body"
@@ -8,33 +12,33 @@
                     [suggestions]="predictions"
                     (completeMethod)="search($event)"
                     field="description"
-                    placeholder=""
                     [forceSelection]="true"
                     (onSelect)="imprimir(query)"
                     [inputStyle]="{
                         width: isMobil() ? responsiveimage() : '300px',
-                        height: isMobil() ? '46px':'40px'
+                        height: isMobil() ? '46px' : '40px'
                     }"
+                    placeholder=" "
                 ></p-autoComplete>
                 <label for="float-label"
                     >Ingresa una dirección o referencia</label
                 >
             </span>
+
+            <!-- Route button -->
             <p-button
                 [icon]="buttonrutas.icon"
                 [label]="buttonrutas.label"
-                (click)="buttonrutas.command()"
+                (onClick)="buttonrutas.command()"
                 class="mb-3 mt-3"
-                [style.width]="'auto !important'"
+                styleClass="p-button-outlined"
             ></p-button>
         </div>
 
-        <div
-            class="card"
-            id="map2"
-            style="min-height: 70vh; margin: 0 -18px 0 -18px"
-        ></div>
+        <!-- Map container -->
+        <div class="card" id="map2"></div>
 
+        <!-- Hidden fullscreen controls -->
         <div style="display: none">
             <div class="controls fullscreen-control">
                 <button title="Toggle Fullscreen" class="fullscreen-button">
@@ -42,47 +46,89 @@
                         src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2018%2018%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M0%200v6h2V2h4V0H0zm16%200h-4v2h4v4h2V0h-2zm0%2016h-4v2h6v-6h-2v4zM2%2012H0v6h6v-2H2v-4z%22/%3E%3C/svg%3E"
                         alt=""
                         class="normal-image"
-                        style="height: 18px; width: 18px"
                     />
                     <img
                         src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2018%2018%22%3E%3Cpath%20fill%3D%22%23111%22%20d%3D%22M0%200v6h2V2h4V0H0zm16%200h-4v2h4v4h2V0h-2zm0%2016h-4v2h6v-6h-2v4zM2%2012H0v6h6v-2H2v-4z%22/%3E%3C/svg%3E"
                         alt=""
                         class="hover-image"
-                        style="height: 18px; width: 18px"
                     />
                 </button>
             </div>
         </div>
+
+        <!-- Map controls (location button will be injected here by JS) -->
+        <div class="map-controls" #mapControls>
+            <!-- Location button is added programmatically -->
+        </div>
     </div>
 </div>
 
+<!-- Routes dialog -->
 <p-dialog
-    appendTo="body"
-    header="Selecciona una ruta para mostrar"
+    header="Selecciona rutas para mostrar"
     [(visible)]="visiblepath"
-    [style]="{ width: isMobil() ? '100%' : '50vw' }"
+    [style]="{ width: isMobil() ? '95vw' : '50vw', maxWidth: '800px' }"
     [modal]="true"
+    [dismissableMask]="true"
+    [closeOnEscape]="true"
+    styleClass="route-dialog"
+    appendTo="body"
 >
-    <div class="card flex flex-wrap gap-3 justify-content-center">
-        <ng-container *ngFor="let item of rutas">
+    <div class="route-selection-content p-3">
+        <div class="grid">
+            <div
+                *ngFor="let item of rutas"
+                class="col-12 md:col-6 lg:col-4 mb-2"
+            >
+                <div
+                    class="route-card"
+                    [ngClass]="{ active: pathselect.includes(item) }"
+                >
+                    <p-button
+                        styleClass="p-button-rounded p-button-text route-toggle-btn"
+                        [icon]="
+                            pathselect.includes(item)
+                                ? 'pi pi-eye'
+                                : 'pi pi-eye-slash'
+                        "
+                        (onClick)="pathpush(item)"
+                    ></p-button>
+                    <span class="route-name" (click)="pathpush(item)">{{
+                        item.properties?.nombre || "Ruta sin nombre"
+                    }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-dialog-footer">
+        <div class="flex justify-content-between align-items-center w-full">
+            <p-button
+                label="Mostrar todas"
+                icon="pi pi-eye"
+                (onClick)="seleccionarTodasRutas()"
+                styleClass="p-button-outlined"
+                [disabled]="
+                    rutas.length === 0 || rutas.length === pathselect.length
+                "
+            ></p-button>
+
             <div>
                 <p-button
-                    [raised]="true"
-                    [text]="true"
-                    severity="success"
-                    (click)="pathpush(item)"
-                >
-                    <img
-                        [src]="
-                            pathselect.includes(item)
-                                ? 'assets/icon/eye-slashOFF.svg'
-                                : 'assets/icon/eye-slash.svg'
-                        "
-                        style="width: 18px"
-                    />
-                    {{ item.properties.nombre }}
-                </p-button>
+                    label="Ocultar todas"
+                    icon="pi pi-eye-slash"
+                    *ngIf="pathselect.length > 0"
+                    (onClick)="ocultarTodasRutas()"
+                    styleClass="p-button-outlined p-button-danger mr-2"
+                ></p-button>
+
+                <p-button
+                    label="Cerrar"
+                    icon="pi pi-times"
+                    (onClick)="visiblepath = false"
+                    styleClass="p-button-text"
+                ></p-button>
             </div>
-        </ng-container>
+        </div>
     </div>
 </p-dialog>
