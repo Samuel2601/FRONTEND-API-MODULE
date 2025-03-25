@@ -16,14 +16,18 @@ import { Subscription, debounceTime, takeUntil, Subject } from 'rxjs';
 import { Plugins } from '@capacitor/core';
 const { Geolocation } = Plugins;
 import { App } from '@capacitor/app';
-import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
+import {
+    ConfirmationService,
+    MenuItem,
+    MessageService,
+    SelectItem,
+} from 'primeng/api';
 
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { AdminService } from 'src/app/demo/services/admin.service';
-import { AuthService } from 'src/app/demo/services/auth.service';
 import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 
 // Import Angular and PrimeNG modules
@@ -46,6 +50,8 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { BadgeModule } from 'primeng/badge';
 import { CalendarModule } from 'primeng/calendar';
+import { RutasService } from 'src/app/demo/services/rutas';
+import { ImportsModule } from 'src/app/demo/services/import';
 
 interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
     id?: string;
@@ -77,6 +83,7 @@ interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
         ToastModule,
         BadgeModule,
         CalendarModule,
+        ImportsModule,
     ],
     templateUrl: './mapa-trash.component.html',
     styleUrl: './mapa-trash.component.scss',
@@ -103,7 +110,6 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
     latitud!: number;
     longitud!: number;
     lista_feature: any[] = [];
-    token = this.auth.token() || undefined;
 
     // UI state variables
     showOptions = false;
@@ -179,9 +185,9 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
         private messageService: MessageService,
         private admin: AdminService,
         private appRef: ApplicationRef,
-        private auth: AuthService,
         private googlemaps: GoogleMapsService,
-        private ngZone: NgZone
+        private ngZone: NgZone,
+        private rutasService: RutasService
     ) {}
 
     ngOnInit(): void {
@@ -231,6 +237,39 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
     private errorCount = 0;
     private maxRetries = 3;
     private isServiceAvailable = true;
+    // Datos principales
+    content: any;
+    routes: any[] = [];
+    filteredRoutes: any[] = [];
+    ordinances: any[] = [];
+    generalInfo: any[] = [];
+
+    // Búsqueda
+    searchQuery: string = '';
+    searchResults: any[] = [];
+
+    // Filtros
+    selectedZone: string = '';
+    selectedDay: string = '';
+    selectedServiceType: string = '';
+
+    // Opciones para los selectButtons
+    zoneOptions: SelectItem[] = [];
+    dayOptions: SelectItem[] = [
+        { label: 'Todos', value: '' },
+        { label: 'Lun', value: 'Monday' },
+        { label: 'Mar', value: 'Tuesday' },
+        { label: 'Mié', value: 'Wednesday' },
+        { label: 'Jue', value: 'Thursday' },
+        { label: 'Vie', value: 'Friday' },
+        { label: 'Sáb', value: 'Saturday' },
+    ];
+    serviceTypeOptions: SelectItem[] = [
+        { label: 'Todos', value: '' },
+        { label: 'Diurno', value: 'Day' },
+        { label: 'Nocturno', value: 'Night' },
+    ];
+    viewMode: string = 'list';
 
     private async initMapAndData(): Promise<void> {
         try {
@@ -252,6 +291,15 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
             // Load truck/collector data initially
             await this.cargarRecolectores();
 
+            this.content = await this.rutasService.content().toPromise();
+            console.log(this.content);
+            if (this.content) {
+                this.routes = this.content.routes || [];
+                this.ordinances = this.content.ordinances || [];
+                this.generalInfo = this.content.generalInfo || [];
+                this.filteredRoutes = [...this.routes];
+                this.setupFilters();
+            }
             // Set up interval for refreshing truck positions with error handling
             this.intervalId = setInterval(() => {
                 // Only continue making API calls if we haven't exceeded retry limit
@@ -261,7 +309,7 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
             }, 10000); // 10 seconds interval to reduce server load
 
             // Load routes
-            this.loadRoutes();
+            await this.loadRoutes();
         } catch (error) {
             console.error('Error initializing map and data:', error);
             this.messageService.add({
@@ -276,6 +324,140 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
         }
     }
 
+    setupFilters() {
+        // Configurar opciones de zona basadas en los datos
+        const uniqueZones = [
+            ...new Set(this.routes.map((route) => route.zone)),
+        ];
+        this.zoneOptions = [
+            { label: 'Todas', value: '' },
+            ...uniqueZones.map((zone) => ({
+                label: this.getZoneLabel(zone),
+                value: zone,
+            })),
+        ];
+    }
+
+    // Método para buscar sectores
+    searchSectors(event: any) {
+        const query = event.query.toLowerCase();
+
+        // Recopilar todos los sectores de todas las rutas
+        let sectors: any[] = [];
+        this.routes.forEach((route) => {
+            route.schedules.forEach((schedule: any) => {
+                if (
+                    schedule.sector &&
+                    schedule.sector.toLowerCase().includes(query)
+                ) {
+                    sectors.push({
+                        name: schedule.sector,
+                        routeId: route._id,
+                        routeName: route.name,
+                    });
+                }
+            });
+        });
+
+        // Eliminar duplicados basados en el nombre del sector
+        this.searchResults = sectors.filter(
+            (sector, index, self) =>
+                index === self.findIndex((s) => s.name === sector.name)
+        );
+    }
+
+    // Filtrar por resultado de búsqueda
+    filterBySearchResult(result: any) {
+        if (result && result.routeId) {
+            // Filtrar para mostrar solo la ruta seleccionada
+            this.filteredRoutes = this.routes.filter(
+                (route) => route._id === result.routeId
+            );
+        }
+    }
+
+    // Aplicar filtros de zona, día y tipo de servicio
+    filterRoutes() {
+        this.filteredRoutes = this.routes.filter((route) => {
+            // Filtro de zona
+            const zoneMatch =
+                !this.selectedZone || route.zone === this.selectedZone;
+
+            // Filtro de día
+            const dayMatch =
+                !this.selectedDay || route.days.includes(this.selectedDay);
+
+            // Filtro de tipo de servicio
+            const serviceTypeMatch =
+                !this.selectedServiceType ||
+                route.serviceType === this.selectedServiceType;
+
+            return zoneMatch && dayMatch && serviceTypeMatch;
+        });
+    }
+
+    // Limpiar todos los filtros
+    clearFilters() {
+        this.selectedZone = '';
+        this.selectedDay = '';
+        this.selectedServiceType = '';
+        this.searchQuery = '';
+        this.filteredRoutes = [...this.routes];
+    }
+
+    // Helpers para mostrar información
+    getZoneLabel(zone: string): string {
+        switch (zone) {
+            case 'Center':
+                return 'Centro';
+            case 'Night':
+                return 'Nocturno';
+            case 'South':
+                return 'Sur';
+            case 'RiverBank':
+                return 'Ribera';
+            default:
+                return zone;
+        }
+    }
+
+    getZoneSeverity(
+        zone: string
+    ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
+        switch (zone) {
+            case 'Center':
+                return 'info';
+            case 'Night':
+                return 'warning';
+            case 'South':
+                return 'success';
+            case 'RiverBank':
+                return 'info'; // Cambiado de 'primary' a 'info'
+            default:
+                return 'secondary';
+        }
+    }
+
+    getSpanishDay(day: string): string {
+        const days: { [key: string]: string } = {
+            Monday: 'Lunes',
+            Tuesday: 'Martes',
+            Wednesday: 'Miércoles',
+            Thursday: 'Jueves',
+            Friday: 'Viernes',
+            Saturday: 'Sábado',
+            Sunday: 'Domingo',
+        };
+        return days[day] || day;
+    }
+    selectedRoute: any;
+    detailsVisible: boolean = false;
+    // Mostrar detalles de una ruta
+    showRouteDetails(route: any) {
+        this.selectedRoute = route;
+        this.detailsVisible = true;
+    }
+
     private async loadRoutes(): Promise<void> {
         try {
             const routeData = await this.getWFSgeojson(this.urlgeoserruta2);
@@ -285,6 +467,7 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
                     this.rutas = routeData.features;
                     // Don't load routes automatically - wait for user to request them
                 }
+                this.seleccionarTodasRutas();
             }, 1000);
         } catch (error) {
             console.error('Error loading routes:', error);
@@ -354,54 +537,270 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
 
     // Inicializar mapa con controles de ubicación integrados
     private createMap(): void {
-        const defaultCenter = { lat: 0.977035, lng: -79.655415 };
+        try {
+            const defaultCenter = { lat: 0.977035, lng: -79.655415 };
 
-        this.mapCustom = new google.maps.Map(
-            document.getElementById('map2') as HTMLElement,
-            {
-                zoom: 15,
-                center: defaultCenter,
-                mapTypeId: 'terrain',
-                fullscreenControl: true,
-                mapTypeControlOptions: {
-                    style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
-                    position: google.maps.ControlPosition.LEFT_BOTTOM,
-                },
-                gestureHandling: 'greedy',
-                // Desactivar POIs para un mapa más limpio
-                styles: [
-                    {
-                        featureType: 'poi',
-                        elementType: 'labels',
-                        stylers: [{ visibility: 'off' }],
+            this.mapCustom = new google.maps.Map(
+                document.getElementById('map2') as HTMLElement,
+                {
+                    zoom: 15,
+                    center: defaultCenter,
+                    mapTypeId: 'terrain',
+                    fullscreenControl: true,
+                    mapTypeControlOptions: {
+                        style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+                        position: google.maps.ControlPosition.LEFT_BOTTOM,
                     },
-                ],
-            }
-        );
+                    gestureHandling: 'greedy',
+                    // Desactivar POIs para un mapa más limpio
+                    styles: [
+                        {
+                            featureType: 'poi',
+                            elementType: 'labels',
+                            stylers: [{ visibility: 'off' }],
+                        },
+                    ],
+                }
+            );
 
-        // Agregar control de ubicación nativo de Google Maps
-        this.addLocationControl();
+            // Agregar control de ubicación nativo de Google Maps
+            this.addLocationControl();
+            this.addRouteButton();
+            // Inicializar control de pantalla completa personalizado
+            //this.initFullscreenControl();
 
-        // Inicializar control de pantalla completa personalizado
-        //this.initFullscreenControl();
+            // Utilizar un controlador de clics con debounce para evitar múltiples clics rápidos
+            this.mapCustom.addListener('click', (event: any) => {
+                this.onClickHandlerMap(event);
+            });
 
-        // Utilizar un controlador de clics con debounce para evitar múltiples clics rápidos
-        this.mapCustom.addListener('click', (event: any) => {
-            this.onClickHandlerMap(event);
+            // Obtener la ubicación del usuario solo si el mapa se cargó correctamente
+            this.getUserLocation();
+        } catch (error) {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'No pudimos cargar el mapa',
+            });
+        }
+    }
+
+    // Añade este método a tu componente
+
+    private addRouteButton(): void {
+        // Crear un elemento div contenedor
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'map-button-container';
+        buttonContainer.style.margin = '10px';
+
+        // Crear un botón simple
+        const routeButton = document.createElement('button');
+        routeButton.className = 'p-button p-button-outlined';
+        routeButton.innerHTML = `<i class="${this.buttonrutas.icon}"></i> ${this.buttonrutas.label}`;
+
+        // Estilos básicos para que se parezca a un botón de PrimeNG
+        routeButton.style.backgroundColor = 'white';
+        routeButton.style.border = '1px solid #ced4da';
+        routeButton.style.borderRadius = '4px';
+        routeButton.style.padding = '0.5rem 1rem';
+        routeButton.style.cursor = 'pointer';
+        routeButton.style.display = 'flex';
+        routeButton.style.alignItems = 'center';
+        routeButton.style.justifyContent = 'center';
+        routeButton.style.gap = '0.5rem';
+        routeButton.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+
+        // Añadir el evento que ejecuta la función command
+        routeButton.addEventListener('click', () => {
+            this.buttonrutas.command();
         });
+
+        // Añadir el botón al contenedor
+        buttonContainer.appendChild(routeButton);
+
+        // Añadir el contenedor al mapa en la posición deseada
+        this.mapCustom.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(
+            buttonContainer
+        );
     }
 
     // Agregar control de ubicación nativo de Google Maps
     private addLocationControl(): void {
-        // Crear el control de ubicación
-        const locationControlDiv = document.createElement('div');
-        const locationControl = this.createLocationControl();
-        locationControlDiv.appendChild(locationControl);
+        const geoButton = document.createElement('button');
+        geoButton.className = 'custom-geo-button';
+        geoButton.innerHTML =
+            '<i class="bi bi-crosshair" style="font-size: 22px; line-height: 42px; color:#4caf50;"></i>';
+        geoButton.title = 'Mi ubicación';
 
-        // Posicionar el control en el mapa
+        // Establecer estilos para el botón
+        geoButton.style.backgroundColor = 'white';
+        geoButton.style.border = 'none';
+        geoButton.style.borderRadius = '50%'; // Botón completamente redondo
+        geoButton.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)'; // Sombra más suave y amplia
+        geoButton.style.cursor = 'pointer';
+        geoButton.style.margin = '10px';
+        geoButton.style.padding = '0';
+        geoButton.style.width = '42px';
+        geoButton.style.height = '42px';
+        geoButton.style.textAlign = 'center';
+        geoButton.style.lineHeight = '42px';
+        geoButton.style.transition = 'all 0.2s ease'; // Transición suave para efectos
+
+        // Efecto hover
+        geoButton.addEventListener('mouseover', () => {
+            geoButton.style.backgroundColor = '#f9f9f9';
+            geoButton.style.boxShadow = '0 3px 8px rgba(0,0,0,0.4)';
+            geoButton.style.transform = 'translateY(-1px)';
+        });
+
+        // Volver al estado normal al quitar el hover
+        geoButton.addEventListener('mouseout', () => {
+            geoButton.style.backgroundColor = 'white';
+            geoButton.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+            geoButton.style.transform = 'translateY(0)';
+        });
+
+        // Efecto al hacer clic
+        geoButton.addEventListener('mousedown', () => {
+            geoButton.style.boxShadow = '0 1px 3px rgba(0,0,0,0.3)';
+            geoButton.style.transform = 'translateY(1px)';
+        });
+
+        geoButton.addEventListener('mouseup', () => {
+            geoButton.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+            geoButton.style.transform = 'translateY(0)';
+        });
+
+        // Agregar evento click para la funcionalidad
+        geoButton.addEventListener('click', () => {
+            this.getUserLocation();
+        });
+
+        // Agregar el botón al mapa (posición esquina superior derecha)
         this.mapCustom.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(
-            locationControlDiv
+            geoButton
         );
+    }
+
+    geoLocationLoading: boolean = false;
+    geoLocationError: string = '';
+    userMarker: google.maps.Marker | null = null;
+    userAccuracyCircle: google.maps.Circle | null = null; // Agregar referencia al círculo
+
+    /**
+     * Obtiene la ubicación actual del usuario con protección contra múltiples llamadas
+     */
+    getUserLocation() {
+        // Evitar múltiples llamadas simultáneas
+        if (this.geoLocationLoading) {
+            console.log('Ya hay una solicitud de ubicación en progreso');
+            return;
+        }
+
+        this.geoLocationLoading = true;
+        this.geoLocationError = '';
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    };
+
+                    // Mostrar la ubicación en el mapa
+                    this.showUserLocation(pos);
+                    this.geoLocationLoading = false;
+                },
+                (error) => {
+                    this.geoLocationLoading = false;
+                    switch (error.code) {
+                        case error.PERMISSION_DENIED:
+                            this.geoLocationError =
+                                'Usuario rechazó la solicitud de geolocalización.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            this.geoLocationError =
+                                'Información de ubicación no disponible.';
+                            break;
+                        case error.TIMEOUT:
+                            this.geoLocationError =
+                                'Tiempo de espera agotado para obtener la ubicación.';
+                            break;
+                        default:
+                            this.geoLocationError =
+                                'Error desconocido al obtener ubicación.';
+                            break;
+                    }
+                    console.error(
+                        'Error de geolocalización:',
+                        this.geoLocationError
+                    );
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0,
+                }
+            );
+        } else {
+            this.geoLocationLoading = false;
+            this.geoLocationError =
+                'Geolocalización no soportada en este navegador.';
+            console.error(this.geoLocationError);
+        }
+    }
+
+    /**
+     * Muestra la ubicación del usuario en el mapa
+     */
+    showUserLocation(position: { lat: number; lng: number }) {
+        // Remover marcador anterior si existe
+        if (this.userMarker) {
+            this.userMarker.setMap(null);
+        }
+
+        // Remover círculo anterior si existe
+        if (this.userAccuracyCircle) {
+            this.userAccuracyCircle.setMap(null);
+        }
+
+        // Crear marcador de usuario
+        this.userMarker = new google.maps.Marker({
+            position: position,
+            map: this.mapCustom,
+            title: 'Tu ubicación',
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                fillColor: '#4285F4',
+                fillOpacity: 1,
+                strokeColor: 'white',
+                strokeWeight: 2,
+                scale: 8,
+            },
+            zIndex: 1000, // Para que esté por encima de otros marcadores
+        });
+
+        // Crear círculo de precisión alrededor del marcador
+        this.userAccuracyCircle = new google.maps.Circle({
+            map: this.mapCustom,
+            center: position,
+            radius: 50, // Radio en metros
+            fillColor: '#4285F4',
+            fillOpacity: 0.2,
+            strokeColor: '#4285F4',
+            strokeOpacity: 0.5,
+            strokeWeight: 1,
+        });
+
+        // Centrar el mapa en la posición del usuario con una animación suave
+        this.mapCustom.panTo(position);
+
+        // Ajustar el zoom solo si está muy alejado o muy cercano
+        const currentZoom = this.mapCustom.getZoom();
+        if (currentZoom < 14 || currentZoom > 18) {
+            this.mapCustom.setZoom(16);
+        }
     }
 
     // Crear el elemento HTML para el control de ubicación
@@ -650,7 +1049,8 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
         // Create and open new info window
         const infoWindow = new google.maps.InfoWindow({
             ariaLabel: tipo,
-            content: message || 'Marcador',
+            headerContent: message || 'Marcador',
+            //content: message || 'Marcador',
         });
 
         infoWindow.setPosition(position);
@@ -892,18 +1292,11 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
         }
 
         // Add marker if not hidden
-        if (
-            !nomostrar &&
-            ((!this.mostrarficha &&
-                this.check.CreateIncidentesDenunciaComponent) ||
-                !this.token)
-        ) {
-            this.addMarker(
-                { lat: this.latitud, lng: this.longitud },
-                foundPolygon ? 'Poligono' : 'Ubicación',
-                foundPolygon ? this.opcionb.properties.nombre : undefined
-            );
-        }
+        this.addMarker(
+            { lat: this.latitud, lng: this.longitud },
+            foundPolygon ? 'Poligono' : 'Ubicación',
+            foundPolygon ? this.opcionb.properties.nombre : undefined
+        );
     }
 
     levantarpopup(polygon: any, feature: any): void {
@@ -947,7 +1340,8 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
 
                 const content = this.createInfoWindowContent(feature);
                 this.infoWindowActual = new google.maps.InfoWindow({
-                    content: content,
+                    //content: content,
+                    headerContent: content || 'Marcador',
                     ariaLabel: 'info',
                 });
 
@@ -1099,7 +1493,8 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
         // Add click listener to show route name
         polyline.addListener('click', (event: any) => {
             const infoWindow = new google.maps.InfoWindow({
-                content: route.properties.nombre,
+                //content: route.properties.nombre,
+                headerContent: route.properties.nombre,
             });
 
             infoWindow.setPosition(event.latLng);
@@ -1185,6 +1580,7 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
 
                     // Add info window
                     const infoWindow = new google.maps.InfoWindow({
+                        headerContent: device.name,
                         content: `<div style="font-family: Arial, sans-serif; font-size: 14px; width:200px">
                                 <b style="text-align: center">${device.name}</b>
                               </div>`,
@@ -1275,9 +1671,9 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
     async getLocation(): Promise<void> {
         try {
             if (this.isMobil()) {
-                await this.getMobileLocation();
+                //await this.getMobileLocation();
             } else {
-                await this.getBrowserLocation();
+                //await this.getBrowserLocation();
             }
         } catch (error) {
             console.error('Error getting location:', error);
@@ -1352,7 +1748,7 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
     recargarmapa(): void {
         setTimeout(() => {
             this.initmap();
-            this.addtemplateBG();
+            //this.addtemplateBG();
             this.addtemplateFR();
 
             if (this.latitud && this.longitud) {

@@ -354,7 +354,7 @@ export class HomeComponent implements OnInit {
                                               dev: true,
                                               showInfo: false,
                                               command: async () => {
-                                                this.incidente();
+                                                  this.incidente();
                                               },
                                           },
                                           {
@@ -942,17 +942,13 @@ export class HomeComponent implements OnInit {
     }
     visible_trash_mirror: boolean = false;
     recolectores() {
-        if (this.auth.token()) {
-            if (this.isMobil()) {
-                this.router.navigate(['/mapa-recolectores']);
-            } else {
-                this.visible_fichas_mostrar = false;
-                setTimeout(() => {
-                    this.visible_trash_mirror = true;
-                }, 100);
-            }
+        if (this.isMobil()) {
+            this.router.navigate(['/mapa-recolectores']);
         } else {
-            this.auth.redirectToLoginIfNeeded(true);
+            this.visible_fichas_mostrar = false;
+            setTimeout(() => {
+                this.visible_trash_mirror = true;
+            }, 100);
         }
     }
 

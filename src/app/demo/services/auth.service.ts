@@ -595,7 +595,7 @@ export class AuthService {
         if (fotoUsuario) localStorage.setItem('fotoUsuario', fotoUsuario);
     }
 
-    public redirectToLoginIfNeeded(home: boolean = false) {
+    public redirectToLoginIfNeeded(home: boolean) {
         const currentUrl = this.router.url;
         console.log(
             'redirectToLoginIfNeeded',
@@ -604,6 +604,13 @@ export class AuthService {
                 !currentUrl.startsWith('/ver-ficha') &&
                 !home
         );
+        if (home) {
+            // console.log('Redirigiendo a login');
+            this.router.navigate(['/auth/login']);
+            if (this.helpers.llamadasActivas > 0) {
+                this.helpers.cerrarspinner('auth');
+            }
+        }
         // Verifica si la URL actual contiene '/auth/login' independientemente de los parámetros adicionales
         if (
             !['/home', '/'].includes(currentUrl) &&

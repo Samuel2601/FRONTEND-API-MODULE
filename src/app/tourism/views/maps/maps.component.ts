@@ -343,21 +343,52 @@ export class MapsComponent implements OnInit {
         const geoButton = document.createElement('button');
         geoButton.className = 'custom-geo-button';
         geoButton.innerHTML =
-            '<i class="pi pi-map-marker" style="font-size: 24px; line-height: 40px; color:#4caf50;"></i>';
+            '<i class="bi bi-crosshair" style="font-size: 24px; line-height: 40px; color:#4caf50;"></i>';
         geoButton.title = 'Mi ubicación';
 
         // Establecer estilos para el botón
         geoButton.style.backgroundColor = 'white';
         geoButton.style.border = 'none';
-        geoButton.style.borderRadius = '2px';
-        geoButton.style.boxShadow = '0 1px 4px rgba(0,0,0,0.5)';
+        geoButton.style.borderRadius = '50%'; // Botón completamente redondo
+        geoButton.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)'; // Sombra más suave y amplia
         geoButton.style.cursor = 'pointer';
         geoButton.style.margin = '10px';
         geoButton.style.padding = '0';
-        geoButton.style.width = '40px';
-        geoButton.style.height = '40px';
+        geoButton.style.width = '42px';
+        geoButton.style.height = '42px';
         geoButton.style.textAlign = 'center';
-        geoButton.style.lineHeight = '40px';
+        geoButton.style.lineHeight = '42px';
+        geoButton.style.transition = 'all 0.2s ease'; // Transición suave para efectos
+
+        // Efecto hover
+        geoButton.addEventListener('mouseover', () => {
+            geoButton.style.backgroundColor = '#f9f9f9';
+            geoButton.style.boxShadow = '0 3px 8px rgba(0,0,0,0.4)';
+            geoButton.style.transform = 'translateY(-1px)';
+        });
+
+        // Volver al estado normal al quitar el hover
+        geoButton.addEventListener('mouseout', () => {
+            geoButton.style.backgroundColor = 'white';
+            geoButton.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+            geoButton.style.transform = 'translateY(0)';
+        });
+
+        // Efecto al hacer clic
+        geoButton.addEventListener('mousedown', () => {
+            geoButton.style.boxShadow = '0 1px 3px rgba(0,0,0,0.3)';
+            geoButton.style.transform = 'translateY(1px)';
+        });
+
+        geoButton.addEventListener('mouseup', () => {
+            geoButton.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+            geoButton.style.transform = 'translateY(0)';
+        });
+
+        // Agregar evento click para la funcionalidad
+        geoButton.addEventListener('click', () => {
+            this.getUserLocation();
+        });
 
         // Agregar evento click
         geoButton.addEventListener('click', () => {
@@ -371,9 +402,15 @@ export class MapsComponent implements OnInit {
     }
 
     /**
-     * Obtiene la ubicación actual del usuario
+     * Obtiene la ubicación actual del usuario con protección contra múltiples llamadas
      */
     getUserLocation() {
+        // Evitar múltiples llamadas simultáneas
+        if (this.geoLocationLoading) {
+            console.log('Ya hay una solicitud de ubicación en progreso');
+            return;
+        }
+
         this.geoLocationLoading = true;
         this.geoLocationError = '';
 
@@ -427,6 +464,7 @@ export class MapsComponent implements OnInit {
             console.error(this.geoLocationError);
         }
     }
+    userAccuracyCircle: google.maps.Circle | null = null; // Agregar referencia al círculo
 
     /**
      * Muestra la ubicación del usuario en el mapa
@@ -435,6 +473,11 @@ export class MapsComponent implements OnInit {
         // Remover marcador anterior si existe
         if (this.userMarker) {
             this.userMarker.setMap(null);
+        }
+
+        // Remover círculo anterior si existe
+        if (this.userAccuracyCircle) {
+            this.userAccuracyCircle.setMap(null);
         }
 
         // Crear marcador de usuario
@@ -454,7 +497,7 @@ export class MapsComponent implements OnInit {
         });
 
         // Crear círculo de precisión alrededor del marcador
-        const circle = new google.maps.Circle({
+        this.userAccuracyCircle = new google.maps.Circle({
             map: this.mapCustom,
             center: position,
             radius: 50, // Radio en metros
@@ -465,9 +508,14 @@ export class MapsComponent implements OnInit {
             strokeWeight: 1,
         });
 
-        // Centrar el mapa en la posición del usuario
-        this.mapCustom.setCenter(position);
-        this.mapCustom.setZoom(16);
+        // Centrar el mapa en la posición del usuario con una animación suave
+        this.mapCustom.panTo(position);
+
+        // Ajustar el zoom solo si está muy alejado o muy cercano
+        const currentZoom = this.mapCustom.getZoom();
+        if (currentZoom < 14 || currentZoom > 18) {
+            this.mapCustom.setZoom(16);
+        }
     }
 
     displayFichaDialog: boolean = false;
