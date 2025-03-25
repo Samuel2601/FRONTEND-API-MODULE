@@ -39,6 +39,11 @@ export class MapsComponent implements OnInit {
     longitude: number;
     markers: google.maps.Marker[] = [];
     loginVisible: boolean = false;
+    // Nuevas propiedades para geolocalización
+    geoLocationLoading: boolean = false;
+    geoLocationError: string = '';
+    userMarker: google.maps.Marker | null = null;
+
     menuItems: any[] = [
         {
             label: 'Home',
@@ -302,6 +307,14 @@ export class MapsComponent implements OnInit {
                 fullscreenControl: false,
                 mapTypeControl: false,
                 gestureHandling: 'greedy',
+                disableDefaultUI: true, // Deshabilita TODOS los controles de UI por defecto
+                streetViewControl: true,
+                // Posicionar el control de Street View en la parte superior derecha
+                streetViewControlOptions: {
+                    position: this.isMobil()
+                        ? google.maps.ControlPosition.RIGHT_CENTER
+                        : google.maps.ControlPosition.TOP_RIGHT,
+                },
                 styles: [
                     {
                         featureType: 'poi',
@@ -318,6 +331,143 @@ export class MapsComponent implements OnInit {
                 this.onClickHandlerMap(event);
             }
         );
+
+        // Crear botón de geolocalización personalizado
+        this.createGeoLocationButton();
+    }
+
+    /**
+     * Crea un botón de geolocalización personalizado y lo añade al mapa
+     */
+    createGeoLocationButton() {
+        const geoButton = document.createElement('button');
+        geoButton.className = 'custom-geo-button';
+        geoButton.innerHTML =
+            '<i class="pi pi-map-marker" style="font-size: 24px; line-height: 40px; color:#4caf50;"></i>';
+        geoButton.title = 'Mi ubicación';
+
+        // Establecer estilos para el botón
+        geoButton.style.backgroundColor = 'white';
+        geoButton.style.border = 'none';
+        geoButton.style.borderRadius = '2px';
+        geoButton.style.boxShadow = '0 1px 4px rgba(0,0,0,0.5)';
+        geoButton.style.cursor = 'pointer';
+        geoButton.style.margin = '10px';
+        geoButton.style.padding = '0';
+        geoButton.style.width = '40px';
+        geoButton.style.height = '40px';
+        geoButton.style.textAlign = 'center';
+        geoButton.style.lineHeight = '40px';
+
+        // Agregar evento click
+        geoButton.addEventListener('click', () => {
+            this.getUserLocation();
+        });
+
+        // Agregar el botón al mapa (posición esquina superior derecha)
+        this.mapCustom.controls[google.maps.ControlPosition.RIGHT_CENTER].push(
+            geoButton
+        );
+    }
+
+    /**
+     * Obtiene la ubicación actual del usuario
+     */
+    getUserLocation() {
+        this.geoLocationLoading = true;
+        this.geoLocationError = '';
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    };
+
+                    // Mostrar la ubicación en el mapa
+                    this.showUserLocation(pos);
+                    this.geoLocationLoading = false;
+                },
+                (error) => {
+                    this.geoLocationLoading = false;
+                    switch (error.code) {
+                        case error.PERMISSION_DENIED:
+                            this.geoLocationError =
+                                'Usuario rechazó la solicitud de geolocalización.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            this.geoLocationError =
+                                'Información de ubicación no disponible.';
+                            break;
+                        case error.TIMEOUT:
+                            this.geoLocationError =
+                                'Tiempo de espera agotado para obtener la ubicación.';
+                            break;
+                        default:
+                            this.geoLocationError =
+                                'Error desconocido al obtener ubicación.';
+                            break;
+                    }
+                    console.error(
+                        'Error de geolocalización:',
+                        this.geoLocationError
+                    );
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0,
+                }
+            );
+        } else {
+            this.geoLocationLoading = false;
+            this.geoLocationError =
+                'Geolocalización no soportada en este navegador.';
+            console.error(this.geoLocationError);
+        }
+    }
+
+    /**
+     * Muestra la ubicación del usuario en el mapa
+     */
+    showUserLocation(position: { lat: number; lng: number }) {
+        // Remover marcador anterior si existe
+        if (this.userMarker) {
+            this.userMarker.setMap(null);
+        }
+
+        // Crear marcador de usuario
+        this.userMarker = new google.maps.Marker({
+            position: position,
+            map: this.mapCustom,
+            title: 'Tu ubicación',
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                fillColor: '#4285F4',
+                fillOpacity: 1,
+                strokeColor: 'white',
+                strokeWeight: 2,
+                scale: 8,
+            },
+            zIndex: 1000, // Para que esté por encima de otros marcadores
+        });
+
+        // Crear círculo de precisión alrededor del marcador
+        const circle = new google.maps.Circle({
+            map: this.mapCustom,
+            center: position,
+            radius: 50, // Radio en metros
+            fillColor: '#4285F4',
+            fillOpacity: 0.2,
+            strokeColor: '#4285F4',
+            strokeOpacity: 0.5,
+            strokeWeight: 1,
+        });
+
+        // Centrar el mapa en la posición del usuario
+        this.mapCustom.setCenter(position);
+        this.mapCustom.setZoom(16);
     }
 
     displayFichaDialog: boolean = false;
