@@ -21,6 +21,7 @@ import {
     ValidationErrors,
     ValidatorFn,
 } from '@angular/forms';
+import { filter } from 'rxjs';
 @Component({
     selector: 'app-signup',
     templateUrl: './signup.component.html',
@@ -201,14 +202,19 @@ export class SignupComponent {
             });
 
         // Detectar cambios en el DNI
-        this.formRegister.get('dni')?.valueChanges.subscribe((dni: any) => {
-            if (
-                this.formRegister.get('dni')?.valid &&
-                !this.formRegister.get('isCompany')?.value
-            ) {
+        this.formRegister
+            .get('dni')
+            ?.valueChanges.pipe(
+                filter(
+                    () =>
+                        this.formRegister.get('dni')?.valid &&
+                        !this.formRegister.get('isCompany')?.value &&
+                        this.formRegister.get('dni')?.value.length === 10
+                )
+            )
+            .subscribe((dni: any) => {
                 this.consultar(dni);
-            }
-        });
+            });
         // Eliminar espacios en blanco del email electrónico
         this.formRegister.get('email').valueChanges.subscribe((value) => {
             const correoSinEspacios = value.replace(/\s/g, '');

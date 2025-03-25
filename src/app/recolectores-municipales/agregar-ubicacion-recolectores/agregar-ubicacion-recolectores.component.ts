@@ -14,6 +14,40 @@ import { MessageService } from 'primeng/api';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { ListService } from 'src/app/demo/services/list.service';
+import { formatDate } from '@angular/common';
+import { MarkerClusterer } from '@googlemaps/markerclusterer';
+
+interface Asignacion {
+    _id: string;
+    deviceId: string;
+    externo: {
+        _id: string;
+        name: string;
+        dni: string;
+    };
+    createdAt: string;
+    dateOnly: string;
+    view_date: string;
+    view: boolean;
+}
+
+interface OpcionSeleccion {
+    label: string;
+    value: any;
+}
+
+// Definición de interfaces para mejor tipado
+export interface MarkerItem {
+    marker: google.maps.Marker | google.maps.marker.AdvancedMarkerElement;
+    item: any;
+    infoWindow?: google.maps.InfoWindow;
+}
+
+export interface MarkerGroup {
+    position: google.maps.LatLng;
+    markers: MarkerItem[];
+    infoWindow?: google.maps.InfoWindow;
+}
 
 @Component({
     selector: 'app-agregar-ubicacion-recolectores',
@@ -56,7 +90,14 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         private auth: AuthService,
         private list: ListService,
         @Optional() public config?: DynamicDialogConfig
-    ) {}
+    ) {
+        this.auth.permissions$.subscribe((permissions) => {
+            if (permissions.length > 0) {
+                this.permisos_arr = permissions;
+            }
+            this.loadPermissions(); // Llama a loadPermissions cuando hay cambios en los permisos
+        });
+    }
 
     //----------------------------------------Funciones Standar---------------------------------------
     ruta: any;
@@ -77,11 +118,240 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
 
             if (this.id) {
                 await this.getRuta();
+            } else if (this.check_create) {
+                await this.listar_asignacion();
             } else {
                 await this.consultaAsig();
             }
         }, 500);
     }
+    check_create: boolean = false;
+    deleteRegister: boolean = false;
+
+    async loadPermissions() {
+        this.check_create =
+            (await this.boolPermiss('/recolector', 'post')) || false;
+        this.deleteRegister =
+            (await this.boolPermiss('/recolector/:id', 'delete')) || false;
+    }
+
+    permisos_arr: any[] = [];
+    async boolPermiss(permission: any, method: any) {
+        const hasPermissionBOL =
+            this.permisos_arr.length > 0
+                ? this.permisos_arr.some(
+                      (e) => e.name === permission && e.method === method
+                  )
+                : false;
+        return hasPermissionBOL;
+    }
+
+    load_list: boolean = true;
+    arr_asignacion = [];
+    asignacionesFiltradas: Asignacion[] = [];
+
+    // Opciones y selecciones para los filtros
+    fechasUnicas: OpcionSeleccion[] = [];
+    externosUnicos: OpcionSeleccion[] = [];
+    devicesUnicos: OpcionSeleccion[] = [];
+
+    selectedFechas: OpcionSeleccion[] = [];
+    selectedExternos: OpcionSeleccion[] = [];
+    selectedDevices: OpcionSeleccion[] = [];
+
+    async listar_asignacion() {
+        this.load_list = true;
+        this.list
+            .listarAsignacionRecolectores(this.token, {}, true)
+            .subscribe(async (response) => {
+                if (response.data) {
+                    this.arr_asignacion = response.data;
+                    this.asignacionesFiltradas = [...this.arr_asignacion];
+
+                    // Inicializar las opciones de filtro
+                    this.inicializarOpcionesFiltro();
+                }
+                console.log(this.arr_asignacion);
+                this.load_list = false;
+
+                await this.loadMarker();
+            });
+    }
+
+    async inicializarOpcionesFiltro() {
+        // Generar opciones únicas para fechas
+        const fechasMap = new Map<string, string>();
+        this.arr_asignacion.forEach((item) => {
+            if (item.createdAt) {
+                const fecha = this.formatearFecha(new Date(item.createdAt));
+                fechasMap.set(fecha, fecha);
+            }
+        });
+        this.fechasUnicas = Array.from(fechasMap.entries()).map(
+            ([key, value]) => ({
+                label: value,
+                value: key,
+            })
+        );
+
+        // Generar opciones únicas para externos
+        const externosMap = new Map<string, string>();
+        this.arr_asignacion.forEach((item) => {
+            if (item.externo) {
+                const externoInfo = `${item.externo.name} (${item.externo.dni})`;
+                externosMap.set(item.externo._id, externoInfo);
+            }
+        });
+        this.externosUnicos = Array.from(externosMap.entries()).map(
+            ([key, value]) => ({
+                label: value,
+                value: key,
+            })
+        );
+
+        // Generar opciones únicas para dispositivos
+        const devicesMap = new Map<string, string>();
+        this.arr_asignacion.forEach((item) => {
+            if (item.deviceId) {
+                devicesMap.set(item.deviceId, item.deviceId);
+            }
+        });
+        this.devicesUnicos = Array.from(devicesMap.entries()).map(
+            ([key, value]) => ({
+                label: value,
+                value: key,
+            })
+        );
+
+        await this.loadMarker();
+    }
+
+    formatearFecha(date: Date): string {
+        try {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // getMonth() returns 0-based month
+            const year = date.getFullYear();
+
+            return `${day}/${month}/${year}`;
+        } catch (error) {
+            return 'Fecha inválida';
+        }
+    }
+
+    async aplicarFiltros() {
+        // Comenzamos con todos los datos
+        let resultados = [...this.arr_asignacion];
+
+        // Filtrar por fechas seleccionadas
+        if (this.selectedFechas.length > 0) {
+            const fechasValores = this.selectedFechas.map((f) => f.value);
+            resultados = resultados.filter((item) => {
+                const fechaFormateada = this.formatearFecha(
+                    new Date(item.createdAt)
+                );
+                return fechasValores.includes(fechaFormateada);
+            });
+        }
+
+        // Filtrar por externos seleccionados
+        if (this.selectedExternos.length > 0) {
+            const externosIds = this.selectedExternos.map((e) => e.value);
+            resultados = resultados.filter(
+                (item) => item.externo && externosIds.includes(item.externo._id)
+            );
+        }
+
+        // Filtrar por dispositivos seleccionados
+        if (this.selectedDevices.length > 0) {
+            const deviceIds = this.selectedDevices.map((d) => d.value);
+            resultados = resultados.filter((item) =>
+                deviceIds.includes(item.deviceId)
+            );
+        }
+
+        // Actualizar la lista filtrada
+        this.asignacionesFiltradas = resultados;
+        console.log(this.asignacionesFiltradas);
+        // Cargar el marker
+        await this.loadMarker();
+    }
+    markerCluster: MarkerClusterer;
+    async loadMarker() {
+        setTimeout(async () => {
+            if (this.mapCustom) {
+                this.clearMarkers();
+                console.log(this.asignacionesFiltradas);
+
+                // Verificar si hay puntos para crear bounds
+                let hasPuntos = false;
+                this.asignacionesFiltradas.forEach((element: any) => {
+                    if (
+                        element.puntos_recoleccion &&
+                        element.puntos_recoleccion.length > 0
+                    ) {
+                        hasPuntos = true;
+                    }
+                });
+
+                // Solo crear bounds si hay puntos
+                if (hasPuntos) {
+                    const bounds = new google.maps.LatLngBounds();
+
+                    // Inicializar agrupador de marcadores
+                    if (!this.markerCluster) {
+                        this.markerCluster = new MarkerClusterer({
+                            map: this.mapCustom,
+                        });
+                    } else {
+                        this.markerCluster.clearMarkers();
+                    }
+
+                    this.asignacionesFiltradas.forEach((element: any) => {
+                        if (
+                            !element.puntos_recoleccion ||
+                            element.puntos_recoleccion.length === 0
+                        ) {
+                            return;
+                        }
+                        element.puntos_recoleccion.forEach((punto: any) => {
+                            const marker = this.addMarker(
+                                punto,
+                                false,
+                                element.deviceId,
+                                element.externo.name
+                            );
+
+                            const position = { lat: punto.lat, lng: punto.lng };
+                            bounds.extend(position);
+                        });
+                    });
+
+                    // Ajustar el mapa a los límites
+                    if (this.mapCustom) {
+                        this.mapCustom.fitBounds(bounds);
+
+                        // Opcional: Si solo hay un punto, ajustar el zoom
+                        if (
+                            bounds.getNorthEast().equals(bounds.getSouthWest())
+                        ) {
+                            const zoom = 15;
+                            this.mapCustom.setZoom(zoom);
+                        }
+                    }
+                } else {
+                    console.log('No hay puntos para mostrar en el mapa');
+                }
+            }
+        }, 1000);
+    }
+
+    limpiarFiltros() {
+        this.selectedFechas = [];
+        this.selectedExternos = [];
+        this.selectedDevices = [];
+        this.asignacionesFiltradas = [...this.arr_asignacion];
+    }
+
     ngOnDestroy(): void {}
     isMobil(): boolean {
         return this.helper.isMobil();
@@ -184,13 +454,13 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     token = this.auth.token();
     /*const startOfDay = new Date(this.ruta.createdAt);
         startOfDay.setHours(0, 0, 0, 0);
-    
+
         const endOfDay = new Date(this.ruta.createdAt);
         endOfDay.setHours(23, 59, 59, 999);
-    
+
         const startOfDayISO = startOfDay.toISOString();
         const endOfDayISO = endOfDay.toISOString();
-    
+
         (await this.ubicacionService.fetchRouteData(this.ruta.deviceId, startOfDayISO, endOfDayISO)).subscribe(response => {
             console.log(response);
         });*/
@@ -295,18 +565,22 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     }
 
     async getLocation() {
-        if (this.isMobil()) {
-            const permission = await Geolocation.requestPermissions();
-            if (permission) {
-                const coordinates = await Geolocation.getCurrentPosition();
-                return {
-                    lat: coordinates.coords.latitude,
-                    lng: coordinates.coords.longitude,
-                };
+        try {
+            if (this.isMobil()) {
+                const permission = await Geolocation.requestPermissions();
+                if (permission) {
+                    const coordinates = await Geolocation.getCurrentPosition();
+                    return {
+                        lat: coordinates.coords.latitude,
+                        lng: coordinates.coords.longitude,
+                    };
+                } else {
+                    return { lat: 0.977035, lng: -79.655415 };
+                }
             } else {
                 return { lat: 0.977035, lng: -79.655415 };
             }
-        } else {
+        } catch (error) {
             return { lat: 0.977035, lng: -79.655415 };
         }
     }
@@ -325,65 +599,278 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                     zoom: 15, // Nivel de zoom inicial
                     center: haightAshbury, // Coordenadas del centro del mapa
                     mapTypeId: 'terrain', // Tipo de mapa
-                    fullscreenControl: true, // Desactiva el control de pantalla completa
+                    fullscreenControl: true, // Control de pantalla completa
                     mapTypeControlOptions: {
                         style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR, // Estilo del control de tipo de mapa
-                        position: google.maps.ControlPosition.LEFT_BOTTOM, // Posición del control de tipo de mapa
+                        position: google.maps.ControlPosition.LEFT_BOTTOM, // Posición del control
                     },
                     draggable: true, // Permite arrastrar el mapa
-                    //scrollwheel: false, // Desactiva el zoom con la rueda del ratón
-                    //disableDoubleClickZoom: true, // Desactiva el zoom con doble clic
-                    gestureHandling: 'greedy', //'cooperative', // Control de gestos
+                    gestureHandling: 'greedy', // Control de gestos
+                    styles: [
+                        {
+                            featureType: 'poi',
+                            stylers: [{ visibility: 'off' }],
+                        },
+                        {
+                            featureType: 'transit.station',
+                            stylers: [{ visibility: 'off' }],
+                        },
+                    ],
                 }
             );
         });
     }
 
-    addMarker(location: any, center: boolean) {
-        // Crear un elemento DOM para el ícono
+    // Para borrar los marcadores que has creado manualmente
+    clearMarkers() {
+        // Quitar cada marcador del mapa
+        for (let marker of this.markers) {
+            marker.map = null; // Esta es la forma de quitar un marcador del mapa
+        }
+
+        // Limpiar los arrays
+        this.markers = [];
+        this.infoWindows = [];
+    }
+
+    // Si necesitas restaurar el estilo original después
+    restoreDefaultStyle() {
+        // Restaurar al estilo original que tenías
+        const originalStyle = [
+            {
+                featureType: 'poi',
+                stylers: [{ visibility: 'off' }],
+            },
+            {
+                featureType: 'transit.station',
+                stylers: [{ visibility: 'off' }],
+            },
+        ];
+
+        this.mapCustom.setOptions({ styles: originalStyle });
+    }
+
+    //----------------------------------------Marker handling---------------------------------------
+    addMarker(
+        location: any,
+        center: boolean,
+        name?: string,
+        name_externo?: string
+    ) {
         const iconElement = document.createElement('div');
         iconElement.style.width = '80px';
         iconElement.style.height = '80px';
         iconElement.style.backgroundImage = location.retorno
-            ? 'url(https://i.postimg.cc/wM5tfphk/flag.png)'
-            : 'url(https://i.postimg.cc/qRSvZQBk/trash-verde.png)';
+            ? 'url(https://i.postimg.cc/QdHqFQ69/Dise-o-sin-t-tulo-6.png)'
+            : 'url(https://i.postimg.cc/43M4JgYH/Dise-o-sin-t-tulo-7.png)';
         iconElement.style.backgroundSize = 'cover';
         iconElement.style.backgroundPosition = 'center';
-        iconElement.style.borderRadius = '50%'; // Opcional: para hacerlo circular
+        iconElement.style.borderRadius = '50%';
+        iconElement.style.position = 'absolute';
+        iconElement.style.transform = 'translate(-50%, -50%)';
 
         const marcador = new google.maps.marker.AdvancedMarkerElement({
             position: { lat: location.lat, lng: location.lng },
             content: iconElement,
             map: this.mapCustom,
-            title: `Marcado, Time: ${new Date(
-                location.timestamp
-            ).toISOString()}`,
-        });
-
-        const infoWindow = new google.maps.InfoWindow({
-            headerContent: location.retorno
-                ? `Retorno a Estación`
-                : `Punto de recolección`,
-            content: `<div style="margin: 5px;">
-                <strong>Lat:</strong> ${location.lat}, 
-                <strong>Lng:</strong> ${location.lng}<br>
-                <strong>Fecha:</strong> ${this.formatDateFull(
-                    new Date(location.timestamp)
-                )}
-              </div>`,
+            title:
+                (location.retorno
+                    ? 'Retorno a Estación'
+                    : `Punto de recolección`) +
+                name +
+                '-' +
+                name_externo,
+            gmpClickable: true,
+            gmpDraggable: false,
         });
 
         marcador.addListener('click', () => {
             this.closeAllInfoWindows();
-            infoWindow.open(this.mapCustom, marcador);
+            this.showGroupedInfoWindow(
+                location.lat,
+                location.lng,
+                location.retorno ? 'Retorno' : 'Ubicación',
+                name,
+                name_externo,
+                this.formatDateFull(new Date(location.timestamp))
+            );
         });
 
         this.markers.push(marcador);
-        this.infoWindows.push(infoWindow);
         if (center) {
             this.mapCustom.setCenter({ lat: location.lat, lng: location.lng });
         }
+
+        // Añadir el marcador al agrupador
+        this.markerCluster.addMarker(marcador);
+
+        return marcador;
     }
+
+    groupedInfoWindow: google.maps.InfoWindow;
+    // Reemplaza tu método showGroupedInfoWindow actual con este
+    showGroupedInfoWindow(
+        lat: number,
+        lng: number,
+        type: string,
+        name?: string,
+        name_externo?: string,
+        time: string = ''
+    ) {
+        // Función para calcular la distancia entre dos puntos geográficos
+        const calculateDistance = (
+            pos1: google.maps.LatLngLiteral,
+            pos2: google.maps.LatLngLiteral
+        ): number => {
+            // Usar la fórmula de Haversine para calcular la distancia en metros
+            const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
+            const R = 6371000; // Radio de la Tierra en metros
+            const φ1 = toRadians(pos1.lat);
+            const φ2 = toRadians(pos2.lat);
+            const Δφ = toRadians(pos2.lat - pos1.lat);
+            const Δλ = toRadians(pos2.lng - pos1.lng);
+
+            const a =
+                Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) *
+                    Math.cos(φ2) *
+                    Math.sin(Δλ / 2) *
+                    Math.sin(Δλ / 2);
+
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            return R * c; // Distancia en metros
+        };
+
+        const clickPosition = { lat: lat, lng: lng };
+
+        // Filtrar marcadores cercanos usando nuestra función de distancia en lugar de geometry.spherical
+        const nearbyMarkers = this.markers.filter((marker: any) => {
+            let markerPosition;
+
+            // Manejar diferentes tipos de marcadores (tradicionales y avanzados)
+            if (marker instanceof google.maps.Marker) {
+                const pos = marker.getPosition();
+                markerPosition = { lat: pos.lat(), lng: pos.lng() };
+            } else if (marker.position) {
+                // Para AdvancedMarkerElement
+                if (typeof marker.position.lat === 'function') {
+                    // Si position es un LatLng
+                    markerPosition = {
+                        lat: marker.position.lat(),
+                        lng: marker.position.lng(),
+                    };
+                } else {
+                    // Si position ya es un objeto { lat, lng }
+                    markerPosition = marker.position;
+                }
+            } else {
+                return false; // Saltar si no podemos determinar la posición
+            }
+
+            const distance = calculateDistance(clickPosition, markerPosition);
+            return distance < 50; // Distancia máxima en metros para agrupar
+        });
+
+        if (nearbyMarkers.length === 0) return;
+
+        // Crear contenido agrupado con estilo mejorado
+        const content = nearbyMarkers
+            .map((marker: any, index: number) => {
+                // Extraer coordenadas según el tipo de marcador
+                let lat, lng, title;
+
+                if (marker instanceof google.maps.Marker) {
+                    const pos = marker.getPosition();
+                    lat = pos.lat();
+                    lng = pos.lng();
+                    title = marker.getTitle();
+                } else {
+                    // Para AdvancedMarkerElement
+                    if (typeof marker.position.lat === 'function') {
+                        lat = marker.position.lat();
+                        lng = marker.position.lng();
+                    } else {
+                        lat = marker.position.lat;
+                        lng = marker.position.lng;
+                    }
+                    title = marker.title;
+                }
+
+                return `
+            <div style="margin: 5px; padding: 10px; border-radius: 8px; background: #f8f9fa; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <strong style="color: #333; font-size: 14px;">${title} ${
+                    index + 1
+                }</strong><br>
+                <div style="margin: 5px 0; font-size: 12px; color: #666;">
+                    <strong>Latitud:</strong> ${lat.toFixed(6)}<br>
+                    <strong>Longitud:</strong> ${lng.toFixed(6)}<br>
+                    <strong>Tiempo:</strong> ${time}<br>
+                </div>
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}"
+                    target="_blank"
+                    style="display: inline-block; padding: 5px 10px; background-color: #4285F4; color: white; text-decoration: none; border-radius: 4px; font-size: 12px;">
+                    Cómo llegar
+                </a>
+            </div>
+        `;
+            })
+            .join(
+                '<hr style="border: 0; height: 1px; background: #ddd; margin: 10px 0;">'
+            );
+
+        // Actualizar el InfoWindow compartido
+        if (!this.groupedInfoWindow) {
+            this.groupedInfoWindow = new google.maps.InfoWindow({
+                maxWidth: 320,
+            });
+        }
+
+        this.groupedInfoWindow.setContent(`
+        <div style="font-family: Arial, sans-serif; max-width: 300px;">
+            <div style="padding: 10px 5px 0; border-bottom: 1px solid #eee; margin-bottom: 10px;">
+                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">
+                    ${nearbyMarkers.length} ${
+            nearbyMarkers.length === 1 ? 'Ubicación' : 'Ubicaciones'
+        }
+                </h3>
+            </div>
+
+            ${content}
+
+            <div style="text-align: right; margin-top: 10px; padding: 5px;">
+                <button id="close-info-btn"
+                    style="padding: 8px 15px; background-color: #d9534f; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    `);
+
+        this.groupedInfoWindow.setPosition({ lat, lng });
+        this.groupedInfoWindow.open(this.mapCustom);
+
+        // Agregar evento al botón de cerrar después de que se abra el InfoWindow
+        setTimeout(() => {
+            const closeButton = document.getElementById('close-info-btn');
+            if (closeButton) {
+                closeButton.addEventListener('click', () => {
+                    this.groupedInfoWindow.close();
+                });
+            }
+        }, 100);
+    }
+
+    // Asegúrate de mantener el método de cierre de InfoWindows
+    closeAllInfoWindows() {
+        if (this.infoWindows && this.infoWindows.length) {
+            this.infoWindows.forEach((infoWindow: any) => infoWindow.close());
+        }
+        if (this.groupedInfoWindow) {
+            this.groupedInfoWindow.close();
+        }
+    }
+
     formatDateFull(date: Date): string {
         const day = String(date.getDate()).padStart(2, '0');
         const month = String(date.getMonth() + 1).padStart(2, '0'); // getMonth() returns 0-based month
@@ -879,10 +1366,6 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
 
     confirmReturnToStation() {
         this.displayDialog = true;
-    }
-
-    closeAllInfoWindows() {
-        this.infoWindows.forEach((infoWindow) => infoWindow.close());
     }
 
     getMarker(locationIndex: number) {

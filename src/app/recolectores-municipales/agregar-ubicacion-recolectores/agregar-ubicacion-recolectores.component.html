@@ -72,7 +72,10 @@
             label="Control de Recorrido"
         ></p-button>
     </div>
-    <div class="velocidad-container m-5" *ngIf="!asignacion && !id">
+    <div
+        class="velocidad-container m-5"
+        *ngIf="!asignacion && !id && !check_create"
+    >
         <label> ¿Crees que ya te dieron una asignación?</label> <br />
         <p-button
             class="m-5"
@@ -82,6 +85,149 @@
         ></p-button>
     </div>
 </div>
+<ng-container *ngIf="!id">
+    <!-- Sección de filtros -->
+    <div
+        class="grid p-fluid mb-3"
+        *ngIf="check_create && arr_asignacion.length > 0"
+    >
+        <div class="col-12 md:col-4">
+            <p-multiSelect
+                [options]="fechasUnicas"
+                [(ngModel)]="selectedFechas"
+                defaultLabel="Filtrar por Fecha"
+                optionLabel="label"
+                [showToggleAll]="true"
+                [filter]="true"
+                (onChange)="aplicarFiltros()"
+            >
+            </p-multiSelect>
+        </div>
+        <div class="col-12 md:col-4">
+            <p-multiSelect
+                [options]="externosUnicos"
+                [(ngModel)]="selectedExternos"
+                defaultLabel="Filtrar por Externo"
+                optionLabel="label"
+                [showToggleAll]="true"
+                [filter]="true"
+                (onChange)="aplicarFiltros()"
+            >
+            </p-multiSelect>
+        </div>
+        <div class="col-12 md:col-4">
+            <p-multiSelect
+                [options]="devicesUnicos"
+                [(ngModel)]="selectedDevices"
+                defaultLabel="Filtrar por Dispositivo"
+                optionLabel="label"
+                [showToggleAll]="true"
+                [filter]="true"
+                (onChange)="aplicarFiltros()"
+            >
+            </p-multiSelect>
+        </div>
+    </div>
+
+    <!-- Botón para limpiar filtros -->
+    <div class="flex justify-content-end mb-3">
+        <button
+            pButton
+            label="Limpiar Filtros"
+            icon="pi pi-filter-slash"
+            class="p-button-outlined"
+            (click)="limpiarFiltros()"
+        ></button>
+    </div>
+
+    <!-- Lista de asignaciones -->
+    <p-table
+        #dt
+        [value]="asignacionesFiltradas"
+        [loading]="load_list"
+        responsiveLayout="scroll"
+        [globalFilterFields]="[
+            'deviceId',
+            'externo.name',
+            'externo.dni',
+            'createdAt'
+        ]"
+        [paginator]="true"
+        [rows]="10"
+        [showCurrentPageReport]="true"
+        [rowsPerPageOptions]="[5, 10, 25, 50]"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+        [tableStyle]="{ 'min-width': '100%' }"
+    >
+        <ng-template pTemplate="caption">
+            <div class="flex justify-content-between align-items-center">
+                <h5 class="m-0">Lista de Asignaciones</h5>
+                <span class="p-input-icon-left">
+                    <i class="pi pi-search"></i>
+                    <input
+                        pInputText
+                        type="text"
+                        placeholder="Buscar..."
+                        (input)="
+                            dt.filterGlobal(
+                                $any($event.target).value,
+                                'contains'
+                            )
+                        "
+                    />
+                </span>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+            <tr>
+                <th style="width: 3rem">#</th>
+                <th>Fecha</th>
+                <th>Dispositivo</th>
+                <th>Externo</th>
+                <th>DNI</th>
+                <th>Puntos de Recolección</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item let-i="rowIndex">
+            <tr>
+                <td>{{ i + 1 }}</td>
+                <td>{{ item.createdAt | date : "dd/MM/yyyy HH:mm" }}</td>
+                <td>{{ item.deviceId }}</td>
+                <td>{{ item.externo?.name }}</td>
+                <td>{{ item.externo?.dni }}</td>
+                <td>
+                    <ng-container *ngIf="item.puntos_recoleccion.length > 0">
+                        {{ item.puntos_recoleccion.length }}
+                    </ng-container>
+                    <ng-container *ngIf="item.puntos_recoleccion.length == 0"
+                        >Sin Registro</ng-container
+                    >
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="6" class="text-center">
+                    No se encontraron registros
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="paginatorleft">
+            <button
+                pButton
+                type="button"
+                icon="pi pi-refresh"
+                class="p-button-text"
+                (click)="listar_asignacion()"
+            ></button>
+        </ng-template>
+        <ng-template pTemplate="paginatorright">
+            <span class="text-muted"
+                >Total: {{ asignacionesFiltradas.length }} registros</span
+            >
+        </ng-template>
+    </p-table>
+</ng-container>
 
 <p-overlayPanel #op>
     <!-- Fila 1: Checkbox que ocupa todo el ancho -->
@@ -198,7 +344,7 @@
     </p-table>
 </p-card>
 <p-card
-    *ngIf="ruta"
+    *ngIf="ruta && ruta.ruta.length > 0"
     header="Ruta GPS"
     subheader="Ruta extraida desde UBICARSAT"
     [style]="{ width: 'auto' }"

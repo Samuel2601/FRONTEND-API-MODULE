@@ -1,359 +1,365 @@
-.combo-box {
-  position: relative ;
+// Variables
+$primary-color: var(--primary-color);
+$surface-border: var(--surface-border);
+$surface-hover: var(--surface-hover);
+$surface-card: var(--surface-card);
+$border-radius: 8px;
+$box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+$transition-speed: 0.3s;
+
+// Map Container
+#map2 {
+    border-radius: $border-radius;
+    box-shadow: $box-shadow;
+    transition: all $transition-speed ease;
+    min-height: 70vh;
+    position: relative;
+    margin: 0 -1rem;
+
+    &:focus {
+        outline: none;
+    }
 }
 
-.options-list {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 1000;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-top: none;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  width: 100%;
+// Search container
+.search-container {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+
+    .p-float-label {
+        width: 100%;
+        max-width: 450px;
+    }
 }
 
-.options-list li {
-  padding: 5px 10px;
-  cursor: pointer;
-}
-
-.options-list li:hover {
-  background-color: #f9f9f9;
-}
-
-
-.card-body {
-  .row-cols-lg-2 {
-      @media (min-width: 992px) {
-          /* Pantallas grandes: 2 columnas */
-          display: flex;
-          flex-wrap: wrap;
-
-          > * {
-              flex: 0 0 50%;
-              max-width: 50%;
-          }
-      }
-
-      @media (max-width: 991.98px) {
-          /* Dispositivos móviles: 1 columna */
-          display: block;
-
-          > * {
-              width: 100%;
-          }
-      }
-  }
-}
-$input-width: 430px; // Ancho para escritorio
-
-.inputmap {
-@media (max-width: 700px) { // Estilos para dispositivos móviles
-  width: calc(100vw - 30px); // Restar 30px al ancho total de la ventana
-}
-
-@media (min-width: 700px) { // Estilos para escritorio
-  width: $input-width;
-}
-height: 50px;
-}
-
-#lista {
-@media (max-width: 700px) { // Estilos para dispositivos móviles
-  width: calc(100vw - 50px); // Restar 30px al ancho total de la ventana
-}
-
-@media (min-width: 700px) { // Estilos para escritorio
-  width: $input-width;
-}
-height: 50px;
-}
-
-.formulario-flotante {
-position: absolute;
-
-z-index: 1000; /* Asegura que el formulario esté por encima del mapa */
-border-radius: 5px;
-// box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-@media (max-width: 700px) { // Estilos para dispositivos móviles
-  top: 24px; /* Ajusta la posición vertical según tus necesidades */
-  left:auto; /* Ajusta la posición horizontal según tus necesidades */
-}
-
-@media (min-width: 700px) { // Estilos para escritorio
-  top: 24px; /* Ajusta la posición vertical según tus necesidades */
-  left: 55px; /* Ajusta la posición horizontal según tus necesidades */
-}
-}
-
-#formulario {
-position: absolute;
-padding: 0px;
-border: 0px solid black;
-z-index: 1000;
-}
-
-
-
-.container {
-height: -webkit-fill-available; /* Altura total de la ventana */
-z-index: 1000;
-}
-
-#listarficha {
-@media (max-width: 767px) { // Estilos para dispositivos móviles
-  //width: 100%;
-  bottom: 0;
-  --bs-gutter-x: 0rem;
-}
-
-@media (min-width: 768px) { // Estilos para escritorio
- // width: 97%;
-  --bs-gutter-x: 1.5rem; // Establecer el espacio entre columnas de Bootstrap
-}
-}
-.container{
-
-
-@media (min-width:1400px) {
-    max-width: -webkit-fill-availabl !important;
-}
-@media (min-width:1400px) {  
-  max-width: -webkit-fill-available;
-}
-}
-
-.imagen-popup {
-margin: 0;
-padding: 0;
-display: block;
-width: 100%;
-display: block;
-height: 100px;
-
-object-fit: cover; /* Para ajustar la imagen dentro del contenedor sin distorsionarla */
-}
-.fullscreen-button{
-  background: none rgb(255, 255, 255);
-    border: 0px;
-    margin: 10px;
-    padding: 0px;
-    text-transform: none;
-    appearance: none;
+// Controls positioning
+.map-controls {
     position: absolute;
+    z-index: 5;
+    right: 10px;
+    bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+// Fullscreen control
+.controls.fullscreen-control {
+    background-color: white;
+    border-radius: 4px;
     cursor: pointer;
-    user-select: none;
-    border-radius: 2px;
-    height: 40px;
-    width: 40px;
-    box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 4px -1px;
-    overflow: hidden;
-    top: 0px;
-    right: 0px;
-}
-.fullscreen-button .hover-image {
-  display: none;
+    box-shadow: $box-shadow;
+
+    .fullscreen-button {
+        border: none;
+        background: none;
+        padding: 8px;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: background-color $transition-speed;
+
+        &:hover {
+            background-color: $surface-hover;
+        }
+
+        img {
+            width: 18px;
+            height: 18px;
+        }
+    }
+
+    &.is-fullscreen {
+        .normal-image {
+            display: none;
+        }
+
+        .hover-image {
+            display: block;
+        }
+    }
+
+    &:not(.is-fullscreen) {
+        .normal-image {
+            display: block;
+        }
+
+        .hover-image {
+            display: none;
+        }
+    }
 }
 
-.fullscreen-button:hover .normal-image {
-  display: none;
+// Location button styling
+.location-button {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background-color: white;
+    box-shadow: $box-shadow;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: all $transition-speed;
+
+    &:hover,
+    &:focus {
+        background-color: $surface-hover;
+    }
+
+    .bi-crosshair {
+        color: $primary-color;
+        font-size: 1.25rem;
+    }
 }
 
-.fullscreen-button:hover .hover-image {
-  display: inline-block;
-}
-.p-inputtext{
-    width: 400px;
-}
-.p-fluid .p-button-icon-only {
-      width: 3rem !important;
+// Routes dialog styling
+:host ::ng-deep {
+    .p-dialog {
+        .p-dialog-header {
+            padding: 1.25rem 1.5rem;
+            background-color: $surface-card;
+            border-bottom: 1px solid $surface-border;
+        }
+
+        .p-dialog-content {
+            padding: 1.25rem 1.5rem;
+        }
+
+        .p-dialog-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid $surface-border;
+        }
+    }
+
+    // Route buttons
+    .routes-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: center;
+
+        .p-button {
+            transition: all $transition-speed;
+
+            &.route-active {
+                .pi-eye-slash {
+                    &:before {
+                        content: "\e9ce"; // pi-eye icon
+                    }
+                }
+            }
+        }
+    }
+
+    // InfoWindow styling
+    .gm-style .gm-style-iw-c {
+        padding: 12px;
+        border-radius: $border-radius;
+    }
+
+    .info-window-content {
+        padding: 0;
+        max-width: 280px;
+
+        h5 {
+            font-size: 1.1rem;
+            margin: 0 0 8px 0;
+            color: var(--text-color);
+        }
+
+        p {
+            margin: 0 0 8px 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: var(--text-secondary-color);
+        }
+
+        img {
+            border-radius: 4px;
+            max-width: 100%;
+            margin-top: 8px;
+        }
+    }
+
+    // Search autocomplete
+    .p-autocomplete {
+        width: 100%;
+
+        .p-inputtext {
+            border-radius: $border-radius;
+
+            &:focus {
+                box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
+            }
+        }
+
+        .p-autocomplete-panel {
+            border-radius: $border-radius;
+            box-shadow: $box-shadow;
+        }
+    }
 }
 
-.button-container {
-  display: flex;
-  justify-content: space-around;
-  flex-wrap: wrap;
-  gap: 20px;
-  margin: 20px;
-  perspective: 1000px; /* Añadir perspectiva para el efecto 3D */
+// Route selection dialog content
+.route-selection-content {
+    max-height: 50vh;
+    overflow-y: auto;
+    padding: 1rem 0;
 }
 
-.cube {
-  width: 200px;
-  height: 200px;
-  position: relative;
-  transform-style: preserve-3d;
-  //transform: rotateY(0);
-  transition: transform 0.5s ease-in-out;
-  border-radius: 5%;
+// Responsive adjustments
+@media screen and (max-width: 768px) {
+    .grid.p-fluid {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    #map2 {
+        margin: 0;
+        min-height: 80vh;
+    }
+
+    .map-controls {
+        bottom: 25px;
+        right: 15px;
+    }
+
+    :host ::ng-deep .p-dialog {
+        width: 95% !important;
+        max-width: 100% !important;
+    }
 }
 
-.cube:hover {
-  //transform: rotateY(180deg); /* Rotación al pasar el mouse */
-  border-radius: 5%;
+// Dark theme compatibility
+.p-input-filled .p-float-label input:focus ~ label,
+.p-input-filled .p-float-label input.p-filled ~ label,
+.p-input-filled .p-float-label .p-inputwrapper-focus ~ label,
+.p-input-filled .p-float-label .p-inputwrapper-filled ~ label {
+    top: -20px;
 }
 
-.cube-face {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  backface-visibility: hidden; /* Ocultar la cara trasera */
-  border-radius: 5%;
-  padding: 10px; /* Agregar padding para que el contenido no quede pegado al borde */
-  box-sizing: border-box; /* Incluir padding y borde en el tamaño total */
+// Custom marker style for dynamic icon injection
+.custom-marker {
+    font-size: 1.2rem;
+    color: var(--primary-color);
 }
 
-.cube-front {
-  //background-color: #e0e0e0; /* Color de fondo para el botón */
-  border-radius: 5%;
+// Animate transitions
+.p-button {
+    transition: all $transition-speed;
+
+    &:hover {
+        transform: translateY(-2px);
+    }
 }
 
-.cube-back {
-  //background-color: #9e9e9e; /* Color de fondo para la información */
-  //transform: rotateY(180deg); /* Posición de la cara trasera */
-  border-radius: 5%;
+// Estilos específicos para el diálogo de rutas
+.route-dialog {
+    .route-selection-content {
+        max-height: 60vh;
+        overflow-y: auto;
+
+        &::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: var(--surface-400);
+            border-radius: 4px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background-color: var(--surface-100);
+        }
+    }
+
+    .route-card {
+        display: flex;
+        align-items: center;
+        background-color: var(--surface-100);
+        border-radius: 8px;
+        padding: 0.75rem 0.5rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+
+        &:hover {
+            background-color: var(--surface-200);
+        }
+
+        &.active {
+            background-color: var(--primary-50);
+            border-left: 4px solid var(--primary-color);
+
+            .route-name {
+                font-weight: 500;
+                color: var(--primary-700);
+            }
+        }
+
+        .route-toggle-btn {
+            margin-right: 0.5rem;
+
+            &:focus {
+                box-shadow: none;
+            }
+        }
+
+        .route-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.95rem;
+        }
+    }
+
+    .p-dialog-footer {
+        border-top: 1px solid var(--surface-200);
+        padding: 1rem 1.5rem;
+    }
 }
 
-p {
-  text-align: center;
-  font-size: 1.2em;
-  margin: 10px 0 0 0; /* Margen superior para separar el texto del ícono */
+// Estilos para las ventanas de información
+::ng-deep .gm-style .gm-style-iw-c {
+    padding: 8px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    max-width: 280px !important;
 }
 
-.custom-icon {
-  width: 150px; /* Ajusta el tamaño según sea necesario */
-  height: 150px; /* Ajusta el tamaño según sea necesario */
-  margin-bottom: 10px; /* Espacio entre el icono y el texto */
+::ng-deep .gm-style .gm-style-iw-d {
+    overflow: hidden !important;
+    max-width: 280px !important;
 }
 
-.rounded-top {
-  border-top-left-radius: 5%; /* Ajusta el valor según sea necesario */
-  border-top-right-radius: 5%; /* Ajusta el valor según sea necesario */
-}
+.info-window-content {
+    padding: 8px 16px;
 
+    h5 {
+        margin: 0 0 8px 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-color);
+    }
 
-.button-container-categoria {
-  display: flex;
-  justify-content: space-around;
-  flex-wrap: wrap;
-  gap: 20px;
-  //margin: 20px;
-  perspective: 1000px; /* Añadir perspectiva para el efecto 3D */
-}
+    p {
+        margin: 0 0 12px 0;
+        font-size: 14px;
+        line-height: 1.4;
+        color: var(--text-secondary-color);
+    }
 
-.cube-categoria {
-  width: 200px;
-  height: 200px;
-  position: relative;
-  transform-style: preserve-3d;
-  //transform: rotateY(0);
-  transition: transform 0.5s ease-in-out;
-  border-radius: 5%;
-}
-
-.cube-categoria:hover {
-  //transform: rotateY(180deg); /* Rotación al pasar el mouse */
-  border-radius: 5%;
-}
-
-.cube-face-categoria {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  backface-visibility: hidden; /* Ocultar la cara trasera */
-  border-radius: 5%;
-  padding: 10px; /* Agregar padding para que el contenido no quede pegado al borde */
-  box-sizing: border-box; /* Incluir padding y borde en el tamaño total */
-}
-
-.cube-front-categoria {
-  //background-color: var(--primary-500); /* Color de fondo para el botón */
-  border-radius: 5%;
-}
-
-.cube-back-categoria {
-  //background-color: var(--primary-500); /* Color de fondo para la información */
-  //transform: rotateY(180deg); /* Posición de la cara trasera */
-  border-radius: 5%;
-}
-
-p {
-  text-align: center;
-  font-size: 1.2em;
-  margin: 10px 0 0 0; /* Margen superior para separar el texto del ícono */
-}
-
-.custom-icon-categoria {
-  width: 150px; /* Ajusta el tamaño según sea necesario */
-  height: 150px; /* Ajusta el tamaño según sea necesario */
-  margin-bottom: 10px; /* Espacio entre el icono y el texto */
-}
-
-.rounded-top-categoria {
-  border-top-left-radius: 5%; /* Ajusta el valor según sea necesario */
-  border-top-right-radius: 5%; /* Ajusta el valor según sea necesario */
-}
-
-.cube-face-categoria {
-  transition: all 0.3s ease-in-out;
-}
-
-.cube-face-categoria:hover {
-  cursor: pointer;
-  border: 2px solid #000; /* Cambia a tu color preferido */
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-  animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-.custom-icon-categoria {
-  transition: transform 0.3s ease-in-out;
-}
-
-.custom-icon-categoria:hover {
-  transform: scale(1.1);
-}
-  /* Media query para dispositivos móviles */
-@media (max-width: 768px) {
-.custom-icon-categoria {
-  width: 80px; /* Tamaño para móviles */
-  height: 80px; /* Tamaño para móviles */
-  margin-bottom: 10px; /* Espacio entre el icono y el texto */
-}
-
-.cube-categoria {
-  width: 100px; /* Tamaño para móviles */
-  height: 100px; /* Tamaño para móviles */
-  position: relative;
-  transform-style: preserve-3d;
-  transform: rotateY(0);
-  transition: transform 0.5s ease-in-out;
-  border-radius: 5%;
-}
-p{
-  font-size: 0.7em !important;
-}
+    img {
+        max-width: 100%;
+        border-radius: 4px;
+        display: block;
+        margin: 8px 0;
+    }
 }
