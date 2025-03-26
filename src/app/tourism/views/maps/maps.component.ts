@@ -3,16 +3,20 @@ import {
     Component,
     HostListener,
     OnInit,
+    OnDestroy,
+    NgZone,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ImportsModule } from 'src/app/demo/services/import';
-import { ListService } from 'src/app/demo/services/list.service';
 import { ItemComponent } from '../item/item.component';
-import { MenuItem } from 'primeng/api';
 import { LoginComponent } from '../../login/login.component';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { Subject } from 'rxjs';
+import { takeUntil, debounceTime } from 'rxjs/operators';
+import { TourismService } from '../../service/tourism.service';
+import { MarkerClusterer } from '@googlemaps/markerclusterer';
 
 @Component({
     selector: 'app-maps',
@@ -21,16 +25,11 @@ import { AuthService } from 'src/app/demo/services/auth.service';
     templateUrl: './maps.component.html',
     styleUrl: './maps.component.scss',
 })
-export class MapsComponent implements OnInit {
-    isMobil(): any {
-        return window.innerWidth <= 575; //Capacitor.isNativePlatform(); //
-    }
-    dockPosition: 'bottom' | 'right' = 'bottom'; // Default móvil
-    @HostListener('window:resize', [])
-    goTo(route: string) {
-        console.log(`Navigating to ${route}`);
-    }
+export class MapsComponent implements OnInit, OnDestroy {
+    private destroy$ = new Subject<void>();
+    private resizeSubject$ = new Subject<void>();
 
+    dockPosition: 'bottom' | 'right' = 'bottom'; // Default mobile
     name: string = '';
     mostVisited: any[] = [];
     actividad: any[] = [];
@@ -38,11 +37,29 @@ export class MapsComponent implements OnInit {
     latitude: number;
     longitude: number;
     markers: google.maps.Marker[] = [];
+    markerClusterer: any = null; // MarkerClusterer instance
+    activeInfoWindow: google.maps.InfoWindow | null = null;
     loginVisible: boolean = false;
-    // Nuevas propiedades para geolocalización
+
+    // Geolocation properties
     geoLocationLoading: boolean = false;
     geoLocationError: string = '';
     userMarker: google.maps.Marker | null = null;
+    userAccuracyCircle: google.maps.Circle | null = null;
+
+    selectedActivities: Set<string> = new Set();
+    allFichas: any[] = []; // All unfiltered fichas
+
+    // Loading states tracker
+    private mapInitialized = false;
+    private dataLoaded = {
+        activities: false,
+        fichas: false,
+    };
+
+    // Selected ficha info
+    displayFichaDialog: boolean = false;
+    selectedFichaId: any = {};
 
     menuItems: any[] = [
         {
@@ -84,7 +101,7 @@ export class MapsComponent implements OnInit {
             active: false,
             command: () => {
                 if (!this.auth.token()) {
-                    this.loginVisible = true; // Abre el modal de login
+                    this.loginVisible = true; // Open login modal
                 } else {
                     this.router.navigate(['/home']);
                 }
@@ -92,252 +109,284 @@ export class MapsComponent implements OnInit {
         },
     ];
 
-    selectedActivities: Set<string> = new Set();
-    allFichas: any[] = []; // Todas las fichas sin filtrar
-    actividadesCargadas: boolean = false;
-    fichasCargadas: boolean = false;
-
     constructor(
         private router: Router,
         private googlemaps: GoogleMapsService,
         private helperService: HelperService,
-        private listService: ListService,
+        private tourismService: TourismService,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
-        private auth: AuthService
+        private auth: AuthService,
+        private ngZone: NgZone
     ) {}
 
-    async ngOnInit() {
+    ngOnInit() {
         this.name = this.route.snapshot.queryParamMap.get('name') || '';
-        console.log('Nombre recibido:', this.name);
+        console.log('Name received:', this.name);
 
-        await this.initMap();
+        // Setup window resize debounce
+        this.setupResizeListener();
 
-        // Cargamos las actividades y fichas en paralelo
-        const loadPromises = [this.loadActivities(), this.getFichas()];
+        // Set initial dock position based on screen size
+        this.dockPosition = this.isMobil() ? 'bottom' : 'right';
 
-        await Promise.all(loadPromises);
+        // Initialize processes in parallel
+        this.initMap().then(() => {
+            this.mapInitialized = true;
+            this.checkAllReady();
+        });
 
-        // Una vez que tengamos tanto las actividades como las fichas, aplicamos el filtro
-        this.applyNameFilter();
+        this.loadData();
+    }
+
+    ngOnDestroy() {
+        // Close any open InfoWindow
+        if (this.activeInfoWindow) {
+            this.activeInfoWindow.close();
+        }
+
+        // Clear clusterer if exists
+        if (this.markerClusterer) {
+            this.markerClusterer.clearMarkers();
+        }
+
+        // Clear all markers
+        this.clearMarkers();
+
+        // Complete all observables
+        this.destroy$.next();
+        this.destroy$.complete();
+        this.resizeSubject$.complete();
     }
 
     /**
-     * Aplica el filtro basado en el nombre recibido en la URL
+     * Setup debounced resize listener to improve performance
+     */
+    private setupResizeListener() {
+        this.resizeSubject$
+            .pipe(
+                debounceTime(250), // Debounce resize events
+                takeUntil(this.destroy$)
+            )
+            .subscribe(() => {
+                this.dockPosition = this.isMobil() ? 'bottom' : 'right';
+
+                // Reinitialize marker clusterer if map has already been initialized
+                if (this.mapInitialized && this.markers.length > 0) {
+                    this.initializeMarkerClusterer();
+                }
+
+                this.cdr.detectChanges();
+            });
+    }
+
+    /**
+     * Load all necessary data in parallel
+     */
+    private loadData() {
+        // Load activities
+        this.tourismService
+            .getActivities()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (activities) => {
+                    this.actividad = activities;
+                    this.dataLoaded.activities = true;
+                    console.log('Activities loaded:', this.actividad.length);
+                    this.checkAllReady();
+                },
+                error: (err) => {
+                    console.error('Error loading activities:', err);
+                    this.dataLoaded.activities = true;
+                    this.checkAllReady();
+                },
+            });
+
+        // Load all fichas with improved error handling
+        this.tourismService
+            .getAllFichas()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (fichas) => {
+                    // Validate and filter out invalid data
+                    this.allFichas = fichas.filter(
+                        (ficha) =>
+                            ficha &&
+                            typeof ficha.lat === 'number' &&
+                            typeof ficha.lng === 'number' &&
+                            ficha.title_marcador
+                    );
+
+                    this.dataLoaded.fichas = true;
+                    console.log('Fichas loaded:', this.allFichas.length);
+                    this.checkAllReady();
+                },
+                error: (err) => {
+                    console.error('Error loading fichas:', err);
+                    this.dataLoaded.fichas = true;
+                    this.checkAllReady();
+                },
+            });
+    }
+
+    /**
+     * Check if everything is ready to apply filters and display map
+     */
+    private checkAllReady() {
+        if (
+            this.mapInitialized &&
+            this.dataLoaded.activities &&
+            this.dataLoaded.fichas
+        ) {
+            this.applyNameFilter();
+        }
+    }
+
+    /**
+     * Apply filter based on name received in URL
      */
     applyNameFilter() {
-        if (this.name && this.actividadesCargadas && this.fichasCargadas) {
-            console.log('Aplicando filtro por nombre:', this.name);
+        if (this.name) {
+            console.log('Applying filter by name:', this.name);
+            const normalizedName = this.name.toLowerCase().trim();
 
-            // Buscar en actividades primero
-            const actividadesEncontradas = this.actividad.filter(
-                (a) => a.label.toLowerCase() === this.name.toLowerCase()
+            // First search in activities
+            const matchingActivities = this.actividad.filter(
+                (a) => a.label.toLowerCase().trim() === normalizedName
             );
 
-            if (actividadesEncontradas.length > 0) {
-                console.log('Actividades encontradas:', actividadesEncontradas);
+            if (matchingActivities.length > 0) {
+                console.log('Matching activities found:', matchingActivities);
                 this.selectedActivities = new Set(
-                    actividadesEncontradas.map((a) => a._id)
+                    matchingActivities.map((a) => a._id)
                 );
-                // Aplicamos el filtro
                 this.filterFichas();
             } else {
-                console.warn(
-                    `No se encontró la actividad con el nombre: ${this.name}`
-                );
-
-                // Si no encuentra en actividades, buscar en fichas por `title_marcador`
-                const fichasEncontradas = this.allFichas.filter(
+                // If not found in activities, search in fichas by `title_marcador`
+                const matchingFichas = this.allFichas.filter(
                     (ficha) =>
-                        ficha.title_marcador.toLowerCase() ===
-                        this.name.toLowerCase()
+                        ficha.title_marcador.toLowerCase().trim() ===
+                        normalizedName
                 );
 
-                if (fichasEncontradas.length > 0) {
+                if (matchingFichas.length > 0) {
                     console.log(
-                        'Fichas encontradas por title_marcador:',
-                        fichasEncontradas
+                        'Matching fichas found by title_marcador:',
+                        matchingFichas
                     );
                     this.selectedActivities = new Set(
-                        fichasEncontradas
+                        matchingFichas
                             .map((ficha) => ficha.actividadId)
                             .filter(Boolean)
                     );
-                    this.mostVisited = fichasEncontradas; // Solo mostrar esas fichas
+                    this.mostVisited = matchingFichas; // Only show these fichas
+                    this.addMarkers();
                 } else {
-                    console.warn(
-                        `No se encontró ninguna ficha con title_marcador: ${this.name}`
+                    // Try partial matching
+                    const partialMatchFichas = this.allFichas.filter((ficha) =>
+                        ficha.title_marcador
+                            .toLowerCase()
+                            .includes(normalizedName)
                     );
-                    this.selectedActivities.clear();
-                    this.selectedActivities = new Set(
-                        this.actividad.map((a) => a._id)
-                    );
-                    this.filterFichas();
+
+                    if (partialMatchFichas.length > 0) {
+                        console.log(
+                            'Partial matches found:',
+                            partialMatchFichas.length
+                        );
+                        this.mostVisited = partialMatchFichas;
+                        this.addMarkers();
+                    } else {
+                        console.warn(`No matches found for: ${this.name}`);
+                        this.selectedActivities = new Set(
+                            this.actividad.map((a) => a._id)
+                        );
+                        this.filterFichas();
+                    }
                 }
             }
-        } else if (!this.name) {
-            // Si no hay nombre, seleccionamos todas las actividades
+        } else {
+            // If no name, select all activities
             this.selectedActivities = new Set(this.actividad.map((a) => a._id));
-            // Aplicamos el filtro
             this.filterFichas();
         }
-        this.addMarkers();
-    }
-
-    goBack() {
-        this.router.navigate(['/mapa-turistico']);
     }
 
     /**
-     * Carga todas las actividades
-     */
-    async loadActivities() {
-        return new Promise<void>((resolve) => {
-            this.listService
-                .listarTiposActividadesProyecto(null, { is_tourism: true })
-                .subscribe((response: any) => {
-                    if (response.data) {
-                        this.actividad = response.data.map((item: any) => ({
-                            label: item.nombre,
-                            icon: item.icono,
-                            _id: item._id,
-                        }));
-                        //console.log('Actividades disponibles:', this.actividad);
-                        this.actividadesCargadas = true;
-                        this.applyNameFilter();
-                    }
-                    resolve();
-                });
-        });
-    }
-
-    /**
-     * Obtiene todas las fichas sin filtrar al inicio
-     */
-    async getFichas() {
-        return new Promise<void>((resolve) => {
-            this.listService
-                .listarFichaSectorial(null, {
-                    //'actividad.is_tourism': true,
-                    view: true,
-                })
-                .subscribe((response: any) => {
-                    if (response.data) {
-                        this.allFichas = response.data
-                            .map((item: any) => {
-                                if (item.actividad.is_tourism) {
-                                    return {
-                                        title_marcador: item.title_marcador,
-                                        image: item.icono_marcador,
-                                        _id: item._id,
-                                        foto: item.foto,
-                                        direccion: item.direccion_geo.nombre,
-                                        me_gusta: item.me_gusta || [],
-                                        comentarios: item.comentarios || [],
-                                        lat: item.direccion_geo.latitud,
-                                        lng: item.direccion_geo.longitud,
-                                        actividadId:
-                                            item.actividad?._id || null, // ID de la actividad
-                                        actividadNombre:
-                                            item.actividad?.nombre || null, // Nombre de la actividad
-                                    };
-                                } else {
-                                    return null; // Para evitar `undefined` en el array
-                                }
-                            })
-                            .filter(Boolean); // Elimina valores `null` o `undefined`
-                        //console.log('Fichas cargadas:', this.allFichas);
-                        this.fichasCargadas = true;
-                        this.applyNameFilter();
-                    }
-                    resolve();
-                });
-        });
-    }
-
-    /**
-     * Maneja la selección de actividades como checkboxes
-     */
-    toggleActivity(activity: any) {
-        if (this.selectedActivities.has(activity._id)) {
-            this.selectedActivities.delete(activity._id);
-        } else {
-            this.selectedActivities.add(activity._id);
-        }
-        this.filterFichas(); // Aplica filtro sin volver a hacer la petición
-    }
-
-    /**
-     * Filtra las fichas basándose en las actividades seleccionadas
-     */
-    filterFichas() {
-        if (this.selectedActivities.size === 0) {
-            this.mostVisited = [...this.allFichas]; // Mostrar todas si nada está seleccionado
-        } else {
-            this.mostVisited = this.allFichas.filter(
-                (ficha) =>
-                    ficha.actividadId &&
-                    this.selectedActivities.has(ficha.actividadId)
-            );
-        }
-        //console.log('Fichas filtradas:', this.mostVisited);
-        this.addMarkers();
-    }
-
-    /**
-     * Inicializa el mapa de Google Maps
+     * Initialize Google Maps with improved performance
      */
     async initMap() {
-        await this.googlemaps.getLoader();
-        this.helperService.autocompleteService =
-            new google.maps.places.AutocompleteService();
-        this.helperService.geocoderService = new google.maps.Geocoder();
+        try {
+            await this.googlemaps.getLoader();
 
-        const defaultLocation = {
-            lat: 0.9723572373860649,
-            lng: -79.65359974255226,
-        };
+            // Initialize required services
+            this.helperService.autocompleteService =
+                new google.maps.places.AutocompleteService();
+            this.helperService.geocoderService = new google.maps.Geocoder();
 
-        this.mapCustom = new google.maps.Map(
-            document.getElementById('map') as HTMLElement,
-            {
-                zoom: 15,
-                center: defaultLocation,
-                mapTypeId: 'terrain',
-                fullscreenControl: false,
-                mapTypeControl: false,
-                gestureHandling: 'greedy',
-                disableDefaultUI: true, // Deshabilita TODOS los controles de UI por defecto
-                streetViewControl: true,
-                // Posicionar el control de Street View en la parte superior derecha
-                streetViewControlOptions: {
-                    position: this.isMobil()
-                        ? google.maps.ControlPosition.RIGHT_CENTER
-                        : google.maps.ControlPosition.TOP_RIGHT,
-                },
-                styles: [
-                    {
-                        featureType: 'poi',
-                        elementType: 'labels',
-                        stylers: [{ visibility: 'off' }],
+            const defaultLocation = {
+                lat: 0.9723572373860649,
+                lng: -79.65359974255226,
+            };
+
+            // Create map with optimized settings
+            this.mapCustom = new google.maps.Map(
+                document.getElementById('map') as HTMLElement,
+                {
+                    zoom: 15,
+                    center: defaultLocation,
+                    mapTypeId: 'terrain',
+                    fullscreenControl: false,
+                    mapTypeControl: false,
+                    gestureHandling: 'greedy',
+                    disableDefaultUI: true,
+                    streetViewControl: true,
+                    streetViewControlOptions: {
+                        position: this.isMobil()
+                            ? google.maps.ControlPosition.RIGHT_CENTER
+                            : google.maps.ControlPosition.TOP_RIGHT,
                     },
-                ],
-            }
-        );
+                    styles: [
+                        {
+                            featureType: 'poi',
+                            elementType: 'labels',
+                            stylers: [{ visibility: 'off' }],
+                        },
+                    ],
+                    // Performance optimization
+                    //optimized: true,
+                    maxZoom: 18,
+                    minZoom: 5,
+                }
+            );
 
-        this.mapCustom.addListener(
-            'click',
-            (event: google.maps.MapMouseEvent) => {
-                this.onClickHandlerMap(event);
-            }
-        );
+            // Use passive listener for better performance on mobile
+            const mapElement = document.getElementById('map') as HTMLElement;
+            mapElement.addEventListener('touchstart', () => {}, {
+                passive: true,
+            });
 
-        // Crear botón de geolocalización personalizado
-        this.createGeoLocationButton();
+            // Create custom geolocation button
+            this.createGeoLocationButton();
+
+            // Map click handler
+            this.mapCustom.addListener(
+                'click',
+                (event: google.maps.MapMouseEvent) => {
+                    // Close active InfoWindow on map click
+                    if (this.activeInfoWindow) {
+                        this.activeInfoWindow.close();
+                    }
+                    this.onClickHandlerMap(event);
+                }
+            );
+        } catch (error) {
+            console.error('Error initializing map:', error);
+        }
     }
 
     /**
-     * Crea un botón de geolocalización personalizado y lo añade al mapa
+     * Create a custom geolocation button and add it to the map
      */
     createGeoLocationButton() {
         const geoButton = document.createElement('button');
@@ -346,11 +395,11 @@ export class MapsComponent implements OnInit {
             '<i class="bi bi-crosshair" style="font-size: 24px; line-height: 40px; color:#4caf50;"></i>';
         geoButton.title = 'Mi ubicación';
 
-        // Establecer estilos para el botón
+        // Set button styles
         geoButton.style.backgroundColor = 'white';
         geoButton.style.border = 'none';
-        geoButton.style.borderRadius = '50%'; // Botón completamente redondo
-        geoButton.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)'; // Sombra más suave y amplia
+        geoButton.style.borderRadius = '50%';
+        geoButton.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
         geoButton.style.cursor = 'pointer';
         geoButton.style.margin = '10px';
         geoButton.style.padding = '0';
@@ -358,23 +407,23 @@ export class MapsComponent implements OnInit {
         geoButton.style.height = '42px';
         geoButton.style.textAlign = 'center';
         geoButton.style.lineHeight = '42px';
-        geoButton.style.transition = 'all 0.2s ease'; // Transición suave para efectos
+        geoButton.style.transition = 'all 0.2s ease';
 
-        // Efecto hover
+        // Hover effect
         geoButton.addEventListener('mouseover', () => {
             geoButton.style.backgroundColor = '#f9f9f9';
             geoButton.style.boxShadow = '0 3px 8px rgba(0,0,0,0.4)';
             geoButton.style.transform = 'translateY(-1px)';
         });
 
-        // Volver al estado normal al quitar el hover
+        // Return to normal state when hover is removed
         geoButton.addEventListener('mouseout', () => {
             geoButton.style.backgroundColor = 'white';
             geoButton.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
             geoButton.style.transform = 'translateY(0)';
         });
 
-        // Efecto al hacer clic
+        // Click effect
         geoButton.addEventListener('mousedown', () => {
             geoButton.style.boxShadow = '0 1px 3px rgba(0,0,0,0.3)';
             geoButton.style.transform = 'translateY(1px)';
@@ -385,29 +434,24 @@ export class MapsComponent implements OnInit {
             geoButton.style.transform = 'translateY(0)';
         });
 
-        // Agregar evento click para la funcionalidad
+        // Add click event for functionality
         geoButton.addEventListener('click', () => {
             this.getUserLocation();
         });
 
-        // Agregar evento click
-        geoButton.addEventListener('click', () => {
-            this.getUserLocation();
-        });
-
-        // Agregar el botón al mapa (posición esquina superior derecha)
+        // Add button to map (top right position)
         this.mapCustom.controls[google.maps.ControlPosition.RIGHT_CENTER].push(
             geoButton
         );
     }
 
     /**
-     * Obtiene la ubicación actual del usuario con protección contra múltiples llamadas
+     * Get user's current location with protection against multiple calls
      */
     getUserLocation() {
-        // Evitar múltiples llamadas simultáneas
+        // Prevent multiple simultaneous calls
         if (this.geoLocationLoading) {
-            console.log('Ya hay una solicitud de ubicación en progreso');
+            console.log('Location request already in progress');
             return;
         }
 
@@ -422,7 +466,7 @@ export class MapsComponent implements OnInit {
                         lng: position.coords.longitude,
                     };
 
-                    // Mostrar la ubicación en el mapa
+                    // Show location on map
                     this.showUserLocation(pos);
                     this.geoLocationLoading = false;
                 },
@@ -431,25 +475,22 @@ export class MapsComponent implements OnInit {
                     switch (error.code) {
                         case error.PERMISSION_DENIED:
                             this.geoLocationError =
-                                'Usuario rechazó la solicitud de geolocalización.';
+                                'User denied geolocation request.';
                             break;
                         case error.POSITION_UNAVAILABLE:
                             this.geoLocationError =
-                                'Información de ubicación no disponible.';
+                                'Location information unavailable.';
                             break;
                         case error.TIMEOUT:
                             this.geoLocationError =
-                                'Tiempo de espera agotado para obtener la ubicación.';
+                                'Location request timed out.';
                             break;
                         default:
                             this.geoLocationError =
-                                'Error desconocido al obtener ubicación.';
+                                'Unknown error getting location.';
                             break;
                     }
-                    console.error(
-                        'Error de geolocalización:',
-                        this.geoLocationError
-                    );
+                    console.error('Geolocation error:', this.geoLocationError);
                 },
                 {
                     enableHighAccuracy: true,
@@ -460,31 +501,30 @@ export class MapsComponent implements OnInit {
         } else {
             this.geoLocationLoading = false;
             this.geoLocationError =
-                'Geolocalización no soportada en este navegador.';
+                'Geolocation not supported in this browser.';
             console.error(this.geoLocationError);
         }
     }
-    userAccuracyCircle: google.maps.Circle | null = null; // Agregar referencia al círculo
 
     /**
-     * Muestra la ubicación del usuario en el mapa
+     * Show user's location on the map
      */
     showUserLocation(position: { lat: number; lng: number }) {
-        // Remover marcador anterior si existe
+        // Remove previous marker if exists
         if (this.userMarker) {
             this.userMarker.setMap(null);
         }
 
-        // Remover círculo anterior si existe
+        // Remove previous circle if exists
         if (this.userAccuracyCircle) {
             this.userAccuracyCircle.setMap(null);
         }
 
-        // Crear marcador de usuario
+        // Create user marker
         this.userMarker = new google.maps.Marker({
             position: position,
             map: this.mapCustom,
-            title: 'Tu ubicación',
+            title: 'Your location',
             icon: {
                 path: google.maps.SymbolPath.CIRCLE,
                 fillColor: '#4285F4',
@@ -493,14 +533,15 @@ export class MapsComponent implements OnInit {
                 strokeWeight: 2,
                 scale: 8,
             },
-            zIndex: 1000, // Para que esté por encima de otros marcadores
+            zIndex: 1000, // To be above other markers
+            optimized: true, // Better performance
         });
 
-        // Crear círculo de precisión alrededor del marcador
+        // Create accuracy circle around marker
         this.userAccuracyCircle = new google.maps.Circle({
             map: this.mapCustom,
             center: position,
-            radius: 50, // Radio en metros
+            radius: 50, // Radius in meters
             fillColor: '#4285F4',
             fillOpacity: 0.2,
             strokeColor: '#4285F4',
@@ -508,35 +549,124 @@ export class MapsComponent implements OnInit {
             strokeWeight: 1,
         });
 
-        // Centrar el mapa en la posición del usuario con una animación suave
+        // Center map on user position with smooth animation
         this.mapCustom.panTo(position);
 
-        // Ajustar el zoom solo si está muy alejado o muy cercano
+        // Adjust zoom only if it's very far or very close
         const currentZoom = this.mapCustom.getZoom();
         if (currentZoom < 14 || currentZoom > 18) {
             this.mapCustom.setZoom(16);
         }
     }
 
-    displayFichaDialog: boolean = false;
-    selectedFichaId: any = {};
+    /**
+     * Initialize marker clusterer for better performance with many markers
+     */
+    private initializeMarkerClusterer() {
+        // Clear previous clusterer if exists
+        if (this.markerClusterer) {
+            this.markerClusterer.clearMarkers();
+        }
+
+        // Skip if no markers
+        if (this.markers.length === 0) return;
+
+        // Need to load MarkerClusterer library
+        // Note: This assumes MarkerClusterer is available in your project
+        // You may need to add it to your dependencies
+        this.markerClusterer = new MarkerClusterer({
+            map: this.mapCustom,
+            markers: this.markers,
+        });
+    }
 
     /**
-     * Abre el diálogo de ficha con mejoras para móviles
+     * Create and show InfoWindow for a location
+     */
+    private createInfoWindow(
+        place: any,
+        marker: google.maps.Marker
+    ): google.maps.InfoWindow {
+        console.log('Creando infowindow:', place);
+        // Close existing InfoWindow first
+        if (this.activeInfoWindow) {
+            this.activeInfoWindow.close();
+        }
+
+        // Create InfoWindow with styled header and content background-color: #f8f9fa;
+        const contentString = `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+                <div style="padding: 8px 12px; font-weight: 600; font-size: 16px; color: #333; border-bottom: 1px solid #dee2e6;">
+                    ${place.title_marcador || 'Sin título'}
+                </div>
+                <div style="padding: 12px;">
+                    <div style="display: flex; gap: 8px;">
+                        <button id="ver-mas-${
+                            place._id
+                        }" style="background-color: #689F38; color: white; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-weight: 600; display: flex; align-items: center;">
+                            <span style="margin-right: 4px;">Ver más</span>
+                            <span style="font-size: 14px;">»</span>
+                        </button>
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=${
+                            place.lat
+                        },${
+            place.lng
+        }" target="_blank" style="background-color: #f8f9fa; color: #0275d8; text-decoration: none; border: 1px solid #ddd; border-radius: 4px; padding: 6px 12px; font-weight: 500;">
+                            Cómo llegar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Create InfoWindow without using headerContent
+        const infoWindow = new google.maps.InfoWindow({
+            content: contentString,
+            headerDisabled: true,
+            maxWidth: 300,
+            ariaLabel: place.title_marcador,
+        });
+
+        // Set as active InfoWindow
+        this.activeInfoWindow = infoWindow;
+
+        // Open InfoWindow
+        infoWindow.open({
+            anchor: marker,
+            map: this.mapCustom,
+        });
+
+        // Add event listener for "Ver más" button
+        google.maps.event.addListenerOnce(infoWindow, 'domready', () => {
+            document
+                .getElementById(`ver-mas-${place._id}`)
+                ?.addEventListener('click', () => {
+                    this.ngZone.run(() => {
+                        this.abrirFichaDialog(place);
+                        infoWindow.close();
+                    });
+                });
+        });
+
+        return infoWindow;
+    }
+
+    /**
+     * Open ficha dialog with improvements for mobile devices
      */
     abrirFichaDialog(fichaId: any) {
-        // Primero, asegurarse de que tenemos información válida
+        // First, ensure we have valid information
         if (!fichaId || !fichaId._id) {
-            console.error('ID de ficha inválido:', fichaId);
+            console.error('Invalid ficha ID:', fichaId);
             return;
         }
 
-        // Guardar la ficha seleccionada
+        // Save selected ficha
         this.selectedFichaId = fichaId;
 
-        // En móviles, asegúrate de que el scroll esté en la parte superior
+        // For mobile devices, ensure scroll is at the top
         if (this.isMobil()) {
-            // Pequeño retraso para asegurar que el DOM esté listo
+            // Small delay to ensure DOM is ready
             setTimeout(() => {
                 const dialogContent =
                     document.querySelector('.p-dialog-content');
@@ -546,90 +676,194 @@ export class MapsComponent implements OnInit {
             }, 50);
         }
 
-        // Mostrar el diálogo
+        // Show dialog
         this.displayFichaDialog = true;
 
-        // Forzar la detección de cambios
+        // Force change detection
         this.cdr.detectChanges();
 
-        console.log('Abriendo dialog de ficha:', fichaId._id);
+        console.log('Opening ficha dialog:', fichaId._id);
     }
 
+    /**
+     * Filter fichas based on selected activities
+     */
+    filterFichas() {
+        if (this.selectedActivities.size === 0) {
+            this.mostVisited = [...this.allFichas]; // Show all if nothing selected
+        } else {
+            this.mostVisited = this.allFichas.filter(
+                (ficha) =>
+                    ficha.actividadId &&
+                    this.selectedActivities.has(ficha.actividadId)
+            );
+        }
+        this.addMarkers();
+    }
+
+    /**
+     * Toggle activity selection
+     */
+    toggleActivity(activity: any) {
+        if (this.selectedActivities.has(activity._id)) {
+            this.selectedActivities.delete(activity._id);
+        } else {
+            this.selectedActivities.add(activity._id);
+        }
+        this.filterFichas(); // Apply filter without making another request
+    }
+
+    /**
+     * Add markers to the map with clustering support
+     */
     addMarkers() {
+        // Clear existing markers and InfoWindows
         this.clearMarkers();
+        if (this.activeInfoWindow) {
+            this.activeInfoWindow.close();
+            this.activeInfoWindow = null;
+        }
 
-        this.mostVisited.forEach((place) => {
-            const marker = new google.maps.Marker({
-                position: { lat: place.lat, lng: place.lng },
-                map: this.mapCustom,
-                title: place.title_marcador,
-                icon: {
-                    url: place.image,
-                    scaledSize: new google.maps.Size(40, 40),
-                },
-            });
+        // Cache icon objects to improve performance
+        const iconCache = new Map<string, google.maps.Icon>();
 
-            marker.addListener('click', () => {
-                this.abrirFichaDialog(place);
-            });
+        // Batch marker creation for better performance
+        const markerBatch = this.mostVisited
+            .map((place) => {
+                // Skip invalid places
+                if (!place || !place.lat || !place.lng) return null;
 
-            this.markers.push(marker);
-        });
-        setTimeout(() => {
-            if (this.mostVisited.length == 1) {
-                this.abrirFichaDialog(this.mostVisited[0]);
+                // Use cached icon or create new one
+                let icon: google.maps.Icon;
+                if (place.image) {
+                    if (iconCache.has(place.image)) {
+                        icon = iconCache.get(place.image);
+                    } else {
+                        icon = {
+                            url: place.image,
+                            scaledSize: new google.maps.Size(40, 40),
+                        };
+                        iconCache.set(place.image, icon);
+                    }
+                }
+
+                // Create marker with optimized properties
+                const marker = new google.maps.Marker({
+                    position: { lat: place.lat, lng: place.lng },
+                    map: this.mapCustom,
+                    title: place.title_marcador,
+                    icon: icon,
+                    //optimized: true, // Better performance
+                    visible: true,
+                    clickable: true,
+                    zIndex: undefined, // Auto-manage z-index
+                });
+
+                // Add click listener to show InfoWindow and potentially open dialog
+                marker.addListener('click', () => {
+                    this.createInfoWindow(place, marker);
+                });
+
+                return marker;
+            })
+            .filter(Boolean) as google.maps.Marker[]; // Remove nulls
+
+        // Store valid markers
+        this.markers = markerBatch;
+
+        // Initialize marker clusterer
+        this.initializeMarkerClusterer();
+
+        // Handle special case for single marker
+        if (this.markers.length === 1) {
+            // Center on the single marker with appropriate zoom
+            this.mapCustom.setCenter(this.markers[0].getPosition());
+            this.mapCustom.setZoom(15);
+
+            // If name filter was applied, show InfoWindow automatically
+            if (this.name) {
+                const place = this.mostVisited[0];
+                this.createInfoWindow(place, this.markers[0]);
+
+                // Auto-open detail dialog after small delay
+                setTimeout(() => {
+                    this.abrirFichaDialog(place);
+                }, 800);
             }
-        }, 1000);
-
-        if (this.markers.length > 0) {
+        } else if (this.markers.length > 1) {
+            // Fit bounds to show all markers
             this.fitBoundsToMarkers();
         }
     }
 
     /**
-     * Ajusta el mapa para mostrar todos los marcadores
+     * Adjust map to show all markers
      */
     fitBoundsToMarkers() {
         if (this.markers.length === 0) return;
 
+        // Create bounds object for all markers
         const bounds = new google.maps.LatLngBounds();
         this.markers.forEach((marker) => {
-            bounds.extend(marker.getPosition());
+            if (marker && marker.getPosition()) {
+                bounds.extend(marker.getPosition());
+            }
         });
 
-        this.mapCustom.fitBounds(bounds);
+        // Apply some padding
+        const padding = this.isMobil() ? 50 : 80;
 
-        // Si solo hay un marcador, ajusta el zoom
-        if (this.markers.length === 1) {
-            this.mapCustom.setZoom(15);
-        }
+        // Apply bounds with padding and animation
+        this.mapCustom.fitBounds(bounds, padding);
+
+        // Set min/max zoom limits
+        google.maps.event.addListenerOnce(
+            this.mapCustom,
+            'bounds_changed',
+            () => {
+                if (this.mapCustom.getZoom() > 16) {
+                    this.mapCustom.setZoom(16);
+                }
+            }
+        );
     }
 
     /**
-     * Elimina los marcadores previos del mapa
+     * Remove previous markers from map
      */
     clearMarkers() {
-        this.markers.forEach((marker) => marker.setMap(null));
+        // First, clear clusterer if exists
+        if (this.markerClusterer) {
+            this.markerClusterer.clearMarkers();
+        }
+
+        // Then remove all markers from map
+        this.markers.forEach((marker) => {
+            if (marker) {
+                // Remove event listeners
+                google.maps.event.clearInstanceListeners(marker);
+                // Remove from map
+                marker.setMap(null);
+            }
+        });
+
+        // Clear array
         this.markers = [];
     }
 
     /**
-     * Maneja clics en el mapa
+     * Handle clicks on the map
      */
     onClickHandlerMap(event: google.maps.MapMouseEvent) {
         if (event.latLng) {
             this.latitude = event.latLng.lat();
             this.longitude = event.latLng.lng();
-            console.log(
-                'Ubicación seleccionada:',
-                this.latitude,
-                this.longitude
-            );
+            console.log('Selected location:', this.latitude, this.longitude);
         }
     }
 
     /**
-     * Devuelve los estilos del diálogo dependiendo de la plataforma
+     * Return dialog styles depending on platform
      */
     getDialogStyle() {
         if (this.isMobil()) {
@@ -652,7 +886,7 @@ export class MapsComponent implements OnInit {
     }
 
     /**
-     * Devuelve los estilos de contenido según la plataforma
+     * Return content styles based on platform
      */
     getContentStyle() {
         if (this.isMobil()) {
@@ -660,7 +894,7 @@ export class MapsComponent implements OnInit {
                 'overflow-y': 'auto',
                 'max-height': 'calc(90vh - 56px)',
                 padding: '0',
-                'overscroll-behavior': 'contain', // Previene scroll del body
+                'overscroll-behavior': 'contain', // Prevent body scroll
             };
         } else {
             return {
@@ -668,6 +902,159 @@ export class MapsComponent implements OnInit {
                 'max-height': 'calc(80vh - 64px)',
                 padding: '0',
             };
+        }
+    }
+
+    /**
+     * Check if device is mobile with better caching
+     */
+    private _isMobileCache: boolean | null = null;
+    private _lastWindowWidth: number = 0;
+
+    isMobil(): boolean {
+        const currentWidth = window.innerWidth;
+
+        // Return cached result if width hasn't changed
+        if (
+            this._lastWindowWidth === currentWidth &&
+            this._isMobileCache !== null
+        ) {
+            return this._isMobileCache;
+        }
+
+        // Calculate and cache result
+        this._lastWindowWidth = currentWidth;
+        this._isMobileCache = window.innerWidth <= 575;
+
+        return this._isMobileCache;
+    }
+
+    /**
+     * Go back to main view
+     */
+    goBack(): void {
+        this.router.navigate(['/mapa-turistico']);
+    }
+
+    /**
+     * Navigate to a route
+     */
+    goTo(route: string): void {
+        console.log(`Navigating to ${route}`);
+    }
+
+    /**
+     * Handle window resize events with debounce
+     */
+    @HostListener('window:resize', [])
+    onResize(): void {
+        this.resizeSubject$.next();
+    }
+
+    /**
+     * Save map state to restore on return
+     * This helps with better user experience when navigating back to the map
+     */
+    saveMapState() {
+        if (this.mapCustom) {
+            const state = {
+                center: {
+                    lat: this.mapCustom.getCenter().lat(),
+                    lng: this.mapCustom.getCenter().lng(),
+                },
+                zoom: this.mapCustom.getZoom(),
+                selectedActivities: Array.from(this.selectedActivities),
+            };
+
+            // Save to sessionStorage
+            try {
+                sessionStorage.setItem('mapState', JSON.stringify(state));
+            } catch (e) {
+                console.error('Error saving map state', e);
+            }
+        }
+    }
+
+    /**
+     * Restore map state if available
+     */
+    restoreMapState() {
+        try {
+            const stateString = sessionStorage.getItem('mapState');
+            if (stateString) {
+                const state = JSON.parse(stateString);
+
+                // Apply center and zoom
+                if (state.center && state.zoom) {
+                    this.mapCustom.setCenter(state.center);
+                    this.mapCustom.setZoom(state.zoom);
+                }
+
+                // Apply activity filters if name filter not specified
+                if (
+                    !this.name &&
+                    state.selectedActivities &&
+                    Array.isArray(state.selectedActivities)
+                ) {
+                    this.selectedActivities = new Set(state.selectedActivities);
+                    this.filterFichas();
+                }
+            }
+        } catch (e) {
+            console.error('Error restoring map state', e);
+        }
+    }
+
+    /**
+     * Create styles for InfoWindow
+     * This should be added to your component's CSS file
+     */
+    initializeInfoWindowStyles() {
+        // Try to add InfoWindow styles
+        try {
+            // Create style element if not already exists
+            if (!document.getElementById('map-info-window-styles')) {
+                const style = document.createElement('style');
+                style.id = 'map-info-window-styles';
+                style.innerHTML = `
+                    .info-window {
+                        font-family: 'Roboto', Arial, sans-serif;
+                        max-width: 280px;
+                    }
+                    .info-window-header {
+                        padding-bottom: 8px;
+                    }
+                    .info-window-header h3 {
+                        margin: 0;
+                        font-size: 16px;
+                        color: #1a73e8;
+                        font-weight: 500;
+                    }
+                    .info-window-content {
+                        font-size: 13px;
+                        line-height: 1.4;
+                        color: #5f6368;
+                    }
+                    .ver-mas-btn {
+                        background-color: #1a73e8;
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        padding: 6px 12px;
+                        font-size: 13px;
+                        margin-top: 8px;
+                        cursor: pointer;
+                        font-weight: 500;
+                        transition: background-color 0.2s;
+                    }
+                    .ver-mas-btn:hover {
+                        background-color: #1765cc;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        } catch (e) {
+            console.error('Error initializing InfoWindow styles', e);
         }
     }
 }

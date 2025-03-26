@@ -269,7 +269,7 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
         { label: 'Diurno', value: 'Day' },
         { label: 'Nocturno', value: 'Night' },
     ];
-    viewMode: string = 'list';
+    viewMode: string = 'cards';
 
     private async initMapAndData(): Promise<void> {
         try {

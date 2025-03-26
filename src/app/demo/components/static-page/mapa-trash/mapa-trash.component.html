@@ -1,31 +1,733 @@
-<div class="grid p-fluid">
-    <div class="col-12">
-        <!-- Search and controls header -->
-        <div
-            class="flex justify-content-between align-items-center search-container"
-        >
-            <!-- Search box -->
-            <span class="p-float-label mb-3 mt-3" *ngIf="!load_fullscreen">
-                <p-autoComplete
-                    appendTo="body"
-                    [(ngModel)]="query"
-                    [suggestions]="predictions"
-                    (completeMethod)="search($event)"
-                    field="description"
-                    [forceSelection]="true"
-                    (onSelect)="imprimir(query)"
-                    [inputStyle]="{
-                        width: isMobil() ? responsiveimage() : '300px',
-                        height: isMobil() ? '46px' : '40px'
-                    }"
-                    placeholder=" "
-                ></p-autoComplete>
-                <label for="float-label"
-                    >Ingresa una dirección o referencia</label
-                >
-            </span>
+<p-tabView>
+    <p-tabPanel header="Rutas y Horarios de Recolección">
+        <div class="grid p-fluid" *ngIf="content">
+            <div class="col-12">
+                <!-- Header con título y búsqueda mejorado -->
+                <div class="header-card mb-3">
+                    <div
+                        class="flex flex-column md:flex-row justify-content-between align-items-center p-3"
+                    >
+                        <div class="title-section">
+                            <h1 class="title">
+                                Rutas y Horarios de Recolección
+                            </h1>
+                            <p class="subtitle">
+                                Alcaldía Ciudadana de Esmeraldas
+                            </p>
+                        </div>
 
-            <!-- Route button
+                        <!-- Barra de búsqueda mejorada -->
+                        <div class="search-section mt-3 md:mt-0">
+                            <div class="p-input-icon-left w-full">
+                                <i class="pi pi-search search-icon"></i>
+                                <p-autoComplete
+                                    [(ngModel)]="searchQuery"
+                                    [suggestions]="searchResults"
+                                    (completeMethod)="searchSectors($event)"
+                                    placeholder="Buscar por sector o barrio"
+                                    [style]="{ width: '100%' }"
+                                    styleClass="search-input"
+                                    [minLength]="2"
+                                    [delay]="300"
+                                    [showEmptyMessage]="true"
+                                    emptyMessage="No se encontraron sectores"
+                                    [dropdown]="true"
+                                    (onSelect)="
+                                        filterBySearchResult($event.value)
+                                    "
+                                    field="name"
+                                    [appendTo]="'body'"
+                                    [forceSelection]="true"
+                                    [autoHighlight]="true"
+                                >
+                                    <ng-template let-sector pTemplate="item">
+                                        <div class="search-result-item">
+                                            <div class="search-result-info">
+                                                <div
+                                                    class="sector-name-container"
+                                                >
+                                                    <span class="icon-circle">
+                                                        <i
+                                                            class="pi pi-map-marker"
+                                                        ></i>
+                                                    </span>
+                                                    <span
+                                                        class="sector-name"
+                                                        [pTooltip]="sector.name"
+                                                        tooltipPosition="top"
+                                                    >
+                                                        {{
+                                                            sector.name.length >
+                                                            50
+                                                                ? sector.name.substring(
+                                                                      0,
+                                                                      40
+                                                                  ) + "..."
+                                                                : sector.name
+                                                        }}
+                                                    </span>
+                                                </div>
+                                                <div class="route-details">
+                                                    <p-tag
+                                                        [severity]="
+                                                            getZoneSeverity(
+                                                                sector.zone
+                                                            )
+                                                        "
+                                                        styleClass="zone-tag"
+                                                        [rounded]="true"
+                                                        class="route-name"
+                                                        [pTooltip]="
+                                                            sector.routeName
+                                                        "
+                                                        tooltipPosition="top"
+                                                    >
+                                                        <i
+                                                            class="pi pi-truck route-icon"
+                                                        ></i>
+                                                        {{
+                                                            sector.routeName
+                                                                .length > 25
+                                                                ? sector.routeName.substring(
+                                                                      0,
+                                                                      20
+                                                                  ) + "..."
+                                                                : sector.routeName
+                                                        }}
+                                                    </p-tag>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </ng-template>
+                                </p-autoComplete>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de ordenanzas destacadas -->
+                <div class="grid mb-3">
+                    <div
+                        class="col-12 md:col-6 lg:col-4"
+                        *ngFor="let info of generalInfo"
+                    >
+                        <div class="info-card h-full">
+                            <div
+                                class="info-card-content"
+                                [ngClass]="{
+                                    'notice-card': info.type === 'Notice',
+                                    'reminder-card': info.type === 'Reminder',
+                                    'instruction-card':
+                                        info.type === 'Instruction'
+                                }"
+                            >
+                                <div class="info-icon-container">
+                                    <i
+                                        class="pi"
+                                        [ngClass]="{
+                                            'pi-info-circle':
+                                                info.type === 'Notice',
+                                            'pi-exclamation-triangle':
+                                                info.type === 'Reminder',
+                                            'pi-directions':
+                                                info.type === 'Instruction'
+                                        }"
+                                    >
+                                    </i>
+                                </div>
+                                <div class="info-text-container">
+                                    <span
+                                        [ngClass]="{
+                                            'font-bold':
+                                                info.type === 'Reminder'
+                                        }"
+                                        >{{ info.value }}</span
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel de filtros -->
+                <div class="card mb-3">
+                    <h3>Filtrar rutas</h3>
+                    <div class="grid">
+                        <div class="col-12 md:col-4 mb-3">
+                            <label class="block font-medium mb-2">Zona</label>
+                            <p-selectButton
+                                [options]="zoneOptions"
+                                [(ngModel)]="selectedZone"
+                                (onChange)="filterRoutes()"
+                                styleClass="w-full flex-wrap"
+                            >
+                            </p-selectButton>
+                        </div>
+
+                        <div class="col-12 md:col-4 mb-3">
+                            <label class="block font-medium mb-2">Día</label>
+                            <p-selectButton
+                                [options]="dayOptions"
+                                [(ngModel)]="selectedDay"
+                                (onChange)="filterRoutes()"
+                                styleClass="w-full flex-wrap"
+                            >
+                            </p-selectButton>
+                        </div>
+
+                        <div class="col-12 md:col-4 mb-3">
+                            <label class="block font-medium mb-2"
+                                >Tipo de Servicio</label
+                            >
+                            <p-selectButton
+                                [options]="serviceTypeOptions"
+                                [(ngModel)]="selectedServiceType"
+                                (onChange)="filterRoutes()"
+                                styleClass="w-full flex-wrap"
+                            >
+                            </p-selectButton>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-content-end">
+                        <p-button
+                            label="Limpiar Filtros"
+                            icon="pi pi-filter-slash"
+                            styleClass="p-button-outlined p-button-secondary"
+                            (onClick)="clearFilters()"
+                        >
+                        </p-button>
+                    </div>
+                </div>
+
+                <!-- Resultados -->
+                <div class="card">
+                    <div
+                        class="flex justify-content-between align-items-center mb-3"
+                    >
+                        <h3 class="routes-count m-0">
+                            {{ filteredRoutes.length }} rutas encontradas
+                        </h3>
+
+                        <p-selectButton
+                            [options]="[
+                                {
+                                    label: 'Tarjetas',
+                                    value: 'cards',
+                                    icon: 'pi pi-th-large'
+                                },
+                                {
+                                    label: 'Lista',
+                                    value: 'list',
+                                    icon: 'pi pi-list'
+                                }
+                            ]"
+                            [(ngModel)]="viewMode"
+                            styleClass="view-toggle"
+                        ></p-selectButton>
+                    </div>
+
+                    <!-- Vista de Lista -->
+                    <p-accordion
+                        *ngIf="viewMode === 'list' && filteredRoutes.length > 0"
+                        [multiple]="true"
+                        styleClass="routes-accordion"
+                    >
+                        <p-accordionTab *ngFor="let route of filteredRoutes">
+                            <ng-template pTemplate="header">
+                                <div class="flex align-items-center">
+                                    <i class="pi pi-truck mr-2"></i>
+                                    <span class="font-bold">{{
+                                        route.name
+                                    }}</span>
+                                    <p-tag
+                                        *ngIf="route.zone"
+                                        [value]="getZoneLabel(route.zone)"
+                                        [severity]="getZoneSeverity(route.zone)"
+                                        class="ml-2"
+                                    >
+                                    </p-tag>
+                                </div>
+                            </ng-template>
+                            <div class="p-0">
+                                <div class="mb-3">
+                                    <span class="font-medium"
+                                        >Descripción:</span
+                                    >
+                                    {{ route.description }}
+                                </div>
+
+                                <div class="mb-3">
+                                    <span class="font-medium">Días:</span>
+                                    <span
+                                        *ngFor="
+                                            let day of route.days;
+                                            let i = index
+                                        "
+                                    >
+                                        {{ getSpanishDay(day)
+                                        }}{{
+                                            i < route.days.length - 1
+                                                ? ", "
+                                                : ""
+                                        }}
+                                    </span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <span class="font-medium"
+                                        >Tipo de servicio:</span
+                                    >
+                                    <p-tag
+                                        [value]="
+                                            route.serviceType === 'Day'
+                                                ? 'Diurno'
+                                                : 'Nocturno'
+                                        "
+                                        [severity]="
+                                            route.serviceType === 'Day'
+                                                ? 'success'
+                                                : 'info'
+                                        "
+                                    >
+                                    </p-tag>
+                                </div>
+
+                                <div class="schedule-container">
+                                    <h4>Horarios por Sector</h4>
+                                    <div class="grid">
+                                        <div
+                                            class="col-12 md:col-6 lg:col-4"
+                                            *ngFor="
+                                                let schedule of route.schedules
+                                            "
+                                        >
+                                            <div class="schedule-card">
+                                                <div class="schedule-sector">
+                                                    {{ schedule.sector }}
+                                                </div>
+                                                <div class="schedule-time">
+                                                    <i
+                                                        class="pi pi-clock mr-2"
+                                                    ></i>
+                                                    <span
+                                                        >{{
+                                                            schedule.startTime
+                                                        }}
+                                                        -
+                                                        {{
+                                                            schedule.endTime
+                                                        }}</span
+                                                    >
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </p-accordionTab>
+                    </p-accordion>
+
+                    <!-- Vista de Tarjetas -->
+                    <div *ngIf="viewMode === 'cards'" class="grid">
+                        <div
+                            class="col-12 sm:col-6 lg:col-4 xl:col-3 mb-3"
+                            *ngFor="let route of filteredRoutes"
+                        >
+                            <p-card styleClass="route-card">
+                                <ng-template pTemplate="header">
+                                    <div
+                                        class="route-card-header p-3"
+                                        [ngClass]="{
+                                            'bg-blue-50':
+                                                route.zone === 'Center',
+                                            'bg-yellow-50':
+                                                route.zone === 'Night',
+                                            'bg-green-50':
+                                                route.zone === 'South',
+                                            'bg-cyan-50':
+                                                route.zone === 'RiverBank'
+                                        }"
+                                    >
+                                        <div
+                                            class="flex justify-content-between align-items-center"
+                                        >
+                                            <h3 class="m-0 text-lg font-medium">
+                                                {{ route.name }}
+                                            </h3>
+                                            <p-tag
+                                                [value]="
+                                                    getZoneLabel(route.zone)
+                                                "
+                                                [severity]="
+                                                    getZoneSeverity(route.zone)
+                                                "
+                                            ></p-tag>
+                                        </div>
+                                    </div>
+                                </ng-template>
+
+                                <div class="mb-2">
+                                    <p>{{ route.description }}</p>
+                                </div>
+
+                                <div class="flex align-items-center mb-2">
+                                    <i
+                                        class="pi pi-calendar mr-2 text-primary"
+                                    ></i>
+                                    <span>
+                                        <span
+                                            *ngFor="
+                                                let day of route.days;
+                                                let i = index
+                                            "
+                                        >
+                                            {{ getSpanishDay(day)
+                                            }}{{
+                                                i < route.days.length - 1
+                                                    ? ", "
+                                                    : ""
+                                            }}
+                                        </span>
+                                    </span>
+                                </div>
+
+                                <div class="flex align-items-center mb-3">
+                                    <i
+                                        class="pi pi-clock mr-2 text-primary"
+                                    ></i>
+                                    <p-tag
+                                        [value]="
+                                            route.serviceType === 'Day'
+                                                ? 'Diurno'
+                                                : 'Nocturno'
+                                        "
+                                        [severity]="
+                                            route.serviceType === 'Day'
+                                                ? 'success'
+                                                : 'info'
+                                        "
+                                    >
+                                    </p-tag>
+                                </div>
+
+                                <div class="schedule-preview mb-2">
+                                    <span class="font-medium">Sectores:</span>
+                                    <span
+                                        >{{
+                                            route.schedules.length
+                                        }}
+                                        sectores</span
+                                    >
+                                </div>
+
+                                <ng-template pTemplate="footer">
+                                    <p-button
+                                        label="Ver detalles"
+                                        icon="pi pi-search"
+                                        styleClass="p-button-outlined p-button-sm w-full"
+                                        (onClick)="showRouteDetails(route)"
+                                    >
+                                    </p-button>
+                                </ng-template>
+                            </p-card>
+                        </div>
+                    </div>
+
+                    <!-- Diálogo de detalles de ruta -->
+                    <p-dialog
+                        [(visible)]="detailsVisible"
+                        [header]="selectedRoute?.name || 'Detalles de ruta'"
+                        [modal]="true"
+                        [dismissableMask]="true"
+                        [closeOnEscape]="true"
+                        [style]="{ width: '90vw', maxWidth: '800px' }"
+                        styleClass="route-details-dialog"
+                    >
+                        <div *ngIf="selectedRoute">
+                            <div class="mb-3">
+                                <span class="font-medium">Descripción:</span>
+                                {{ selectedRoute.description }}
+                            </div>
+
+                            <div class="mb-3">
+                                <span class="font-medium">Zona:</span>
+                                <p-tag
+                                    [value]="getZoneLabel(selectedRoute.zone)"
+                                    [severity]="
+                                        getZoneSeverity(selectedRoute.zone)
+                                    "
+                                    class="ml-2"
+                                >
+                                </p-tag>
+                            </div>
+
+                            <div class="mb-3">
+                                <span class="font-medium">Días:</span>
+                                <span
+                                    *ngFor="
+                                        let day of selectedRoute.days;
+                                        let i = index
+                                    "
+                                >
+                                    {{ getSpanishDay(day)
+                                    }}{{
+                                        i < selectedRoute.days.length - 1
+                                            ? ", "
+                                            : ""
+                                    }}
+                                </span>
+                            </div>
+
+                            <div class="mb-3">
+                                <span class="font-medium"
+                                    >Tipo de servicio:</span
+                                >
+                                <p-tag
+                                    [value]="
+                                        selectedRoute.serviceType === 'Day'
+                                            ? 'Diurno'
+                                            : 'Nocturno'
+                                    "
+                                    [severity]="
+                                        selectedRoute.serviceType === 'Day'
+                                            ? 'success'
+                                            : 'info'
+                                    "
+                                >
+                                </p-tag>
+                            </div>
+
+                            <div class="schedule-container">
+                                <h4>Horarios por Sector</h4>
+                                <div class="grid">
+                                    <div
+                                        class="col-12 md:col-6"
+                                        *ngFor="
+                                            let schedule of selectedRoute.schedules
+                                        "
+                                    >
+                                        <div class="schedule-card">
+                                            <div class="schedule-sector">
+                                                {{ schedule.sector }}
+                                            </div>
+                                            <div class="schedule-time">
+                                                <i class="pi pi-clock mr-2"></i>
+                                                <span
+                                                    >{{ schedule.startTime }} -
+                                                    {{ schedule.endTime }}</span
+                                                >
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </p-dialog>
+                </div>
+            </div>
+        </div>
+        <!-- Skeleton Loader para el componente de Rutas y Horarios -->
+        <div class="grid p-fluid" *ngIf="!content">
+            <div class="col-12">
+                <!-- Header con título y búsqueda (skeleton) -->
+                <div class="header-card mb-3">
+                    <div
+                        class="flex flex-column md:flex-row justify-content-between align-items-center p-3"
+                    >
+                        <div class="title-section">
+                            <p-skeleton
+                                height="2rem"
+                                width="18rem"
+                                styleClass="mb-2"
+                            ></p-skeleton>
+                            <p-skeleton
+                                height="1.25rem"
+                                width="15rem"
+                            ></p-skeleton>
+                        </div>
+
+                        <!-- Barra de búsqueda skeleton -->
+                        <div class="search-section mt-3 md:mt-0">
+                            <div class="p-input-icon-left w-full">
+                                <p-skeleton
+                                    height="2.5rem"
+                                    width="100%"
+                                    styleClass="mb-2"
+                                ></p-skeleton>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de ordenanzas destacadas (skeleton) -->
+                <div class="grid mb-3">
+                    <div
+                        class="col-12 md:col-6 lg:col-4"
+                        *ngFor="let i of [1, 2, 3]"
+                    >
+                        <div class="info-card h-full">
+                            <div class="info-card-content">
+                                <div class="flex align-items-center">
+                                    <p-skeleton
+                                        shape="circle"
+                                        size="2.5rem"
+                                        styleClass="mr-3"
+                                    ></p-skeleton>
+                                    <p-skeleton
+                                        width="100%"
+                                        height="3rem"
+                                    ></p-skeleton>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel de filtros (skeleton) -->
+                <div class="card mb-3">
+                    <p-skeleton
+                        width="10rem"
+                        height="1.75rem"
+                        styleClass="mb-3"
+                    ></p-skeleton>
+                    <div class="grid">
+                        <div
+                            class="col-12 md:col-4 mb-3"
+                            *ngFor="let i of [1, 2, 3]"
+                        >
+                            <p-skeleton
+                                width="8rem"
+                                height="1.5rem"
+                                styleClass="mb-2"
+                            ></p-skeleton>
+                            <p-skeleton
+                                width="100%"
+                                height="2.5rem"
+                            ></p-skeleton>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-content-end">
+                        <p-skeleton width="10rem" height="2.5rem"></p-skeleton>
+                    </div>
+                </div>
+
+                <!-- Resultados (skeleton) -->
+                <div class="card">
+                    <div
+                        class="flex justify-content-between align-items-center mb-3"
+                    >
+                        <p-skeleton width="12rem" height="1.75rem"></p-skeleton>
+                        <p-skeleton width="10rem" height="2.5rem"></p-skeleton>
+                    </div>
+
+                    <!-- Vista de tarjetas (skeleton) -->
+                    <div class="grid">
+                        <div
+                            class="col-12 sm:col-6 lg:col-4 xl:col-3 mb-3"
+                            *ngFor="let i of [1, 2, 3, 4, 5, 6]"
+                        >
+                            <p-card styleClass="route-card-skeleton">
+                                <ng-template pTemplate="header">
+                                    <div class="p-3">
+                                        <div
+                                            class="flex justify-content-between align-items-center"
+                                        >
+                                            <p-skeleton
+                                                width="70%"
+                                                height="1.75rem"
+                                            ></p-skeleton>
+                                            <p-skeleton
+                                                width="20%"
+                                                height="1.5rem"
+                                            ></p-skeleton>
+                                        </div>
+                                    </div>
+                                </ng-template>
+
+                                <p-skeleton
+                                    width="100%"
+                                    height="3rem"
+                                    styleClass="mb-3"
+                                ></p-skeleton>
+
+                                <div class="flex align-items-center mb-2">
+                                    <p-skeleton
+                                        shape="circle"
+                                        size="1.5rem"
+                                        styleClass="mr-2"
+                                    ></p-skeleton>
+                                    <p-skeleton
+                                        width="60%"
+                                        height="1.25rem"
+                                    ></p-skeleton>
+                                </div>
+
+                                <div class="flex align-items-center mb-2">
+                                    <p-skeleton
+                                        shape="circle"
+                                        size="1.5rem"
+                                        styleClass="mr-2"
+                                    ></p-skeleton>
+                                    <p-skeleton
+                                        width="30%"
+                                        height="1.25rem"
+                                    ></p-skeleton>
+                                </div>
+
+                                <div class="mb-2">
+                                    <p-skeleton
+                                        width="80%"
+                                        height="1.25rem"
+                                    ></p-skeleton>
+                                </div>
+
+                                <ng-template pTemplate="footer">
+                                    <p-skeleton
+                                        width="100%"
+                                        height="2.5rem"
+                                    ></p-skeleton>
+                                </ng-template>
+                            </p-card>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </p-tabPanel>
+    <p-tabPanel header="Mapa">
+        <div class="grid p-fluid">
+            <div class="col-12">
+                <!-- Search and controls header -->
+                <div
+                    class="flex justify-content-between align-items-center search-container"
+                >
+                    <!-- Search box -->
+                    <span
+                        class="p-float-label mb-3 mt-3"
+                        *ngIf="!load_fullscreen"
+                    >
+                        <p-autoComplete
+                            appendTo="body"
+                            [(ngModel)]="query"
+                            [suggestions]="predictions"
+                            (completeMethod)="search($event)"
+                            field="description"
+                            [forceSelection]="true"
+                            (onSelect)="imprimir(query)"
+                            [inputStyle]="{
+                                width: isMobil() ? responsiveimage() : '300px',
+                                height: isMobil() ? '46px' : '40px'
+                            }"
+                            placeholder=" "
+                        ></p-autoComplete>
+                        <label for="float-label"
+                            >Ingresa una dirección o referencia</label
+                        >
+                    </span>
+
+                    <!-- Route button
 
                <p-button
                 [icon]="buttonrutas.icon"
@@ -35,35 +737,40 @@
                 styleClass="p-button-outlined"
             ></p-button>
             -->
-        </div>
+                </div>
 
-        <!-- Map container -->
-        <div class="card" id="map2"></div>
+                <!-- Map container -->
+                <div class="card" id="map2"></div>
 
-        <!-- Hidden fullscreen controls -->
-        <div style="display: none">
-            <div class="controls fullscreen-control">
-                <button title="Toggle Fullscreen" class="fullscreen-button">
-                    <img
-                        src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2018%2018%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M0%200v6h2V2h4V0H0zm16%200h-4v2h4v4h2V0h-2zm0%2016h-4v2h6v-6h-2v4zM2%2012H0v6h6v-2H2v-4z%22/%3E%3C/svg%3E"
-                        alt=""
-                        class="normal-image"
-                    />
-                    <img
-                        src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2018%2018%22%3E%3Cpath%20fill%3D%22%23111%22%20d%3D%22M0%200v6h2V2h4V0H0zm16%200h-4v2h4v4h2V0h-2zm0%2016h-4v2h6v-6h-2v4zM2%2012H0v6h6v-2H2v-4z%22/%3E%3C/svg%3E"
-                        alt=""
-                        class="hover-image"
-                    />
-                </button>
+                <!-- Hidden fullscreen controls -->
+                <div style="display: none">
+                    <div class="controls fullscreen-control">
+                        <button
+                            title="Toggle Fullscreen"
+                            class="fullscreen-button"
+                        >
+                            <img
+                                src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2018%2018%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M0%200v6h2V2h4V0H0zm16%200h-4v2h4v4h2V0h-2zm0%2016h-4v2h6v-6h-2v4zM2%2012H0v6h6v-2H2v-4z%22/%3E%3C/svg%3E"
+                                alt=""
+                                class="normal-image"
+                            />
+                            <img
+                                src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2018%2018%22%3E%3Cpath%20fill%3D%22%23111%22%20d%3D%22M0%200v6h2V2h4V0H0zm16%200h-4v2h4v4h2V0h-2zm0%2016h-4v2h6v-6h-2v4zM2%2012H0v6h6v-2H2v-4z%22/%3E%3C/svg%3E"
+                                alt=""
+                                class="hover-image"
+                            />
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Map controls (location button will be injected here by JS) -->
+                <div class="map-controls" #mapControls>
+                    <!-- Location button is added programmatically -->
+                </div>
             </div>
         </div>
-
-        <!-- Map controls (location button will be injected here by JS) -->
-        <div class="map-controls" #mapControls>
-            <!-- Location button is added programmatically -->
-        </div>
-    </div>
-</div>
+    </p-tabPanel>
+</p-tabView>
 
 <!-- Routes dialog -->
 <p-dialog
@@ -136,454 +843,3 @@
         </div>
     </div>
 </p-dialog>
-
-<div class="grid p-fluid">
-    <div class="col-12">
-        <!-- Header con título y búsqueda mejorado -->
-        <div class="header-card mb-3">
-            <div
-                class="flex flex-column md:flex-row justify-content-between align-items-center p-3"
-            >
-                <div class="title-section">
-                    <h1 class="title">Rutas y Horarios de Recolección</h1>
-                    <p class="subtitle">Alcaldía Ciudadana de Esmeraldas</p>
-                </div>
-
-                <!-- Barra de búsqueda mejorada -->
-                <div class="search-section mt-3 md:mt-0">
-                    <div class="p-input-icon-left w-full">
-                        <i class="pi pi-search search-icon"></i>
-                        <p-autoComplete
-                            [(ngModel)]="searchQuery"
-                            [suggestions]="searchResults"
-                            (completeMethod)="searchSectors($event)"
-                            placeholder="Buscar por sector o barrio"
-                            [style]="{ width: '100%' }"
-                            styleClass="search-input"
-                            [minLength]="2"
-                            [delay]="300"
-                            [showEmptyMessage]="true"
-                            emptyMessage="No se encontraron sectores"
-                            [dropdown]="true"
-                            (onSelect)="filterBySearchResult($event.value)"
-                            field="name"
-                            [appendTo]="'body'"
-                            [forceSelection]="true"
-                            [autoHighlight]="true"
-                        >
-                            <ng-template let-sector pTemplate="item">
-                                <div class="search-result-item">
-                                    <div class="search-result-info">
-                                        <div class="sector-name-container">
-                                            <span class="icon-circle">
-                                                <i class="pi pi-map-marker"></i>
-                                            </span>
-                                            <span
-                                                class="sector-name"
-                                                [pTooltip]="sector.name"
-                                                tooltipPosition="top"
-                                            >
-                                                {{
-                                                    sector.name.length > 50
-                                                        ? sector.name.substring(
-                                                              0,
-                                                              40
-                                                          ) + "..."
-                                                        : sector.name
-                                                }}
-                                            </span>
-                                        </div>
-                                        <div class="route-details">
-                                            <p-tag
-                                                [severity]="
-                                                    getZoneSeverity(sector.zone)
-                                                "
-                                                styleClass="zone-tag"
-                                                [rounded]="true"
-                                                class="route-name"
-                                                [pTooltip]="sector.routeName"
-                                                tooltipPosition="top"
-                                            >
-                                                <i
-                                                    class="pi pi-truck route-icon"
-                                                ></i>
-                                                {{
-                                                    sector.routeName.length > 25
-                                                        ? sector.routeName.substring(
-                                                              0,
-                                                              20
-                                                          ) + "..."
-                                                        : sector.routeName
-                                                }}
-                                            </p-tag>
-                                        </div>
-                                    </div>
-                                </div>
-                            </ng-template>
-                        </p-autoComplete>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Información de ordenanzas destacadas -->
-        <div class="grid mb-3">
-            <div
-                class="col-12 md:col-6 lg:col-4"
-                *ngFor="let info of generalInfo"
-            >
-                <div class="info-card h-full">
-                    <div
-                        class="info-card-content"
-                        [ngClass]="{
-                            'notice-card': info.type === 'Notice',
-                            'reminder-card': info.type === 'Reminder',
-                            'instruction-card': info.type === 'Instruction'
-                        }"
-                    >
-                        <div class="info-icon-container">
-                            <i
-                                class="pi"
-                                [ngClass]="{
-                                    'pi-info-circle': info.type === 'Notice',
-                                    'pi-exclamation-triangle':
-                                        info.type === 'Reminder',
-                                    'pi-directions': info.type === 'Instruction'
-                                }"
-                            >
-                            </i>
-                        </div>
-                        <div class="info-text-container">
-                            <span
-                                [ngClass]="{
-                                    'font-bold': info.type === 'Reminder'
-                                }"
-                                >{{ info.value }}</span
-                            >
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Panel de filtros -->
-        <div class="card mb-3">
-            <h3>Filtrar rutas</h3>
-            <div class="grid">
-                <div class="col-12 md:col-4 mb-3">
-                    <label class="block font-medium mb-2">Zona</label>
-                    <p-selectButton
-                        [options]="zoneOptions"
-                        [(ngModel)]="selectedZone"
-                        (onChange)="filterRoutes()"
-                        styleClass="w-full flex-wrap"
-                    >
-                    </p-selectButton>
-                </div>
-
-                <div class="col-12 md:col-4 mb-3">
-                    <label class="block font-medium mb-2">Día</label>
-                    <p-selectButton
-                        [options]="dayOptions"
-                        [(ngModel)]="selectedDay"
-                        (onChange)="filterRoutes()"
-                        styleClass="w-full flex-wrap"
-                    >
-                    </p-selectButton>
-                </div>
-
-                <div class="col-12 md:col-4 mb-3">
-                    <label class="block font-medium mb-2"
-                        >Tipo de Servicio</label
-                    >
-                    <p-selectButton
-                        [options]="serviceTypeOptions"
-                        [(ngModel)]="selectedServiceType"
-                        (onChange)="filterRoutes()"
-                        styleClass="w-full flex-wrap"
-                    >
-                    </p-selectButton>
-                </div>
-            </div>
-
-            <div class="flex justify-content-end">
-                <p-button
-                    label="Limpiar Filtros"
-                    icon="pi pi-filter-slash"
-                    styleClass="p-button-outlined p-button-secondary"
-                    (onClick)="clearFilters()"
-                >
-                </p-button>
-            </div>
-        </div>
-
-        <!-- Resultados -->
-        <div class="card">
-            <div class="flex justify-content-between align-items-center mb-3">
-                <h3 class="routes-count m-0">
-                    {{ filteredRoutes.length }} rutas encontradas
-                </h3>
-
-                <p-selectButton
-                    [options]="[
-                        {
-                            label: 'Tarjetas',
-                            value: 'cards',
-                            icon: 'pi pi-th-large'
-                        },
-                        { label: 'Lista', value: 'list', icon: 'pi pi-list' }
-                    ]"
-                    [(ngModel)]="viewMode"
-                    styleClass="view-toggle"
-                ></p-selectButton>
-            </div>
-
-            <!-- Vista de Lista -->
-            <p-accordion
-                *ngIf="viewMode === 'list' && filteredRoutes.length > 0"
-                [multiple]="true"
-                styleClass="routes-accordion"
-            >
-                <p-accordionTab *ngFor="let route of filteredRoutes">
-                    <ng-template pTemplate="header">
-                        <div class="flex align-items-center">
-                            <i class="pi pi-truck mr-2"></i>
-                            <span class="font-bold">{{ route.name }}</span>
-                            <p-tag
-                                *ngIf="route.zone"
-                                [value]="getZoneLabel(route.zone)"
-                                [severity]="getZoneSeverity(route.zone)"
-                                class="ml-2"
-                            >
-                            </p-tag>
-                        </div>
-                    </ng-template>
-                    <div class="p-0">
-                        <div class="mb-3">
-                            <span class="font-medium">Descripción:</span>
-                            {{ route.description }}
-                        </div>
-
-                        <div class="mb-3">
-                            <span class="font-medium">Días:</span>
-                            <span *ngFor="let day of route.days; let i = index">
-                                {{ getSpanishDay(day)
-                                }}{{ i < route.days.length - 1 ? ", " : "" }}
-                            </span>
-                        </div>
-
-                        <div class="mb-3">
-                            <span class="font-medium">Tipo de servicio:</span>
-                            <p-tag
-                                [value]="
-                                    route.serviceType === 'Day'
-                                        ? 'Diurno'
-                                        : 'Nocturno'
-                                "
-                                [severity]="
-                                    route.serviceType === 'Day'
-                                        ? 'success'
-                                        : 'info'
-                                "
-                            >
-                            </p-tag>
-                        </div>
-
-                        <div class="schedule-container">
-                            <h4>Horarios por Sector</h4>
-                            <div class="grid">
-                                <div
-                                    class="col-12 md:col-6 lg:col-4"
-                                    *ngFor="let schedule of route.schedules"
-                                >
-                                    <div class="schedule-card">
-                                        <div class="schedule-sector">
-                                            {{ schedule.sector }}
-                                        </div>
-                                        <div class="schedule-time">
-                                            <i class="pi pi-clock mr-2"></i>
-                                            <span
-                                                >{{ schedule.startTime }} -
-                                                {{ schedule.endTime }}</span
-                                            >
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </p-accordionTab>
-            </p-accordion>
-
-            <!-- Vista de Tarjetas -->
-            <div *ngIf="viewMode === 'cards'" class="grid">
-                <div
-                    class="col-12 sm:col-6 lg:col-4 xl:col-3 mb-3"
-                    *ngFor="let route of filteredRoutes"
-                >
-                    <p-card styleClass="route-card">
-                        <ng-template pTemplate="header">
-                            <div
-                                class="route-card-header p-3"
-                                [ngClass]="{
-                                    'bg-blue-50': route.zone === 'Center',
-                                    'bg-yellow-50': route.zone === 'Night',
-                                    'bg-green-50': route.zone === 'South',
-                                    'bg-cyan-50': route.zone === 'RiverBank'
-                                }"
-                            >
-                                <div
-                                    class="flex justify-content-between align-items-center"
-                                >
-                                    <h3 class="m-0 text-lg font-medium">
-                                        {{ route.name }}
-                                    </h3>
-                                    <p-tag
-                                        [value]="getZoneLabel(route.zone)"
-                                        [severity]="getZoneSeverity(route.zone)"
-                                    ></p-tag>
-                                </div>
-                            </div>
-                        </ng-template>
-
-                        <div class="mb-2">
-                            <p>{{ route.description }}</p>
-                        </div>
-
-                        <div class="flex align-items-center mb-2">
-                            <i class="pi pi-calendar mr-2 text-primary"></i>
-                            <span>
-                                <span
-                                    *ngFor="
-                                        let day of route.days;
-                                        let i = index
-                                    "
-                                >
-                                    {{ getSpanishDay(day)
-                                    }}{{
-                                        i < route.days.length - 1 ? ", " : ""
-                                    }}
-                                </span>
-                            </span>
-                        </div>
-
-                        <div class="flex align-items-center mb-3">
-                            <i class="pi pi-clock mr-2 text-primary"></i>
-                            <p-tag
-                                [value]="
-                                    route.serviceType === 'Day'
-                                        ? 'Diurno'
-                                        : 'Nocturno'
-                                "
-                                [severity]="
-                                    route.serviceType === 'Day'
-                                        ? 'success'
-                                        : 'info'
-                                "
-                            >
-                            </p-tag>
-                        </div>
-
-                        <div class="schedule-preview mb-2">
-                            <span class="font-medium">Sectores:</span>
-                            <span>{{ route.schedules.length }} sectores</span>
-                        </div>
-
-                        <ng-template pTemplate="footer">
-                            <p-button
-                                label="Ver detalles"
-                                icon="pi pi-search"
-                                styleClass="p-button-outlined p-button-sm w-full"
-                                (onClick)="showRouteDetails(route)"
-                            >
-                            </p-button>
-                        </ng-template>
-                    </p-card>
-                </div>
-            </div>
-
-            <!-- Diálogo de detalles de ruta -->
-            <p-dialog
-                [(visible)]="detailsVisible"
-                [header]="selectedRoute?.name || 'Detalles de ruta'"
-                [modal]="true"
-                [dismissableMask]="true"
-                [closeOnEscape]="true"
-                [style]="{ width: '90vw', maxWidth: '800px' }"
-                styleClass="route-details-dialog"
-            >
-                <div *ngIf="selectedRoute">
-                    <div class="mb-3">
-                        <span class="font-medium">Descripción:</span>
-                        {{ selectedRoute.description }}
-                    </div>
-
-                    <div class="mb-3">
-                        <span class="font-medium">Zona:</span>
-                        <p-tag
-                            [value]="getZoneLabel(selectedRoute.zone)"
-                            [severity]="getZoneSeverity(selectedRoute.zone)"
-                            class="ml-2"
-                        >
-                        </p-tag>
-                    </div>
-
-                    <div class="mb-3">
-                        <span class="font-medium">Días:</span>
-                        <span
-                            *ngFor="
-                                let day of selectedRoute.days;
-                                let i = index
-                            "
-                        >
-                            {{ getSpanishDay(day)
-                            }}{{
-                                i < selectedRoute.days.length - 1 ? ", " : ""
-                            }}
-                        </span>
-                    </div>
-
-                    <div class="mb-3">
-                        <span class="font-medium">Tipo de servicio:</span>
-                        <p-tag
-                            [value]="
-                                selectedRoute.serviceType === 'Day'
-                                    ? 'Diurno'
-                                    : 'Nocturno'
-                            "
-                            [severity]="
-                                selectedRoute.serviceType === 'Day'
-                                    ? 'success'
-                                    : 'info'
-                            "
-                        >
-                        </p-tag>
-                    </div>
-
-                    <div class="schedule-container">
-                        <h4>Horarios por Sector</h4>
-                        <div class="grid">
-                            <div
-                                class="col-12 md:col-6"
-                                *ngFor="let schedule of selectedRoute.schedules"
-                            >
-                                <div class="schedule-card">
-                                    <div class="schedule-sector">
-                                        {{ schedule.sector }}
-                                    </div>
-                                    <div class="schedule-time">
-                                        <i class="pi pi-clock mr-2"></i>
-                                        <span
-                                            >{{ schedule.startTime }} -
-                                            {{ schedule.endTime }}</span
-                                        >
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </p-dialog>
-        </div>
-    </div>
-</div>

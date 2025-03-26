@@ -1,232 +1,234 @@
 import { Injectable } from '@angular/core';
-import { Preferences } from '@capacitor/preferences';
-import { Observable, from, of } from 'rxjs';
-import { tap, catchError, map } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 
 @Injectable({
     providedIn: 'root',
 })
 export class CacheService {
-    private CACHE_KEY = 'fichas_sectoriales_cache';
-    private CACHE_TIMESTAMP_KEY = 'fichas_sectoriales_timestamp';
-    private CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 horas en milisegundos
+    private cache: { [key: string]: any } = {};
+    private cacheExpiry: { [key: string]: number } = {};
+    private defaultExpiry = 5 * 60 * 1000; // 5 minutes default
 
-    constructor() {}
+    // Observable for tracking cache changes
+    private cacheUpdates = new BehaviorSubject<string | null>(null);
+
+    constructor() {
+        // Initialize with any cached data from localStorage
+        this.initializeFromStorage();
+
+        // Set up periodic cache cleanup
+        setInterval(() => this.cleanExpiredCache(), 60000);
+    }
 
     /**
-     * Guarda datos en la caché con timestamp
+     * Initialize cache from localStorage
      */
-    async saveToCache(data: any): Promise<void> {
+    private initializeFromStorage(): void {
         try {
-            const timestamp = new Date().getTime();
-            await Preferences.set({
-                key: this.CACHE_TIMESTAMP_KEY,
-                value: timestamp.toString(),
-            });
-            await Preferences.set({
-                key: this.CACHE_KEY,
-                value: JSON.stringify(data),
-            });
-            console.log('Datos guardados en caché:', data.length);
+            const savedCache = localStorage.getItem('appCache');
+            if (savedCache) {
+                const parsed = JSON.parse(savedCache);
+                this.cache = parsed.cache || {};
+                this.cacheExpiry = parsed.expiry || {};
+
+                // Clean expired items on load
+                this.cleanExpiredCache();
+            }
         } catch (error) {
-            console.error('Error al guardar en caché:', error);
+            console.error('Error loading cache from storage:', error);
+            // Reset cache if corrupted
+            this.cache = {};
+            this.cacheExpiry = {};
         }
     }
 
     /**
-     * Obtiene datos de la caché si son válidos
+     * Save current cache to localStorage
      */
-    async getFromCache(): Promise<any> {
+    private saveToStorage(): void {
         try {
-            // Verificar si la caché está vigente
-            const { value: timestampValue } = await Preferences.get({
-                key: this.CACHE_TIMESTAMP_KEY,
-            });
-            if (!timestampValue) {
-                return null;
-            }
-
-            const timestamp = parseInt(timestampValue, 10);
-            const now = new Date().getTime();
-
-            // Si la caché ha expirado
-            if (now - timestamp > this.CACHE_DURATION) {
-                console.log('Caché expirada');
-                return null;
-            }
-
-            // Obtener datos de la caché
-            const { value } = await Preferences.get({ key: this.CACHE_KEY });
-            if (!value) {
-                return null;
-            }
-
-            const cachedData = JSON.parse(value);
-            console.log('Datos obtenidos de caché:', cachedData.length);
-            return cachedData;
+            const saveObj = {
+                cache: this.cache,
+                expiry: this.cacheExpiry,
+            };
+            localStorage.setItem('appCache', JSON.stringify(saveObj));
         } catch (error) {
-            console.error('Error al obtener de caché:', error);
-            return null;
+            console.error('Error saving cache to storage:', error);
         }
     }
 
     /**
-     * Limpia la caché
+     * Get data from cache or retrieve it using the provided fetcher function
      */
-    async clearCache(): Promise<void> {
-        try {
-            await Preferences.remove({ key: this.CACHE_KEY });
-            await Preferences.remove({ key: this.CACHE_TIMESTAMP_KEY });
-            console.log('Caché limpiada con éxito');
-        } catch (error) {
-            console.error('Error al limpiar caché:', error);
+    getOrFetch<T>(
+        key: string,
+        fetcher: () => Observable<T>,
+        expiryMs: number = this.defaultExpiry
+    ): Observable<T> {
+        // If we have valid cached data, return it
+        if (this.has(key)) {
+            return of(this.get<T>(key));
+        }
+
+        // Otherwise fetch, cache and return
+        return fetcher().pipe(
+            tap((data) => {
+                this.set(key, data, expiryMs);
+            })
+        );
+    }
+
+    /**
+     * Check if cache contains valid (non-expired) data for the key
+     */
+    has(key: string): boolean {
+        const hasKey = key in this.cache;
+        const notExpired = this.cacheExpiry[key] > Date.now();
+        return hasKey && notExpired;
+    }
+
+    /**
+     * Get data from cache
+     */
+    get<T>(key: string): T {
+        if (this.has(key)) {
+            return this.cache[key] as T;
+        }
+        return null as any;
+    }
+
+    /**
+     * Set data in cache with expiration
+     */
+    set<T>(key: string, data: T, expiryMs: number = this.defaultExpiry): void {
+        this.cache[key] = data;
+        this.cacheExpiry[key] = Date.now() + expiryMs;
+
+        // Notify subscribers that cache has been updated
+        this.cacheUpdates.next(key);
+
+        // Save to localStorage
+        this.saveToStorage();
+    }
+
+    /**
+     * Remove specific item from cache
+     */
+    remove(key: string): void {
+        if (key in this.cache) {
+            delete this.cache[key];
+            delete this.cacheExpiry[key];
+
+            // Notify subscribers that cache has been updated
+            this.cacheUpdates.next(key);
+
+            // Save to localStorage
+            this.saveToStorage();
         }
     }
 
     /**
-     * Verifica si la caché está vigente
+     * Clear entire cache
      */
-    async isCacheValid(): Promise<boolean> {
-        try {
-            const { value: timestampValue } = await Preferences.get({
-                key: this.CACHE_TIMESTAMP_KEY,
-            });
-            if (!timestampValue) {
-                return false;
+    clear(): void {
+        this.cache = {};
+        this.cacheExpiry = {};
+
+        // Notify subscribers that cache has been cleared
+        this.cacheUpdates.next(null);
+
+        // Save to localStorage
+        localStorage.removeItem('appCache');
+    }
+
+    /**
+     * Clean expired items from cache
+     */
+    private cleanExpiredCache(): void {
+        const now = Date.now();
+        let hasChanges = false;
+
+        Object.keys(this.cacheExpiry).forEach((key) => {
+            if (this.cacheExpiry[key] < now) {
+                delete this.cache[key];
+                delete this.cacheExpiry[key];
+                hasChanges = true;
             }
+        });
 
-            const timestamp = parseInt(timestampValue, 10);
-            const now = new Date().getTime();
-
-            return now - timestamp <= this.CACHE_DURATION;
-        } catch (error) {
-            console.error('Error al verificar validez de caché:', error);
-            return false;
+        // Only save if changes were made
+        if (hasChanges) {
+            this.saveToStorage();
         }
     }
 
     /**
-     * Para datos muy grandes, fragmentarlos en chunks
-     * Capacitor Preferences tiene un límite aproximado de 2MB por clave
+     * Get notifications when cache changes
      */
-    async saveChunkedData(data: any[]): Promise<void> {
-        try {
-            const jsonData = JSON.stringify(data);
-            const chunkSize = 500000; // Aproximadamente 500KB por chunk
-            const chunks = [];
+    getCacheUpdates(): Observable<string | null> {
+        return this.cacheUpdates.asObservable();
+    }
 
-            // Dividir los datos en chunks
-            for (let i = 0; i < jsonData.length; i += chunkSize) {
-                chunks.push(jsonData.substring(i, i + chunkSize));
-            }
+    /**
+     * Save chunked data for large datasets
+     */
+    saveChunkedData(
+        data: any[],
+        prefix: string = 'data',
+        chunkSize: number = 100
+    ): void {
+        // Clear existing chunks for this prefix
+        this.clearChunks(prefix);
 
-            // Guardar número de chunks
-            await Preferences.set({
-                key: `${this.CACHE_KEY}_chunks`,
-                value: chunks.length.toString(),
-            });
+        // Store how many chunks we have
+        const chunkCount = Math.ceil(data.length / chunkSize);
+        this.set(`${prefix}_count`, chunkCount);
 
-            // Guardar cada chunk
-            for (let i = 0; i < chunks.length; i++) {
-                await Preferences.set({
-                    key: `${this.CACHE_KEY}_chunk_${i}`,
-                    value: chunks[i],
-                });
-            }
-
-            // Guardar timestamp
-            const timestamp = new Date().getTime();
-            await Preferences.set({
-                key: this.CACHE_TIMESTAMP_KEY,
-                value: timestamp.toString(),
-            });
-
-            console.log(`Datos guardados en ${chunks.length} fragmentos`);
-        } catch (error) {
-            console.error('Error al guardar datos fragmentados:', error);
+        // Store each chunk
+        for (let i = 0; i < chunkCount; i++) {
+            const start = i * chunkSize;
+            const end = Math.min(start + chunkSize, data.length);
+            const chunk = data.slice(start, end);
+            this.set(`${prefix}_${i}`, chunk);
         }
     }
 
     /**
-     * Recuperar datos fragmentados
+     * Get all chunked data
      */
-    async getChunkedData(): Promise<any> {
-        try {
-            // Verificar timestamp primero
-            const { value: timestampValue } = await Preferences.get({
-                key: this.CACHE_TIMESTAMP_KEY,
-            });
-            if (!timestampValue) {
-                return null;
-            }
-
-            const timestamp = parseInt(timestampValue, 10);
-            const now = new Date().getTime();
-
-            if (now - timestamp > this.CACHE_DURATION) {
-                console.log('Caché expirada');
-                return null;
-            }
-
-            // Obtener número de chunks
-            const { value: chunksCountStr } = await Preferences.get({
-                key: `${this.CACHE_KEY}_chunks`,
-            });
-            if (!chunksCountStr) {
-                return null;
-            }
-
-            const chunksCount = parseInt(chunksCountStr, 10);
-            let jsonData = '';
-
-            // Recuperar y concatenar todos los chunks
-            for (let i = 0; i < chunksCount; i++) {
-                const { value: chunk } = await Preferences.get({
-                    key: `${this.CACHE_KEY}_chunk_${i}`,
-                });
-                if (chunk) {
-                    jsonData += chunk;
-                } else {
-                    console.error(`No se encontró el fragmento ${i}`);
-                    return null;
-                }
-            }
-
-            const data = JSON.parse(jsonData);
-            console.log(`Datos recuperados de ${chunksCount} fragmentos`);
-            return data;
-        } catch (error) {
-            console.error('Error al recuperar datos fragmentados:', error);
-            return null;
+    getChunkedData<T>(prefix: string = 'data'): T[] {
+        if (!this.has(`${prefix}_count`)) {
+            return [];
         }
+
+        const chunkCount = this.get<number>(`${prefix}_count`);
+        let result: T[] = [];
+
+        for (let i = 0; i < chunkCount; i++) {
+            const key = `${prefix}_${i}`;
+            if (this.has(key)) {
+                result = result.concat(this.get<T[]>(key));
+            }
+        }
+
+        return result;
     }
 
     /**
-     * Limpia los datos fragmentados
+     * Clear all chunks for a prefix
      */
-    async clearChunkedData(): Promise<void> {
-        try {
-            const { value: chunksCountStr } = await Preferences.get({
-                key: `${this.CACHE_KEY}_chunks`,
-            });
-            if (chunksCountStr) {
-                const chunksCount = parseInt(chunksCountStr, 10);
+    clearChunks(prefix: string): void {
+        const count = this.has(`${prefix}_count`)
+            ? this.get<number>(`${prefix}_count`)
+            : 0;
 
-                // Eliminar cada chunk
-                for (let i = 0; i < chunksCount; i++) {
-                    await Preferences.remove({
-                        key: `${this.CACHE_KEY}_chunk_${i}`,
-                    });
-                }
+        // Clear the count
+        this.remove(`${prefix}_count`);
 
-                // Eliminar metadatos
-                await Preferences.remove({ key: `${this.CACHE_KEY}_chunks` });
-                await Preferences.remove({ key: this.CACHE_TIMESTAMP_KEY });
-            }
-
-            console.log('Caché fragmentada limpiada con éxito');
-        } catch (error) {
-            console.error('Error al limpiar caché fragmentada:', error);
+        // Clear each chunk
+        for (let i = 0; i < count; i++) {
+            this.remove(`${prefix}_${i}`);
         }
     }
 }

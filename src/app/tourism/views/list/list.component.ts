@@ -1,18 +1,25 @@
 import { FilterService } from 'src/app/demo/services/filter.service';
-import { ChangeDetectorRef, Component, OnInit, signal } from '@angular/core';
+import {
+    ChangeDetectorRef,
+    Component,
+    OnInit,
+    OnDestroy,
+    signal,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MenuItem, SelectItem } from 'primeng/api';
+import { MenuItem } from 'primeng/api';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
-import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ImportsModule } from 'src/app/demo/services/import';
-import { ListService } from 'src/app/demo/services/list.service';
 import { DataViewModule } from 'primeng/dataview';
 import { ButtonModule } from 'primeng/button';
 import { CommonModule } from '@angular/common';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { CacheService } from 'src/app/demo/services/cache.service';
 import { LoginComponent } from '../../login/login.component';
+import { Subject, combineLatest } from 'rxjs';
+import { takeUntil, finalize, take } from 'rxjs/operators';
+import { TourismService } from '../../service/tourism.service';
 
 @Component({
     selector: 'app-list',
@@ -27,20 +34,37 @@ import { LoginComponent } from '../../login/login.component';
     templateUrl: './list.component.html',
     styleUrl: './list.component.scss',
 })
-export class ListComponent implements OnInit {
-    goMaps(arg0: any) {
-        this.router.navigate(['/mapa-turistico/maps'], {
-            queryParams: { name: arg0 },
-        });
-    }
-    isMobil(): any {
-        return window.innerWidth <= 575; //Capacitor.isNativePlatform(); //
-    }
+export class ListComponent implements OnInit, OnDestroy {
+    private destroy$ = new Subject<void>();
 
-    goBack() {
-        this.router.navigate(['/mapa-turistico']);
-    }
     loginVisible: boolean = false;
+    url: string = GLOBAL.url;
+    name: string = '';
+    actividad: any[] = [];
+    selectedActivities: Set<string> = new Set();
+    allFichas: any[] = []; // All unfiltered fichas
+    layout: 'list' | 'grid' = this.isMobil() ? 'grid' : 'list';
+    options = ['list', 'grid'];
+    mostVisited = signal<any>([]);
+    load_dataview: boolean = false;
+
+    // Sorting options
+    sortOrder: number = 0;
+    sortField: string = '';
+    sortOptions: any = [
+        { label: 'Más visitados', value: 'visits:desc' },
+        { label: 'Más destacados', value: 'me_gusta:desc' },
+        { label: 'Más comentados', value: 'comentarios:desc' },
+        { label: 'Nombre (A-Z)', value: 'title_marcador:asc' },
+        { label: 'Nombre (Z-A)', value: 'title_marcador:desc' },
+    ];
+
+    // Loading state trackers
+    private dataLoaded = {
+        activities: false,
+        fichas: false,
+    };
+
     menuItems: any[] = [
         {
             label: 'Home',
@@ -81,194 +105,171 @@ export class ListComponent implements OnInit {
             active: false,
             command: () => {
                 if (!this.auth.token()) {
-                    this.loginVisible = true; // Abre el modal de login
+                    this.loginVisible = true; // Open login modal
                 } else {
                     this.router.navigate(['/home']);
                 }
             },
         },
     ];
-    url: string = GLOBAL.url;
 
     constructor(
         private router: Router,
-        private googlemaps: GoogleMapsService,
         private helperService: HelperService,
-        private listService: ListService,
+        private tourismService: TourismService,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
         private auth: AuthService,
         private filterService: FilterService,
         private cacheService: CacheService
     ) {}
-    name: string = '';
-    async ngOnInit(): Promise<void> {
+
+    ngOnInit(): void {
         this.name = this.route.snapshot.queryParamMap.get('name') || '';
-        console.log('Nombre recibido:', this.name);
+        console.log('Name received:', this.name);
 
-        // Cargamos las actividades y fichas en paralelo
-        const loadPromises = [this.loadActivities(), this.getFichas()];
-
-        await Promise.all(loadPromises);
-
-        // Una vez que tengamos tanto las actividades como las fichas, aplicamos el filtro
-        this.applyNameFilter();
+        // Load all data in parallel
+        this.loadData();
     }
-    /**
-     * Carga todas las actividades
-     */
-    actividad: any[] = [];
-    actividadesCargadas: boolean = false;
-    async loadActivities() {
-        return new Promise<void>((resolve) => {
-            this.listService
-                .listarTiposActividadesProyecto(null, { is_tourism: true })
-                .subscribe((response: any) => {
-                    if (response.data) {
-                        this.actividad = response.data.map((item: any) => ({
-                            label: item.nombre,
-                            icon: item.icono,
-                            _id: item._id,
-                        }));
-                        console.log('Actividades disponibles:', this.actividad);
-                        this.actividadesCargadas = true;
-                    }
-                    resolve();
-                });
-        });
-    }
-    /**
-     * Aplica el filtro basado en el nombre recibido en la URL
-     */
-    selectedActivities: Set<string> = new Set();
-    allFichas: any[] = []; // Todas las fichas sin filtrar
-    fichasCargadas: boolean = false;
-    applyNameFilter() {
-        if (this.name && this.actividadesCargadas && this.fichasCargadas) {
-            //console.log('Aplicando filtro por nombre:', this.name);
 
-            // Encontramos todas las actividades que coincidan con el nombre
-            const actividadesEncontradas = this.actividad.filter(
+    ngOnDestroy(): void {
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
+
+    /**
+     * Load all necessary data in parallel with optimized approach
+     */
+    private loadData(): void {
+        // Set loading state
+        this.load_dataview = false;
+
+        // Load activities
+        this.tourismService
+            .getActivities()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (activities) => {
+                    this.actividad = activities;
+                    this.dataLoaded.activities = true;
+                    console.log('Activities loaded:', this.actividad.length);
+                    this.checkAllDataLoaded();
+                },
+                error: (err) => {
+                    console.error('Error loading activities:', err);
+                    this.dataLoaded.activities = true;
+                    this.checkAllDataLoaded();
+                },
+            });
+
+        // Load all fichas
+        this.tourismService
+            .getAllFichas()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (fichas) => {
+                    this.allFichas = fichas;
+                    this.dataLoaded.fichas = true;
+                    console.log('Fichas loaded:', this.allFichas.length);
+                    this.checkAllDataLoaded();
+                },
+                error: (err) => {
+                    console.error('Error loading fichas:', err);
+                    this.dataLoaded.fichas = true;
+                    this.checkAllDataLoaded();
+                },
+            });
+    }
+
+    /**
+     * Check if all data has loaded and apply filters
+     */
+    private checkAllDataLoaded(): void {
+        if (this.dataLoaded.activities && this.dataLoaded.fichas) {
+            this.applyNameFilter();
+
+            // Allow time for DOM updates
+            setTimeout(() => {
+                this.load_dataview = true;
+            }, 100);
+        }
+    }
+
+    /**
+     * Applies filter based on the name received in the URL
+     */
+    applyNameFilter(): void {
+        if (this.name && this.actividad.length > 0) {
+            // Find all activities that match the name
+            const matchingActivities = this.actividad.filter(
                 (a) => a.label.toLowerCase() === this.name.toLowerCase()
             );
 
-            if (actividadesEncontradas.length > 0) {
-                //console.log('Actividades encontradas:', actividadesEncontradas);
-                // Seleccionamos todas las actividades que coincidan con el nombre
+            if (matchingActivities.length > 0) {
+                console.log('Matching activities:', matchingActivities);
+                // Select all activities that match the name
                 this.selectedActivities = new Set(
-                    actividadesEncontradas.map((a) => a._id)
+                    matchingActivities.map((a) => a._id)
                 );
             } else {
-                console.warn(
-                    `No se encontró la actividad con el nombre: ${this.name}`
-                );
-                this.selectedActivities = new Set(); // No selecciona ninguna si no existe
+                console.warn(`No activity found with name: ${this.name}`);
+                this.selectedActivities = new Set(); // Don't select any if none exists
             }
         } else if (!this.name) {
-            // Si no hay nombre, seleccionamos todas las actividades
+            // If no name, select all activities
             this.selectedActivities = new Set(this.actividad.map((a) => a._id));
         }
 
-        // Aplicamos el filtro
+        // Apply the filter
         this.filterFichas();
     }
 
     /**
-     * Obtiene todas las fichas sin filtrar al inicio
+     * Filter fichas based on selected activities
      */
-    async getFichas() {
-        return new Promise<void>((resolve) => {
-            this.listService
-                .listarFichaSectorial(null, {
-                    //'actividad.is_tourism': true,
-                    view: true,
-                })
-                .subscribe((response: any) => {
-                    if (response.data) {
-                        this.allFichas = response.data
-                            .map((item: any) => {
-                                if (item.actividad.is_tourism) {
-                                    return {
-                                        title_marcador: item.title_marcador,
-                                        image: item.icono_marcador,
-                                        _id: item._id,
-                                        foto: item.foto,
-                                        direccion: item.direccion_geo.nombre,
-                                        me_gusta: item.me_gusta || [],
-                                        comentarios: item.comentarios || [],
-                                        lat: item.direccion_geo.latitud,
-                                        lng: item.direccion_geo.longitud,
-                                        actividadId:
-                                            item.actividad?._id || null, // ID de la actividad
-                                        actividadNombre:
-                                            item.actividad?.nombre || null, // Nombre de la actividad
-                                    };
-                                } else {
-                                    return null; // Para evitar `undefined` en el array
-                                }
-                            })
-                            .filter(Boolean); // Elimina valores `null` o `undefined`
-                        console.log('Fichas cargadas:', this.allFichas);
-                        //this.cacheService.saveChunkedData(this.allFichas);
-
-                        this.fichasCargadas = true;
-                    }
-                    resolve();
-                });
-        });
-    }
-
-    /**
-     * Filtra las fichas basándose en las actividades seleccionadas
-     */
-    layout: 'list' | 'grid' = this.isMobil() ? 'grid' : 'list';
-    options = ['list', 'grid'];
-    mostVisited = signal<any>([]);
-    load_dataview: boolean = false;
-    async filterFichas() {
+    filterFichas(): void {
         this.load_dataview = false;
+
         if (this.selectedActivities.size === 0) {
-            this.mostVisited.set([...this.allFichas]); // Mostrar todas si nada está seleccionado
+            this.mostVisited.set([...this.allFichas]); // Show all if nothing selected
         } else {
-            const aux = this.allFichas.filter(
+            const filteredFichas = this.allFichas.filter(
                 (ficha) =>
                     ficha.actividadId &&
                     this.selectedActivities.has(ficha.actividadId)
             );
-            this.mostVisited.set([...aux]);
+            this.mostVisited.set([...filteredFichas]);
         }
+
+        // Apply sorting if needed
+        if (this.sortField) {
+            this.applySort();
+        }
+
+        // Show data with a slight delay to ensure smooth UI updates
         setTimeout(() => {
             this.load_dataview = true;
-        }, 1000);
-        console.log('Fichas mostVisited:', this.mostVisited());
+        }, 100);
+
+        console.log('Filtered mostVisited:', this.mostVisited().length);
     }
 
     /**
-     * Maneja la selección de actividades como checkboxes
+     * Handle activity selection as checkboxes
      */
-    toggleActivity(activity: any) {
+    toggleActivity(activity: any): void {
         if (this.selectedActivities.has(activity._id)) {
             this.selectedActivities.delete(activity._id);
         } else {
             this.selectedActivities.add(activity._id);
         }
-        this.filterFichas(); // Aplica filtro sin volver a hacer la petición
+        this.filterFichas(); // Apply filter without making another request
     }
 
-    getCOnsole(json: any) {
-        return JSON.stringify(json);
-    }
-    sortOrder: number = 0;
-    sortField: string = '';
-    sortOptions: any = [
-        { label: 'Más visitados', value: 'visits:desc' },
-        { label: 'Más destacados', value: 'me_gusta:desc' },
-        { label: 'Más comentados', value: 'comentarios:desc' },
-        { label: 'Nombre (A-Z)', value: 'title_marcador:asc' },
-        { label: 'Nombre (Z-A)', value: 'title_marcador:desc' },
-    ];
-    // Cuando cambia el ordenamiento
-    onSortChange(event: any) {
+    /**
+     * When sort changes
+     */
+    onSortChange(event: any): void {
         const value = event.value;
         console.log('onSortChange', value);
 
@@ -281,26 +282,27 @@ export class ListComponent implements OnInit {
             this.sortField = field;
         }
 
-        // Aplicar ordenamiento a los datos existentes
+        // Apply sorting to existing data
         this.applySort();
     }
 
-    // Método para aplicar el ordenamiento
-    applySort() {
-        //console.log('applySort', this.sortField, this.sortOrder);
+    /**
+     * Apply sorting to data
+     */
+    applySort(): void {
         if (!this.sortField || this.sortField.length === 0) {
             return;
         }
 
-        // Obtener el valor actual de la señal
+        // Get current signal value
         const currentData = this.mostVisited();
 
-        // Crear una copia para ordenar
+        // Create a copy to sort
         const sortedData = [...currentData].sort((a, b) => {
             let value1 = this.resolveFieldData(a, this.sortField);
             let value2 = this.resolveFieldData(b, this.sortField);
 
-            // Si el campo es 'me_gusta' o 'comentarios', comparar por longitud
+            // If field is 'me_gusta' or 'comentarios', compare by length
             if (
                 this.sortField === 'me_gusta' ||
                 this.sortField === 'comentarios'
@@ -310,26 +312,28 @@ export class ListComponent implements OnInit {
                 return this.sortOrder * (length1 - length2);
             }
 
-            // Para campos de texto
+            // For text fields
             if (typeof value1 === 'string' && typeof value2 === 'string') {
                 return this.sortOrder * value1.localeCompare(value2);
             }
 
-            // Para campos numéricos
+            // For numeric fields
             return this.sortOrder * (value1 - value2);
         });
-        //console.log('applySort', sortedData);
-        // Actualizar la señal con los datos ordenados
+
+        // Update signal with sorted data
         this.mostVisited.set(sortedData);
     }
 
-    // Función auxiliar para obtener el valor de un campo
+    /**
+     * Helper function to get field value
+     */
     resolveFieldData(obj: any, field: string): any {
         if (!obj || !field) {
             return null;
         }
 
-        // Si el campo es 'visits', usamos comentarios como aproximación
+        // If field is 'visits', use comments as approximation
         if (field === 'visits') {
             return obj.comentarios ? obj.comentarios.length : 0;
         }
@@ -349,10 +353,16 @@ export class ListComponent implements OnInit {
         return obj[field];
     }
 
-    async refreshData() {
+    /**
+     * Refresh data
+     */
+    async refreshData(): Promise<void> {
         await this.filterFichas();
     }
 
+    /**
+     * Check if item is liked by current user
+     */
     isLiked(item: any): boolean {
         if (this.auth.token()) {
             const userId: string = this.auth.idUserToken();
@@ -366,29 +376,75 @@ export class ListComponent implements OnInit {
         return false;
     }
 
-    toggleLike(item: any) {
+    /**
+     * Toggle like on an item
+     */
+    toggleLike(item: any): void {
         if (!this.auth.token()) {
-            this.loginVisible = true; // Abre el modal de login
+            this.loginVisible = true; // Open login modal
             return;
         }
 
         const userId = this.auth.idUserToken();
+
+        // Add optimistic update for better UX
+        const previousLikes = [...item.me_gusta];
         const isCurrentlyLiked = this.isLiked(item);
 
+        // Update UI instantly before API response
+        if (isCurrentlyLiked) {
+            item.me_gusta = item.me_gusta.filter(
+                (user) => user._id !== userId && user !== userId
+            );
+        } else {
+            item.me_gusta.push(userId);
+        }
+
+        // Make API call
         this.filterService
             .actualizarFichaMeGusta(this.auth.token(), item._id, userId)
-            .subscribe(
-                (response: any) => {
-                    console.log(response);
+            .pipe(finalize(() => this.refreshData()))
+            .subscribe({
+                next: (response: any) => {
+                    console.log('Like updated successfully');
                     if (response.me_gusta) {
-                        this.allFichas.find((x) => x._id == item._id).me_gusta =
-                            response.me_gusta;
-                        this.refreshData();
+                        // Update the ficha in the main array
+                        const ficha = this.allFichas.find(
+                            (x) => x._id === item._id
+                        );
+                        if (ficha) {
+                            ficha.me_gusta = response.me_gusta;
+                        }
                     }
                 },
-                (error) => {
-                    console.error('Error al actualizar me gusta: ', error);
-                }
-            );
+                error: (error) => {
+                    console.error('Error updating like: ', error);
+                    // Revert the optimistic update on error
+                    item.me_gusta = previousLikes;
+                },
+            });
+    }
+
+    /**
+     * Navigate to maps view
+     */
+    goMaps(arg0: any): void {
+        this.router.navigate(['/mapa-turistico/maps'], {
+            queryParams: { name: arg0 },
+        });
+    }
+
+    /**
+     * Check if device is mobile
+     */
+    isMobil(): boolean {
+        return window.innerWidth <= 575;
+    }
+
+    /**
+     * Go back to main view
+     */
+    goBack(): void {
+        this.router.navigate(['/mapa-turistico']);
     }
 }

@@ -1,17 +1,15 @@
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { ImportsModule } from 'src/app/demo/services/import';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { MenuItem } from 'primeng/api';
-import { MenuItemCommandEvent } from 'primeng/api';
 import { Router } from '@angular/router';
-import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
-import { ListService } from 'src/app/demo/services/list.service';
-import { map } from 'rxjs';
-import { ItemComponent } from '../views/item/item.component';
 import { LoginComponent } from '../login/login.component';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { TourismService } from '../service/tourism.service';
 
 @Component({
     selector: 'app-tourism',
@@ -20,13 +18,14 @@ import { AuthService } from 'src/app/demo/services/auth.service';
     templateUrl: './tourism.component.html',
     styleUrl: './tourism.component.scss',
 })
-export class TourismComponent implements OnInit {
+export class TourismComponent implements OnInit, OnDestroy {
+    private destroy$ = new Subject<void>();
+
     menuItems: MenuItem[] = [];
     activeTab: string = 'accommodation';
-    accommodations: any[] = [];
     mostVisited: any[] = [];
     url: string = GLOBAL.url;
-    load: boolean = true; // Inicialmente está cargando
+    load: boolean = true; // Initially loading
     isMobile: boolean = false;
     loginVisible: boolean = false;
     visibleSidebar: boolean = false;
@@ -94,7 +93,7 @@ export class TourismComponent implements OnInit {
             active: false,
             command: () => {
                 if (!this.auth.token()) {
-                    this.loginVisible = true; // Abre el modal de login
+                    this.loginVisible = true; // Open login modal
                 } else {
                     this.router.navigate(['/home']);
                 }
@@ -105,34 +104,53 @@ export class TourismComponent implements OnInit {
     constructor(
         private router: Router,
         private helperService: HelperService,
-        private listService: ListService,
+        private tourismService: TourismService,
         private auth: AuthService
     ) {}
 
-    async ngOnInit() {
-        // Asegurarse de que el spinner se muestre desde el inicio
+    ngOnInit() {
+        // Ensure spinner is shown from the start
         this.load = true;
-        console.log('Estado inicial de carga:', this.load);
+        console.log('Initial loading state:', this.load);
 
         this.isMobile = this.helperService.isMobil();
 
-        try {
-            // Cargar datos en paralelo
-            await Promise.all([this.initializeMenu(), this.loadMostVisited()]);
+        // Load data using our improved service
+        this.loadData();
+    }
 
-            // Dar un pequeño tiempo para que el spinner sea visible
-            setTimeout(() => {
-                this.load = false;
-                console.log('Carga completada, estado de load:', this.load);
-            }, 500);
-        } catch (error) {
-            console.error('Error al cargar datos:', error);
-            this.load = false;
-        }
+    ngOnDestroy() {
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
+
+    private loadData() {
+        // Subscribe to both activities and most visited in parallel
+        this.tourismService
+            .getActivities()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe((activities) => {
+                this.menuItems = activities;
+                console.log('Menu loaded:', this.menuItems.length);
+            });
+
+        this.tourismService
+            .getMostVisited()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe((mostVisited) => {
+                this.mostVisited = mostVisited;
+                console.log('Most visited loaded:', this.mostVisited.length);
+
+                // Give a small delay for the spinner to be visible
+                setTimeout(() => {
+                    this.load = false;
+                    console.log('Loading complete, load state:', this.load);
+                }, 300);
+            });
     }
 
     isMobil(): boolean {
-        return window.innerWidth <= 575; //Capacitor.isNativePlatform(); //
+        return window.innerWidth <= 575;
     }
 
     goBack() {
@@ -144,102 +162,10 @@ export class TourismComponent implements OnInit {
             queryParams: { name },
         });
     }
+
     goMaps(name: string) {
         this.router.navigate(['/mapa-turistico/maps'], {
             queryParams: { name },
-        });
-    }
-
-    async initializeMenu(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.listService
-                .listarTiposActividadesProyecto(null, { is_tourism: true })
-                .subscribe({
-                    next: (response: any) => {
-                        if (response.data) {
-                            this.menuItems = response.data.map((item: any) => {
-                                return {
-                                    label: item.nombre,
-                                    icon: item.icono,
-                                    _id: item._id,
-                                    url_pdf: item.url_pdf,
-                                    command: () => (this.activeTab = item._id),
-                                };
-                            });
-                            resolve();
-                        } else {
-                            resolve(); // Resolvemos incluso si no hay datos
-                        }
-                    },
-                    error: (err) => {
-                        console.error('Error al cargar menú:', err);
-                        reject(err);
-                    },
-                });
-        });
-    }
-
-    async loadMostVisited(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.listService
-                .listarFichaSectorial(null, {
-                    view: true,
-                })
-                .subscribe({
-                    next: (response: any) => {
-                        if (response.data) {
-                            this.mostVisited = response.data
-                                .map((item: any) => {
-                                    const menuItem = this.menuItems.find(
-                                        (x: any) => x._id === item.actividad._id
-                                    );
-                                    if (menuItem && item.title_marcador) {
-                                        return {
-                                            title: item.title_marcador,
-                                            image: item.icono_marcador,
-                                            _id: item._id,
-                                            foto: item.foto,
-                                            direccion: item.direccion,
-                                            me_gusta: item.me_gusta || [],
-                                            comentarios: item.comentarios || [],
-                                            created_at: new Date(
-                                                item.created_at
-                                            ),
-                                        };
-                                    }
-                                    return null;
-                                })
-                                .filter(Boolean)
-                                .sort((a, b) => {
-                                    const likesA = a.me_gusta.length;
-                                    const likesB = b.me_gusta.length;
-                                    const commentsA = a.comentarios.length;
-                                    const commentsB = b.comentarios.length;
-
-                                    if (likesB !== likesA)
-                                        return likesB - likesA;
-                                    if (commentsB !== commentsA)
-                                        return commentsB - commentsA;
-                                    return (
-                                        b.created_at.getTime() -
-                                        a.created_at.getTime()
-                                    );
-                                })
-                                .slice(0, 10);
-                            console.log('Most visited:', this.mostVisited);
-                            resolve();
-                        } else {
-                            resolve(); // Resolvemos incluso si no hay datos
-                        }
-                    },
-                    error: (err) => {
-                        console.error(
-                            'Error al cargar lugares visitados:',
-                            err
-                        );
-                        reject(err);
-                    },
-                });
         });
     }
 
