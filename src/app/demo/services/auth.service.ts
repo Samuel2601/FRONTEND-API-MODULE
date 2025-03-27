@@ -599,10 +599,10 @@ export class AuthService {
         const currentUrl = this.router.url;
         console.log(
             'redirectToLoginIfNeeded',
-            !['/home', '/'].includes(currentUrl) &&
-                !currentUrl.startsWith('/auth/login') &&
-                !currentUrl.startsWith('/ver-ficha') &&
-                !home
+            !['/home', '/'].includes(currentUrl),
+            !currentUrl.startsWith('/auth/login'),
+            !currentUrl.startsWith('/ver-ficha'),
+            !home
         );
         if (home) {
             // console.log('Redirigiendo a login');

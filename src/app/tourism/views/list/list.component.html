@@ -1,26 +1,5 @@
 <!-- HTML Template -->
 <div class="map-container">
-    <!-- Header fijo -->
-    <header>
-        <button
-            pButton
-            icon="pi pi-arrow-left"
-            class="p-button-text"
-            (click)="goBack()"
-        ></button>
-        <img
-            src="assets/icon/ESMERALDAS_LA_BELLA.png"
-            alt="Esmeraldas Turismo"
-        />
-        <div></div>
-        <button
-            *ngIf="false"
-            pButton
-            icon="pi pi-search"
-            class="p-button-text"
-        ></button>
-    </header>
-
     <!-- Contenedor principal con padding-top para dejar espacio al header fijo -->
     <div class="main-content">
         <!-- Filtros de actividades -->
@@ -319,35 +298,9 @@
             ></p-progressSpinner>
         </div>
     </div>
-
-    <!-- Menú inferior (móvil) o lateral (escritorio) -->
-    <div
-        *ngIf="isMobil()"
-        class="menu-container"
-        style="background-color: #ffffff00 !important"
-    >
-        <div
-            *ngFor="let item of menuItems"
-            class="menu-item"
-            [ngClass]="{ active: item.active }"
-            style="
-                border-top: 2px solid var(--primary-color);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 10px 10px 0px 0px;
-                background-color: var(--surface-a);
-                margin-bottom: -10px;
-                width: 100%;
-            "
-            (click)="
-                item.command &&
-                    item.command({ originalEvent: $event, item: item })
-            "
-        >
-            <img [src]="item.icon" alt="icono" />
-        </div>
-    </div>
 </div>
 
-<app-login-modal [(visible)]="loginVisible"></app-login-modal>
+<app-login-modal
+    *ngIf="loginVisible"
+    [(visible)]="loginVisible"
+></app-login-modal>

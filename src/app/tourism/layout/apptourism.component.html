@@ -1,0 +1,107 @@
+<!-- app-layout.component.html -->
+<div class="app-layout" [ngClass]="theme">
+    <!-- Header -->
+    <header class="app-header" [ngClass]="{ fixed: headerFixed }">
+        <div class="header-left">
+            <button
+                *ngIf="showBackButton"
+                pButton
+                icon="pi pi-arrow-left"
+                class="p-button-text"
+                (click)="goBack()"
+            ></button>
+            <button
+                *ngIf="showSidebarToggle && !isMobile()"
+                pButton
+                icon="pi pi-bars"
+                class="p-button-text"
+                (click)="toggleSidebar()"
+            ></button>
+        </div>
+
+        <div class="header-center" (click)="onLogoClick()">
+            <img [src]="logoSrc" [alt]="appTitle" class="header-logo" />
+        </div>
+
+        <div class="header-right">
+            <ng-content select="[header-right]"></ng-content>
+        </div>
+    </header>
+
+    <!-- Header spacer when fixed - prevents content from being hidden under header -->
+    <div *ngIf="headerFixed" class="header-spacer"></div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="loading" class="loading-container">
+        <p-progressSpinner
+            strokeWidth="8"
+            fill="var(--surface-ground)"
+            animationDuration=".5s"
+            [style]="{ width: '50px', height: '50px' }"
+            styleClass="custom-spinner"
+        ></p-progressSpinner>
+    </div>
+
+    <!-- Sidebar (optional) -->
+    <p-sidebar
+        [(visible)]="sidebarVisible"
+        [position]="'left'"
+        [baseZIndex]="1000"
+        styleClass="app-sidebar"
+    >
+        <ng-content select="[sidebar-content]"></ng-content>
+    </p-sidebar>
+
+    <!-- Main Content Area -->
+    <main [ngClass]="{ 'content-loading': loading }" class="app-content">
+        <!-- Router outlet for child routes -->
+        <router-outlet></router-outlet>
+
+        <!-- Additional content if needed -->
+        <ng-content></ng-content>
+    </main>
+
+    <!-- Mobile Navigation (Bottom) -->
+    <div *ngIf="isMobile()" class="mobile-nav">
+        <!-- First two navigation items -->
+        <ng-container *ngFor="let item of mobileNavItems.slice(0, 2)">
+            <div
+                class="mobile-nav-item"
+                [ngClass]="{ active: item.active }"
+                (click)="navigateTo(item)"
+            >
+                <img [src]="item.icon" [alt]="item.label" class="nav-icon" />
+                <span class="nav-label">{{ item.label }}</span>
+            </div>
+        </ng-container>
+
+        <!-- Home button (centered, highlighted) -->
+        <div
+            *ngIf="homeItem"
+            class="mobile-nav-item home-item"
+            [ngClass]="{ active: homeItem.active }"
+            (click)="navigateTo(homeItem)"
+        >
+            <div class="home-item-circle">
+                <img
+                    [src]="homeItem.icon"
+                    [alt]="homeItem.label"
+                    class="nav-icon"
+                />
+            </div>
+            <span class="nav-label">{{ homeItem.label }}</span>
+        </div>
+
+        <!-- Last two navigation items -->
+        <ng-container *ngFor="let item of mobileNavItems.slice(2)">
+            <div
+                class="mobile-nav-item"
+                [ngClass]="{ active: item.active }"
+                (click)="navigateTo(item)"
+            >
+                <img [src]="item.icon" [alt]="item.label" class="nav-icon" />
+                <span class="nav-label">{{ item.label }}</span>
+            </div>
+        </ng-container>
+    </div>
+</div>

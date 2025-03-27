@@ -1,27 +1,16 @@
-<div class="tourism-app min-h-screen">
-    <header
-        class="sticky top-0 left-0 w-full flex align-items-center justify-content-between p-3 surface-card shadow-1 border-b-2 border-gray-300 z-10"
-    >
-        <button
-            pButton
-            icon="pi pi-arrow-left"
-            class="p-button-text"
-            (click)="goBack()"
-        ></button>
-        <img
-            src="assets/icon/ESMERALDAS_LA_BELLA.png"
-            height="50"
-            alt="Esmeraldas Turismo"
-        />
-        <div></div>
-        <button
-            *ngIf="false"
-            pButton
-            icon="pi pi-search"
-            class="p-button-text"
-        ></button>
-    </header>
+<!-- Modify your parallax layers to better use the tropical images -->
+<div
+    class="parallax-layer layer-bg"
+    appParallax
+    [ratio]="0.1"
+    [is3D]="true"
+    [depth]="100"
+    [perspective]="1200"
+    zIndex="0"
+    [style.background-image]="'url(assets/layout/images/fondo1.webp)'"
+></div>
 
+<div class="tourism-app min-h-screen">
     <!-- Spinner de carga -->
     <div
         *ngIf="load"
@@ -36,81 +25,118 @@
         ></p-progressSpinner>
     </div>
 
-    <!-- Contenido principal (solo se muestra cuando no está cargando) -->
-    <ng-container *ngIf="!load">
-        <div
-            class="flex flex-wrap gap-3 justify-content-center xl:w-10 lg:w-11 md:w-12 w-full mx-auto"
-            style="
-                background: url('assets/layout/images/fondo.jpg') center/cover
-                    no-repeat;
-                padding: 20px;
-            "
-        >
-            <div class="grid gap-3 justify-content-center w-full">
-                <div
-                    *ngFor="let item of menuItems"
-                    class="col-5 sm:col-4 md:col-3 lg:col-4"
-                >
+    <!-- Contenido principal con efecto parallax -->
+    <div class="parallax-scene" *ngIf="!load">
+        <!-- Contenido que se desplaza con efecto 3D -->
+        <div class="content-layer">
+            <!-- Tarjetas de categorías con efecto 3D -->
+            <div
+                class="flex flex-wrap gap-3 justify-content-center xl:w-10 lg:w-11 md:w-12 w-full mx-auto p-4"
+            >
+                <div class="grid gap-3 justify-content-center w-full">
                     <div
-                        class="tourism-card cursor-pointer p-3 border-round-lg flex flex-column align-items-center justify-content-center w-full"
-                        style="
-                            border: 2px solid var(--primary-color);
-                            background-color: var(--surface-a);
-                            height: 150px;
-                        "
-                        (click)="goList(item.label)"
+                        *ngFor="let item of menuItems; let i = index"
+                        class="col-5 sm:col-4 md:col-3 lg:col-4"
+                        [ngStyle]="{
+                            transform: 'translateZ(' + (30 + i * 5) + 'px)'
+                        }"
+                        [style.transition-delay]="i * 0.1 + 's'"
                     >
-                        <img
-                            [src]="item.icon"
-                            alt=""
-                            class="max-w-6rem w-auto mb-2"
-                        />
-                        <span
-                            class="text-sm font-medium text-center"
-                            style="color: var(--text-color)"
-                        >
-                            {{ item.label }}
-                        </span>
+                        <!-- Usar nuestro nuevo componente Card3D -->
+                        <app-card-3d [tiltAmount]="10" [depth]="30">
+                            <div
+                                class="tourism-card cursor-pointer p-3 border-round-lg flex flex-column align-items-center justify-content-center w-full h-full"
+                                style="
+                                    border: 2px solid var(--primary-color);
+                                    background-color: var(--surface-a);
+                                    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+                                "
+                                (click)="goList(item.label)"
+                            >
+                                <img
+                                    [src]="item.icon"
+                                    alt=""
+                                    class="max-w-6rem w-auto mb-2 card-icon"
+                                />
+                                <span
+                                    class="text-sm font-medium text-center"
+                                    style="color: var(--text-color)"
+                                >
+                                    {{ item.label }}
+                                </span>
+                            </div>
+                        </app-card-3d>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div
-            class="p-3 xl:w-8 lg:w-9 md:w-10 sm:w-11 w-full mx-auto"
-            style="
-                border: 2px solid var(--surface-border);
-                background: rgba(var(--surface-card), 0.6);
-            "
+    <!-- Sección "Los más visitados" -->
+    <div
+        class="p-3 xl:w-8 lg:w-9 md:w-10 sm:w-11 w-full mx-auto most-visited-section"
+        style="
+            border: 2px solid var(--surface-border);
+            background: rgba(var(--surface-card-rgb), 0.8);
+            backdrop-filter: blur(10px);
+            margin-top: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            transform: translateZ(30px);
+        "
+    >
+        <h2 class="text-xl font-medium mb-3 ml-3 section-title">
+            Los más visitados
+        </h2>
+        <p-carousel
+            [value]="mostVisited"
+            [numVisible]="3"
+            [numScroll]="1"
+            [circular]="true"
+            [autoplayInterval]="4000"
+            [responsiveOptions]="responsiveOptions"
         >
-            <h2 class="text-xl font-medium mb-3 ml-3">Los más visitados</h2>
-            <p-carousel
-                [value]="mostVisited"
-                [numVisible]="3"
-                [numScroll]="1"
-                [circular]="true"
-                [autoplayInterval]="4000"
-                [responsiveOptions]="responsiveOptions"
-            >
-                <ng-template let-place pTemplate="item">
+            <ng-template let-place pTemplate="item">
+                <app-card-3d [tiltAmount]="7" [depth]="20">
                     <p-card
                         [header]="place.title_marcador"
-                        styleClass="shadow-1 h-full"
+                        styleClass="shadow-1 h-full carousel-card"
                         (click)="goMaps(place.title)"
                     >
                         <ng-template pTemplate="header">
-                            <div class="flex justify-content-center">
+                            <div
+                                class="flex justify-content-center position-relative img-container"
+                            >
+                                <!-- Placeholder mientras carga la imagen -->
+                                <div
+                                    *ngIf="!place.imageLoaded"
+                                    class="placeholder-image flex align-items-center justify-content-center"
+                                >
+                                    <p-progressSpinner
+                                        [style]="{
+                                            width: '40px',
+                                            height: '40px'
+                                        }"
+                                        styleClass="custom-spinner"
+                                    ></p-progressSpinner>
+                                </div>
+                                <!-- Imagen con manejo de carga -->
                                 <img
                                     [src]="
                                         url +
                                         'obtener_imagen/ficha_sectorial/' +
                                         place.foto[0]
                                     "
+                                    (load)="onImageLoad(place)"
+                                    [ngClass]="{
+                                        'image-loaded': place.imageLoaded
+                                    }"
                                     style="
-                                        max-height: 100px;
+                                        max-height: 120px;
                                         width: auto;
                                         display: block;
+                                        object-fit: cover;
                                     "
+                                    loading="lazy"
                                 />
                             </div>
                         </ng-template>
@@ -118,7 +144,7 @@
                             <div
                                 class="flex flex-column gap-2 justify-content-center"
                             >
-                                <h3>{{ place.title }}</h3>
+                                <h3 class="place-title">{{ place.title }}</h3>
                             </div>
 
                             <div
@@ -141,39 +167,13 @@
                             </div>
                         </ng-template>
                     </p-card>
-                </ng-template>
-            </p-carousel>
-        </div>
-    </ng-container>
-
-    <!-- Menú inferior (móvil) o lateral (escritorio) -->
-    <div
-        *ngIf="isMobil()"
-        class="menu-container"
-        style="background-color: #ffffff00 !important"
-    >
-        <div
-            *ngFor="let item of menuItemssub"
-            class="menu-item"
-            [ngClass]="{ active: item.active }"
-            style="
-                border-top: 2px solid var(--primary-color);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 10px 10px 0px 0px;
-                background-color: var(--surface-a);
-                margin-bottom: -10px;
-                width: 100%;
-            "
-            (click)="
-                item.command &&
-                    item.command({ originalEvent: $event, item: item })
-            "
-        >
-            <img [src]="item.icon" alt="icono" />
-        </div>
+                </app-card-3d>
+            </ng-template>
+        </p-carousel>
     </div>
 </div>
 
-<app-login-modal [(visible)]="loginVisible"></app-login-modal>
+<app-login-modal
+    *ngIf="loginVisible"
+    [(visible)]="loginVisible"
+></app-login-modal>
