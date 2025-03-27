@@ -65,54 +65,6 @@ export class ListComponent implements OnInit, OnDestroy {
         fichas: false,
     };
 
-    menuItems: any[] = [
-        {
-            label: 'Home',
-            icon: 'assets/icon/home.png',
-            _id: 'home',
-            url: '/home',
-            active: false,
-            command: () => {
-                this.router.navigate(['/mapa-turistico']);
-            },
-        },
-        {
-            label: 'Actividades',
-            icon: 'assets/icon/list.png',
-            _id: 'actividades',
-            url: '/mapa-turistico/list',
-            active: true,
-            command: () => {
-                this.router.navigate(['/mapa-turistico/list']);
-            },
-        },
-        {
-            label: 'Mapa',
-            icon: 'assets/icon/location.png',
-            _id: 'mapa',
-            url: '/mapa-turistico/maps',
-            active: false,
-            command: () => {
-                this.router.navigate(['/mapa-turistico/maps']);
-            },
-        },
-        {
-            label: 'Logout',
-            icon: !this.auth.token()
-                ? 'assets/icon/avatar.png'
-                : 'assets/icon/logo.png',
-            _id: 'logout',
-            active: false,
-            command: () => {
-                if (!this.auth.token()) {
-                    this.loginVisible = true; // Open login modal
-                } else {
-                    this.router.navigate(['/home']);
-                }
-            },
-        },
-    ];
-
     constructor(
         private router: Router,
         private helperService: HelperService,

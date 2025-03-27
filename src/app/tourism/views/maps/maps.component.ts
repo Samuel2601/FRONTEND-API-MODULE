@@ -61,53 +61,7 @@ export class MapsComponent implements OnInit, OnDestroy {
     displayFichaDialog: boolean = false;
     selectedFichaId: any = {};
 
-    menuItems: any[] = [
-        {
-            label: 'Home',
-            icon: 'assets/icon/home.png',
-            _id: 'home',
-            url: '/home',
-            active: false,
-            command: () => {
-                this.router.navigate(['/mapa-turistico']);
-            },
-        },
-        {
-            label: 'Actividades',
-            icon: 'assets/icon/list.png',
-            _id: 'actividades',
-            url: '/mapa-turistico/list',
-            active: false,
-            command: () => {
-                this.router.navigate(['/mapa-turistico/list']);
-            },
-        },
-        {
-            label: 'Mapa',
-            icon: 'assets/icon/location.png',
-            _id: 'mapa',
-            url: '/mapa-turistico/maps',
-            active: true,
-            command: () => {
-                this.router.navigate(['/mapa-turistico/maps']);
-            },
-        },
-        {
-            label: 'Logout',
-            icon: !this.auth.token()
-                ? 'assets/icon/avatar.png'
-                : 'assets/icon/logo.png',
-            _id: 'logout',
-            active: false,
-            command: () => {
-                if (!this.auth.token()) {
-                    this.loginVisible = true; // Open login modal
-                } else {
-                    this.router.navigate(['/home']);
-                }
-            },
-        },
-    ];
+    isStreetViewActive: boolean = false;
 
     constructor(
         private router: Router,
@@ -333,18 +287,24 @@ export class MapsComponent implements OnInit, OnDestroy {
             this.mapCustom = new google.maps.Map(
                 document.getElementById('map') as HTMLElement,
                 {
+                    mapId: '7756f5f6c6f997f1',
                     zoom: 15,
                     center: defaultLocation,
                     mapTypeId: 'terrain',
-                    fullscreenControl: false,
+                    fullscreenControl: true,
+                    fullscreenControlOptions: {
+                        position: this.isMobil()
+                            ? google.maps.ControlPosition.BOTTOM_LEFT
+                            : google.maps.ControlPosition.TOP_RIGHT,
+                    },
                     mapTypeControl: false,
                     gestureHandling: 'greedy',
                     disableDefaultUI: true,
                     streetViewControl: true,
                     streetViewControlOptions: {
                         position: this.isMobil()
-                            ? google.maps.ControlPosition.RIGHT_CENTER
-                            : google.maps.ControlPosition.TOP_RIGHT,
+                            ? google.maps.ControlPosition.RIGHT_BOTTOM
+                            : google.maps.ControlPosition.LEFT_BOTTOM,
                     },
                     styles: [
                         {
@@ -380,6 +340,22 @@ export class MapsComponent implements OnInit, OnDestroy {
                     this.onClickHandlerMap(event);
                 }
             );
+
+            // Detectar cuando el usuario entra o sale de StreetView
+            this.mapCustom
+                .getStreetView()
+                .addListener('visible_changed', () => {
+                    this.ngZone.run(() => {
+                        this.isStreetViewActive = this.mapCustom
+                            .getStreetView()
+                            .getVisible();
+                        console.log(
+                            'Street View activo:',
+                            this.isStreetViewActive
+                        );
+                        this.cdr.detectChanges();
+                    });
+                });
         } catch (error) {
             console.error('Error initializing map:', error);
         }
@@ -440,9 +416,11 @@ export class MapsComponent implements OnInit, OnDestroy {
         });
 
         // Add button to map (top right position)
-        this.mapCustom.controls[google.maps.ControlPosition.RIGHT_CENTER].push(
-            geoButton
-        );
+        const position = this.isMobil()
+            ? google.maps.ControlPosition.RIGHT_BOTTOM
+            : google.maps.ControlPosition.LEFT_BOTTOM;
+
+        this.mapCustom.controls[position].push(geoButton);
     }
 
     /**

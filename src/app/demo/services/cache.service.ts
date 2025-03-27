@@ -1,65 +1,252 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
+
+interface CacheItem<T> {
+    data: T;
+    expiry: number; // Timestamp for when the cache item expires
+}
 
 @Injectable({
     providedIn: 'root',
 })
 export class CacheService {
-    private cache: { [key: string]: any } = {};
-    private cacheExpiry: { [key: string]: number } = {};
-    private defaultExpiry = 5 * 60 * 1000; // 5 minutes default
-
     // Observable for tracking cache changes
     private cacheUpdates = new BehaviorSubject<string | null>(null);
+    private defaultExpiry = 5 * 60 * 1000; // 5 minutes default
 
     constructor() {
-        // Initialize with any cached data from localStorage
-        this.initializeFromStorage();
-
         // Set up periodic cache cleanup
         setInterval(() => this.cleanExpiredCache(), 60000);
     }
+    /**
+     * Check if a key exists in the cache
+     */
+    has(key: string): boolean {
+        const item = this.getWithMetadata<any>(key);
+        if (!item) return false;
+
+        // Check if expired
+        if (item.expiry && item.expiry < Date.now()) {
+            this.remove(key);
+            return false;
+        }
+
+        return true;
+    }
 
     /**
-     * Initialize cache from localStorage
+     * Get cached data with metadata
      */
-    private initializeFromStorage(): void {
+    private getWithMetadata<T>(key: string): CacheItem<T> | null {
         try {
-            const savedCache = localStorage.getItem('appCache');
-            if (savedCache) {
-                const parsed = JSON.parse(savedCache);
-                this.cache = parsed.cache || {};
-                this.cacheExpiry = parsed.expiry || {};
+            const item = localStorage.getItem(key);
+            if (!item) return null;
 
-                // Clean expired items on load
-                this.cleanExpiredCache();
-            }
+            return JSON.parse(item) as CacheItem<T>;
         } catch (error) {
-            console.error('Error loading cache from storage:', error);
-            // Reset cache if corrupted
-            this.cache = {};
-            this.cacheExpiry = {};
+            console.error(`Error retrieving cache for key ${key}:`, error);
+            this.remove(key);
+            return null;
         }
     }
 
     /**
-     * Save current cache to localStorage
+     * Get cached data
      */
-    private saveToStorage(): void {
+    get<T>(key: string): T | null {
+        const item = this.getWithMetadata<T>(key);
+        if (!item) return null;
+
+        // Check if expired
+        if (item.expiry && item.expiry < Date.now()) {
+            this.remove(key);
+            return null;
+        }
+
+        return item.data;
+    }
+
+    /**
+     * Set data in cache with an optional TTL
+     */
+    set<T>(key: string, data: T, ttl?: number): void {
         try {
-            const saveObj = {
-                cache: this.cache,
-                expiry: this.cacheExpiry,
+            const item: CacheItem<T> = {
+                data,
+                expiry: ttl ? Date.now() + ttl : 0, // 0 means no expiry
             };
-            localStorage.setItem('appCache', JSON.stringify(saveObj));
+
+            localStorage.setItem(key, JSON.stringify(item));
+
+            // Dispatch storage event for cross-tab communication
+            this.dispatchStorageEvent(key);
         } catch (error) {
-            console.error('Error saving cache to storage:', error);
+            console.error(`Error setting cache for key ${key}:`, error);
+
+            // If storage quota exceeded, clear some space
+            if (
+                error instanceof DOMException &&
+                error.name === 'QuotaExceededError'
+            ) {
+                this.clearOldestCache();
+                this.set(key, data, ttl); // Try again
+            }
         }
     }
 
     /**
-     * Get data from cache or retrieve it using the provided fetcher function
+     * Remove item from cache
+     */
+    remove(key: string): void {
+        localStorage.removeItem(key);
+
+        // Dispatch storage event for cross-tab communication
+        this.dispatchStorageEvent(key);
+    }
+
+    /**
+     * Clear all cache
+     */
+    clear(): void {
+        localStorage.clear();
+    }
+
+    /**
+     * Check if cached data is still valid
+     */
+    isValid(key: string): boolean {
+        return this.has(key);
+    }
+
+    /**
+     * Save chunked data for large datasets
+     */
+    saveChunkedData<T>(
+        data: T[],
+        baseKey: string,
+        chunkSize: number = 50,
+        ttl?: number
+    ): void {
+        // Clear existing chunks first
+        this.clearChunks(baseKey);
+
+        // Store chunk count for easy retrieval
+        this.set(`${baseKey}_count`, data.length, ttl);
+
+        // Split data into chunks
+        for (let i = 0; i < data.length; i += chunkSize) {
+            const chunk = data.slice(i, i + chunkSize);
+            const chunkKey = `${baseKey}_${Math.floor(i / chunkSize)}`;
+            this.set(chunkKey, chunk, ttl);
+        }
+
+        // Dispatch storage event for cross-tab communication
+        this.dispatchStorageEvent(baseKey);
+    }
+
+    /**
+     * Get all chunked data
+     */
+    getChunkedData<T>(baseKey: string): T[] {
+        const count = this.get<number>(`${baseKey}_count`);
+        if (!count) return [];
+
+        let result: T[] = [];
+        let chunkIndex = 0;
+        let chunkKey = `${baseKey}_${chunkIndex}`;
+
+        // Retrieve all chunks
+        while (this.has(chunkKey)) {
+            const chunk = this.get<T[]>(chunkKey);
+            if (chunk) {
+                result = result.concat(chunk);
+            }
+            chunkIndex++;
+            chunkKey = `${baseKey}_${chunkIndex}`;
+        }
+
+        return result;
+    }
+
+    /**
+     * Clear all chunks for a given base key
+     */
+    clearChunks(baseKey: string): void {
+        // Get chunk count if available
+        const count = this.has(`${baseKey}_count`)
+            ? this.get<number>(`${baseKey}_count`)
+            : 0;
+
+        // Remove the count key
+        this.remove(`${baseKey}_count`);
+
+        // Clear known chunks based on count
+        if (count > 0) {
+            for (let i = 0; i < count; i++) {
+                this.remove(`${baseKey}_${i}`);
+            }
+        } else {
+            // Fallback to checking all possible chunks
+            let chunkIndex = 0;
+            let chunkKey = `${baseKey}_${chunkIndex}`;
+
+            while (localStorage.getItem(chunkKey) !== null) {
+                this.remove(chunkKey);
+                chunkIndex++;
+                chunkKey = `${baseKey}_${chunkIndex}`;
+            }
+        }
+
+        // Dispatch storage event for cross-tab communication
+        this.dispatchStorageEvent(baseKey);
+    }
+
+    /**
+     * Check if chunked data is valid
+     */
+    isChunkedDataValid(baseKey: string): boolean {
+        return this.has(`${baseKey}_count`);
+    }
+
+    /**
+     * Clear oldest cache items when storage is full
+     */
+    private clearOldestCache(): void {
+        let oldestKey: string | null = null;
+        let oldestTimestamp = Infinity;
+
+        // Find the oldest cache item
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (!key) continue;
+
+            try {
+                const item = JSON.parse(localStorage.getItem(key) || '{}');
+                if (item && item.expiry && item.expiry < oldestTimestamp) {
+                    oldestTimestamp = item.expiry;
+                    oldestKey = key;
+                }
+            } catch (e) {
+                // Skip non-JSON items
+                continue;
+            }
+        }
+
+        // Remove oldest item if found
+        if (oldestKey) {
+            this.remove(oldestKey);
+        } else {
+            // If no expiring items found, remove random items
+            for (let i = 0; i < Math.min(5, localStorage.length); i++) {
+                const key = localStorage.key(i);
+                if (key) this.remove(key);
+            }
+        }
+    }
+
+    /**
+     * Get or fetch data using the provided fetcher function
      */
     getOrFetch<T>(
         key: string,
@@ -68,7 +255,10 @@ export class CacheService {
     ): Observable<T> {
         // If we have valid cached data, return it
         if (this.has(key)) {
-            return of(this.get<T>(key));
+            return new Observable<T>((observer) => {
+                observer.next(this.get<T>(key));
+                observer.complete();
+            });
         }
 
         // Otherwise fetch, cache and return
@@ -80,66 +270,10 @@ export class CacheService {
     }
 
     /**
-     * Check if cache contains valid (non-expired) data for the key
+     * Get notifications when cache changes
      */
-    has(key: string): boolean {
-        const hasKey = key in this.cache;
-        const notExpired = this.cacheExpiry[key] > Date.now();
-        return hasKey && notExpired;
-    }
-
-    /**
-     * Get data from cache
-     */
-    get<T>(key: string): T {
-        if (this.has(key)) {
-            return this.cache[key] as T;
-        }
-        return null as any;
-    }
-
-    /**
-     * Set data in cache with expiration
-     */
-    set<T>(key: string, data: T, expiryMs: number = this.defaultExpiry): void {
-        this.cache[key] = data;
-        this.cacheExpiry[key] = Date.now() + expiryMs;
-
-        // Notify subscribers that cache has been updated
-        this.cacheUpdates.next(key);
-
-        // Save to localStorage
-        this.saveToStorage();
-    }
-
-    /**
-     * Remove specific item from cache
-     */
-    remove(key: string): void {
-        if (key in this.cache) {
-            delete this.cache[key];
-            delete this.cacheExpiry[key];
-
-            // Notify subscribers that cache has been updated
-            this.cacheUpdates.next(key);
-
-            // Save to localStorage
-            this.saveToStorage();
-        }
-    }
-
-    /**
-     * Clear entire cache
-     */
-    clear(): void {
-        this.cache = {};
-        this.cacheExpiry = {};
-
-        // Notify subscribers that cache has been cleared
-        this.cacheUpdates.next(null);
-
-        // Save to localStorage
-        localStorage.removeItem('appCache');
+    getCacheUpdates(): Observable<string | null> {
+        return this.cacheUpdates.asObservable();
     }
 
     /**
@@ -149,86 +283,44 @@ export class CacheService {
         const now = Date.now();
         let hasChanges = false;
 
-        Object.keys(this.cacheExpiry).forEach((key) => {
-            if (this.cacheExpiry[key] < now) {
-                delete this.cache[key];
-                delete this.cacheExpiry[key];
-                hasChanges = true;
-            }
-        });
+        // Iterate through localStorage to find expired items
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (!key) continue;
 
-        // Only save if changes were made
-        if (hasChanges) {
-            this.saveToStorage();
-        }
-    }
+            try {
+                const item = JSON.parse(localStorage.getItem(key) || '{}');
+                if (item && item.expiry && item.expiry < now) {
+                    localStorage.removeItem(key);
+                    hasChanges = true;
 
-    /**
-     * Get notifications when cache changes
-     */
-    getCacheUpdates(): Observable<string | null> {
-        return this.cacheUpdates.asObservable();
-    }
-
-    /**
-     * Save chunked data for large datasets
-     */
-    saveChunkedData(
-        data: any[],
-        prefix: string = 'data',
-        chunkSize: number = 100
-    ): void {
-        // Clear existing chunks for this prefix
-        this.clearChunks(prefix);
-
-        // Store how many chunks we have
-        const chunkCount = Math.ceil(data.length / chunkSize);
-        this.set(`${prefix}_count`, chunkCount);
-
-        // Store each chunk
-        for (let i = 0; i < chunkCount; i++) {
-            const start = i * chunkSize;
-            const end = Math.min(start + chunkSize, data.length);
-            const chunk = data.slice(start, end);
-            this.set(`${prefix}_${i}`, chunk);
-        }
-    }
-
-    /**
-     * Get all chunked data
-     */
-    getChunkedData<T>(prefix: string = 'data'): T[] {
-        if (!this.has(`${prefix}_count`)) {
-            return [];
-        }
-
-        const chunkCount = this.get<number>(`${prefix}_count`);
-        let result: T[] = [];
-
-        for (let i = 0; i < chunkCount; i++) {
-            const key = `${prefix}_${i}`;
-            if (this.has(key)) {
-                result = result.concat(this.get<T[]>(key));
+                    // Notify about the removal
+                    this.cacheUpdates.next(key);
+                }
+            } catch (e) {
+                // Skip non-JSON items
+                continue;
             }
         }
-
-        return result;
     }
 
     /**
-     * Clear all chunks for a prefix
+     * Manually dispatch storage event for cross-tab communication
+     * This is needed because localStorage events don't fire in the same tab
      */
-    clearChunks(prefix: string): void {
-        const count = this.has(`${prefix}_count`)
-            ? this.get<number>(`${prefix}_count`)
-            : 0;
-
-        // Clear the count
-        this.remove(`${prefix}_count`);
-
-        // Clear each chunk
-        for (let i = 0; i < count; i++) {
-            this.remove(`${prefix}_${i}`);
+    private dispatchStorageEvent(key: string): void {
+        // Only run in browser environment
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(
+                new StorageEvent('storage', {
+                    key: key,
+                    newValue: localStorage.getItem(key),
+                    storageArea: localStorage,
+                })
+            );
         }
+
+        // Also notify through RxJS for in-app communication
+        this.cacheUpdates.next(key);
     }
 }

@@ -1,44 +1,33 @@
 .map-container {
-    position: relative;
-    width: 100%;
-    height: 100vh;
+    position: absolute;
+    width: 97%;
+    height: 97%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-}
-
-header {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: 3px 6px !important;
-    background: rgba(255, 255, 255, 0.952) !important;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1) !important;
-    border-bottom: 2px solid var(--border-color, #cccccc41) !important;
-    z-index: 1000; // Asegura que esté sobre otros elementos
-}
-
-/* Ajusta la altura de la imagen dentro del header */
-header img {
-    height: 40px; /* Reduce el tamaño del logo */
+    margin: 0rem;
+    /* Counteract the padding from app-content */
 }
 
 #map {
     width: 100%;
     height: 100%;
+    position: relative;
 }
 
 .chip-container {
     position: absolute;
-    top: 45px;
-    left: 5px;
-    right: 10px; /* Asegura que no se desborde */
+    top: 2rem;
+    left: 2rem;
+    right: 2rem;
+    /* Asegura que no se desborde */
     display: flex;
-    flex-wrap: wrap; /* Permite que las chips se ajusten */
+    flex-wrap: wrap;
+    /* Permite que las chips se ajusten */
     gap: 8px;
     z-index: 10;
     //background: var(--surface, rgba(255, 255, 255, 0.171));
@@ -129,18 +118,22 @@ header img {
     border-top: 2px solid var(--primary-dark) !important;
     transform: scale(1.05);
 }
+
 /* Estilo para versión de escritorio */
 @media (min-width: 768px) {
     .map-container {
-        padding-bottom: 0; /* Elimina el padding inferior en escritorio */
+        padding-bottom: 0;
+        /* Elimina el padding inferior en escritorio */
     }
 
     .main-content {
-        padding-left: 70px; /* Espacio para el menú lateral */
+        padding-left: 70px;
+        /* Espacio para el menú lateral */
     }
 
     .menu-container {
-        top: 60px; /* Justo debajo del header */
+        top: 60px;
+        /* Justo debajo del header */
         bottom: auto;
         width: 60px;
         height: calc(100vh - 60px);
@@ -231,6 +224,7 @@ header img {
         from {
             transform: translateY(100%);
         }
+
         to {
             transform: translateY(0);
         }
@@ -248,4 +242,54 @@ header img {
     /* Scroll suave */
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
+}
+
+.map-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0rem;
+    /* Counteract app-content padding */
+    height: calc(100% + 0rem);
+    width: calc(100% + 1rem);
+    overflow: hidden;
+}
+
+/* For mobile, adjust to account for bottom navigation */
+@media (max-width: 768px) {
+    .map-wrapper {
+        bottom: 80px;
+        /* Height of mobile nav */
+        height: calc(100% - 80px + 2rem);
+    }
+}
+
+/* Estilo adicional para solucionar el scroll horizontal en escritorio */
+@media (min-width: 769px) {
+    .map-wrapper {
+        width: 100%;
+        /* En lugar de calc(100% + 1rem) */
+        right: 0;
+    }
+
+    .map-container {
+        height: 100% !important;
+        width: 100% !important;
+    }
+
+    /* Aseguramos que el contenedor padre no tenga overflow */
+    :host {
+        overflow-x: hidden;
+    }
+}
+
+/* Solución para evitar espacios en blanco */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
 }

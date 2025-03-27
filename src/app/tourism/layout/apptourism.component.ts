@@ -8,6 +8,7 @@ import { MenuItem } from 'primeng/api';
 import { MenuModule } from 'primeng/menu';
 import { SidebarModule } from 'primeng/sidebar';
 import { AuthService } from 'src/app/demo/services/auth.service';
+import { LoginComponent } from '../login/login.component';
 
 export interface NavItem {
     id: string;
@@ -28,6 +29,7 @@ export interface NavItem {
         ProgressSpinnerModule,
         MenuModule,
         SidebarModule,
+        LoginComponent,
     ],
     templateUrl: './apptourism.component.html',
     styleUrls: ['./apptourism.component.scss'],

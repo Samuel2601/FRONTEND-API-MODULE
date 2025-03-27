@@ -1,24 +1,32 @@
-<div class="map-container">
-    <div *ngIf="actividad.length > 0" class="chip-container">
-        <span
-            *ngFor="let act of actividad"
-            class="chip"
-            [class.active]="selectedActivities.has(act._id)"
-            (click)="toggleActivity(act)"
-        >
-            <input
-                type="checkbox"
-                [checked]="selectedActivities.has(act._id)"
-                class="chip-checkbox"
-            />
-            <img [src]="act.icon" alt="{{ act.label }}" class="chip-icon" />
-            {{ act.label }}
-        </span>
+<div class="content-wrapper">
+    <div class="map-wrapper">
+        <div class="map-container">
+            <div
+                *ngIf="actividad.length > 0 && !isStreetViewActive"
+                class="chip-container"
+            >
+                <span
+                    *ngFor="let act of actividad"
+                    class="chip"
+                    [class.active]="selectedActivities.has(act._id)"
+                    (click)="toggleActivity(act)"
+                >
+                    <input
+                        type="checkbox"
+                        [checked]="selectedActivities.has(act._id)"
+                        class="chip-checkbox"
+                    />
+                    <img
+                        [src]="act.icon"
+                        alt="{{ act.label }}"
+                        class="chip-icon"
+                    />
+                    {{ act.label }}
+                </span>
+            </div>
+            <div id="map"></div>
+        </div>
     </div>
-    <div
-        id="map"
-        style="height: 100%; width: 100%; position: absolute; top: 0; left: 0"
-    ></div>
 </div>
 
 <p-dialog
@@ -58,8 +66,3 @@
         ></app-item>
     </div>
 </p-dialog>
-
-<app-login-modal
-    *ngIf="loginVisible"
-    [(visible)]="loginVisible"
-></app-login-modal>

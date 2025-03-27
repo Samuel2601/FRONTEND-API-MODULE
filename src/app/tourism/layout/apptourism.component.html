@@ -105,3 +105,8 @@
         </ng-container>
     </div>
 </div>
+
+<app-login-modal
+    *ngIf="loginVisible"
+    [(visible)]="loginVisible"
+></app-login-modal>

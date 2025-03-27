@@ -299,7 +299,7 @@ export class AuthService {
         return this.http.post(this.url + 'validcode', data, { headers });
     }
 
-    token(notRederit: boolean = false): string | boolean {
+    token(notRederit: boolean = false): string | null {
         const token =
             sessionStorage.getItem('token') || localStorage.getItem('token');
         if (token) {
@@ -314,7 +314,7 @@ export class AuthService {
             // console.log('regreso a  login');
             this.redirectToLoginIfNeeded(notRederit);
         }
-        return token || false;
+        return token || null;
     }
 
     calcularTiempoRestante(token: string): number {

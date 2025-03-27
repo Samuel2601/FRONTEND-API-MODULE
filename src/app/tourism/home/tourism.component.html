@@ -1,19 +1,9 @@
 <!-- Modify your parallax layers to better use the tropical images -->
-<div
-    class="parallax-layer layer-bg"
-    appParallax
-    [ratio]="0.1"
-    [is3D]="true"
-    [depth]="100"
-    [perspective]="1200"
-    zIndex="0"
-    [style.background-image]="'url(assets/layout/images/fondo1.webp)'"
-></div>
 
 <div class="tourism-app min-h-screen">
     <!-- Spinner de carga -->
     <div
-        *ngIf="load"
+        *ngIf="loading$ | async"
         class="loading-container flex align-items-center justify-content-center"
     >
         <p-progressSpinner
@@ -26,7 +16,7 @@
     </div>
 
     <!-- Contenido principal con efecto parallax -->
-    <div class="parallax-scene" *ngIf="!load">
+    <div class="parallax-scene" *ngIf="!(loading$ | async)">
         <!-- Contenido que se desplaza con efecto 3D -->
         <div class="content-layer">
             <!-- Tarjetas de categorías con efecto 3D -->
@@ -35,7 +25,7 @@
             >
                 <div class="grid gap-3 justify-content-center w-full">
                     <div
-                        *ngFor="let item of menuItems; let i = index"
+                        *ngFor="let item of activities$ | async; let i = index"
                         class="col-5 sm:col-4 md:col-3 lg:col-4"
                         [ngStyle]="{
                             transform: 'translateZ(' + (30 + i * 5) + 'px)'
@@ -43,7 +33,10 @@
                         [style.transition-delay]="i * 0.1 + 's'"
                     >
                         <!-- Usar nuestro nuevo componente Card3D -->
-                        <app-card-3d [tiltAmount]="10" [depth]="30">
+                        <app-card-3d
+                            [tiltAmount]="effectSettings.cardTiltAmount"
+                            [depth]="effectSettings.cardDepth"
+                        >
                             <div
                                 class="tourism-card cursor-pointer p-3 border-round-lg flex flex-column align-items-center justify-content-center w-full h-full"
                                 style="
@@ -88,7 +81,7 @@
             Los más visitados
         </h2>
         <p-carousel
-            [value]="mostVisited"
+            [value]="mostVisited$ | async"
             [numVisible]="3"
             [numScroll]="1"
             [circular]="true"
@@ -121,12 +114,10 @@
                                 </div>
                                 <!-- Imagen con manejo de carga -->
                                 <img
-                                    [src]="
-                                        url +
-                                        'obtener_imagen/ficha_sectorial/' +
-                                        place.foto[0]
+                                    [attr.data-src]="
+                                        getOptimizedImageUrl(place.foto[0])
                                     "
-                                    (load)="onImageLoad(place)"
+                                    [attr.data-place-id]="place.id"
                                     [ngClass]="{
                                         'image-loaded': place.imageLoaded
                                     }"
@@ -172,8 +163,3 @@
         </p-carousel>
     </div>
 </div>
-
-<app-login-modal
-    *ngIf="loginVisible"
-    [(visible)]="loginVisible"
-></app-login-modal>

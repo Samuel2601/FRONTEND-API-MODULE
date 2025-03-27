@@ -201,151 +201,25 @@
     }
 }
 
-// Enhanced 3D effect styles for the tourism app
-// Add or update these in your tourism.component.scss file
+// Añadir al tourism.component.scss
+.img-container {
+    img {
+        image-rendering: -webkit-optimize-contrast; // Mejora el renderizado en Chrome
+        image-rendering: crisp-edges; // Mejora el renderizado en Firefox
+        transition: opacity 0.3s ease;
+        opacity: 0; // Inicialmente invisible
 
-// Base parallax scene
-.parallax-scene {
-    position: relative;
-    height: 100vh;
-    overflow: hidden;
-    perspective: 1200px;
-    transform-style: preserve-3d;
-}
-
-// Layers with improved performance
-.parallax-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    will-change: transform;
-    transform: translateZ(0); // Hardware acceleration
-}
-
-// Add a subtle transition for smoother movement
-.parallax-layer,
-.tourism-card,
-.content-layer {
-    transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1);
-}
-
-// More subtle z-depth values for different layers
-.layer-bg {
-    z-index: 1;
-    transform: translateZ(-30px) scale(1.1); // Scale compensates for perspective
-}
-
-.layer-middle {
-    z-index: 2;
-    transform: translateZ(-15px) scale(1.05);
-}
-
-.layer-foreground {
-    z-index: 3;
-    transform: translateZ(0);
-}
-
-// Main content layer with optimized 3D properties
-.content-layer {
-    position: relative;
-    z-index: 10;
-    padding-top: 2rem;
-    transform-style: preserve-3d;
-    transform: translateZ(10px);
-}
-
-// More subtle card animations optimized for desktop
-.tourism-card {
-    transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1),
-        box-shadow 0.2s cubic-bezier(0.33, 1, 0.68, 1);
-    transform-style: preserve-3d;
-
-    &:hover {
-        transform: translateY(-5px) scale(1.02);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-    }
-}
-
-// Most visited section with refined 3D effect
-.most-visited-section {
-    border-radius: 8px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-    transform: translateZ(15px);
-    transform-style: preserve-3d;
-    backdrop-filter: blur(10px);
-
-    // Subtle hover effect
-    &:hover {
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-    }
-
-    // Improved heading style
-    .section-title {
-        position: relative;
-        padding-bottom: 8px;
-
-        &:after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 50px;
-            height: 3px;
-            background: var(--primary-color);
-            border-radius: 3px;
+        &.image-loaded {
+            opacity: 1; // Mostrar cuando esté cargado
         }
     }
 }
 
-// Improved carousel card with optimized 3D effect
-.carousel-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    overflow: hidden;
-
-    &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-    }
-
-    .place-title {
-        font-size: 1rem;
-        margin: 0.5rem 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-}
-
-// Optimize the image loading container
-.img-container {
-    position: relative;
-    min-height: 120px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    overflow: hidden;
-    border-radius: 8px 8px 0 0;
-
-    // Improved image loading animation
-    .image-loaded {
-        animation: fadeIn 0.3s cubic-bezier(0.33, 1, 0.68, 1);
-        opacity: 1;
-    }
-}
-
-// Smoother animation keyframes
+// Modificar el fade-in para que sea menos agresivo
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: scale(0.95);
+        transform: scale(0.98); // Reducido de 0.95 para menor distorsión
     }
 
     to {
@@ -354,87 +228,16 @@
     }
 }
 
-// Optimize performance based on device capabilities
-@media (max-width: 768px) {
-    // Simpler effects for mobile devices
-    .parallax-scene {
-        perspective: 600px;
-    }
-
-    .content-layer {
-        transform: translateZ(5px);
-    }
-
-    .most-visited-section {
-        transform: translateZ(5px);
-    }
-
-    // Less aggressive hover effects on mobile
-    .tourism-card,
-    .carousel-card {
-        &:hover {
-            transform: translateY(-3px);
-        }
-    }
+// Quitar efectos innecesarios que afectan la calidad de imagen
+.tourism-card {
+    backface-visibility: visible !important; // Mejora la calidad de la imagen
 }
 
-// Respect user preferences for reduced motion
-@media (prefers-reduced-motion: reduce) {
-    .parallax-layer,
-    .tourism-card,
-    .content-layer,
-    .most-visited-section,
-    .carousel-card {
-        transition: none !important;
-        animation: none !important;
-        transform: none !important;
+// Reducir o eliminar blur en esta sección
+.most-visited-section {
+    backdrop-filter: blur(5px); // Reducido de 10px
+
+    @media (max-width: 768px) {
+        backdrop-filter: blur(3px); // Aún menos en móviles
     }
-
-    .image-loaded {
-        animation: none !important;
-    }
-}
-
-// High performance rendering optimizations
-:host ::ng-deep {
-    .p-carousel {
-        .p-carousel-container {
-            .p-carousel-items-content {
-                will-change: transform;
-                transform: translateZ(0); // Hardware acceleration
-            }
-        }
-    }
-
-    // Smoother carousel controls
-    .p-carousel-prev,
-    .p-carousel-next {
-        transition: background-color 0.2s, color 0.2s, border-color 0.2s;
-
-        &:hover {
-            transform: scale(1.05);
-        }
-    }
-}
-
-// Clean up spinner style
-.loading-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.8);
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-// Custom spinner with improved animation
-:host ::ng-deep .custom-spinner .p-progress-spinner-circle {
-    stroke: var(--primary-color);
-    stroke-linecap: round;
-    animation-duration: 1.2s;
-    animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
 }

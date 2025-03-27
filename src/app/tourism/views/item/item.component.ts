@@ -199,7 +199,7 @@ export class ItemComponent implements OnInit, OnChanges {
     }
     loginVisible: boolean = false;
     toggleMeGusta(): void {
-        const token = this.auth.token();
+        const token = this.auth.token(true);
         if (token) {
             const userId: string = this.auth.idUserToken(token.toString());
             this.liked = !this.liked;
@@ -233,7 +233,7 @@ export class ItemComponent implements OnInit, OnChanges {
     agregarComentario(): void {
         if (this.enviandoComentario) return; // Evita doble envío
 
-        const token = this.auth.token();
+        const token = this.auth.token(true);
         const idUser = this.auth.idUserToken();
 
         if (!token) {

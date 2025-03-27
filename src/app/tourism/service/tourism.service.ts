@@ -1,22 +1,88 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, forkJoin, BehaviorSubject } from 'rxjs';
-import { map, tap, shareReplay, catchError } from 'rxjs/operators';
+import { Injectable, OnDestroy } from '@angular/core';
+import {
+    Observable,
+    of,
+    forkJoin,
+    BehaviorSubject,
+    Subject,
+    throwError,
+} from 'rxjs';
+import {
+    map,
+    tap,
+    shareReplay,
+    catchError,
+    takeUntil,
+    finalize,
+    switchMap,
+} from 'rxjs/operators';
 import { CacheService } from 'src/app/demo/services/cache.service';
 import { FilterService } from 'src/app/demo/services/filter.service';
 import { ListService } from 'src/app/demo/services/list.service';
 
+interface TourismActivity {
+    label: string;
+    icon: string;
+    _id: string;
+    url_pdf: string;
+}
+
+interface TourismFicha {
+    title_marcador: string;
+    image: string;
+    _id: string;
+    foto: string;
+    direccion: string;
+    me_gusta: any[];
+    comentarios: any[];
+    lat: number;
+    lng: number;
+    actividadId: string | null;
+    actividadNombre: string | null;
+    created_at: Date;
+}
+
+interface MostVisitedPlace
+    extends Omit<
+        TourismFicha,
+        'lat' | 'lng' | 'actividadId' | 'actividadNombre'
+    > {
+    title: string;
+}
+
+const CACHE_KEYS = {
+    ACTIVITIES: 'tourism_activities',
+    FICHAS: 'tourism_fichas',
+    MOST_VISITED: 'tourism_most_visited',
+};
+
+const CACHE_DURATION = {
+    ACTIVITIES: 30 * 60 * 1000, // 30 minutes
+    FICHAS: 20 * 60 * 1000, // 20 minutes
+    MOST_VISITED: 15 * 60 * 1000, // 15 minutes
+    FICHA_DETAIL: 10 * 60 * 1000, // 10 minutes
+};
+
 @Injectable({
     providedIn: 'root',
 })
-export class TourismService {
-    private activitiesCache$ = new BehaviorSubject<any[]>([]);
-    private allFichasCache$ = new BehaviorSubject<any[]>([]);
-    private mostVisitedCache$ = new BehaviorSubject<any[]>([]);
+export class TourismService implements OnDestroy {
+    private activitiesCache$ = new BehaviorSubject<TourismActivity[]>([]);
+    private allFichasCache$ = new BehaviorSubject<TourismFicha[]>([]);
+    private mostVisitedCache$ = new BehaviorSubject<MostVisitedPlace[]>([]);
 
-    // Loading states
-    private loadingActivities = false;
-    private loadingFichas = false;
-    private loadingMostVisited = false;
+    // Use a single loading subject to track all loading states
+    private loadingSubject$ = new BehaviorSubject<{ [key: string]: boolean }>({
+        activities: false,
+        fichas: false,
+        mostVisited: false,
+    });
+
+    // Observable for loading states that components can subscribe to
+    public loading$ = this.loadingSubject$.asObservable();
+
+    // For cleanup when the service is destroyed
+    private destroy$ = new Subject<void>();
 
     constructor(
         private listService: ListService,
@@ -25,25 +91,75 @@ export class TourismService {
     ) {
         // Initialize cache from localStorage on service creation
         this.initializeFromCache();
+
+        // Set up window storage event listener to handle multiple tabs
+        this.setupStorageEventListener();
+    }
+
+    ngOnDestroy(): void {
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
+
+    /**
+     * Set up storage event listener to detect changes from other tabs
+     */
+    private setupStorageEventListener(): void {
+        window.addEventListener('storage', (event) => {
+            // Only process if it's our cache keys
+            if (event.key?.startsWith('tourism_')) {
+                switch (event.key) {
+                    case CACHE_KEYS.ACTIVITIES:
+                        this.activitiesCache$.next(
+                            this.cacheService.get<TourismActivity[]>(
+                                CACHE_KEYS.ACTIVITIES
+                            ) || []
+                        );
+                        break;
+                    case CACHE_KEYS.MOST_VISITED:
+                        this.mostVisitedCache$.next(
+                            this.cacheService.get<MostVisitedPlace[]>(
+                                CACHE_KEYS.MOST_VISITED
+                            ) || []
+                        );
+                        break;
+                    default:
+                        // For chunked data or individual ficha data
+                        if (event.key.startsWith(CACHE_KEYS.FICHAS)) {
+                            const allFichas =
+                                this.cacheService.getChunkedData<TourismFicha>(
+                                    CACHE_KEYS.FICHAS
+                                );
+                            if (allFichas && allFichas.length > 0) {
+                                this.allFichasCache$.next(allFichas);
+                            }
+                        }
+                        break;
+                }
+            }
+        });
     }
 
     /**
      * Initialize data from cache if available
      */
     private initializeFromCache(): void {
-        const activities = this.cacheService.get<any[]>('tourism_activities');
+        const activities = this.cacheService.get<TourismActivity[]>(
+            CACHE_KEYS.ACTIVITIES
+        );
         if (activities && activities.length > 0) {
             this.activitiesCache$.next(activities);
         }
 
-        const allFichas =
-            this.cacheService.getChunkedData<any>('tourism_fichas');
+        const allFichas = this.cacheService.getChunkedData<TourismFicha>(
+            CACHE_KEYS.FICHAS
+        );
         if (allFichas && allFichas.length > 0) {
             this.allFichasCache$.next(allFichas);
         }
 
-        const mostVisited = this.cacheService.get<any[]>(
-            'tourism_most_visited'
+        const mostVisited = this.cacheService.get<MostVisitedPlace[]>(
+            CACHE_KEYS.MOST_VISITED
         );
         if (mostVisited && mostVisited.length > 0) {
             this.mostVisitedCache$.next(mostVisited);
@@ -51,22 +167,36 @@ export class TourismService {
     }
 
     /**
+     * Update loading state
+     */
+    private updateLoadingState(key: string, isLoading: boolean): void {
+        this.loadingSubject$.next({
+            ...this.loadingSubject$.value,
+            [key]: isLoading,
+        });
+    }
+
+    /**
      * Get tourism activities with caching
      */
-    getActivities(): Observable<any[]> {
-        // If we have cached data and aren't currently loading, return it
-        if (this.activitiesCache$.value.length > 0 && !this.loadingActivities) {
+    getActivities(): Observable<TourismActivity[]> {
+        // Return cached data if available
+        if (
+            this.activitiesCache$.value.length > 0 &&
+            !this.loadingSubject$.value['activities']
+        ) {
             return this.activitiesCache$.asObservable();
         }
 
-        // If we're already loading, just return the observable
-        if (this.loadingActivities) {
+        // If already loading, just return the current observable
+        if (this.loadingSubject$.value['activities']) {
             return this.activitiesCache$.asObservable();
         }
 
-        // Otherwise, load the data
-        this.loadingActivities = true;
+        // Set loading state
+        this.updateLoadingState('activities', true);
 
+        // Fetch fresh data
         this.listService
             .listarTiposActividadesProyecto(null, { is_tourism: true })
             .pipe(
@@ -85,18 +215,18 @@ export class TourismService {
                     console.error('Error loading activities:', err);
                     return of([]);
                 }),
-                tap((activities) => {
-                    // Cache the data
-                    this.cacheService.set(
-                        'tourism_activities',
-                        activities,
-                        30 * 60 * 1000
-                    ); // 30 minutes
-                    this.activitiesCache$.next(activities);
-                    this.loadingActivities = false;
-                })
+                finalize(() => this.updateLoadingState('activities', false)),
+                takeUntil(this.destroy$)
             )
-            .subscribe();
+            .subscribe((activities) => {
+                // Cache the data with persistent storage
+                this.cacheService.set(
+                    CACHE_KEYS.ACTIVITIES,
+                    activities,
+                    CACHE_DURATION.ACTIVITIES
+                );
+                this.activitiesCache$.next(activities);
+            });
 
         return this.activitiesCache$.asObservable();
     }
@@ -104,20 +234,24 @@ export class TourismService {
     /**
      * Get all tourism fichas with caching
      */
-    getAllFichas(): Observable<any[]> {
-        // If we have cached data and aren't currently loading, return it
-        if (this.allFichasCache$.value.length > 0 && !this.loadingFichas) {
+    getAllFichas(): Observable<TourismFicha[]> {
+        // Return cached data if available
+        if (
+            this.allFichasCache$.value.length > 0 &&
+            !this.loadingSubject$.value['fichas']
+        ) {
             return this.allFichasCache$.asObservable();
         }
 
-        // If we're already loading, just return the observable
-        if (this.loadingFichas) {
+        // If already loading, just return the current observable
+        if (this.loadingSubject$.value['fichas']) {
             return this.allFichasCache$.asObservable();
         }
 
-        // Otherwise, load the data
-        this.loadingFichas = true;
+        // Set loading state
+        this.updateLoadingState('fichas', true);
 
+        // Fetch fresh data
         this.listService
             .listarFichaSectorial(null, { view: true })
             .pipe(
@@ -125,7 +259,7 @@ export class TourismService {
                     if (response.data) {
                         return response.data
                             .map((item: any) => {
-                                if (item.actividad.is_tourism) {
+                                if (item.actividad?.is_tourism) {
                                     return {
                                         title_marcador: item.title_marcador,
                                         image: item.icono_marcador,
@@ -156,18 +290,19 @@ export class TourismService {
                     console.error('Error loading fichas:', err);
                     return of([]);
                 }),
-                tap((fichas) => {
-                    // Cache the data in chunks for better performance with large datasets
-                    this.cacheService.saveChunkedData(
-                        fichas,
-                        'tourism_fichas',
-                        50
-                    );
-                    this.allFichasCache$.next(fichas);
-                    this.loadingFichas = false;
-                })
+                finalize(() => this.updateLoadingState('fichas', false)),
+                takeUntil(this.destroy$)
             )
-            .subscribe();
+            .subscribe((fichas) => {
+                // Cache the data in chunks with persistent storage
+                this.cacheService.saveChunkedData(
+                    fichas,
+                    CACHE_KEYS.FICHAS,
+                    50,
+                    CACHE_DURATION.FICHAS
+                );
+                this.allFichasCache$.next(fichas);
+            });
 
         return this.allFichasCache$.asObservable();
     }
@@ -175,23 +310,24 @@ export class TourismService {
     /**
      * Get most visited places with caching
      */
-    getMostVisited(): Observable<any[]> {
-        // If we have cached data and aren't currently loading, return it
+    getMostVisited(): Observable<MostVisitedPlace[]> {
+        // Return cached data if available
         if (
             this.mostVisitedCache$.value.length > 0 &&
-            !this.loadingMostVisited
+            !this.loadingSubject$.value['mostVisited']
         ) {
             return this.mostVisitedCache$.asObservable();
         }
 
-        // If we're already loading, just return the observable
-        if (this.loadingMostVisited) {
+        // If already loading, just return the current observable
+        if (this.loadingSubject$.value['mostVisited']) {
             return this.mostVisitedCache$.asObservable();
         }
 
-        // Otherwise, load the data
-        this.loadingMostVisited = true;
+        // Set loading state
+        this.updateLoadingState('mostVisited', true);
 
+        // Fetch fresh data
         this.listService
             .listarFichaSectorial(null, { view: true })
             .pipe(
@@ -200,7 +336,7 @@ export class TourismService {
                         return response.data
                             .map((item: any) => {
                                 if (
-                                    item.actividad.is_tourism &&
+                                    item.actividad?.is_tourism &&
                                     item.title_marcador
                                 ) {
                                     return {
@@ -208,7 +344,8 @@ export class TourismService {
                                         image: item.icono_marcador,
                                         _id: item._id,
                                         foto: item.foto,
-                                        direccion: item.direccion,
+                                        direccion:
+                                            item.direccion_geo?.nombre || '',
                                         me_gusta: item.me_gusta || [],
                                         comentarios: item.comentarios || [],
                                         created_at: new Date(item.created_at),
@@ -217,20 +354,23 @@ export class TourismService {
                                 return null;
                             })
                             .filter(Boolean)
-                            .sort((a, b) => {
-                                const likesA = a.me_gusta.length;
-                                const likesB = b.me_gusta.length;
-                                const commentsA = a.comentarios.length;
-                                const commentsB = b.comentarios.length;
+                            .sort(
+                                (a: MostVisitedPlace, b: MostVisitedPlace) => {
+                                    const likesA = a.me_gusta.length;
+                                    const likesB = b.me_gusta.length;
+                                    const commentsA = a.comentarios.length;
+                                    const commentsB = b.comentarios.length;
 
-                                if (likesB !== likesA) return likesB - likesA;
-                                if (commentsB !== commentsA)
-                                    return commentsB - commentsA;
-                                return (
-                                    b.created_at.getTime() -
-                                    a.created_at.getTime()
-                                );
-                            })
+                                    if (likesB !== likesA)
+                                        return likesB - likesA;
+                                    if (commentsB !== commentsA)
+                                        return commentsB - commentsA;
+                                    return (
+                                        b.created_at.getTime() -
+                                        a.created_at.getTime()
+                                    );
+                                }
+                            )
                             .slice(0, 10);
                     }
                     return [];
@@ -239,18 +379,18 @@ export class TourismService {
                     console.error('Error loading most visited:', err);
                     return of([]);
                 }),
-                tap((mostVisited) => {
-                    // Cache the data
-                    this.cacheService.set(
-                        'tourism_most_visited',
-                        mostVisited,
-                        15 * 60 * 1000
-                    ); // 15 minutes
-                    this.mostVisitedCache$.next(mostVisited);
-                    this.loadingMostVisited = false;
-                })
+                finalize(() => this.updateLoadingState('mostVisited', false)),
+                takeUntil(this.destroy$)
             )
-            .subscribe();
+            .subscribe((mostVisited) => {
+                // Cache the data with persistent storage
+                this.cacheService.set(
+                    CACHE_KEYS.MOST_VISITED,
+                    mostVisited,
+                    CACHE_DURATION.MOST_VISITED
+                );
+                this.mostVisitedCache$.next(mostVisited);
+            });
 
         return this.mostVisitedCache$.asObservable();
     }
@@ -258,7 +398,9 @@ export class TourismService {
     /**
      * Load all tourism data in parallel
      */
-    loadAllData(): Observable<[any[], any[], any[]]> {
+    loadAllData(): Observable<
+        [TourismActivity[], TourismFicha[], MostVisitedPlace[]]
+    > {
         return forkJoin([
             this.getActivities(),
             this.getAllFichas(),
@@ -271,7 +413,7 @@ export class TourismService {
      */
     filterFichasByActivities(
         selectedActivities: Set<string>
-    ): Observable<any[]> {
+    ): Observable<TourismFicha[]> {
         return this.getAllFichas().pipe(
             map((allFichas) => {
                 if (selectedActivities.size === 0) {
@@ -283,7 +425,9 @@ export class TourismService {
                         ficha.actividadId &&
                         selectedActivities.has(ficha.actividadId)
                 );
-            })
+            }),
+            // Use shareReplay to avoid multiple executions if there are multiple subscribers
+            shareReplay(1)
         );
     }
 
@@ -291,18 +435,27 @@ export class TourismService {
      * Get a specific ficha by ID with caching
      */
     getFichaById(fichaId: string): Observable<any> {
+        if (!fichaId) {
+            return throwError(() => new Error('Ficha ID is required'));
+        }
+
         const cacheKey = `tourism_ficha_${fichaId}`;
 
+        // Try to get from cache first
         if (this.cacheService.has(cacheKey)) {
             return of(this.cacheService.get(cacheKey));
         }
 
-        // Try to find in our cached fichas first
+        // Try to find in our cached fichas
         const cachedFicha = this.allFichasCache$.value.find(
             (f) => f._id === fichaId
         );
         if (cachedFicha) {
-            this.cacheService.set(cacheKey, cachedFicha);
+            this.cacheService.set(
+                cacheKey,
+                cachedFicha,
+                CACHE_DURATION.FICHA_DETAIL
+            );
             return of(cachedFicha);
         }
 
@@ -311,14 +464,60 @@ export class TourismService {
             map((response: any) => response.data),
             tap((ficha) => {
                 if (ficha) {
-                    this.cacheService.set(cacheKey, ficha, 10 * 60 * 1000); // 10 minutes
+                    this.cacheService.set(
+                        cacheKey,
+                        ficha,
+                        CACHE_DURATION.FICHA_DETAIL
+                    );
                 }
             }),
             catchError((err) => {
                 console.error(`Error fetching ficha ${fichaId}:`, err);
                 return of(null);
-            })
+            }),
+            // Use shareReplay to avoid multiple executions if there are multiple subscribers
+            shareReplay(1)
         );
+    }
+
+    /**
+     * Refresh a specific data type
+     */
+    refreshData(
+        type: 'activities' | 'fichas' | 'mostVisited' | 'all'
+    ): Observable<any> {
+        // Invalidate the cache first
+        this.invalidateCache(type);
+
+        // Then load fresh data
+        switch (type) {
+            case 'activities':
+                return this.getActivities();
+            case 'fichas':
+                return this.getAllFichas();
+            case 'mostVisited':
+                return this.getMostVisited();
+            case 'all':
+                return this.loadAllData();
+            default:
+                return throwError(() => new Error('Invalid data type'));
+        }
+    }
+
+    /**
+     * Check if data is stale and needs refreshing
+     */
+    isDataStale(type: 'activities' | 'fichas' | 'mostVisited'): boolean {
+        switch (type) {
+            case 'activities':
+                return !this.cacheService.isValid(CACHE_KEYS.ACTIVITIES);
+            case 'fichas':
+                return !this.cacheService.isChunkedDataValid(CACHE_KEYS.FICHAS);
+            case 'mostVisited':
+                return !this.cacheService.isValid(CACHE_KEYS.MOST_VISITED);
+            default:
+                return true;
+        }
     }
 
     /**
@@ -329,21 +528,21 @@ export class TourismService {
     ): void {
         switch (type) {
             case 'activities':
-                this.cacheService.remove('tourism_activities');
+                this.cacheService.remove(CACHE_KEYS.ACTIVITIES);
                 this.activitiesCache$.next([]);
                 break;
             case 'fichas':
-                this.cacheService.clearChunks('tourism_fichas');
+                this.cacheService.clearChunks(CACHE_KEYS.FICHAS);
                 this.allFichasCache$.next([]);
                 break;
             case 'mostVisited':
-                this.cacheService.remove('tourism_most_visited');
+                this.cacheService.remove(CACHE_KEYS.MOST_VISITED);
                 this.mostVisitedCache$.next([]);
                 break;
             case 'all':
-                this.cacheService.remove('tourism_activities');
-                this.cacheService.clearChunks('tourism_fichas');
-                this.cacheService.remove('tourism_most_visited');
+                this.cacheService.remove(CACHE_KEYS.ACTIVITIES);
+                this.cacheService.clearChunks(CACHE_KEYS.FICHAS);
+                this.cacheService.remove(CACHE_KEYS.MOST_VISITED);
                 this.activitiesCache$.next([]);
                 this.allFichasCache$.next([]);
                 this.mostVisitedCache$.next([]);
