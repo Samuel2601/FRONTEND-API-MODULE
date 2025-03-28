@@ -361,7 +361,7 @@ export class AuthService {
             'Content-Type': 'application/json',
             Authorization: token,
         });
-        return this.http.get(GLOBAL.url + '/user/redirect', {
+        return this.http.get(GLOBAL.url + 'user/redirect', {
             headers: headers,
         });
     }
@@ -597,13 +597,13 @@ export class AuthService {
 
     public redirectToLoginIfNeeded(home: boolean) {
         const currentUrl = this.router.url;
-        console.log(
+        /*console.log(
             'redirectToLoginIfNeeded',
             !['/home', '/'].includes(currentUrl),
             !currentUrl.startsWith('/auth/login'),
             !currentUrl.startsWith('/ver-ficha'),
             !home
-        );
+        );*/
         if (home) {
             // console.log('Redirigiendo a login');
             this.router.navigate(['/auth/login']);

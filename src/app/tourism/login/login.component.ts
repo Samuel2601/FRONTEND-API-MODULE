@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { ImportsModule } from 'src/app/demo/services/import';
+import { AuthEventsService } from '../service/auth-events.service';
 
 @Component({
     selector: 'app-login-modal',
@@ -14,6 +15,7 @@ import { ImportsModule } from 'src/app/demo/services/import';
 export class LoginComponent {
     @Input() visible: boolean = false;
     @Output() visibleChange = new EventEmitter<boolean>();
+    @Output() loginSuccess = new EventEmitter<any>(); // Añadir este evento
 
     // Método para cerrar el modal
     close() {
@@ -30,7 +32,8 @@ export class LoginComponent {
     constructor(
         private formBuilder: FormBuilder,
         private auth: AuthService,
-        private messageService: MessageService
+        private messageService: MessageService,
+        private authEvents: AuthEventsService // Inyectar el servicio de eventos
     ) {
         this.loginForm = this.formBuilder.group({
             correo: [
@@ -141,6 +144,7 @@ export class LoginComponent {
         }
     }
 
+    // Modifica tu función guardarToken para notificar a través del servicio
     async guardarToken(token: string) {
         const storage = this.loginForm.get('save').value
             ? localStorage
@@ -149,6 +153,19 @@ export class LoginComponent {
 
         const idUser = this.auth.idUserToken(token);
         storage.setItem('idUser', idUser);
+
+        // Datos del usuario para emitir
+        const userData = {
+            token: token,
+            idUser: idUser,
+        };
+
+        // IMPORTANTE: Notificar a través del servicio para actualizar otros componentes
+        this.authEvents.notifyLoginSuccess(userData);
+
+        // Emitir el evento para el componente padre directo
+        this.loginSuccess.emit(userData);
+
         this.close();
     }
 

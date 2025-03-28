@@ -3,7 +3,7 @@ import { NgModule } from '@angular/core';
 import { NotfoundComponent } from './demo/components/notfound/notfound.component';
 import { AppLayoutComponent } from './layout/app.layout.component';
 import { HomeComponent } from './demo/components/static-page/home/home.component';
-import { AuthGuard } from './guards/auth.guard'; // Importa tu guard
+import { AuthGuard } from './guards/auth.guard';
 import { PermissionGuard } from './guards/permission.guard';
 import { MapaFichaComponent } from './demo/components/static-page/mapa-ficha/mapa-ficha.component';
 import { MapaComponent } from './demo/components/static-page/mapa/mapa.component';
@@ -11,6 +11,7 @@ import { ViewFichasArticulosComponent } from './demo/components/static-page/view
 import { MapaTrashComponent } from './demo/components/static-page/mapa-trash/mapa-trash.component';
 import { MostrarFichasArticulosComponent } from './demo/components/static-page/mostrar-fichas-articulos/mostrar-fichas-articulos.component';
 import { TourismRoutingModule } from './tourism/tourism-routing.module';
+import { MobileFirstVisitGuard } from './guards/mobile-first-visit.guard';
 
 @NgModule({
     imports: [
@@ -18,6 +19,7 @@ import { TourismRoutingModule } from './tourism/tourism-routing.module';
             [
                 {
                     path: '',
+                    canActivate: [MobileFirstVisitGuard],
                     component: AppLayoutComponent,
                     children: [
                         {
@@ -95,7 +97,13 @@ import { TourismRoutingModule } from './tourism/tourism-routing.module';
                         },
                     ],
                 },
-                { path: 'mapa-turistico', loadChildren: () => import('./tourism/tourism-routing.module').then(m => m.TourismRoutingModule) },
+                {
+                    path: 'mapa-turistico',
+                    loadChildren: () =>
+                        import('./tourism/tourism-routing.module').then(
+                            (m) => m.TourismRoutingModule
+                        ),
+                },
                 {
                     path: 'auth',
                     loadChildren: () =>

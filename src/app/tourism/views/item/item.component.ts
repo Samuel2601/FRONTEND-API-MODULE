@@ -17,6 +17,7 @@ import { ListService } from 'src/app/demo/services/list.service';
 import { LoginComponent } from '../../login/login.component';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { finalize } from 'rxjs';
+import { AuthEventsService } from '../../service/auth-events.service';
 
 @Component({
     selector: 'app-item',
@@ -60,7 +61,8 @@ export class ItemComponent implements OnInit, OnChanges {
         private auth: AuthService,
         private router: Router,
         private sanitizer: DomSanitizer,
-        private messageService: MessageService
+        private messageService: MessageService,
+        private authEvents: AuthEventsService // Inyectar el servicio
     ) {}
     fichas_sectoriales_arr: any[] = [];
     onHide() {
@@ -198,15 +200,20 @@ export class ItemComponent implements OnInit, OnChanges {
         );
     }
     loginVisible: boolean = false;
+    // Añade una propiedad para seguir la última acción
+    lastAction: 'megusta' | 'comentario' | null = null;
+
     toggleMeGusta(): void {
-        const token = this.auth.token(true);
+        // Cambiamos el parámetro a false para evitar redirección
+        const token = this.auth.token(false);
+
         if (token) {
             const userId: string = this.auth.idUserToken(token.toString());
             this.liked = !this.liked;
             if (this.liked) {
-                this.ficha.me_gusta.push(userId); // Reemplazar con el ID del usuario real
+                this.ficha.me_gusta.push(userId);
             } else {
-                const index = this.ficha.me_gusta.indexOf(userId); // Reemplazar con el ID del usuario real
+                const index = this.ficha.me_gusta.indexOf(userId);
                 if (index > -1) {
                     this.ficha.me_gusta.splice(index, 1);
                 }
@@ -223,6 +230,7 @@ export class ItemComponent implements OnInit, OnChanges {
                     }
                 );
         } else {
+            this.lastAction = 'megusta';
             this.loginVisible = true; // Abre el modal de login
         }
     }
@@ -233,15 +241,18 @@ export class ItemComponent implements OnInit, OnChanges {
     agregarComentario(): void {
         if (this.enviandoComentario) return; // Evita doble envío
 
-        const token = this.auth.token(true);
-        const idUser = this.auth.idUserToken();
+        // Cambiamos el parámetro a false para evitar redirección
+        const token = this.auth.token(false);
 
         if (!token) {
+            this.lastAction = 'comentario';
             this.loginVisible = true;
             return;
         }
 
+        const idUser = this.auth.idUserToken();
         const comentarioLimpio = this.nuevoComentario.trim();
+
         if (!comentarioLimpio) {
             this.messageService.add({
                 severity: 'warn',
@@ -260,6 +271,11 @@ export class ItemComponent implements OnInit, OnChanges {
                 idUser,
                 comentarioLimpio,
                 this.hitrate
+            )
+            .pipe(
+                finalize(() => {
+                    this.enviandoComentario = false;
+                })
             )
             .subscribe({
                 next: (response: any) => {
@@ -290,13 +306,23 @@ export class ItemComponent implements OnInit, OnChanges {
     }
 
     esComentarioPropio(comentario: any): boolean {
-        return comentario.usuario._id === this.auth.idUserToken();
+        try {
+            const token = this.auth.token(false);
+            if (!token) return false;
+
+            const userId = this.auth.idUserToken(token);
+            return comentario.usuario && comentario.usuario._id === userId;
+        } catch (error) {
+            console.log('Error en esComentarioPropio:', error);
+            return false;
+        }
     }
 
     eliminarComentario(comentario: any): void {}
 
     checkIfLiked(): boolean {
-        if (this.auth.token(true)) {
+        // Cambiamos el parámetro a false para evitar redirección
+        if (this.auth.token(false)) {
             const userId: string = this.auth.idUserToken();
             return (
                 this.ficha.me_gusta &&
@@ -433,5 +459,31 @@ export class ItemComponent implements OnInit, OnChanges {
         if (!name) return '';
         const names = name.split(' ');
         return names.length > 1 ? `${names[0][0]}${names[1][0]}` : names[0][0];
+    }
+
+    onLoginSuccess(userData: any): void {
+        // Actualiza el token si es necesario
+        const token = this.auth.token(false);
+
+        // IMPORTANTE: Notificar a través del servicio para que otros componentes se enteren
+        this.authEvents.notifyLoginSuccess(userData);
+
+        // Ejecuta la acción que estaba pendiente
+        if (this.lastAction === 'megusta') {
+            this.toggleMeGusta(); // Llamar de nuevo ahora que tenemos sesión
+        } else if (this.lastAction === 'comentario') {
+            // Opcionalmente, hacer focus en el textarea de comentario
+            setTimeout(() => {
+                const commentTextarea = document.querySelector(
+                    'textarea[placeholder="Escribe un comentario..."]'
+                );
+                if (commentTextarea) {
+                    (commentTextarea as HTMLTextAreaElement).focus();
+                }
+            }, 100);
+        }
+
+        // Limpiar la última acción
+        this.lastAction = null;
     }
 }

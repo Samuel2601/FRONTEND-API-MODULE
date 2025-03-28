@@ -338,4 +338,5 @@
 <app-login-modal
     *ngIf="loginVisible"
     [(visible)]="loginVisible"
+    (loginSuccess)="onLoginSuccess($event)"
 ></app-login-modal>

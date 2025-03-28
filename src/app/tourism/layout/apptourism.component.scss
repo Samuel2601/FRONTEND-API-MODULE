@@ -112,7 +112,7 @@
 // Main content area
 .app-content {
     flex: 1;
-    padding: 1rem;
+    padding: 0rem;
     overflow-y: auto;
     position: relative;
     width: 100%;
@@ -162,7 +162,7 @@
         }
 
         .nav-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             margin-top: 0.25rem;
             color: var(--app-text-color);
             opacity: 0.8;
@@ -350,7 +350,7 @@
 // Main content area
 .app-content {
     flex: 1;
-    padding: 1rem;
+    padding: 0rem;
     overflow-y: auto;
     position: relative;
     width: 100%;
@@ -400,7 +400,7 @@
         }
 
         .nav-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             margin-top: 0.25rem;
             color: var(--app-text-color);
             opacity: 0.8;
@@ -474,4 +474,410 @@
     .p-sidebar-content {
         padding: 0;
     }
+}
+
+/* Estilos modernos para la barra de navegación móvil */
+.mobile-nav-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    /* Para dispositivos con notch */
+}
+
+.mobile-nav-wrapper {
+    background-color: rgba(40, 40, 40, 0.92);
+    /* Fondo oscuro semi-transparente */
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    //padding: 12px 16px 20px;
+    //margin: 0 6px;
+}
+
+.mobile-nav-items {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    position: relative;
+}
+
+/* Estilos para elementos de navegación estándar */
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+    transition: transform 0.2s ease;
+    max-width: 80px;
+}
+
+.nav-icon-container {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 6px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.nav-icon-container.active {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.nav-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    transition: all 0.3s ease;
+    filter: brightness(0) invert(0.8);
+    /* Iconos en gris claro */
+}
+
+.nav-item.active .nav-icon {
+    filter: brightness(0) invert(1);
+    /* Iconos activos en blanco */
+    transform: scale(1.1);
+}
+
+.nav-label {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    transition: all 0.3s ease;
+    font-weight: 400;
+}
+
+.nav-item.active .nav-label {
+    color: #ffffff;
+    font-weight: 500;
+}
+
+/* Estilos para el botón central */
+.nav-central-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    margin-top: -40px;
+    /* Ajustar esto según sea necesario */
+    flex: 0 0 auto;
+    width: 80px;
+}
+
+.central-button-bg {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #15a35e, #149e59);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(21, 163, 94, 0.4);
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 2;
+}
+
+.central-button-inner {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: #15a35e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.2s ease;
+}
+
+.central-button-inner:active {
+    transform: scale(0.95);
+}
+
+.central-button-icon {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+    /* Icono en blanco */
+}
+
+.central-label {
+    margin-top: 0;
+    color: #ffffff;
+    font-weight: 500;
+}
+
+/* Media query para ajustar en pantallas más pequeñas */
+@media (max-width: 360px) {
+    .nav-icon-container {
+        width: 40px;
+        height: 40px;
+    }
+
+    .nav-icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    .central-button-bg {
+        width: 60px;
+        height: 60px;
+    }
+
+    .central-button-inner {
+        width: 52px;
+        height: 52px;
+    }
+
+    .central-button-icon {
+        width: 26px;
+        height: 26px;
+    }
+}
+
+/* Efecto de onda al presionar */
+.nav-icon-container:active {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Añadir animación sutil */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.mobile-nav-wrapper {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Estilos modernos para la barra de navegación móvil con soporte para temas */
+.mobile-nav-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    /* Para dispositivos con notch */
+}
+
+.mobile-nav-wrapper {
+    /* Usar variables CSS de PrimeNG para soportar temas */
+    background-color: var(--surface-overlay);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    //padding: 12px 16px 20px;
+    //margin: 0 6px;
+}
+
+.mobile-nav-items {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    position: relative;
+}
+
+/* Estilos para elementos de navegación estándar */
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+    transition: transform 0.2s ease;
+    max-width: 80px;
+    padding: 5px 0;
+}
+
+.nav-icon-container {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 6px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.nav-icon-container.active {
+    background-color: var(--primary-300, rgba(255, 255, 255, 0.15));
+}
+
+.nav-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    transition: all 0.3s ease;
+    filter: brightness(0) saturate(100%)
+        invert(var(--text-color-secondary-rgb, 0.8));
+}
+
+.nav-item.active .nav-icon {
+    filter: brightness(0) saturate(100%) invert(var(--primary-color-rgb, 1));
+    transform: scale(1.1);
+}
+
+.nav-label {
+    font-size: 0.7rem;
+    color: var(--text-color-secondary, rgba(255, 255, 255, 0.7));
+    text-align: center;
+    transition: all 0.3s ease;
+    font-weight: 400;
+}
+
+.nav-item.active .nav-label {
+    color: var(--text-color, #ffffff);
+    font-weight: 500;
+}
+
+/* Estilos para el botón central */
+.nav-central-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    margin-top: -40px;
+    /* Ajustar esto según sea necesario */
+    flex: 0 0 auto;
+    width: 80px;
+}
+
+.central-button-bg {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    background: var(
+        --primary-gradient,
+        linear-gradient(135deg, var(--primary-color), var(--primary-dark-color))
+    );
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 15px var(--primary-400, rgba(21, 163, 94, 0.4));
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 2;
+}
+
+.central-button-inner {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--primary-color, #15a35e);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.2s ease;
+}
+
+.central-button-inner:active {
+    transform: scale(0.95);
+}
+
+.central-button-icon {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+    /* Icono en blanco */
+}
+
+.central-label {
+    margin-top: 0;
+    color: var(--primary-color-text, #ffffff);
+    font-weight: 500;
+}
+
+/* Media query para ajustar en pantallas más pequeñas */
+@media (max-width: 360px) {
+    .nav-icon-container {
+        width: 40px;
+        height: 40px;
+    }
+
+    .nav-icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    .central-button-bg {
+        width: 60px;
+        height: 60px;
+    }
+
+    .central-button-inner {
+        width: 52px;
+        height: 52px;
+    }
+
+    .central-button-icon {
+        width: 26px;
+        height: 26px;
+    }
+}
+
+/* Efecto de onda al presionar */
+.nav-icon-container:active {
+    background-color: var(--primary-200, rgba(255, 255, 255, 0.25));
+}
+
+/* Añadir animación sutil */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.mobile-nav-wrapper {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Estilos para temas oscuros */
+:host-context(.p-theme-dark) .mobile-nav-wrapper {
+    background-color: var(--surface-overlay);
+}
+
+:host-context(.p-theme-dark) .nav-icon {
+    filter: brightness(0) saturate(100%)
+        invert(var(--text-color-secondary-rgb, 0.8));
+}
+
+:host-context(.p-theme-dark) .nav-item.active .nav-icon {
+    filter: brightness(0) saturate(100%) invert(var(--primary-color-rgb, 1));
+}
+
+/* Add this to your SCSS file */
+.nav-icon-container .nav-icon[alt="Esmeraldas la Bella"],
+.nav-icon-container .nav-icon[alt="logo-icon"] {
+    filter: none !important;
+    /* Remove the filter for this specific icon */
+}
+
+.logo-icon {
+    width: 40px;
+    height: 40px;
+    filter: none !important;
 }

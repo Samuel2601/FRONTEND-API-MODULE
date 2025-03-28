@@ -188,6 +188,37 @@ export class HomeComponent implements OnInit {
                         label: 'Más Usados',
                         items: [
                             {
+                                label: 'Impuesto Predial',
+                                info: 'Consulte sus valores a pagar y obtenga su certificado de pago digital.',
+                                icon: 'https://i.postimg.cc/c1DXcVt7/Sin-t-tulo-1472-x-832-px-1.png',
+                                showInfo: false,
+                                style: false,
+                                command: async () => {
+                                    const idCiudadano =
+                                        this.auth.authToken()?.sub;
+
+                                    if (idCiudadano) {
+                                        this.auth
+                                            .redirect_external(
+                                                this.auth.token()
+                                            )
+                                            .subscribe({
+                                                next: (res) => {
+                                                    window.open(res, '_blank');
+                                                },
+                                                error: (err) => {
+                                                    console.error(err);
+                                                },
+                                            });
+                                    } else {
+                                        window.open(
+                                            'https://consulta.esmeraldas.gob.ec/valorespagados.jsp',
+                                            '_blank'
+                                        );
+                                    }
+                                },
+                            },
+                            {
                                 label: 'ESMEVIAL',
                                 info: 'Puedes reportar Incidentes o mirar las Infracciones de tránsito',
                                 icon: 'https://i.postimg.cc/9FPpzkYH/descarga-5.png',
@@ -382,75 +413,6 @@ export class HomeComponent implements OnInit {
                                       ]
                                     : undefined,
                             },
-                            {
-                                label: 'Fichas Sectoriales',
-                                info: 'Accede a información detallada sobre eventos y actividades en tu sector.',
-                                icon: 'https://i.postimg.cc/zfpQgsy7/Iconos-disen-o-05.png',
-                                showInfo: false,
-                                style: false,
-                                command: async () => {
-                                    if (this.auth.token()) {
-                                        if (!this.check.Ficha) {
-                                            this.visible_ficha_view_table =
-                                                true;
-                                            this.visible_fichas_mostrar = false;
-                                        }
-                                    } else {
-                                        this.visible_ficha_view_table = true;
-                                        this.visible_fichas_mostrar = false;
-                                        // this.auth.redirectToLoginIfNeeded(true);
-                                    }
-
-                                    if (
-                                        this.check.ReporteFicha &&
-                                        !this.check.Ficha
-                                    ) {
-                                        this.visible_ficha = true;
-                                    }
-                                },
-
-                                items: this.check.Ficha
-                                    ? [
-                                          {
-                                              label: 'Repore de Fichas',
-                                              info: 'Puedes reportar los incidentes y denuncias con respecto a BOMBEROS.',
-                                              icon: 'https://i.postimg.cc/GpFfDvfq/Imagen-de-Whats-App-2024-06-26-a-las-12-09-30-57f62e61-removebg-preview.png',
-                                              dev: true,
-                                              showInfo: false,
-                                              command: async () => {
-                                                  this.isMobil()
-                                                      ? this.router.navigate([
-                                                            '/dashboard/ficha',
-                                                        ])
-                                                      : (this.visible_ficha =
-                                                            true);
-                                              },
-                                          },
-                                          {
-                                              label: 'Crear una Ficha',
-                                              info: 'Encuentralos, más cerca de ti',
-                                              icon: 'https://i.postimg.cc/NG4bqngb/Imagen-de-Whats-App-2024-06-26-a-las-12-07-36-c26979b6-fotor-bg-remover-20240626121035.png',
-                                              style: true,
-                                              showInfo: false,
-                                              command: async () => {
-                                                  this.auth.token()
-                                                      ? ''
-                                                      : this.auth.redirectToLoginIfNeeded(
-                                                            true
-                                                        );
-                                                  this.isMobil()
-                                                      ? this.router.navigate([
-                                                            '/crear-ficha',
-                                                        ])
-                                                      : ((this.visible_fichas_mostrar =
-                                                            false),
-                                                        (this.visible_ficha_mirror =
-                                                            true));
-                                              },
-                                          },
-                                      ]
-                                    : undefined,
-                            },
                         ],
                     },
                     {
@@ -565,37 +527,6 @@ export class HomeComponent implements OnInit {
                                 },
                             },
                             {
-                                label: 'Impuesto Predial',
-                                info: 'Consulte sus valores a pagar y obtenga su certificado de pago digital.',
-                                icon: 'https://i.postimg.cc/c1DXcVt7/Sin-t-tulo-1472-x-832-px-1.png',
-                                showInfo: false,
-                                style: false,
-                                command: async () => {
-                                    const idCiudadano =
-                                        this.auth.authToken()?.sub;
-
-                                    if (idCiudadano) {
-                                        this.auth
-                                            .redirect_external(
-                                                this.auth.token()
-                                            )
-                                            .subscribe({
-                                                next: (res) => {
-                                                    window.open(res, '_blank');
-                                                },
-                                                error: (err) => {
-                                                    console.error(err);
-                                                },
-                                            });
-                                    } else {
-                                        window.open(
-                                            'https://consulta.esmeraldas.gob.ec/valorespagados.jsp',
-                                            '_blank'
-                                        );
-                                    }
-                                },
-                            },
-                            {
                                 label: 'Concurso "TU EXPERIENCIA ME ILUMINA"',
                                 info: 'Esta es una inscripción para enviar tu mejor Fotografía y una Carta dirigida a tu familiar adulto mayor.',
                                 icon: 'https://i.postimg.cc/xTkjbBjr/imagen-concurso-01.png',
@@ -609,7 +540,7 @@ export class HomeComponent implements OnInit {
                                     );
                                 },
                             },
-                            {
+                            /*{
                                 label: 'Parque "Las Esmeraldas"',
                                 info: 'Este proyecto innovador transformará por completo el paisaje urbano, creando un espacio vibrante y lleno de energía.',
                                 icon: 'https://i.postimg.cc/RFdnQvqD/parque-Mesa-de-trabajo-1.png',
@@ -621,6 +552,75 @@ export class HomeComponent implements OnInit {
                                         '_blank'
                                     );
                                 },
+                            },*/
+                            {
+                                label: 'Fichas Sectoriales',
+                                info: 'Accede a información detallada sobre eventos y actividades en tu sector.',
+                                icon: 'https://i.postimg.cc/zfpQgsy7/Iconos-disen-o-05.png',
+                                showInfo: false,
+                                style: false,
+                                command: async () => {
+                                    if (this.auth.token()) {
+                                        if (!this.check.Ficha) {
+                                            this.visible_ficha_view_table =
+                                                true;
+                                            this.visible_fichas_mostrar = false;
+                                        }
+                                    } else {
+                                        this.visible_ficha_view_table = true;
+                                        this.visible_fichas_mostrar = false;
+                                        // this.auth.redirectToLoginIfNeeded(true);
+                                    }
+
+                                    if (
+                                        this.check.ReporteFicha &&
+                                        !this.check.Ficha
+                                    ) {
+                                        this.visible_ficha = true;
+                                    }
+                                },
+
+                                items: this.check.Ficha
+                                    ? [
+                                          {
+                                              label: 'Repore de Fichas',
+                                              info: 'Puedes reportar los incidentes y denuncias con respecto a BOMBEROS.',
+                                              icon: 'https://i.postimg.cc/GpFfDvfq/Imagen-de-Whats-App-2024-06-26-a-las-12-09-30-57f62e61-removebg-preview.png',
+                                              dev: true,
+                                              showInfo: false,
+                                              command: async () => {
+                                                  this.isMobil()
+                                                      ? this.router.navigate([
+                                                            '/dashboard/ficha',
+                                                        ])
+                                                      : (this.visible_ficha =
+                                                            true);
+                                              },
+                                          },
+                                          {
+                                              label: 'Crear una Ficha',
+                                              info: 'Encuentralos, más cerca de ti',
+                                              icon: 'https://i.postimg.cc/NG4bqngb/Imagen-de-Whats-App-2024-06-26-a-las-12-07-36-c26979b6-fotor-bg-remover-20240626121035.png',
+                                              style: true,
+                                              showInfo: false,
+                                              command: async () => {
+                                                  this.auth.token()
+                                                      ? ''
+                                                      : this.auth.redirectToLoginIfNeeded(
+                                                            true
+                                                        );
+                                                  this.isMobil()
+                                                      ? this.router.navigate([
+                                                            '/crear-ficha',
+                                                        ])
+                                                      : ((this.visible_fichas_mostrar =
+                                                            false),
+                                                        (this.visible_ficha_mirror =
+                                                            true));
+                                              },
+                                          },
+                                      ]
+                                    : undefined,
                             },
                         ],
                     },

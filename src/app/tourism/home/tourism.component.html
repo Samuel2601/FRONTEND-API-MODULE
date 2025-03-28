@@ -1,6 +1,9 @@
 <!-- Modify your parallax layers to better use the tropical images -->
 
-<div class="tourism-app min-h-screen">
+<div
+    class="tourism-app min-h-screen"
+    style="background-image: url('assets/layout/images/fondo1.webp')"
+>
     <!-- Spinner de carga -->
     <div
         *ngIf="loading$ | async"
@@ -65,7 +68,6 @@
         </div>
     </div>
 
-    <!-- Sección "Los más visitados" -->
     <div
         class="p-3 xl:w-8 lg:w-9 md:w-10 sm:w-11 w-full mx-auto most-visited-section"
         style="
@@ -87,78 +89,82 @@
             [circular]="true"
             [autoplayInterval]="4000"
             [responsiveOptions]="responsiveOptions"
+            styleClass="custom-carousel"
         >
             <ng-template let-place pTemplate="item">
-                <app-card-3d [tiltAmount]="7" [depth]="20">
-                    <p-card
-                        [header]="place.title_marcador"
-                        styleClass="shadow-1 h-full carousel-card"
-                        (click)="goMaps(place.title)"
-                    >
-                        <ng-template pTemplate="header">
-                            <div
-                                class="flex justify-content-center position-relative img-container"
-                            >
-                                <!-- Placeholder mientras carga la imagen -->
-                                <div
-                                    *ngIf="!place.imageLoaded"
-                                    class="placeholder-image flex align-items-center justify-content-center"
-                                >
-                                    <p-progressSpinner
-                                        [style]="{
-                                            width: '40px',
-                                            height: '40px'
+                <div class="p-2 carousel-item-wrapper">
+                    <app-card-3d [tiltAmount]="7" [depth]="20">
+                        <p-card
+                            [header]="place.title_marcador"
+                            styleClass="shadow-1 carousel-card"
+                            (click)="goMaps(place.title)"
+                        >
+                            <ng-template pTemplate="header">
+                                <div class="img-container">
+                                    <!-- Placeholder mientras carga la imagen -->
+                                    <div
+                                        *ngIf="!place.imageLoaded"
+                                        class="placeholder-image flex align-items-center justify-content-center"
+                                    >
+                                        <p-progressSpinner
+                                            [style]="{
+                                                width: '40px',
+                                                height: '40px'
+                                            }"
+                                            styleClass="custom-spinner"
+                                        ></p-progressSpinner>
+                                    </div>
+                                    <!-- Imagen con manejo de carga corregido -->
+                                    <img
+                                        [src]="
+                                            getOptimizedImageUrl(place.foto[0])
+                                        "
+                                        (load)="place.imageLoaded = true"
+                                        [ngClass]="{
+                                            'image-loaded': place.imageLoaded
                                         }"
-                                        styleClass="custom-spinner"
-                                    ></p-progressSpinner>
+                                        alt="Imagen de destino turístico"
+                                    />
                                 </div>
-                                <!-- Imagen con manejo de carga -->
-                                <img
-                                    [attr.data-src]="
-                                        getOptimizedImageUrl(place.foto[0])
-                                    "
-                                    [attr.data-place-id]="place.id"
-                                    [ngClass]="{
-                                        'image-loaded': place.imageLoaded
-                                    }"
-                                    style="
-                                        max-height: 120px;
-                                        width: auto;
-                                        display: block;
-                                        object-fit: cover;
-                                    "
-                                    loading="lazy"
-                                />
-                            </div>
-                        </ng-template>
-                        <ng-template pTemplate="content">
-                            <div
-                                class="flex flex-column gap-2 justify-content-center"
-                            >
-                                <h3 class="place-title">{{ place.title }}</h3>
-                            </div>
+                            </ng-template>
+                            <ng-template pTemplate="content">
+                                <div class="card-content-fixed">
+                                    <h3
+                                        class="place-title"
+                                        [title]="place.title"
+                                    >
+                                        {{ truncateText(place.title, 28) }}
+                                    </h3>
 
-                            <div
-                                class="flex justify-content-between align-items-center mt-2"
-                            >
-                                <span class="flex align-items-center gap-2">
-                                    <i class="pi pi-thumbs-up text-primary"></i>
-                                    <span class="text-sm">{{
-                                        place.me_gusta.length
-                                    }}</span>
-                                </span>
-                                <span class="flex align-items-center gap-2">
-                                    <i
-                                        class="pi pi-comments text-secondary"
-                                    ></i>
-                                    <span class="text-sm">{{
-                                        place.comentarios.length
-                                    }}</span>
-                                </span>
-                            </div>
-                        </ng-template>
-                    </p-card>
-                </app-card-3d>
+                                    <div
+                                        class="flex justify-content-between align-items-center mt-3"
+                                    >
+                                        <span
+                                            class="flex align-items-center gap-2"
+                                        >
+                                            <i
+                                                class="pi pi-thumbs-up text-primary"
+                                            ></i>
+                                            <span class="text-sm">{{
+                                                place.me_gusta.length
+                                            }}</span>
+                                        </span>
+                                        <span
+                                            class="flex align-items-center gap-2"
+                                        >
+                                            <i
+                                                class="pi pi-comments text-secondary"
+                                            ></i>
+                                            <span class="text-sm">{{
+                                                place.comentarios.length
+                                            }}</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </p-card>
+                    </app-card-3d>
+                </div>
             </ng-template>
         </p-carousel>
     </div>

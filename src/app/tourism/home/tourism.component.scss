@@ -241,3 +241,238 @@
         backdrop-filter: blur(3px); // Aún menos en móviles
     }
 }
+
+/* Añadir estos estilos al final de tourism.component.scss */
+
+/* Estilos para el carousel */
+:host ::ng-deep .custom-carousel {
+    .p-carousel-items-container {
+        padding: 0.5rem 0;
+    }
+
+    .p-carousel-item {
+        display: flex;
+        justify-content: center;
+    }
+
+    /* Añadir transición suave al cambiar slides */
+    .p-carousel-container {
+        .p-carousel-items-content {
+            transition: all 0.3s ease;
+        }
+    }
+
+    /* Ajuste de los botones de navegación */
+    .p-carousel-prev,
+    .p-carousel-next {
+        margin: 0 0.5rem;
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        width: 2.5rem;
+        height: 2.5rem;
+
+        &:hover {
+            background-color: var(--primary-light-color);
+        }
+
+        &:focus {
+            box-shadow: 0 0 0 2px var(--primary-light-color);
+        }
+    }
+}
+
+/* Mejora para la carga de imágenes */
+.img-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 6px 6px 0 0;
+
+    .placeholder-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #f8f9fa;
+        z-index: 1;
+        transition: opacity 0.3s ease;
+    }
+
+    img {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+        transition: opacity 0.5s ease, transform 0.3s ease;
+        opacity: 0;
+        transform: scale(1.05);
+
+        &.image-loaded {
+            opacity: 1;
+            transform: scale(1);
+            z-index: 2;
+            position: relative;
+        }
+    }
+}
+
+/* Ajuste para las tarjetas del carousel */
+.carousel-card {
+    height: 100%;
+    margin: 0.5rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .place-title {
+        font-size: 1rem;
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--text-color);
+    }
+}
+
+/* Ajustes responsive */
+@media (max-width: 768px) {
+    .custom-carousel .p-carousel-items-container {
+        padding: 0.25rem 0;
+    }
+
+    .carousel-card {
+        margin: 0.25rem;
+    }
+}
+
+/* Estilos para el carousel con tamaños fijos - agregar a tourism.component.scss */
+
+/* Wrapper del item del carousel para asegurar dimensiones consistentes */
+.carousel-item-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+/* Establecer dimensiones fijas para las tarjetas */
+:host ::ng-deep .carousel-card {
+    width: 280px !important;
+    height: 275px !important;
+    margin: 0 auto;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    /* Ajustar el contenedor de la imagen */
+    .img-container {
+        height: 150px;
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+
+        /* Ajustar las dimensiones del placeholder */
+        .placeholder-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f8f9fa;
+            z-index: 1;
+        }
+
+        /* Asegurar que todas las imágenes tengan el mismo tamaño */
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.5s ease, transform 0.3s ease;
+            opacity: 0;
+
+            &.image-loaded {
+                opacity: 1;
+                z-index: 2;
+            }
+        }
+    }
+
+    /* Contenedor de contenido con altura fija */
+    .card-content-fixed {
+        min-height: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    /* Estilo para los títulos */
+    .place-title {
+        font-size: 1rem;
+        margin: 0;
+        font-weight: 500;
+        line-height: 1.4;
+        max-height: 2.8em;
+        /* Permite aproximadamente 2 líneas de texto */
+        overflow: hidden;
+        color: var(--text-color);
+
+        /* Añadir ellipsis si el texto es mayor que el contenedor */
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        text-overflow: ellipsis;
+    }
+}
+
+/* Ajustes para la navegación del carousel */
+:host ::ng-deep .custom-carousel {
+    .p-carousel-indicators {
+        margin-top: 1rem;
+    }
+
+    .p-carousel-indicator > button {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: var(--surface-300);
+
+        &.p-highlight {
+            background-color: var(--primary-color);
+        }
+    }
+
+    .p-carousel-prev,
+    .p-carousel-next {
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        width: 2.5rem;
+        height: 2.5rem;
+        margin: 0 0.5rem;
+
+        &:hover {
+            background-color: var(--primary-light-color);
+        }
+
+        &:focus {
+            box-shadow: 0 0 0 2px var(--primary-light-color);
+        }
+    }
+}
+
+/* Ajustes responsive para garantizar consistencia */
+@media (max-width: 768px) {
+    :host ::ng-deep .carousel-card {
+        width: 250px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    :host ::ng-deep .carousel-card {
+        width: 280px !important;
+    }
+}

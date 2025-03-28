@@ -25,17 +25,17 @@ export class TourismComponent implements OnInit, OnDestroy {
     responsiveOptions = [
         {
             breakpoint: '1400px',
-            numVisible: 2,
-            numScroll: 1,
-        },
-        {
-            breakpoint: '1199px',
             numVisible: 3,
             numScroll: 1,
         },
         {
-            breakpoint: '767px',
+            breakpoint: '1199px',
             numVisible: 2,
+            numScroll: 1,
+        },
+        {
+            breakpoint: '767px',
+            numVisible: 1,
             numScroll: 1,
         },
         {
@@ -44,6 +44,24 @@ export class TourismComponent implements OnInit, OnDestroy {
             numScroll: 1,
         },
     ];
+
+    /**
+     * Trunca un texto a la longitud máxima especificada y añade ellipsis si es necesario
+     * @param text El texto a truncar
+     * @param maxLength Longitud máxima del texto
+     * @returns Texto truncado con ellipsis si es necesario
+     */
+    truncateText(text: string, maxLength: number): string {
+        if (!text) return '';
+
+        // Si el texto es más corto que la longitud máxima, devolverlo tal cual
+        if (text.length <= maxLength) {
+            return text;
+        }
+
+        // Truncar el texto y añadir ellipsis
+        return text.substring(0, maxLength) + '...';
+    }
 
     selectedActivities = new Set<string>();
 
@@ -70,7 +88,16 @@ export class TourismComponent implements OnInit, OnDestroy {
 
         // Initialize data streams
         this.activities$ = this.tourismService.getActivities();
-        this.mostVisited$ = this.tourismService.getMostVisited();
+
+        // Modificar la obtención de mostVisited$ para inicializar imageLoaded
+        this.mostVisited$ = this.tourismService.getMostVisited().pipe(
+            map((places) =>
+                places.map((place) => ({
+                    ...place,
+                    imageLoaded: false, // Inicializamos la propiedad imageLoaded en false
+                }))
+            )
+        );
 
         // Initialize filtered fichas
         this.updateFilteredFichas();

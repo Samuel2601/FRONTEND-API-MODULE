@@ -61,52 +61,86 @@
         <ng-content></ng-content>
     </main>
 
-    <!-- Mobile Navigation (Bottom) -->
-    <div *ngIf="isMobile()" class="mobile-nav">
-        <!-- First two navigation items -->
-        <ng-container *ngFor="let item of mobileNavItems.slice(0, 2)">
-            <div
-                class="mobile-nav-item"
-                [ngClass]="{ active: item.active }"
-                (click)="navigateTo(item)"
-            >
-                <img [src]="item.icon" [alt]="item.label" class="nav-icon" />
-                <span class="nav-label">{{ item.label }}</span>
-            </div>
-        </ng-container>
+    <!-- Reemplazo de la navegación móvil (más moderno y estético) -->
+    <!-- Navegación móvil reorganizada con botón central -->
+    <div *ngIf="isMobile()" class="mobile-nav-container">
+        <div class="mobile-nav-wrapper">
+            <div class="mobile-nav-items">
+                <!-- Primera mitad de elementos -->
+                <ng-container
+                    *ngFor="let item of firstHalfItems; let i = index"
+                >
+                    <div
+                        class="nav-item"
+                        [class.active]="item.active"
+                        (click)="navigateTo(item)"
+                    >
+                        <div
+                            class="nav-icon-container"
+                            [class.active]="item.active"
+                        >
+                            <img
+                                [src]="item.icon"
+                                [alt]="item.label"
+                                class="nav-icon"
+                            />
+                        </div>
+                        <span class="nav-label">{{ item.label }}</span>
+                    </div>
+                </ng-container>
 
-        <!-- Home button (centered, highlighted) -->
-        <div
-            *ngIf="homeItem"
-            class="mobile-nav-item home-item"
-            [ngClass]="{ active: homeItem.active }"
-            (click)="navigateTo(homeItem)"
-        >
-            <div class="home-item-circle">
-                <img
-                    [src]="homeItem.icon"
-                    [alt]="homeItem.label"
-                    class="nav-icon"
-                />
+                <!-- Botón central destacado -->
+                <div class="nav-central-button">
+                    <div class="central-button-bg">
+                        <div
+                            class="central-button-inner"
+                            (click)="navigateTo(homeItem)"
+                        >
+                            <img
+                                [src]="homeItem.icon"
+                                [alt]="homeItem.label"
+                                class="central-button-icon"
+                            />
+                        </div>
+                    </div>
+                    <span class="nav-label central-label">{{
+                        homeItem.label
+                    }}</span>
+                </div>
+
+                <!-- Segunda mitad de elementos -->
+                <ng-container
+                    *ngFor="let item of secondHalfItems; let i = index"
+                >
+                    <div
+                        class="nav-item"
+                        [class.active]="item.active"
+                        (click)="navigateTo(item)"
+                    >
+                        <div
+                            class="nav-icon-container"
+                            [class.active]="item.icon ? item.active : false"
+                        >
+                            <img
+                                *ngIf="item.icon"
+                                [src]="item.icon"
+                                [alt]="item.label"
+                                [class]="{
+                                    'nav-icon': true,
+                                    'logo-icon': item.id === 'esmeraldas'
+                                }"
+                            />
+                        </div>
+                        <span class="nav-label">{{ item.label }}</span>
+                    </div>
+                </ng-container>
             </div>
-            <span class="nav-label">{{ homeItem.label }}</span>
         </div>
-
-        <!-- Last two navigation items -->
-        <ng-container *ngFor="let item of mobileNavItems.slice(2)">
-            <div
-                class="mobile-nav-item"
-                [ngClass]="{ active: item.active }"
-                (click)="navigateTo(item)"
-            >
-                <img [src]="item.icon" [alt]="item.label" class="nav-icon" />
-                <span class="nav-label">{{ item.label }}</span>
-            </div>
-        </ng-container>
     </div>
 </div>
 
 <app-login-modal
     *ngIf="loginVisible"
     [(visible)]="loginVisible"
+    (loginSuccess)="onLoginSuccess($event)"
 ></app-login-modal>
