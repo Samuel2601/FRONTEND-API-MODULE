@@ -402,7 +402,7 @@ export class HomeComponent implements OnInit {
                                                         );
                                                   this.isMobil()
                                                       ? this.router.navigate([
-                                                            '/crear-ficha',
+                                                            '/crear-incidente',
                                                         ])
                                                       : ((this.visible_incidente =
                                                             false),

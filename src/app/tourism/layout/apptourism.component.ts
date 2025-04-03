@@ -117,14 +117,9 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
     /// Modificar el método ngOnInit para organizar los elementos alrededor del botón central
     ngOnInit() {
         this.token = this.auth.token();
-        console.log('token', this.token);
         // IMPORTANTE: Suscribirse a eventos de inicio de sesión
         this.authSubscription = this.authEvents.loginSuccess$.subscribe(
             (userData) => {
-                console.log(
-                    'Auth event received in AppLayoutComponent:',
-                    userData
-                );
                 this.onLoginSuccess(userData);
             }
         );
