@@ -404,7 +404,7 @@ export class HomeComponent implements OnInit {
                                                       ? this.router.navigate([
                                                             '/crear-incidente',
                                                         ])
-                                                      : ((this.visible_incidente =
+                                                      : ((this.visible_fichas_mostrar =
                                                             false),
                                                         (this.visible_incidente =
                                                             true));
