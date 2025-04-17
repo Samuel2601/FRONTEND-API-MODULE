@@ -1,0 +1,41 @@
+.floating-chatbot {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 1000;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+
+    // Drop shadow that follows the PNG contour
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+
+    // Hover effect
+    &:hover {
+        transform: scale(1.05);
+        filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
+    }
+
+    // Active effect when clicked
+    &:active {
+        transform: scale(0.95);
+    }
+}
+
+.chatbot-icon {
+    width: 70px;
+    height: auto;
+    // The PNG should have transparency around the icon
+    // This makes the drop-shadow follow the contour of the image
+}
+
+// Add responsive design for smaller screens
+@media (max-width: 768px) {
+    .floating-chatbot {
+        bottom: 20px;
+        right: 20px;
+    }
+
+    .chatbot-icon {
+        width: 60px;
+    }
+}

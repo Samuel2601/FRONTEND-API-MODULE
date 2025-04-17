@@ -78,8 +78,31 @@ export class HomeComponent implements OnInit {
         this.list.listarFichaSectorialHome().subscribe(
             (response) => {
                 if (response.data) {
+                    // Convertir a array para asegurar que podemos usar métodos de array
                     const ficha: any[] = response.data;
-                    ficha.forEach((element) => {
+
+                    // Ordenar por fecha de creación (de más reciente a más antigua)
+                    // Asumiendo que MongoDB usa createdAt o algun campo similar
+                    const fichasOrdenadas = ficha.sort((a, b) => {
+                        // Si hay un campo específico de fecha en tus documentos, úsalo aquí
+                        // Por ejemplo, si tienes createdAt:
+                        return (
+                            new Date(b.createdAt).getTime() -
+                            new Date(a.createdAt).getTime()
+                        );
+
+                        // Si usas _id de MongoDB que contiene timestamp de creación
+                        // return b._id.getTimestamp() - a._id.getTimestamp();
+                    });
+
+                    // Tomar las primeras 5 después de ordenar (ahora serán las más recientes)
+                    const ultimas5Fichas = fichasOrdenadas.slice(0, 5);
+
+                    // Limpiamos el array de productos antes de agregar las 5 nuevas
+                    this.productos = [];
+
+                    // Agregar solo las últimas 5 fichas al array de productos
+                    ultimas5Fichas.forEach((element) => {
                         this.productos.push({
                             id: element._id,
                             image:
@@ -91,6 +114,8 @@ export class HomeComponent implements OnInit {
                             mobil: true,
                         });
                     });
+
+                    // Aplicar el filtro después de agregar los elementos
                     this.filterProductos();
                 }
             },
@@ -99,6 +124,7 @@ export class HomeComponent implements OnInit {
             }
         );
     }
+
     validateDateView(date_view: Date | string): boolean {
         const now = new Date();
         date_view = new Date(date_view);

@@ -21,6 +21,7 @@ import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
 import { ImageModule } from 'primeng/image';
 import { ButtonPanicComponent } from '../button-panic/button-panic/button-panic.component';
+import { FloatingChatbotComponent } from '../button-panic/floating-chatbot/floating-chatbot.component';
 @NgModule({
     declarations: [
         AppMenuitemComponent,
@@ -47,6 +48,7 @@ import { ButtonPanicComponent } from '../button-panic/button-panic/button-panic.
         AvatarModule,
         AvatarGroupModule,
         ButtonPanicComponent,
+        FloatingChatbotComponent,
     ],
     exports: [AppLayoutComponent],
 })

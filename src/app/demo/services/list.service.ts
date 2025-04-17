@@ -136,7 +136,8 @@ export class ListService {
         let params = new HttpParams()
             .set('destacado', 'true')
             .set('view', 'true')
-            .set('populate', 'estado,actividad');
+            .set('populate', 'estado,actividad')
+            .set('select', 'titulo,descripcion,foto,fecha_evento,slug');
         return this.http.get(this.url + 'ficha_sectorial', {
             params: params,
         });
