@@ -253,7 +253,21 @@ export class TourismService implements OnDestroy {
 
         // Fetch fresh data
         this.listService
-            .listarFichaSectorial(null, { view: true })
+            .listarFichaSectorial(null, {
+                view: true,
+                view_date_evento: false,
+                select: [
+                    'title_marcador',
+                    'icono_marcador',
+                    'foto',
+                    'direccion_geo',
+                    'me_gusta',
+                    'comentarios',
+                    'created_at',
+                    'actividad',
+                    'direccion_geo',
+                ],
+            })
             .pipe(
                 map((response: any) => {
                     if (response.data) {
@@ -329,7 +343,21 @@ export class TourismService implements OnDestroy {
 
         // Fetch fresh data
         this.listService
-            .listarFichaSectorial(null, { view: true })
+            .listarFichaSectorial(null, {
+                view: true,
+                view_date_evento: false,
+                select: [
+                    'title_marcador',
+                    'icono_marcador',
+                    'foto',
+                    'direccion_geo',
+                    'me_gusta',
+                    'comentarios',
+                    'created_at',
+                    'actividad',
+                    'direccion_geo',
+                ],
+            })
             .pipe(
                 map((response: any) => {
                     if (response.data) {
