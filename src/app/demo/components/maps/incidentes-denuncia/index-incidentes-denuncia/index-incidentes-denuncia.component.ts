@@ -370,13 +370,18 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                                 }
                             }
                         });
-                        this.incidentesDenuncias.map(
-                            (e) =>
-                                (e.ciudadano.fullname =
-                                    e.ciudadano.name +
-                                    ' ' +
-                                    e.ciudadano.last_name)
-                        );
+                        this.incidentesDenuncias.forEach((e) => {
+                            if (e.ciudadano) {
+                                e.ciudadano.fullname =
+                                    `${e.ciudadano.name || ''} ${
+                                        e.ciudadano.last_name || ''
+                                    }`.trim() || 'No registrado';
+                            } else {
+                                e.ciudadano = {
+                                    fullname: e.senderId + ' (No registrado)',
+                                }; // crea el objeto si está null
+                            }
+                        });
                         //console.log('Final', this.incidentesDenuncias);
                     }
                 },

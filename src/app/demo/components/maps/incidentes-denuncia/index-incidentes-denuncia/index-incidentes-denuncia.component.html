@@ -383,7 +383,7 @@
                         </div>
                     </th>
                     <!--
-                        
+
                     <th style="min-width: 10rem" *ngIf="!isMobil()">
                         <div class="flex align-items-center">
                             Descripción
@@ -459,14 +459,14 @@
                             >(Borrado)</ng-container
                         >
                     </td>
-                    <td *ngIf="incidente.categoria">
-                        {{ incidente.categoria.nombre }}
-                    </td>
-                    <td *ngIf="incidente.subcategoria">
-                        {{ incidente.subcategoria.nombre }}
+                    <td>
+                        {{ incidente?.categoria?.nombre || "No registrado" }}
                     </td>
                     <td>
-                        {{ incidente.ciudadano.fullname }}
+                        {{ incidente?.subcategoria?.nombre || "No registrado" }}
+                    </td>
+                    <td>
+                        {{ incidente.ciudadano?.fullname || "No registrado" }}
                     </td>
                     <td *ngIf="incidente.estado">
                         <p-tag
@@ -609,11 +609,11 @@ Gallería de Imagenes
     <div class="modal-body" *ngIf="option">
         <p *ngIf="option.categoria">
             <strong>Categoría:</strong>
-            {{ option.categoria.nombre }}
+            {{ option.categoria?.nombre || "No registrado" }}
         </p>
         <p *ngIf="option.subcategoria">
             <strong>Subcategoría:</strong>
-            {{ option.subcategoria.nombre }}
+            {{ option.subcategoria?.nombre || "No registrado" }}
         </p>
         <p>
             <strong>Dirección Geográfica:</strong>
@@ -633,7 +633,7 @@ Gallería de Imagenes
         </p>
         <p>
             <strong>Ciudadano:</strong>
-            {{ option.ciudadano.fullname }}
+            {{ option.ciudadano?.fullname || "No registrado" }}
         </p>
         <p>
             <strong>Descripción:</strong>
