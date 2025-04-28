@@ -319,30 +319,35 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                                 this.incidentesDenuncias.filter((ficha: any) =>
                                     this.encargos.find(
                                         (element) =>
-                                            element.categoria._id ===
-                                                ficha.categoria._id ||
-                                            ficha.ciudadano._id == this.id
+                                            (ficha?.categoria?._id &&
+                                                element.categoria._id ===
+                                                    ficha.categoria._id) ||
+                                            (ficha?.ciudadano?._id &&
+                                                ficha.ciudadano._id === this.id)
                                     )
                                 );
                         }
+
                         if (this.categoria) {
                             this.itemh.push({ label: this.categoria });
                             this.incidentesDenuncias =
                                 this.incidentesDenuncias.filter(
                                     (ficha: any) =>
-                                        ficha.categoria.nombre ===
+                                        ficha?.categoria?.nombre ===
                                         this.categoria
                                 );
                         }
+
                         if (this.subcategoria) {
                             this.itemh.push({ label: this.subcategoria });
                             this.incidentesDenuncias =
                                 this.incidentesDenuncias.filter(
                                     (ficha: any) =>
-                                        ficha.subcategoria.nombre ===
+                                        ficha?.subcategoria?.nombre ===
                                         this.subcategoria
                                 );
                         }
+
                         if (!this.check.ViewIncidente) {
                             this.incidentesDenuncias =
                                 this.incidentesDenuncias.filter(
