@@ -402,15 +402,15 @@
                         Ciudadano
                         <p-columnFilter
                             type="text"
-                            field="ciudadano.last_name"
+                            field="ciudadano.full_name"
                             display="Ciudadano"
                         ></p-columnFilter>
                         <th
-                            pSortableColumn="ciudadano.last_name"
+                            pSortableColumn="ciudadano.full_name"
                             style="width: 20%"
                         >
                             <p-sortIcon
-                                field="ciudadano.last_name"
+                                field="ciudadano.full_name"
                             ></p-sortIcon>
                         </th>
                     </div>
@@ -444,8 +444,7 @@
                     {{ incidente.subcategoria.nombre }}
                 </td>
                 <td>
-                    {{ incidente.ciudadano.last_name }}
-                    {{ incidente.ciudadano.name }}
+                    {{ incidente.ciudadano.full_name }}
                 </td>
                 <td>
                     <p-tag
@@ -758,7 +757,7 @@
         </p>
         <p>
             <strong>Ciudadano:</strong>
-            {{ optionview.ciudadano.last_name }} {{ optionview.ciudadano.name }}
+            {{ optionview.ciudadano.full_name }}
         </p>
         <p>
             <strong>Descripción:</strong>

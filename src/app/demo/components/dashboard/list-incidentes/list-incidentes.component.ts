@@ -18,6 +18,7 @@ import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import 'chartjs-adapter-date-fns'; // o 'chartjs-adapter-moment' si estás usando moment
 import 'chartjs-plugin-annotation';
+import { map } from 'rxjs/operators';
 
 @Component({
     selector: 'app-list-incidentes',
@@ -743,7 +744,17 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
                     .listarIncidentesDenuncias(this.token)
                     .toPromise();
                 if (response.data) {
-                    this.constIncidente = response.data;
+                    this.constIncidente = response.data.map((incidente) => {
+                        incidente.ciudadano = incidente.ciudadano || {}; // Asegurarte que exista ciudadano aunque sea vacío
+                        incidente.ciudadano.full_name =
+                            incidente.ciudadano.last_name &&
+                            incidente.ciudadano.name
+                                ? `${incidente.ciudadano.last_name} ${incidente.ciudadano.name}`
+                                : `${
+                                      incidente.senderId || 'Desconocido'
+                                  } (No registrado)`;
+                        return incidente;
+                    });
                 }
             } catch (error) {
                 console.error('Error al obtener incidentes:', error);
@@ -752,6 +763,8 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
         } else {
             this.incidente = this.constIncidente;
         }
+
+        //console.log(this.incidente, this.constIncidente);
         const documentStyle = getComputedStyle(document.documentElement);
         const textColor = documentStyle.getPropertyValue('--text-color');
         this.options = {
@@ -804,6 +817,7 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
             header = selectedColumns
                 .map((col) => col.header ?? col.field)
                 .join(';');
+            console.log(selectedColumns);
             csv = table.value.map((row) =>
                 selectedColumns
                     .map((col) => this.resolveFieldData(row, col.field))
@@ -815,6 +829,7 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
                     })
                     .join(';')
             );
+            console.log(csv);
         } else {
             selectedColumns = [
                 { field: titulo, header: titulo },
