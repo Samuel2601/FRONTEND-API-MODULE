@@ -540,6 +540,14 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
         };
 
         incidentes.forEach((elemento) => {
+            if (!elemento.categoria || !elemento.subcategoria) {
+                console.log(
+                    'No se pudo obtener el total de los elementos',
+                    elemento
+                );
+                return;
+            }
+
             // Categorías
             if (!totales.categorias[elemento.categoria.nombre]) {
                 totales.categorias[elemento.categoria.nombre] = {
@@ -764,7 +772,7 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
             this.incidente = this.constIncidente;
         }
 
-        //console.log(this.incidente, this.constIncidente);
+        console.log(this.incidente, this.constIncidente);
         const documentStyle = getComputedStyle(document.documentElement);
         const textColor = documentStyle.getPropertyValue('--text-color');
         this.options = {

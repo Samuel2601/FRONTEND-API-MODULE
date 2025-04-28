@@ -428,6 +428,42 @@
                         </th>
                     </div>
                 </th>
+                <th style="min-width: 10rem">
+                    <div class="flex align-items-center">
+                        Latitud
+                        <p-columnFilter
+                            type="text"
+                            field="direccion_geo.latitud"
+                            display="Latitud"
+                        ></p-columnFilter>
+                        <th
+                            pSortableColumn="direccion_geo.latitud"
+                            style="width: 20%"
+                        >
+                            <p-sortIcon
+                                field="direccion_geo.latitud"
+                            ></p-sortIcon>
+                        </th>
+                    </div>
+                </th>
+                <th style="min-width: 10rem">
+                    <div class="flex align-items-center">
+                        Longitud
+                        <p-columnFilter
+                            type="text"
+                            field="direccion_geo.longitud"
+                            display="Longitud"
+                        ></p-columnFilter>
+                        <th
+                            pSortableColumn="direccion_geo.longitud"
+                            style="width: 20%"
+                        >
+                            <p-sortIcon
+                                field="direccion_geo.longitud"
+                            ></p-sortIcon>
+                        </th>
+                    </div>
+                </th>
                 <!-- Agrega las columnas restantes según tu necesidad -->
             </tr>
         </ng-template>
@@ -438,10 +474,10 @@
                     {{ incidente.direccion_geo.nombre }}
                 </td>
                 <td>
-                    {{ incidente.categoria.nombre }}
+                    {{ incidente.categoria?.nombre || "No disponible" }}
                 </td>
                 <td>
-                    {{ incidente.subcategoria.nombre }}
+                    {{ incidente.subcategoria?.nombre || "No disponible" }}
                 </td>
                 <td>
                     {{ incidente.ciudadano.full_name }}
@@ -451,6 +487,12 @@
                         [value]="incidente.estado.nombre"
                         [severity]="getSeverity(incidente.estado.nombre)"
                     ></p-tag>
+                </td>
+                <td>
+                    {{ incidente.direccion_geo.latitud }}
+                </td>
+                <td>
+                    {{ incidente.direccion_geo.longitud }}
                 </td>
                 <!-- Agrega las columnas restantes según tu necesidad -->
             </tr>
@@ -732,11 +774,11 @@
     <div class="modal-body" *ngIf="optionview">
         <p>
             <strong>Categoría:</strong>
-            {{ optionview.categoria.nombre }}
+            {{ optionview.categoria?.nombre || "No disponible" }}
         </p>
         <p>
             <strong>Subcategoría:</strong>
-            {{ optionview.subcategoria.nombre }}
+            {{ optionview.subcategoria?.nombre || "No disponible" }}
         </p>
         <p>
             <strong>Dirección Geográfica:</strong>
