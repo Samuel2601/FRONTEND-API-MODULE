@@ -1,5 +1,7 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
-
+/ios/
+/resources/
+yarn.lock
 # Compiled output
 /android/
 /dist/
