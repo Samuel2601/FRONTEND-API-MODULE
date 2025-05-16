@@ -967,3 +967,146 @@ body {
         padding-right: env(safe-area-inset-right, 0);
     }
 }
+
+// Solución completa para problemas de navegación móvil en iOS y scroll
+
+/* 1. Estabilizar elementos fijos durante el scroll */
+.app-header.fixed,
+.mobile-nav-container {
+    position: fixed;
+    will-change: transform;
+    /* Optimiza rendimiento GPU */
+    transform: translateZ(0);
+    /* Fuerza aceleración por hardware */
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    /* Previene glitches visuales */
+    -webkit-backface-visibility: hidden;
+}
+
+/* 2. Prevenir redimensionamiento de contenedores durante scroll */
+.app-header,
+.mobile-nav-wrapper {
+    transition: none !important;
+    /* Desactiva transiciones que podrían causar redimensionamiento */
+}
+
+/* 3. Fijar correctamente el contenedor de navegación móvil */
+.mobile-nav-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    /* Prevenir que el scroll afecte al nav */
+    transform: translateY(0) translateZ(0);
+    -webkit-transform: translateY(0) translateZ(0);
+}
+
+/* 4. Corregir posicionamiento del wrapper para prevenir desplazamiento */
+.mobile-nav-wrapper {
+    background-color: rgba(40, 40, 40, 0.92);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    /* Asegurar que no se mueva con el scroll */
+    position: relative;
+    z-index: 2;
+}
+
+/* 5. Ajustar padding de contenido para prevenir superposición */
+.app-content {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0));
+    -webkit-overflow-scrolling: touch;
+
+    /* Ajuste iOS-específico */
+    @supports (-webkit-touch-callout: none) {
+        padding-bottom: calc(100px + env(safe-area-inset-bottom, 20px));
+    }
+}
+
+/* 6. Prevenir rebotes y efectos de scroll indeseados */
+html,
+body {
+    overscroll-behavior-y: none;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+}
+
+/* 7. Usar viewport units de manera consistente */
+.app-layout {
+    min-height: 100vh;
+    /* Fallback */
+    min-height: 100dvh;
+    /* Dynamic viewport height */
+    min-height: -webkit-fill-available;
+    /* Para iOS Safari */
+}
+
+:host {
+    height: 100vh;
+    /* Fallback */
+    height: 100dvh;
+    /* Dynamic viewport height */
+    height: -webkit-fill-available;
+    /* Para iOS Safari */
+}
+
+/* 8. Ajustar alturas de contenedores para prevenir redimensionamiento */
+.mobile-nav-items {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    position: relative;
+    height: 80px;
+    /* Fijar altura para prevenir cambios */
+    padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* 9. Prevenir que el botón central se mueva durante el scroll */
+.nav-central-button {
+    position: relative;
+    margin-top: -40px;
+    flex: 0 0 auto;
+    width: 80px;
+    z-index: 3;
+    /* Asegurar que esté por encima */
+
+    /* Corrección específica para iOS */
+    @supports (-webkit-touch-callout: none) {
+        margin-top: -38px;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+    }
+}
+
+/* 10. Corrección para el comportamiento de scroll en todo el contenedor */
+::ng-deep router-outlet + * {
+    display: block;
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 100px;
+    /* Espacio adicional al final del contenido */
+}
+
+/* 11. Fix para scroll iOS en landscape */
+@media screen and (orientation: landscape) {
+    .mobile-nav-container {
+        padding-left: env(safe-area-inset-left, 0);
+        padding-right: env(safe-area-inset-right, 0);
+    }
+
+    .app-content {
+        padding-left: env(safe-area-inset-left, 0);
+        padding-right: env(safe-area-inset-right, 0);
+    }
+}
