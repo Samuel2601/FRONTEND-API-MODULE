@@ -881,3 +881,89 @@
     height: 40px;
     filter: none !important;
 }
+
+// Add these fixes to your apptourism.component.scss file
+
+// 1. Replace vh with dvh for better iOS support
+.app-layout {
+    min-height: 100dvh; // Instead of 100vh
+}
+
+// 2. Improve mobile navigation container for iOS
+.mobile-nav-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+
+    // Add iOS-specific fixes
+    @supports (-webkit-touch-callout: none) {
+        /* iOS specific styles */
+        bottom: -1px; // Fix potential gap at bottom on iOS
+        border-top: 1px solid var(--app-border-color); // Ensures border is visible
+    }
+}
+
+// 3. Adjust content padding to prevent content from being hidden under the nav bar
+.app-content {
+    @media (max-width: 768px) {
+        padding-bottom: calc(
+            80px + env(safe-area-inset-bottom, 0)
+        ); // Add safe area inset to padding
+    }
+
+    // iOS-specific content adjustments
+    @supports (-webkit-touch-callout: none) {
+        @media (max-width: 768px) {
+            padding-bottom: calc(
+                80px + env(safe-area-inset-bottom, 20px)
+            ); // Extra padding for iOS
+        }
+    }
+}
+
+// 4. Fix mobile wrapper styling for better iOS rendering
+.mobile-nav-wrapper {
+    background-color: rgba(40, 40, 40, 0.92);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    // Ensure content is properly positioned on iOS
+    @supports (-webkit-touch-callout: none) {
+        /* iOS specific styles */
+        margin-bottom: env(safe-area-inset-bottom, 0);
+    }
+}
+
+// 5. Fix nav-central-button positioning for iOS
+.nav-central-button {
+    @supports (-webkit-touch-callout: none) {
+        /* iOS specific styles */
+        margin-top: -38px; // Slightly adjusted for iOS
+    }
+}
+
+// 6. Use height and min-height with dvh units throughout the app
+:host {
+    height: 100dvh;
+}
+
+// 7. Fix iOS scrolling issues
+html,
+body {
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+// 8. Fix for the "safe area" in landscape mode on iOS
+@media screen and (orientation: landscape) {
+    .mobile-nav-container {
+        padding-bottom: env(safe-area-inset-bottom, 0);
+        padding-left: env(safe-area-inset-left, 0);
+        padding-right: env(safe-area-inset-right, 0);
+    }
+}
