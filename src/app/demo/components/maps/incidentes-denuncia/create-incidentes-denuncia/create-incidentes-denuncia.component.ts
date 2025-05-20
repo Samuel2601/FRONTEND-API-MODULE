@@ -14,7 +14,12 @@ import {
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { MessageService } from 'primeng/api';
-const { Geolocation } = Plugins;
+import {
+    Geolocation,
+    PermissionStatus,
+    Position,
+} from '@capacitor/geolocation';
+
 import { GalleriaModule } from 'primeng/galleria';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { AuthService } from 'src/app/demo/services/auth.service';

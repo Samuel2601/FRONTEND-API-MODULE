@@ -26,7 +26,11 @@ import * as turf from '@turf/turf';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { Subscription, debounceTime, forkJoin, map } from 'rxjs';
 import { Capacitor, Plugins } from '@capacitor/core';
-const { Geolocation } = Plugins;
+import {
+    Geolocation,
+    PermissionStatus,
+    Position,
+} from '@capacitor/geolocation';
 import { App } from '@capacitor/app';
 import {
     ConfirmationService,
@@ -122,7 +126,7 @@ interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
         ConfirmDialogModule,
         ToastModule,
         BadgeModule,
-        CalendarModule
+        CalendarModule,
     ],
     templateUrl: './mapa-ficha.component.html',
     styleUrl: './mapa-ficha.component.scss',
@@ -1061,42 +1065,52 @@ export class MapaFichaComponent implements OnInit, OnDestroy {
 
     async getLocation() {
         if (this.isMobil()) {
-            const permission = await Geolocation['requestPermissions']();
-            //console.log(permission);
-            if (permission !== 'granted') {
-                try {
-                    const coordinates = await Geolocation[
-                        'getCurrentPosition'
-                    ]();
+            try {
+                // Solicitar permisos de ubicación
+                const permissionStatus: PermissionStatus =
+                    await Geolocation.requestPermissions();
+
+                // Verificar si el permiso fue concedido
+                if (permissionStatus.location === 'granted') {
+                    // Obtener la ubicación actual
+                    const coordinates: Position =
+                        await Geolocation.getCurrentPosition({
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                        });
+
                     this.latitud = coordinates.coords.latitude;
                     this.longitud = coordinates.coords.longitude;
+
                     this.addMarker(
                         { lat: this.latitud, lng: this.longitud },
                         'Ubicación',
                         'Tu ubicación Actual'
                     );
                     this.poligonoposition();
-                } catch (error) {
-                    console.error('Error getting location: ' + error.message);
+                } else {
                     this.messageService.add({
                         severity: 'error',
-                        summary: '404',
-                        detail: error.message || 'Sin conexión',
+                        summary: 'Permiso Denegado',
+                        detail: 'No se pudo obtener el permiso de ubicación.',
                     });
                 }
-            } else {
+            } catch (error) {
+                console.error('Error getting location: ', error);
                 this.messageService.add({
                     severity: 'error',
-                    summary: 'Permiso Denegado',
-                    detail: 'No se pudo obtener el permiso de ubicación.',
+                    summary: '404',
+                    detail: error.message || 'Sin conexión',
                 });
             }
         } else {
+            // Código para navegador (sin cambios)
             this.messageService.add({
                 severity: 'info',
                 summary: 'Info',
                 detail: 'Tu ubicación puede ser no exacta',
             });
+
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
@@ -1130,6 +1144,7 @@ export class MapaFichaComponent implements OnInit, OnDestroy {
             }
         }
     }
+
     filterOptions(event?: any) {
         //this.opcionb = undefined;
         this.filter = this.lista_feature.filter((option: any) => {
