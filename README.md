@@ -33,3 +33,7 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 `npx cap sync`
 
 `ng build --configuration=production --output-hashing=all`
+
+npm uninstall -g @angular/cli
+
+npm install -g @angular/cli@19.2.12
