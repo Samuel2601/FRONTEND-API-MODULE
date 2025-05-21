@@ -1091,7 +1091,7 @@ body {
 /* 10. Corrección para el comportamiento de scroll en todo el contenedor */
 ::ng-deep router-outlet + * {
     display: block;
-    height: 100%;
+    height: 100dvh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 100px;
