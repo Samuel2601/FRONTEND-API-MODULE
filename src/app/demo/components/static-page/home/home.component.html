@@ -1,241 +1,269 @@
 <div class="surface-section px-4 py-8 md:px-6 lg:px-8 overflow-hidden">
     <div class="flex flex-wrap">
-        <article
-            *ngIf="!isMobil() || (isMobil() && !token)"
-            class="w-full mt-8 xl:mt-0 xl:mb-0 xl:w-8 flex flex-column flex-order-1 xl:flex-order-0 justify-content-center align-items-center xl:align-items-start"
-        >
-            <span
-                class="text-blue-500 font-semibold text-lg mb-2"
-                style="display: none"
-                >Revisa nuestra actualización en Play Store</span
+        <!-- Solo las mejoras necesarias para tu carrusel existente -->
+
+        <!-- Reemplazar la sección del carrusel existente -->
+        <div class="home-carousel-section">
+            <!-- Artículo lateral (mantienes tu lógica existente) -->
+            <article
+                *ngIf="!isMobil() || (isMobil() && !token)"
+                class="carousel-text-section"
             >
-            <h2 class="font-bold text-4xl sm:text-7xl mt-0 mb-4">
-                Desarrollemos una <br />
-                buena comunicación.
-            </h2>
-            <div class="flex gap-3">
-                <button
-                    *ngIf="!token"
-                    pButton
-                    pRipple
-                    type="button"
-                    label="Get Started"
-                    icon="pi pi-arrow-right"
-                    iconPos="right"
-                    class="z-2 p-button p-component"
-                    [routerLink]="'/auth/signup'"
-                >
-                    <span
-                        class="p-button-icon p-button-icon-right pi pi-arrow-right"
-                        aria-hidden="true"
-                    ></span>
-                    <span class="p-button-label">Empezar</span>
-                </button>
-                <button
-                    *ngIf="token"
-                    pButton
-                    pRipple
-                    type="button"
-                    label="Get Started"
-                    icon="pi pi-arrow-right"
-                    iconPos="right"
-                    class="z-2 p-button p-component"
-                    (click)="incidente()"
-                >
-                    <span
-                        class="p-button-icon p-button-icon-right pi pi-arrow-right"
-                        aria-hidden="true"
-                    ></span>
-                    <span class="p-button-label">Empezar</span>
-                </button>
-                <button
-                    pButton
-                    pRipple
-                    type="button"
-                    label="Documentation"
-                    class="p-button-outlined z-2 p-button p-component"
-                    [routerLink]="'/auth/politicas'"
-                >
-                    <span class="p-button-label">Nuestras Políticas</span>
-                </button>
-            </div>
-        </article>
-        <div
-            class="w-full xl:w-4 relative flex justify-content-center align-items-center"
-        >
-            <p-carousel
-                [value]="filteredProductos"
-                [numVisible]="1"
-                [numScroll]="1"
-                [circular]="true"
-                [responsiveOptions]="responsiveOptions"
-                [autoplayInterval]="5000"
-            >
-                <ng-template let-product pTemplate="item">
-                    <div
-                        class="surface-border border-round m-2 p-3"
-                        *ngIf="(isMobil() && product.mobil) || !isMobil()"
+                <span class="update-notice" [style.display]="'none'">
+                    Revisa nuestra actualización en Play Store
+                </span>
+
+                <h2 class="main-title">
+                    Desarrollemos una <br />
+                    buena comunicación.
+                </h2>
+
+                <div class="action-buttons">
+                    <button
+                        *ngIf="!token"
+                        pButton
+                        pRipple
+                        type="button"
+                        label="Empezar"
+                        icon="pi pi-arrow-right"
+                        iconPos="right"
+                        class="primary-button"
+                        [routerLink]="'/auth/signup'"
                     >
+                        <span class="p-button-label">Empezar</span>
+                    </button>
+
+                    <button
+                        *ngIf="token"
+                        pButton
+                        pRipple
+                        type="button"
+                        label="Empezar"
+                        icon="pi pi-arrow-right"
+                        iconPos="right"
+                        class="primary-button"
+                        (click)="incidente()"
+                    >
+                        <span class="p-button-label">Empezar</span>
+                    </button>
+
+                    <button
+                        pButton
+                        pRipple
+                        type="button"
+                        label="Nuestras Políticas"
+                        class="secondary-button"
+                        [routerLink]="'/auth/politicas'"
+                    >
+                        <span class="p-button-label">Nuestras Políticas</span>
+                    </button>
+                </div>
+            </article>
+
+            <!-- Tu carrusel con mejoras mínimas -->
+            <div class="carousel-container">
+                <p-carousel
+                    [value]="filteredProductos"
+                    [numVisible]="1"
+                    [numScroll]="1"
+                    [circular]="true"
+                    [responsiveOptions]="responsiveOptions"
+                    [autoplayInterval]="5000"
+                    [showIndicators]="true"
+                    [showNavigators]="!isMobil()"
+                    styleClass="custom-carousel"
+                >
+                    <ng-template let-product pTemplate="item">
                         <div
-                            class="w-full relative flex justify-content-center align-items-center"
+                            class="carousel-item-improved"
+                            *ngIf="(isMobil() && product.mobil) || !isMobil()"
                         >
-                            <img
-                                [src]="product.image"
-                                alt="Image"
-                                class="rounded-top"
-                                [ngStyle]="{
-                                    'margin-top': isMobil() ? '-30px' : '0px',
-                                    height: isMobil() ? '40vh' : '50vh'
-                                }"
-                                (click)="showimage(product)"
-                            />
-                            <ng-container *ngIf="product.items">
-                                <article
-                                    *ngIf="product.items[2]"
-                                    class="absolute flex align-items-center w-24rem border-round-xl z-2 gap-3 px-4 py-3"
-                                    style="
-                                        bottom: 41%;
-                                        backdrop-filter: blur(40px);
-                                        background-color: rgba(
-                                            255,
-                                            255,
-                                            255,
-                                            0.5
-                                        );
+                            <!-- NUEVO: Título visible en móvil -->
+                            <div *ngIf="isMobil()" class="mobile-title-card">
+                                <h3>
+                                    {{
+                                        product.title ||
+                                            product.descripcion ||
+                                            "Evento Municipal"
+                                    }}
+                                </h3>
+                            </div>
+
+                            <!-- Tu contenedor de imagen existente con pequeñas mejoras -->
+                            <div class="image-container-improved">
+                                <img
+                                    [src]="product.image"
+                                    [alt]="
+                                        product.title || 'Imagen de actividad'
                                     "
-                                    [ngStyle]="{
-                                        right: isMobil() ? '42.8%' : '50%'
-                                    }"
-                                >
-                                    <img
-                                        *ngIf="product.items[2].logo"
-                                        [src]="product.items[2].logo"
-                                        alt="Image"
-                                        class="border-circle"
-                                        width="64"
-                                    />
-                                    <div
-                                        class="flex flex-column justify-content-center w-full"
+                                    class="main-image-improved"
+                                    (click)="showimage(product)"
+                                    loading="lazy"
+                                />
+
+                                <!-- Tus elementos superpuestos existentes con mejoras para móvil -->
+                                <ng-container *ngIf="product.items">
+                                    <!-- Solo mostrar el primer item en móvil, todos en desktop -->
+                                    <article
+                                        *ngIf="product.items[0]"
+                                        class="info-card-improved info-position-1"
+                                        [class.mobile-only-first]="isMobil()"
                                     >
-                                        <p
-                                            class="m-0 font-semibold text-sm line-height-1.5 text-black-alpha-60"
-                                        >
-                                            {{ product.items[2].titulo }}
-                                        </p>
-                                        <p
-                                            class="m-0 font-medium text-sm line-height-1.5 text-black-alpha-80"
-                                            [innerHTML]="
-                                                product.items[2].descripcion
-                                            "
-                                        ></p>
-                                    </div>
-                                    <img
-                                        *ngIf="product.items[2].extra"
-                                        [src]="product.items[2].extra"
-                                        alt="Image"
-                                        class="border-circle"
-                                        width="64"
-                                    />
-                                </article>
-                                <article
-                                    *ngIf="product.items[1]"
-                                    class="absolute flex align-items-center w-24rem border-round-xl z-2 gap-3 px-4 py-3"
-                                    style="
-                                        bottom: 24%;
-                                        backdrop-filter: blur(40px);
-                                        background-color: rgba(
-                                            255,
-                                            255,
-                                            255,
-                                            0.5
-                                        );
+                                        <img
+                                            *ngIf="product.items[0].logo"
+                                            [src]="product.items[0].logo"
+                                            alt="Logo"
+                                            class="card-avatar"
+                                        />
+                                        <div class="card-content">
+                                            <p class="card-title">
+                                                {{ product.items[0].titulo }}
+                                            </p>
+                                            <p
+                                                class="card-description"
+                                                [innerHTML]="
+                                                    product.items[0].descripcion
+                                                "
+                                            ></p>
+                                        </div>
+                                        <img
+                                            *ngIf="product.items[0].extra"
+                                            [src]="product.items[0].extra"
+                                            alt="Extra"
+                                            class="card-extra"
+                                        />
+                                    </article>
+
+                                    <!-- Solo en desktop: segundo y tercer elemento -->
+                                    <article
+                                        *ngIf="product.items[1] && !isMobil()"
+                                        class="info-card-improved info-position-2"
+                                    >
+                                        <img
+                                            *ngIf="product.items[1].logo"
+                                            [src]="product.items[1].logo"
+                                            alt="Logo"
+                                            class="card-avatar"
+                                        />
+                                        <div class="card-content">
+                                            <p class="card-title">
+                                                {{ product.items[1].titulo }}
+                                            </p>
+                                            <p
+                                                class="card-description"
+                                                [innerHTML]="
+                                                    product.items[1].descripcion
+                                                "
+                                            ></p>
+                                        </div>
+                                        <img
+                                            *ngIf="product.items[1].extra"
+                                            [src]="product.items[1].extra"
+                                            alt="Extra"
+                                            class="card-extra"
+                                        />
+                                    </article>
+
+                                    <article
+                                        *ngIf="product.items[2] && !isMobil()"
+                                        class="info-card-improved info-position-3"
+                                    >
+                                        <img
+                                            *ngIf="product.items[2].logo"
+                                            [src]="product.items[2].logo"
+                                            alt="Logo"
+                                            class="card-avatar"
+                                        />
+                                        <div class="card-content">
+                                            <p class="card-title">
+                                                {{ product.items[2].titulo }}
+                                            </p>
+                                            <p
+                                                class="card-description"
+                                                [innerHTML]="
+                                                    product.items[2].descripcion
+                                                "
+                                            ></p>
+                                        </div>
+                                        <img
+                                            *ngIf="product.items[2].extra"
+                                            [src]="product.items[2].extra"
+                                            alt="Extra"
+                                            class="card-extra"
+                                        />
+                                    </article>
+                                </ng-container>
+
+                                <!-- NUEVO: Indicador de más información solo en móvil -->
+                                <div
+                                    *ngIf="
+                                        isMobil() &&
+                                        product.items &&
+                                        product.items.length > 1
                                     "
-                                    [ngStyle]="{
-                                        right: isMobil() ? '42.8%' : '50%'
-                                    }"
+                                    class="more-info-badge"
                                 >
-                                    <img
-                                        *ngIf="product.items[1].logo"
-                                        [src]="product.items[1].logo"
-                                        alt="Image"
-                                        class="border-circle"
-                                        width="64"
-                                    />
-                                    <div
-                                        class="flex flex-column justify-content-center w-full"
-                                    >
-                                        <p
-                                            class="m-0 font-semibold text-sm line-height-1.5 text-black-alpha-60"
-                                        >
-                                            {{ product.items[1].titulo }}
-                                        </p>
-                                        <p
-                                            class="m-0 font-medium text-sm line-height-1.5 text-black-alpha-80"
-                                            [innerHTML]="
-                                                product.items[1].descripcion
-                                            "
-                                        ></p>
-                                    </div>
-                                    <img
-                                        *ngIf="product.items[1].extra"
-                                        [src]="product.items[1].extra"
-                                        alt="Image"
-                                        class="border-circle"
-                                        width="64"
-                                    />
-                                </article>
-                                <article
-                                    *ngIf="product.items[0]"
-                                    class="absolute flex align-items-center w-24rem border-round-xl z-2 gap-3 px-4 py-3"
-                                    style="
-                                        bottom: 7%;
-                                        backdrop-filter: blur(40px);
-                                        background-color: rgba(
-                                            255,
-                                            255,
-                                            255,
-                                            0.5
-                                        );
-                                    "
-                                    [ngStyle]="{
-                                        right: isMobil() ? '42.8%' : '50%'
-                                    }"
+                                    +{{ product.items.length - 1 }} más
+                                </div>
+                            </div>
+
+                            <!-- NUEVO: Sección expandible para móvil -->
+                            <div
+                                *ngIf="
+                                    isMobil() &&
+                                    product.items &&
+                                    product.items.length > 1
+                                "
+                                class="mobile-expand-section"
+                            >
+                                <button
+                                    (click)="toggleProductInfo(product)"
+                                    class="expand-toggle-btn"
+                                    [class.expanded]="product.expanded"
                                 >
-                                    <img
-                                        *ngIf="product.items[0].logo"
-                                        [src]="product.items[0].logo"
-                                        alt="Image"
-                                        class="border-circle"
-                                        width="64"
-                                    />
+                                    <span>{{
+                                        product.expanded
+                                            ? "Ver menos información"
+                                            : "Ver más información"
+                                    }}</span>
+                                    <i
+                                        class="pi"
+                                        [class.pi-chevron-up]="product.expanded"
+                                        [class.pi-chevron-down]="
+                                            !product.expanded
+                                        "
+                                    ></i>
+                                </button>
+
+                                <div
+                                    *ngIf="product.expanded"
+                                    class="expanded-content"
+                                >
                                     <div
-                                        class="flex flex-column justify-content-center w-full"
+                                        *ngFor="
+                                            let item of product.items;
+                                            let i = index
+                                        "
+                                        class="expanded-item"
+                                        [class.hidden]="i === 0"
                                     >
-                                        <p
-                                            class="m-0 font-semibold text-sm line-height-1.5 text-black-alpha-60"
-                                        >
-                                            {{ product.items[0].titulo }}
-                                        </p>
-                                        <p
-                                            class="m-0 font-medium text-sm line-height-1.5 text-black-alpha-80"
-                                            [innerHTML]="
-                                                product.items[0].descripcion
-                                            "
-                                        ></p>
+                                        <div class="item-header">
+                                            <img
+                                                *ngIf="item.logo"
+                                                [src]="item.logo"
+                                                [alt]="item.titulo"
+                                                class="item-avatar"
+                                            />
+                                            <h4>{{ item.titulo }}</h4>
+                                        </div>
+                                        <p [innerHTML]="item.descripcion"></p>
                                     </div>
-                                    <img
-                                        *ngIf="product.items[0].extra"
-                                        [src]="product.items[0].extra"
-                                        alt="Image"
-                                        class="border-circle"
-                                        width="64"
-                                    />
-                                </article>
-                            </ng-container>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </ng-template>
-            </p-carousel>
+                    </ng-template>
+                </p-carousel>
+            </div>
         </div>
 
         <!--

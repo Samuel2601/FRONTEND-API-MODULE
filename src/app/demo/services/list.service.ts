@@ -137,7 +137,11 @@ export class ListService {
             .set('destacado', 'true')
             .set('view', 'true')
             .set('populate', 'estado,actividad')
-            .set('select', 'titulo,descripcion,foto,fecha_evento,slug');
+            .set(
+                'select',
+                'titulo,title_marcador,descripcion,foto,fecha_evento,slug'
+            )
+            .set('limit', '5');
         return this.http.get(this.url + 'ficha_sectorial', {
             params: params,
         });

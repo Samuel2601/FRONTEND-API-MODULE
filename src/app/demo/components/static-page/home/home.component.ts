@@ -95,6 +95,8 @@ export class HomeComponent implements OnInit {
                         // return b._id.getTimestamp() - a._id.getTimestamp();
                     });
 
+                    console.log(fichasOrdenadas);
+
                     // Tomar las primeras 5 después de ordenar (ahora serán las más recientes)
                     const ultimas5Fichas = fichasOrdenadas.slice(0, 5);
 
@@ -110,6 +112,9 @@ export class HomeComponent implements OnInit {
                                 'obtener_imagen/ficha_sectorial/' +
                                 element.foto[0],
                             url: '/ver-ficha/' + element._id,
+                            title: this.extractTitleFromMarker(
+                                element.title_marcador
+                            ),
                             descripcion: element.title_marcador,
                             mobil: true,
                         });
@@ -123,6 +128,57 @@ export class HomeComponent implements OnInit {
                 console.error(error);
             }
         );
+    }
+
+    /**
+     * Extraer título más corto del title_marcador para móvil
+     */
+    private extractTitleFromMarker(titleMarcador: string): string {
+        // Extraer las primeras palabras significativas
+        const words = titleMarcador.split(' ');
+        if (words.length <= 4) return titleMarcador;
+
+        // Tomar las primeras 4-5 palabras más relevantes
+        const shortTitle = words.slice(0, 4).join(' ');
+        return shortTitle + (words.length > 4 ? '...' : '');
+    }
+
+    /**
+     * Configuración del carrusel responsivo
+     */
+    private setupCarousel(): void {
+        this.responsiveOptions = [
+            {
+                breakpoint: '1200px',
+                numVisible: 1,
+                numScroll: 1,
+            },
+            {
+                breakpoint: '768px',
+                numVisible: 1,
+                numScroll: 1,
+            },
+        ];
+    }
+
+    private initializeProductsExpandState(): void {
+        this.filteredProductos.forEach((product) => {
+            product.expanded = false;
+        });
+    }
+
+    /**
+     * Alternar información móvil expandible
+     */
+    toggleProductInfo(product: any): void {
+        product.expanded = !product.expanded;
+
+        // Opcional: cerrar otros elementos expandidos
+        this.filteredProductos.forEach((p) => {
+            if (p.id !== product.id) {
+                p.expanded = false;
+            }
+        });
     }
 
     validateDateView(date_view: Date | string): boolean {
