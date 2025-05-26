@@ -1,222 +1,661 @@
-<div class="flex flex-column align-items-center justify-content-center">
-    <img
-        src="assets/icon/logo.png"
-        alt="Sakai logo"
-        class="mb-5 w-6rem flex-shrink-0"
-    />
-    <div
-        style="
-            border-radius: 56px;
-            padding: 0.3rem;
-            background: linear-gradient(
-                180deg,
-                #51ae56 10%,
-                rgba(247, 149, 48, 0) 30%
-            );
-        "
-        [style]="{ width: isMobile() ? '100%' : '70vw' }"
-    >
-        
+<div class="privacy-policy-container">
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="logo-container">
+            <img
+                src="assets/icon/logo.png"
+                alt="Sakai logo"
+                class="company-logo"
+            />
+        </div>
 
-        <div
-            class="w-full surface-card py-8 px-5 sm:px-8 flex flex-column align-items-center"
-            style="border-radius: 53px"
-        >
-            <div class="grid flex flex-column align-items-center">
-                <div
-                    class="flex justify-content-center align-items-center bg-green-500 border-circle"
-                    style="width: 3.2rem; height: 3.2rem"
-                >
-                    <i class="text-50 pi pi-fw pi-lock text-2xl"></i>
+        <div class="hero-card">
+            <div class="hero-content">
+                <!-- Icon and Title Section -->
+                <div class="title-section">
+                    <div class="icon-wrapper">
+                        <i class="pi pi-shield text-white"></i>
+                    </div>
+                    <h1 class="main-title">Políticas y Privacidad</h1>
+                    <p class="subtitle">Protección de datos personales</p>
+                    <div class="location-badge">
+                        <i class="pi pi-map-marker"></i>
+                        <span>Esmeraldas la Bella</span>
+                    </div>
                 </div>
-                <h1 class="text-900 font-bold text-4xl lg:text-5xl mb-2">
-                    Politicas y Privacidad
-                </h1>
-                <span class="text-600 mb-5">Esmeraldas la Bella</span>
-                <p-fieldset
-                    legend="Tratamiento legítimo de datos personales"
-                    [toggleable]="true"
-                >
-                    <p class="m-0">
-                        <strong>Consentimiento del titular:</strong>
-                        Recabamos información personal de los usuarios con su
-                        consentimiento explícito para una finalidad específica,
-                        que es la de registrar y gestionar las denuncias o
-                        incidencias relacionadas con problemas dentro de la
-                        ciudad.
-                    </p>
-                    <p-divider></p-divider>
-                    <p class="m-0">
-                        <strong>Protección de datos:</strong> Garantizamos la
-                        protección de los datos personales de los usuarios
-                        mediante el uso de cifrado de información a través de
-                        HTTPS, lo que asegura que la información transmitida
-                        entre el navegador del usuario y nuestro servidor esté
-                        protegida.
-                    </p>
-                    <p-divider></p-divider>
-                    <p class="m-0">
-                        <strong>Confidencialidad de la información:</strong>
-                        Nos comprometemos a no divulgar las denuncias o
-                        incidencias reportadas por los usuarios a personas fuera
-                        de la institución. La información recopilada se utiliza
-                        únicamente para la gestión interna de las denuncias y
-                        para mejorar los servicios públicos de la ciudad.
-                    </p>
-                    <p-divider></p-divider>
-                    <p class="m-0">
-                        <strong>Seguridad de la cuenta:</strong> Para garantizar
-                        la seguridad de las cuentas de usuario, cada inicio de
-                        sesión genera un token de certificación único, lo que
-                        asegura la integridad de la conexión al sistema y
-                        protege los datos personales de los usuarios.
-                    </p>
-                    <p-divider></p-divider>
-                    <p class="m-0">
-                        <strong>Transparencia:</strong> Informamos a los
-                        usuarios de manera clara y transparente sobre cómo se
-                        utiliza su información personal, los derechos que tienen
-                        sobre sus datos y cómo ejercer esos derechos.
-                    </p>
-                    <p-divider></p-divider>
-                    <p class="m-0">
-                        <strong>Limitación de finalidad:</strong> Los datos
-                        personales recopilados se utilizan exclusivamente para
-                        la gestión de denuncias e incidencias relacionadas con
-                        problemas dentro de la ciudad y no se utilizan para
-                        otros fines sin el consentimiento explícito del usuario.
-                    </p>
-                    <p-divider></p-divider>
-                    <p class="m-0">
-                        <strong>Derechos de los usuarios:</strong>
-                        Respetamos y garantizamos los derechos de acceso,
-                        rectificación, cancelación y oposición de los usuarios
-                        sobre sus datos personales, permitiéndoles ejercer estos
-                        derechos de manera sencilla y eficaz.
-                    </p>
-                </p-fieldset>
-                <p-fieldset legend="Consentimiento" [toggleable]="true">
-                    <p class="m-0">
-                        En nuestra aplicación, el tratamiento y comunicación de
-                        datos personales se realizará únicamente cuando contemos
-                        con la manifestación de la voluntad del titular para
-                        hacerlo. El consentimiento del usuario será válido
-                        cuando cumpla con los siguientes criterios:
-                    </p>
-                    <p-divider></p-divider>
-                    <ul>
-                        <li>
-                            <strong>Libre:</strong> El consentimiento del
-                            usuario se considerará libre cuando sea otorgado de
-                            manera voluntaria y sin coacción. No se ejercerá
-                            ninguna forma de presión sobre el usuario para
-                            obtener su consentimiento.
-                        </li>
 
-                        <li>
-                            <strong>Específico:</strong> El consentimiento del
-                            usuario será específico en cuanto a la determinación
-                            concreta de los medios y fines del tratamiento de
-                            sus datos personales. El usuario será informado de
-                            manera clara y precisa sobre cómo se utilizarán sus
-                            datos.
-                        </li>
-                        <li>
-                            <strong>Informado:</strong> El consentimiento del
-                            usuario será informado, lo que significa que el
-                            usuario estará debidamente informado sobre cómo se
-                            utilizarán sus datos personales, cumpliendo con el
-                            principio de transparencia y efectivizando su
-                            derecho a la transparencia.
-                        </li>
-                        <li>
-                            <strong>Inequívoco:</strong> El consentimiento del
-                            usuario será inequívoco, lo que implica que no
-                            presentará dudas sobre el alcance de la autorización
-                            otorgada por el titular. El usuario deberá
-                            manifestar su consentimiento de manera clara y sin
-                            ambigüedades.
-                        </li>
-                    </ul>
-                    <p-divider></p-divider>
-                    <p class="m-0">
-                        El usuario podrá revocar su consentimiento en cualquier
-                        momento, sin necesidad de justificación. Para ello,
-                        estableceremos mecanismos que garanticen celeridad,
-                        eficiencia, eficacia y gratuidad en el procedimiento de
-                        revocación, similar al procedimiento con el cual se
-                        recabó el consentimiento inicialmente. Es importante
-                        destacar que el tratamiento realizado antes de la
-                        revocación del consentimiento es lícito, ya que el
-                        consentimiento revocado no tiene efectos retroactivos.
-                    </p>
-                </p-fieldset>
-                <p-fieldset
-                    legend="Eliminación de datos de usuario"
-                    [toggleable]="true"
-                >
-                    <p class="m-0">
-                        <strong>Derecho a la eliminación de datos:</strong> Los
-                        usuarios tienen el derecho a solicitar la eliminación de
-                        sus datos personales en cualquier momento. Este derecho
-                        garantiza que los datos personales del usuario sean
-                        eliminados de nuestros sistemas y bases de datos,
-                        excepto en aquellos casos donde exista una obligación
-                        legal de conservarlos.
-                    </p>
-                    <p-divider></p-divider>
-                    <p class="m-0">
-                        <strong>Solicitud de eliminación:</strong> Para
-                        solicitar la eliminación de sus datos personales, los
-                        usuarios deben enviar un correo electrónico a
-                        <a href="mailto:aplicaciones&#64;esmeraldas.gob.ec"
-                            >aplicaciones&#64;esmeraldas.gob.ec</a
+                <!-- Privacy Policy Content -->
+                <div class="content-sections">
+                    <!-- Tratamiento de Datos -->
+                    <p-card class="policy-card">
+                        <ng-template pTemplate="header">
+                            <div class="card-header">
+                                <i class="pi pi-database"></i>
+                                <h3>
+                                    Tratamiento legítimo de datos personales
+                                </h3>
+                            </div>
+                        </ng-template>
+
+                        <p-accordion>
+                            <p-accordionTab
+                                header="Consentimiento del titular"
+                                [selected]="true"
+                            >
+                                <div class="policy-item">
+                                    <i
+                                        class="pi pi-check-circle text-green-500"
+                                    ></i>
+                                    <div>
+                                        <strong
+                                            >Consentimiento explícito:</strong
+                                        >
+                                        Recabamos información personal de los
+                                        usuarios con su consentimiento explícito
+                                        para una finalidad específica, que es la
+                                        de registrar y gestionar las denuncias o
+                                        incidencias relacionadas con problemas
+                                        dentro de la ciudad.
+                                    </div>
+                                </div>
+                            </p-accordionTab>
+
+                            <p-accordionTab header="Protección de datos">
+                                <div class="policy-item">
+                                    <i class="pi pi-lock text-blue-500"></i>
+                                    <div>
+                                        <strong>Seguridad garantizada:</strong>
+                                        Garantizamos la protección de los datos
+                                        personales mediante el uso de cifrado
+                                        HTTPS, asegurando que la información
+                                        transmitida entre el navegador y nuestro
+                                        servidor esté completamente protegida.
+                                    </div>
+                                </div>
+                            </p-accordionTab>
+
+                            <p-accordionTab header="Confidencialidad">
+                                <div class="policy-item">
+                                    <i
+                                        class="pi pi-eye-slash text-orange-500"
+                                    ></i>
+                                    <div>
+                                        <strong
+                                            >Información confidencial:</strong
+                                        >
+                                        Nos comprometemos a no divulgar las
+                                        denuncias o incidencias reportadas por
+                                        los usuarios a personas fuera de la
+                                        institución. La información se utiliza
+                                        únicamente para gestión interna y mejora
+                                        de servicios públicos.
+                                    </div>
+                                </div>
+                            </p-accordionTab>
+
+                            <p-accordionTab header="Seguridad de cuenta">
+                                <div class="policy-item">
+                                    <i class="pi pi-key text-purple-500"></i>
+                                    <div>
+                                        <strong>Tokens de seguridad:</strong>
+                                        Cada inicio de sesión genera un token de
+                                        certificación único, garantizando la
+                                        integridad de la conexión al sistema y
+                                        protegiendo los datos personales.
+                                    </div>
+                                </div>
+                            </p-accordionTab>
+
+                            <p-accordionTab header="Transparencia y limitación">
+                                <div class="policy-item">
+                                    <i
+                                        class="pi pi-info-circle text-cyan-500"
+                                    ></i>
+                                    <div>
+                                        <strong>Uso transparente:</strong>
+                                        Informamos claramente sobre el uso de
+                                        información personal y los derechos del
+                                        usuario. Los datos se utilizan
+                                        exclusivamente para gestión de denuncias
+                                        e incidencias.
+                                    </div>
+                                </div>
+                            </p-accordionTab>
+
+                            <p-accordionTab header="Derechos del usuario">
+                                <div class="policy-item">
+                                    <i class="pi pi-users text-indigo-500"></i>
+                                    <div>
+                                        <strong>Derechos garantizados:</strong>
+                                        Respetamos y garantizamos los derechos
+                                        de acceso, rectificación, cancelación y
+                                        oposición, permitiendo ejercer estos
+                                        derechos de manera sencilla y eficaz.
+                                    </div>
+                                </div>
+                            </p-accordionTab>
+                        </p-accordion>
+                    </p-card>
+
+                    <!-- Consentimiento -->
+                    <p-card class="policy-card">
+                        <ng-template pTemplate="header">
+                            <div class="card-header">
+                                <i class="pi pi-verified"></i>
+                                <h3>Consentimiento del usuario</h3>
+                            </div>
+                        </ng-template>
+
+                        <div class="consent-intro">
+                            <p>
+                                El tratamiento y comunicación de datos
+                                personales se realizará únicamente cuando
+                                contemos con la manifestación de voluntad del
+                                titular. El consentimiento será válido cuando
+                                cumpla con los siguientes criterios:
+                            </p>
+                        </div>
+
+                        <div class="consent-criteria">
+                            <div class="criteria-item">
+                                <div class="criteria-icon libre">
+                                    <i class="pi pi-heart"></i>
+                                </div>
+                                <div class="criteria-content">
+                                    <h4>Libre</h4>
+                                    <p>
+                                        Otorgado de manera voluntaria y sin
+                                        coacción, sin ejercer presión sobre el
+                                        usuario.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="criteria-item">
+                                <div class="criteria-icon especifico">
+                                    <i class="pi pi-target"></i>
+                                </div>
+                                <div class="criteria-content">
+                                    <h4>Específico</h4>
+                                    <p>
+                                        Determinación concreta de medios y fines
+                                        del tratamiento, informando clara y
+                                        precisamente.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="criteria-item">
+                                <div class="criteria-icon informado">
+                                    <i class="pi pi-info"></i>
+                                </div>
+                                <div class="criteria-content">
+                                    <h4>Informado</h4>
+                                    <p>
+                                        Usuario debidamente informado sobre el
+                                        uso de sus datos, cumpliendo con
+                                        transparencia.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="criteria-item">
+                                <div class="criteria-icon inequivoco">
+                                    <i class="pi pi-check"></i>
+                                </div>
+                                <div class="criteria-content">
+                                    <h4>Inequívoco</h4>
+                                    <p>
+                                        Sin dudas sobre el alcance de la
+                                        autorización, manifestado de manera
+                                        clara y sin ambigüedades.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p-divider></p-divider>
+
+                        <div class="revocation-info">
+                            <div class="info-icon">
+                                <i class="pi pi-exclamation-triangle"></i>
+                            </div>
+                            <div>
+                                <strong>Revocación del consentimiento:</strong>
+                                El usuario puede revocar su consentimiento en
+                                cualquier momento sin justificación.
+                                Establecemos mecanismos que garantizan
+                                celeridad, eficiencia y gratuidad en el
+                                procedimiento de revocación.
+                            </div>
+                        </div>
+                    </p-card>
+
+                    <!-- Eliminación de Datos -->
+                    <p-card class="policy-card">
+                        <ng-template pTemplate="header">
+                            <div class="card-header">
+                                <i class="pi pi-trash"></i>
+                                <h3>Eliminación de datos de usuario</h3>
+                            </div>
+                        </ng-template>
+
+                        <div class="deletion-steps">
+                            <p-steps
+                                [model]="deletionSteps"
+                                [readonly]="true"
+                                [activeIndex]="0"
+                                styleClass="custom-steps"
+                            >
+                            </p-steps>
+                        </div>
+
+                        <div class="contact-section">
+                            <h4>¿Cómo solicitar la eliminación?</h4>
+                            <div class="contact-method">
+                                <div class="contact-icon">
+                                    <i class="pi pi-envelope"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <p>
+                                        Envía un correo electrónico con el
+                                        asunto
+                                        <strong
+                                            >"Solicitud de eliminación de datos
+                                            personales"</strong
+                                        >
+                                        incluyendo:
+                                    </p>
+                                    <ul class="requirements-list">
+                                        <li>
+                                            <i class="pi pi-user"></i> Nombre
+                                            completo del usuario
+                                        </li>
+                                        <li>
+                                            <i class="pi pi-at"></i> Correo
+                                            electrónico asociado a la cuenta
+                                        </li>
+                                        <li>
+                                            <i class="pi pi-comment"></i> Motivo
+                                            de la solicitud (opcional)
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p-message
+                            severity="warn"
+                            text="En algunos casos, ciertos datos no pueden eliminarse debido a obligaciones legales. Te informaremos sobre cualquier excepción específica."
                         >
-                        con el asunto "Solicitud de eliminación de datos
-                        personales". En el cuerpo del correo, deberán
-                        proporcionar la siguiente información:
-                    </p>
-                    <ul>
-                        <li>Nombre completo del usuario</li>
-                        <li>Correo electrónico asociado a la cuenta</li>
-                        <li>Motivo de la solicitud (opcional)</li>
-                    </ul>
-                    <p-divider></p-divider>
-                    <p class="m-0">
-                        <strong>Proceso de eliminación:</strong> Una vez
-                        recibida la solicitud, nuestro equipo de soporte
-                        procesará la solicitud dentro de un plazo de 15 días
-                        hábiles. Se enviará un correo de confirmación al usuario
-                        una vez que sus datos hayan sido eliminados.
-                    </p>
-                    <p-divider></p-divider>
-                    <p class="m-0">
-                        <strong>Excepciones:</strong> En algunos casos, es
-                        posible que no podamos eliminar ciertos datos debido a
-                        obligaciones legales. En tales casos, informaremos al
-                        usuario sobre la razón específica por la cual no se
-                        puede proceder con la eliminación de sus datos.
-                    </p>
-                </p-fieldset>
+                        </p-message>
+                    </p-card>
+                </div>
 
-                Información de contacto:
-                <a href="mailto:aplicaciones@esmeraldas.gob.ec">
-                    <button
-                        pButton
-                        pRipple
-                        icon="pi pi-arrow-left"
-                        label="aplicaciones@esmeraldas.gob.ec"
-                        class="p-button-text"
-                    ></button>
-                </a>
-                <div class="flex justify-content-center mt-2 mb-2">
-                    <p-button
-                        routerLink="/home"
-                        label="Inicio"
-                        [rounded]="true"
-                    ></p-button>
+                <!-- Contact and Actions -->
+                <div class="footer-section">
+                    <div class="contact-info">
+                        <h4>Información de contacto</h4>
+                        <p-button
+                            icon="pi pi-envelope"
+                            label="aplicaciones@esmeraldas.gob.ec"
+                            [text]="true"
+                            class="contact-button"
+                        >
+                        </p-button>
+                    </div>
+
+                    <div class="action-buttons">
+                        <p-button
+                            routerLink="/home"
+                            label="Volver al inicio"
+                            icon="pi pi-home"
+                            [rounded]="true"
+                            size="large"
+                            class="home-button"
+                        >
+                        </p-button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .privacy-policy-container {
+        min-height: 100vh;
+        background: linear-gradient(
+            135deg,
+            #1a7c1a 0%,
+            #2a8a2a 50%,
+            #f8faf8 100%
+        );
+        padding: 2rem 1rem;
+    }
+
+    .header-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .logo-container {
+        margin-bottom: 2rem;
+    }
+
+    .company-logo {
+        width: 6rem;
+        height: auto;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+    }
+
+    .hero-card {
+        width: 100%;
+        max-width: 900px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .hero-content {
+        padding: 3rem 2rem;
+    }
+
+    .title-section {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .icon-wrapper {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 4rem;
+        height: 4rem;
+        background: linear-gradient(135deg, #51ae56, #4caf50);
+        border-radius: 50%;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 16px rgba(81, 174, 86, 0.3);
+    }
+
+    .icon-wrapper i {
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .main-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin: 0 0 0.5rem 0;
+        line-height: 1.2;
+    }
+
+    .subtitle {
+        font-size: 1.2rem;
+        color: #7f8c8d;
+        margin: 0 0 1rem 0;
+        font-weight: 500;
+    }
+
+    .location-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(81, 174, 86, 0.1);
+        color: #51ae56;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 500;
+    }
+
+    .content-sections {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .policy-card {
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .card-header i {
+        font-size: 1.5rem;
+        color: #51ae56;
+    }
+
+    .card-header h3 {
+        margin: 0;
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 1.3rem;
+    }
+
+    .policy-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem 0;
+    }
+
+    .policy-item i {
+        font-size: 1.2rem;
+        margin-top: 0.2rem;
+    }
+
+    .consent-intro {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: rgba(81, 174, 86, 0.05);
+        border-radius: 12px;
+        border-left: 4px solid #51ae56;
+    }
+
+    .consent-criteria {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .criteria-item {
+        display: flex;
+        gap: 1rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        transition: transform 0.2s ease;
+    }
+
+    .criteria-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .criteria-icon {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+
+    .criteria-icon.libre {
+        background: #e74c3c;
+    }
+    .criteria-icon.especifico {
+        background: #3498db;
+    }
+    .criteria-icon.informado {
+        background: #f39c12;
+    }
+    .criteria-icon.inequivoco {
+        background: #27ae60;
+    }
+
+    .criteria-content h4 {
+        margin: 0 0 0.5rem 0;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    .criteria-content p {
+        margin: 0;
+        color: #7f8c8d;
+        font-size: 0.9rem;
+    }
+
+    .revocation-info {
+        display: flex;
+        gap: 1rem;
+        padding: 1.5rem;
+        background: #fff3cd;
+        border-radius: 12px;
+        border-left: 4px solid #ffc107;
+    }
+
+    .info-icon {
+        color: #856404;
+        font-size: 1.2rem;
+    }
+
+    .deletion-steps {
+        margin: 2rem 0;
+    }
+
+    .contact-section h4 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+    }
+
+    .contact-method {
+        display: flex;
+        gap: 1rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+    }
+
+    .contact-icon {
+        width: 3rem;
+        height: 3rem;
+        background: #51ae56;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+
+    .requirements-list {
+        list-style: none;
+        padding: 0;
+        margin: 1rem 0 0 0;
+    }
+
+    .requirements-list li {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0;
+        color: #495057;
+    }
+
+    .requirements-list i {
+        color: #51ae56;
+    }
+
+    .footer-section {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid #dee2e6;
+        text-align: center;
+    }
+
+    .contact-info h4 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+    }
+
+    .contact-button {
+        margin-bottom: 2rem;
+    }
+
+    .action-buttons {
+        margin-top: 1rem;
+    }
+
+    .home-button {
+        background: linear-gradient(135deg, #51ae56, #4caf50);
+        border: none;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .privacy-policy-container {
+            padding: 1rem 0.5rem;
+        }
+
+        .hero-content {
+            padding: 2rem 1rem;
+        }
+
+        .main-title {
+            font-size: 2rem;
+        }
+
+        .consent-criteria {
+            grid-template-columns: 1fr;
+        }
+
+        .criteria-item,
+        .contact-method {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+
+    /* Custom PrimeNG overrides */
+    ::ng-deep .p-accordion .p-accordion-header .p-accordion-header-link {
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+    }
+
+    ::ng-deep .p-accordion .p-accordion-content {
+        padding: 0 1.5rem 1.5rem 1.5rem;
+    }
+
+    ::ng-deep .p-steps .p-steps-item .p-steps-number {
+        background: #51ae56;
+        border-color: #51ae56;
+    }
+
+    ::ng-deep .p-message {
+        margin-top: 1rem;
+    }
+</style>

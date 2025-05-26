@@ -7,14 +7,16 @@ import { PoliticasComponent } from './politicas.component';
 
 import { FieldsetModule } from 'primeng/fieldset';
 import { DividerModule } from 'primeng/divider';
+import { ImportsModule } from 'src/app/demo/services/import';
 @NgModule({
     imports: [
         CommonModule,
         PoliticasRoutingModule,
         ButtonModule,
         FieldsetModule,
-        DividerModule
+        DividerModule,
+        ImportsModule,
     ],
-    declarations: [PoliticasComponent]
+    declarations: [PoliticasComponent],
 })
-export class PoliticasModule { }
+export class PoliticasModule {}
