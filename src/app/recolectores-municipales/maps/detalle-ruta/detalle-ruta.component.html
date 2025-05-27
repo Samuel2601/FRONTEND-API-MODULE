@@ -10,7 +10,7 @@
             </h2>
             <p class="text-gray-600">
                 <i class="pi pi-calendar mr-2"></i>
-                {{ ruta.createdAt | date : "dd/MM/yyyy HH:mm" }}
+                {{ resumenRuta }}
             </p>
         </div>
         <div class="flex gap-2">
@@ -24,6 +24,93 @@
             ></p-button>
         </div>
     </div>
+</div>
+
+<!-- Panel de estadísticas de la ruta (NUEVO) -->
+<div class="mb-4" *ngIf="estadisticas">
+    <p-card header="Resumen de Ruta" styleClass="estadisticas-card">
+        <div class="grid">
+            <div class="col-12 md:col-3">
+                <div class="statistic-item">
+                    <div class="statistic-icon">
+                        <i class="pi pi-map text-blue-500 text-2xl"></i>
+                    </div>
+                    <div class="statistic-content">
+                        <div class="statistic-value">
+                            {{
+                                (
+                                    estadisticas.distanciaRecorrida / 1000
+                                ).toFixed(2)
+                            }}
+                            km
+                        </div>
+                        <div class="statistic-label">Distancia Total</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 md:col-3">
+                <div class="statistic-item">
+                    <div class="statistic-icon">
+                        <i class="pi pi-clock text-green-500 text-2xl"></i>
+                    </div>
+                    <div class="statistic-content">
+                        <div class="statistic-value">
+                            {{ formatearDuracion(estadisticas.tiempoTotal) }}
+                        </div>
+                        <div class="statistic-label">Tiempo Total</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 md:col-3">
+                <div class="statistic-item">
+                    <div class="statistic-icon">
+                        <i class="pi pi-gauge text-orange-500 text-2xl"></i>
+                    </div>
+                    <div class="statistic-content">
+                        <div class="statistic-value">
+                            {{ estadisticas.velocidadPromedio.toFixed(1) }} km/h
+                        </div>
+                        <div class="statistic-label">Velocidad Promedio</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 md:col-3">
+                <div class="statistic-item">
+                    <div class="statistic-icon">
+                        <i
+                            class="pi pi-chart-line text-purple-500 text-2xl"
+                        ></i>
+                    </div>
+                    <div class="statistic-content">
+                        <div class="statistic-value">
+                            {{ estadisticas.eficiencia.toFixed(0) }}%
+                        </div>
+                        <div class="statistic-label">Eficiencia</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="mt-3 pt-3 border-top-1 surface-border">
+            <div class="grid">
+                <div class="col-6">
+                    <span class="text-sm text-gray-600">
+                        <i class="pi pi-map-marker mr-1"></i>
+                        Puntos de recolección:
+                        <strong>{{ estadisticas.puntosRecoleccion }}</strong>
+                    </span>
+                </div>
+                <div class="col-6">
+                    <span class="text-sm text-gray-600">
+                        <i class="pi pi-home mr-1"></i>
+                        Retornos a estación:
+                        <strong>{{ estadisticas.puntosRetorno }}</strong>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </p-card>
 </div>
 
 <!-- Contenedor del mapa -->
@@ -70,39 +157,19 @@
                     ></p-slider>
                 </div>
 
-                <!-- Botones de velocidad preestablecida -->
+                <!-- Botones de velocidad preestablecida (MEJORADO) -->
                 <div class="col-12 md:col-6">
                     <label class="font-bold block mb-2"
                         >Velocidades Rápidas:</label
                     >
                     <div class="flex gap-2 flex-wrap">
                         <p-button
-                            label="2x"
+                            *ngFor="let speed of speedOptions"
+                            [label]="speed + 'x'"
                             size="small"
                             severity="secondary"
-                            (click)="setSpeed(2)"
-                            [outlined]="speedMultiplier !== 2"
-                        ></p-button>
-                        <p-button
-                            label="5x"
-                            size="small"
-                            severity="secondary"
-                            (click)="setSpeed(5)"
-                            [outlined]="speedMultiplier !== 5"
-                        ></p-button>
-                        <p-button
-                            label="10x"
-                            size="small"
-                            severity="secondary"
-                            (click)="setSpeed(10)"
-                            [outlined]="speedMultiplier !== 10"
-                        ></p-button>
-                        <p-button
-                            label="20x"
-                            size="small"
-                            severity="secondary"
-                            (click)="setSpeed(20)"
-                            [outlined]="speedMultiplier !== 20"
+                            (click)="setSpeed(speed)"
+                            [outlined]="speedMultiplier !== speed"
                         ></p-button>
                     </div>
                 </div>
@@ -153,7 +220,7 @@
     <p class="mt-2 text-gray-600">Cargando información de la ruta...</p>
 </div>
 
-<!-- Tabla de puntos de recolección -->
+<!-- Tabla de puntos de recolección (MEJORADA) -->
 <p-card
     *ngIf="table.length > 0"
     header="Puntos de Recolección"
@@ -162,6 +229,7 @@
     styleClass="p-fluid mb-4"
 >
     <p-table
+        #dtTable
         [value]="table"
         [scrollable]="true"
         scrollHeight="400px"
@@ -171,7 +239,29 @@
         [rows]="10"
         [showCurrentPageReport]="true"
         currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} puntos"
+        [globalFilterFields]="['tipo', 'timestamp']"
     >
+        <!-- Encabezado de búsqueda -->
+        <ng-template pTemplate="caption">
+            <div class="flex justify-content-between align-items-center">
+                <span class="text-lg font-semibold">Puntos de Recolección</span>
+                <span class="p-input-icon-left">
+                    <i class="pi pi-search"></i>
+                    <input
+                        pInputText
+                        type="text"
+                        placeholder="Buscar puntos..."
+                        (input)="
+                            dtTable.filterGlobal(
+                                $any($event.target).value,
+                                'contains'
+                            )
+                        "
+                    />
+                </span>
+            </div>
+        </ng-template>
+
         <ng-template pTemplate="header">
             <tr>
                 <th style="width: 4rem">N°</th>
@@ -179,6 +269,8 @@
                 <th>Latitud</th>
                 <th>Longitud</th>
                 <th>Fecha y Hora</th>
+                <th>Tiempo Relativo</th>
+                <!-- NUEVO -->
                 <th style="width: 8rem">Acciones</th>
             </tr>
         </ng-template>
@@ -235,6 +327,12 @@
                         </div>
                     </div>
                 </td>
+                <!-- NUEVA COLUMNA: Tiempo Relativo -->
+                <td>
+                    <div class="text-sm text-gray-600">
+                        {{ obtenerTiempoRelativo(location.timestamp) }}
+                    </div>
+                </td>
                 <td>
                     <div class="flex gap-1">
                         <p-button
@@ -266,7 +364,7 @@
         </ng-template>
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="6" class="text-center">
+                <td colspan="7" class="text-center">
                     <div class="p-4">
                         <i class="pi pi-map text-4xl text-gray-400 mb-3"></i>
                         <h6 class="text-gray-600">
@@ -283,7 +381,7 @@
     </p-table>
 </p-card>
 
-<!-- Tabla de datos GPS completos -->
+<!-- Tabla de datos GPS completos (MEJORADA) -->
 <p-card
     *ngIf="ruta && ruta.ruta && ruta.ruta.length > 0"
     header="Datos GPS Detallados"
@@ -302,21 +400,47 @@
         [showCurrentPageReport]="true"
         currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros GPS"
         [globalFilterFields]="['latitude', 'longitude', 'speed', 'fixTime']"
+        #dtGPS
     >
         <ng-template pTemplate="caption">
             <div class="flex justify-content-between align-items-center">
                 <span class="text-lg font-semibold"
                     >Trazabilidad GPS Completa</span
                 >
-                <span class="p-input-icon-left">
-                    <i class="pi pi-search"></i>
-                    <input
-                        pInputText
-                        type="text"
-                        placeholder="Buscar en registros GPS..."
-                        (input)="$any($event.target).value"
-                    />
-                </span>
+                <div class="flex gap-2 align-items-center">
+                    <!-- Filtros de precisión GPS (NUEVO) -->
+                    <p-dropdown
+                        [options]="[
+                            { label: 'Todas las precisiones', value: null },
+                            { label: 'Alta precisión (< 5m)', value: 'alta' },
+                            {
+                                label: 'Precisión media (5-15m)',
+                                value: 'media'
+                            },
+                            { label: 'Baja precisión (> 15m)', value: 'baja' }
+                        ]"
+                        placeholder="Filtrar por precisión"
+                        optionLabel="label"
+                        (onChange)="filtrarPorPrecision($event)"
+                        [style]="{ 'min-width': '200px' }"
+                    >
+                    </p-dropdown>
+
+                    <span class="p-input-icon-left">
+                        <i class="pi pi-search"></i>
+                        <input
+                            pInputText
+                            type="text"
+                            placeholder="Buscar en registros GPS..."
+                            (input)="
+                                dtGPS.filterGlobal(
+                                    $any($event.target).value,
+                                    'contains'
+                                )
+                            "
+                        />
+                    </span>
+                </div>
             </div>
         </ng-template>
 
@@ -328,11 +452,17 @@
                 <th>Longitud</th>
                 <th>Altitud</th>
                 <th>Velocidad</th>
+                <th>Precisión</th>
+                <!-- NUEVO -->
                 <th>Fecha y Hora GPS</th>
             </tr>
         </ng-template>
         <ng-template pTemplate="body" let-location let-i="rowIndex">
-            <tr>
+            <tr
+                [ngClass]="{
+                    'low-accuracy': location.accuracy && location.accuracy > 50
+                }"
+            >
                 <td>
                     <span class="font-mono text-sm">{{ i + 1 }}</span>
                 </td>
@@ -374,6 +504,21 @@
                         >
                     </div>
                 </td>
+                <!-- NUEVA COLUMNA: Precisión GPS -->
+                <td>
+                    <div class="flex align-items-center gap-2">
+                        <i [class]="getPrecisionIcon(location.accuracy)"></i>
+                        <span [class]="getPrecisionClass(location.accuracy)">
+                            {{
+                                location.accuracy
+                                    ? "±" +
+                                      (location.accuracy | number : "1.0-0") +
+                                      "m"
+                                    : "N/A"
+                            }}
+                        </span>
+                    </div>
+                </td>
                 <td>
                     <div class="text-sm">
                         <div class="font-medium">
@@ -388,7 +533,7 @@
         </ng-template>
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="7" class="text-center">
+                <td colspan="8" class="text-center">
                     <div class="p-4">
                         <i
                             class="pi pi-satellite text-4xl text-gray-400 mb-3"

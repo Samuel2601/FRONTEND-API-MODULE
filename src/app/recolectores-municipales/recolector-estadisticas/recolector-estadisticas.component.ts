@@ -116,35 +116,43 @@ export class RecolectorEstadisticasComponent implements OnInit {
             return;
         }
 
-        this.recolectorService.listarAsignacionRecolectores(token).subscribe({
-            next: (data) => {
-                this.datosRecolectores = data.data;
-                this.datosRecolectores.map((e) => {
-                    e.date = new Date(e.dateOnly);
-                    /*e.dateOnly = new Date(e.dateOnly).toLocaleDateString('en-US', {
+        this.recolectorService
+            .listarAsignacionRecolectores(token, {}, true)
+            .subscribe({
+                next: (data) => {
+                    this.datosRecolectores = data.data;
+                    this.datosRecolectores.map((e) => {
+                        e.date = new Date(e.dateOnly);
+                        /*e.dateOnly = new Date(e.dateOnly).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: '2-digit',
                         day: '2-digit',
                     });*/
-                    e.fullname = e.funcionario
-                        ? e.funcionario.name + ' ' + e.funcionario.last_name
-                        : e.externo.name;
-                    e.externo = e.funcionario ? true : false;
-                    e.velocidad_maxima = this.calcularVelocidadMaxima(e.ruta);
-                });
-                //console.log(this.datosRecolectores);
-                this.representatives = [
-                    ...new Set(this.datosRecolectores.map((e) => e.fullname)),
-                ];
-                this.recolectoresId = [
-                    ...new Set(this.datosRecolectores.map((e) => e.deviceId)),
-                ];
-                //console.log(this.datosRecolectores);
-                this.cargando = false;
-                this.generarEstadisticas();
-            },
-            error: (err) => console.error('Error al obtener datos', err),
-        });
+                        e.fullname = e.funcionario
+                            ? e.funcionario.name + ' ' + e.funcionario.last_name
+                            : e.externo.name;
+                        e.externo = e.funcionario ? true : false;
+                        e.velocidad_maxima = this.calcularVelocidadMaxima(
+                            e.ruta
+                        );
+                    });
+                    //console.log(this.datosRecolectores);
+                    this.representatives = [
+                        ...new Set(
+                            this.datosRecolectores.map((e) => e.fullname)
+                        ),
+                    ];
+                    this.recolectoresId = [
+                        ...new Set(
+                            this.datosRecolectores.map((e) => e.deviceId)
+                        ),
+                    ];
+                    //console.log(this.datosRecolectores);
+                    this.cargando = false;
+                    this.generarEstadisticas();
+                },
+                error: (err) => console.error('Error al obtener datos', err),
+            });
     }
     onSort(event: any, dt1: any) {
         console.log('Orden aplicado:', event);
@@ -568,9 +576,11 @@ export class RecolectorEstadisticasComponent implements OnInit {
 
     // En tu componente .ts
     calcularVelocidadMaxima(ruta: any[]): number {
-        return ruta.reduce(
-            (max, punto) => (punto.speed > max ? punto.speed : max),
-            0
+        return (
+            ruta?.reduce(
+                (max, punto) => (punto.speed > max ? punto.speed : max),
+                0
+            ) || 0
         );
     }
     searchValue: string | undefined;

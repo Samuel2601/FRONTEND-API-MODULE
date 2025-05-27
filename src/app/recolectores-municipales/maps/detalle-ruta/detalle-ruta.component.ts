@@ -1,10 +1,13 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Optional } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 import { FilterService } from 'src/app/demo/services/filter.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { MessageService } from 'primeng/api';
 import { ImportsModule } from 'src/app/demo/services/import';
+
+// ✨ IMPORTACIÓN AGREGADA: DynamicDialogConfig para recibir datos del dialog
+import { DynamicDialogConfig } from 'primeng/dynamicdialog';
 
 // Importar interfaces y utilidades
 import {
@@ -34,6 +37,7 @@ import {
  * Incluye visualización GPS, reproducción de ruta y análisis de puntos
  *
  * Ahora con tipado fuerte, cálculos centralizados y mejor análisis de datos
+ * ✨ ARREGLADO: Ahora maneja correctamente los datos cuando se usa como dialog
  */
 @Component({
     selector: 'app-detalle-ruta',
@@ -86,7 +90,7 @@ export class DetalleRutaComponent implements OnInit, OnDestroy {
     private readonly mapConfig: IMapConfig = {
         center: CONFIGURACION_DEFECTO.MAPA.CENTER,
         zoom: CONFIGURACION_DEFECTO.MAPA.ZOOM,
-        mapTypeId: google.maps.MapTypeId.TERRAIN,
+        mapTypeId: 'terrain',
         styles: [
             { featureType: 'poi', stylers: [{ visibility: 'off' }] },
             {
@@ -122,7 +126,9 @@ export class DetalleRutaComponent implements OnInit, OnDestroy {
         private filter: FilterService,
         private auth: AuthService,
         private messageService: MessageService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        // ✨ CORRECCIÓN: Usar @Optional() para inyección condicional
+        @Optional() private dialogConfig: DynamicDialogConfig | null
     ) {
         this.token = this.auth.token();
         RecoleccionLogger.info('DetalleRutaComponent inicializado');
@@ -133,14 +139,8 @@ export class DetalleRutaComponent implements OnInit, OnDestroy {
             await this.initMap();
 
             setTimeout(async () => {
-                // Determinar el ID de la ruta (desde Input o desde parámetros de ruta)
-                if (this.rutaId) {
-                    this.id = this.rutaId;
-                } else {
-                    this.route.paramMap.subscribe((params) => {
-                        this.id = params.get('id') || undefined;
-                    });
-                }
+                // ✨ LÓGICA MEJORADA: Determinar el ID de la ruta desde múltiples fuentes
+                this.determinarIdRuta();
 
                 if (this.id) {
                     await this.getRuta();
@@ -152,6 +152,41 @@ export class DetalleRutaComponent implements OnInit, OnDestroy {
                     );
                 }
             }, 500);
+        });
+    }
+
+    /**
+     * ✨ MÉTODO MEJORADO: Maneja correctamente el caso cuando dialogConfig es null
+     */
+    private determinarIdRuta(): void {
+        // 1. Prioridad máxima: datos del dialog (cuando se abre como modal)
+        // Ahora verificamos si dialogConfig existe antes de usarlo
+        if (this.dialogConfig?.data?.id) {
+            this.id = this.dialogConfig.data.id;
+            RecoleccionLogger.info('ID obtenido desde dialog config', {
+                id: this.id,
+            });
+            return;
+        }
+
+        // 2. Segunda prioridad: propiedad Input (cuando se usa como componente hijo)
+        if (this.rutaId) {
+            this.id = this.rutaId;
+            RecoleccionLogger.info('ID obtenido desde Input property', {
+                id: this.id,
+            });
+            return;
+        }
+
+        // 3. Tercera prioridad: parámetros de ruta (navegación directa)
+        this.route.paramMap.subscribe((params) => {
+            const routeId = params.get('id');
+            if (routeId) {
+                this.id = routeId;
+                RecoleccionLogger.info('ID obtenido desde route params', {
+                    id: this.id,
+                });
+            }
         });
     }
 
@@ -378,11 +413,10 @@ export class DetalleRutaComponent implements OnInit, OnDestroy {
             lng: point.longitude,
             id: point.id,
             fixTime: point.fixTime,
-            // Map required IPuntoRecoleccion properties
             timestamp: point.fixTime,
             destacado: false,
             retorno: false,
-            // Optionally add other properties if needed
+            // Puedes agregar otras propiedades opcionales aquí si es necesario
         }));
 
         this.segmentos.push(segmentPoints);
@@ -977,5 +1011,58 @@ export class DetalleRutaComponent implements OnInit, OnDestroy {
         const tiempoRelativo = obtenerTiempoRelativo(this.ruta.createdAt);
 
         return `Creada el ${fechaCreacion} (${tiempoRelativo})`;
+    }
+
+    // Métodos helper para el template actualizado
+
+    /**
+     * Expone la función formatearDuracion para usar en el template
+     */
+    formatearDuracion = formatearDuracion;
+
+    /**
+     * Expone la función obtenerTiempoRelativo para usar en el template
+     */
+    obtenerTiempoRelativo = obtenerTiempoRelativo;
+
+    /**
+     * Obtiene el ícono CSS apropiado basado en la precisión GPS
+     */
+    getPrecisionIcon(accuracy?: number): string {
+        if (!accuracy) return 'pi pi-question-circle text-gray-400';
+
+        if (accuracy < 5) return 'pi pi-check-circle text-green-500';
+        if (accuracy < 15) return 'pi pi-info-circle text-blue-500';
+        if (accuracy < 50) return 'pi pi-exclamation-triangle text-orange-500';
+        return 'pi pi-times-circle text-red-500';
+    }
+
+    /**
+     * Obtiene la clase CSS apropiada basada en la precisión GPS
+     */
+    getPrecisionClass(accuracy?: number): string {
+        if (!accuracy) return 'text-gray-500';
+
+        if (accuracy < 5) return 'text-green-600 font-medium';
+        if (accuracy < 15) return 'text-blue-600';
+        if (accuracy < 50) return 'text-orange-600';
+        return 'text-red-600 font-medium';
+    }
+
+    /**
+     * Filtra los puntos GPS por nivel de precisión
+     */
+    filtrarPorPrecision(event: any): void {
+        const valor = event.value;
+        if (!valor) {
+            // Mostrar todos los puntos
+            return;
+        }
+
+        // Implementar filtrado basado en precisión
+        // Este método se puede expandir según las necesidades específicas
+        RecoleccionLogger.info('Filtro de precisión aplicado', {
+            filtro: valor,
+        });
     }
 }

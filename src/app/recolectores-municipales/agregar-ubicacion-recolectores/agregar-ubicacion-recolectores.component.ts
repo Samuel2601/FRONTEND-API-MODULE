@@ -16,6 +16,7 @@ import { DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { ListService } from 'src/app/demo/services/list.service';
 import { formatDate } from '@angular/common';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
+import { calcularDistancia } from '../utils/recoleccion.utils';
 
 interface Asignacion {
     _id: string;
@@ -1659,14 +1660,13 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                         }
 
                         // Calcular la distancia entre la nueva posición y la última conocida
-                        const distance =
-                            this.ubicacionService.calculateDistance(
-                                {
-                                    lat: this.lastPosition.latitude,
-                                    lng: this.lastPosition.longitude,
-                                },
-                                { lat: latitude, lng: longitude }
-                            );
+                        const distance = calcularDistancia(
+                            {
+                                lat: this.lastPosition.latitude,
+                                lng: this.lastPosition.longitude,
+                            },
+                            { lat: latitude, lng: longitude }
+                        );
 
                         // Actualizar la ubicación si la distancia es significativa
                         if (

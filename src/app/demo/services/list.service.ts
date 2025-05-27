@@ -49,19 +49,24 @@ export class ListService {
     listarAsignacionRecolectores(
         token: any,
         campos: any = {},
-        all: boolean = true
+        all: boolean = false
     ): Observable<any> {
-        //console.log(campos);
         let headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: token,
         });
-        //const { start, end } = this.diaEntero();
-        const params = this.paramsf(campos, all);
+
+        let params = new HttpParams()
+            .set(
+                'select',
+                'deviceId,funcionario,externo,view,observacion,puntos_recoleccion,capacidad_retorno,createdAt,updatedAt,dateOnly,view_date' +
+                    (all ? ',ruta' : '')
+            )
+            .set('populate', 'funcionario,externo');
 
         return this.http.get(this.url + 'recolector', {
-            headers: headers,
-            params: params,
+            headers,
+            params,
         });
     }
 

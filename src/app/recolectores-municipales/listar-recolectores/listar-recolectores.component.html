@@ -111,7 +111,7 @@
 
                 <!-- Registered hours -->
                 <td *ngIf="!isMobil()">
-                    <ng-container *ngIf="product.ruta.length > 1">
+                    <ng-container *ngIf="product.ruta?.length > 1">
                         {{
                             calculateTimeDifference(
                                 product.ruta[0].fixTime,
@@ -119,7 +119,7 @@
                             )
                         }}
                     </ng-container>
-                    <ng-container *ngIf="product.ruta.length <= 1"
+                    <ng-container *ngIf="product.ruta?.length <= 1"
                         >Sin Registro</ng-container
                     >
                 </td>

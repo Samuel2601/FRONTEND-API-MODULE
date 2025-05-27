@@ -116,7 +116,11 @@ export class AppMenuComponent implements OnInit {
                     {
                         label: 'Recolectores Mapa',
                         icon: 'pi pi-fw pi-map-marker',
-                        routerLink: ['/recolectores/map'],
+                        routerLink: [
+                            permissions.canViewRecolector
+                                ? '/recolectores/listar-asignacion'
+                                : '/recolectores/map',
+                        ],
                         visible:
                             permissions.canTrashRecolector ||
                             (permissions.canRecolectorExterno &&

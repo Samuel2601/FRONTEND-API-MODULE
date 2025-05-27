@@ -45,6 +45,8 @@ export interface IExterno {
 export interface IFuncionario {
     _id: string;
     name: string;
+    last_name: string;
+    email: string;
     dni: string;
     cargo?: string;
     departamento?: string;
@@ -104,6 +106,8 @@ export interface IDispositivoGPS {
     lastUpdate?: string;
     battery?: number;
     signal?: number;
+    plate?: string;
+    deviceType?: string;
 }
 
 /**
@@ -122,7 +126,7 @@ export interface IOpcionFiltro {
 export interface IMapConfig {
     center: { lat: number; lng: number };
     zoom: number;
-    mapTypeId: google.maps.MapTypeId;
+    mapTypeId: string;
     styles?: google.maps.MapTypeStyle[];
     controls?: {
         fullscreen?: boolean;

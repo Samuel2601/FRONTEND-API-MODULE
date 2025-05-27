@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 import { ListService } from 'src/app/demo/services/list.service';
@@ -7,59 +7,125 @@ import { MessageService } from 'primeng/api';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { ImportsModule } from 'src/app/demo/services/import';
 
-// Interfaces para tipado
-interface Asignacion {
-    _id: string;
-    deviceId: string;
-    externo: {
-        _id: string;
-        name: string;
-        dni: string;
-    };
-    createdAt: string;
-    dateOnly: string;
-    view_date: string;
-    view: boolean;
-    puntos_recoleccion: any[];
+// Importar interfaces y utilidades centralizadas
+import {
+    IAsignacion,
+    IPuntoRecoleccion,
+    IExterno,
+    IFuncionario,
+    IOpcionFiltro,
+    IMapConfig,
+    CONFIGURACION_DEFECTO,
+    MENSAJES,
+} from '../../interfaces/recoleccion.interfaces';
+
+import {
+    formatearFecha,
+    obtenerTiempoRelativo,
+    RecoleccionLogger,
+    medirRendimiento,
+    sanitizarDatos,
+} from '../../utils/recoleccion.utils';
+
+/**
+ * Información combinada de usuario (externo o funcionario)
+ * Interface helper para simplificar el manejo de ambos tipos
+ */
+interface IInfoUsuario {
+    id: string;
+    nombre: string;
+    apellido?: string;
+    nombreCompleto: string;
+    dni: string;
+    tipo: 'externo' | 'funcionario';
+    icono: string;
+    colorClase: string;
 }
 
-interface OpcionSeleccion {
-    label: string;
-    value: any;
+/**
+ * Estadísticas de una asignación para mostrar en la interfaz
+ */
+interface IEstadisticasAsignacion {
+    totalPuntos: number;
+    puntosRecoleccion: number;
+    puntosRetorno: number;
+    ultimaActividad: string;
+    tiempoRelativo: string;
 }
 
+/**
+ * Componente Lista de Asignaciones
+ *
+ * Maneja la visualización de todas las asignaciones de recolección con:
+ * - Mapa interactivo con marcadores agrupados
+ * - Filtros avanzados por fecha, usuario y dispositivo
+ * - Soporte completo para externos y funcionarios
+ * - Estadísticas en tiempo real
+ * - Navegación a detalles de ruta
+ */
 @Component({
     selector: 'app-lista-asignaciones',
     templateUrl: './lista-asignaciones.component.html',
     styleUrls: ['./lista-asignaciones.component.scss'],
     providers: [MessageService],
 })
-export class ListaAsignacionesComponent implements OnInit {
-    // Propiedades del mapa
-    mapCustom: google.maps.Map;
+export class ListaAsignacionesComponent implements OnInit, OnDestroy {
+    // Propiedades del mapa con tipado fuerte
+    mapCustom!: google.maps.Map;
     private markers: google.maps.marker.AdvancedMarkerElement[] = [];
     private infoWindows: google.maps.InfoWindow[] = [];
-    markerCluster: MarkerClusterer;
-    groupedInfoWindow: google.maps.InfoWindow;
+    markerCluster?: MarkerClusterer;
+    groupedInfoWindow?: google.maps.InfoWindow;
 
-    // Propiedades de la lista y filtros
+    // Configuración del mapa usando constantes centralizadas
+    private readonly mapConfig: IMapConfig = {
+        center: CONFIGURACION_DEFECTO.MAPA.CENTER,
+        zoom: 12,
+        mapTypeId: 'terrain',
+        styles: [
+            { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+            {
+                featureType: 'transit.station',
+                stylers: [{ visibility: 'off' }],
+            },
+        ],
+        controls: {
+            fullscreen: true,
+            mapType: true,
+            streetView: false,
+            zoom: true,
+        },
+    };
+
+    // Propiedades de la lista y filtros con tipado fuerte
     load_list: boolean = true;
-    arr_asignacion: Asignacion[] = [];
-    asignacionesFiltradas: Asignacion[] = [];
+    arr_asignacion: IAsignacion[] = [];
+    asignacionesFiltradas: IAsignacion[] = [];
 
-    // Opciones para filtros
-    fechasUnicas: OpcionSeleccion[] = [];
-    externosUnicos: OpcionSeleccion[] = [];
-    devicesUnicos: OpcionSeleccion[] = [];
+    // Opciones para filtros con interface específica
+    fechasUnicas: IOpcionFiltro[] = [];
+    usuariosUnicos: IOpcionFiltro[] = []; // Renombrado de externosUnicos para ser más claro
+    devicesUnicos: IOpcionFiltro[] = [];
 
     // Selecciones actuales de filtros
-    selectedFechas: OpcionSeleccion[] = [];
-    selectedExternos: OpcionSeleccion[] = [];
-    selectedDevices: OpcionSeleccion[] = [];
+    selectedFechas: IOpcionFiltro[] = [];
+    selectedUsuarios: IOpcionFiltro[] = []; // Renombrado de selectedExternos
+    selectedDevices: IOpcionFiltro[] = [];
 
-    // Permisos
+    // Permisos con tipado específico
     permisos_arr: any[] = [];
     check_create: boolean = false;
+
+    // Token de autenticación
+    private readonly token: string;
+
+    // Estadísticas generales
+    estadisticasGenerales = {
+        totalAsignaciones: 0,
+        asignacionesConPuntos: 0,
+        totalPuntosRecoleccion: 0,
+        usuariosUnicos: 0,
+    };
 
     constructor(
         private googlemaps: GoogleMapsService,
@@ -68,34 +134,56 @@ export class ListaAsignacionesComponent implements OnInit {
         private messageService: MessageService,
         private router: Router
     ) {
-        // Suscripción a permisos
+        this.token = this.auth.token();
+
+        // Suscripción a permisos con mejor manejo
         this.auth.permissions$.subscribe((permissions) => {
             if (permissions.length > 0) {
                 this.permisos_arr = permissions;
+                this.loadPermissions();
             }
-            this.loadPermissions();
         });
+
+        RecoleccionLogger.info('ListaAsignacionesComponent inicializado');
     }
 
     async ngOnInit(): Promise<void> {
-        await this.initMap();
-        setTimeout(async () => {
-            await this.listar_asignacion();
-        }, 500);
+        await medirRendimiento(
+            'Inicialización lista asignaciones',
+            async () => {
+                await this.initMap();
+                setTimeout(async () => {
+                    await this.listar_asignacion();
+                }, 500);
+            }
+        );
+    }
+
+    ngOnDestroy(): void {
+        RecoleccionLogger.info('Destruyendo componente ListaAsignaciones');
+        this.clearMarkers();
     }
 
     /**
      * Carga y verifica los permisos del usuario
      */
-    async loadPermissions() {
-        this.check_create =
-            (await this.boolPermiss('/recolector', 'post')) || false;
+    async loadPermissions(): Promise<void> {
+        try {
+            this.check_create =
+                (await this.boolPermiss('/recolector', 'post')) || false;
+            RecoleccionLogger.debug('Permisos cargados', {
+                canCreate: this.check_create,
+                totalPermisos: this.permisos_arr.length,
+            });
+        } catch (error) {
+            RecoleccionLogger.error('Error cargando permisos', error);
+        }
     }
 
     /**
      * Verifica si el usuario tiene un permiso específico
      */
-    async boolPermiss(permission: any, method: any): Promise<boolean> {
+    async boolPermiss(permission: string, method: string): Promise<boolean> {
         return this.permisos_arr.length > 0
             ? this.permisos_arr.some(
                   (e) => e.name === permission && e.method === method
@@ -104,19 +192,9 @@ export class ListaAsignacionesComponent implements OnInit {
     }
 
     /**
-     * Obtiene la ubicación actual del usuario para centrar el mapa
+     * Inicializa el mapa de Google Maps usando configuración centralizada
      */
-    private async getLocation(): Promise<google.maps.LatLngLiteral> {
-        // Coordenadas por defecto (Quito, Ecuador)
-        return { lat: -0.1807, lng: -78.4678 };
-    }
-
-    /**
-     * Inicializa el mapa de Google Maps
-     */
-    async initMap() {
-        const defaultLocation = await this.getLocation();
-
+    async initMap(): Promise<void> {
         this.googlemaps.getLoader().then(async () => {
             this.mapCustom = new google.maps.Map(
                 document.getElementById(
@@ -124,69 +202,96 @@ export class ListaAsignacionesComponent implements OnInit {
                 ) as HTMLElement,
                 {
                     mapId: '7756f5f6c6f997f1',
-                    zoom: 12,
-                    center: defaultLocation,
-                    mapTypeId: 'terrain',
-                    fullscreenControl: true,
+                    zoom: this.mapConfig.zoom,
+                    center: this.mapConfig.center,
+                    mapTypeId: this.mapConfig.mapTypeId,
+                    fullscreenControl: this.mapConfig.controls?.fullscreen,
                     mapTypeControlOptions: {
                         style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
                         position: google.maps.ControlPosition.LEFT_BOTTOM,
                     },
                     draggable: true,
                     gestureHandling: 'greedy',
-                    styles: [
-                        {
-                            featureType: 'poi',
-                            stylers: [{ visibility: 'off' }],
-                        },
-                        {
-                            featureType: 'transit.station',
-                            stylers: [{ visibility: 'off' }],
-                        },
-                    ],
+                    styles: this.mapConfig.styles,
                 }
             );
+
+            RecoleccionLogger.info('Mapa de lista inicializado');
         });
     }
 
     /**
-     * Obtiene la lista completa de asignaciones del servidor
+     * Obtiene la lista completa de asignaciones del servidor con mejor manejo de errores
      */
-    async listar_asignacion() {
+    async listar_asignacion(): Promise<void> {
         this.load_list = true;
-        const token = this.auth.token();
 
-        this.list.listarAsignacionRecolectores(token, {}, true).subscribe({
-            next: async (response) => {
-                if (response.data) {
-                    this.arr_asignacion = response.data;
-                    this.asignacionesFiltradas = [...this.arr_asignacion];
-                    await this.inicializarOpcionesFiltro();
-                }
-                this.load_list = false;
-                await this.loadMarkers();
-            },
-            error: (error) => {
-                console.error('Error al cargar asignaciones:', error);
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: 'No se pudieron cargar las asignaciones',
+        try {
+            const response = await this.list
+                .listarAsignacionRecolectores(this.token, {}, false)
+                .toPromise();
+
+            if (response.data) {
+                // Sanitizar datos de entrada y aplicar tipado fuerte
+                this.arr_asignacion = sanitizarDatos(
+                    response.data
+                ) as IAsignacion[];
+                this.asignacionesFiltradas = [...this.arr_asignacion];
+
+                // Calcular estadísticas generales
+                this.calcularEstadisticasGenerales();
+
+                // Inicializar opciones de filtro
+                await this.inicializarOpcionesFiltro();
+
+                RecoleccionLogger.info('Asignaciones cargadas', {
+                    total: this.arr_asignacion.length,
+                    conPuntos: this.estadisticasGenerales.asignacionesConPuntos,
                 });
-                this.load_list = false;
-            },
-        });
+            }
+        } catch (error) {
+            RecoleccionLogger.error('Error al cargar asignaciones', error);
+            this.mostrarMensaje(
+                'error',
+                'Error',
+                'No se pudieron cargar las asignaciones'
+            );
+        } finally {
+            this.load_list = false;
+            await this.loadMarkers();
+        }
     }
 
     /**
-     * Inicializa las opciones disponibles para cada filtro
+     * Calcula estadísticas generales de las asignaciones
      */
-    async inicializarOpcionesFiltro() {
-        // Generar opciones únicas para fechas
+    private calcularEstadisticasGenerales(): void {
+        this.estadisticasGenerales = {
+            totalAsignaciones: this.arr_asignacion.length,
+            asignacionesConPuntos: this.arr_asignacion.filter(
+                (a) => a.puntos_recoleccion && a.puntos_recoleccion.length > 0
+            ).length,
+            totalPuntosRecoleccion: this.arr_asignacion.reduce(
+                (total, a) => total + (a.puntos_recoleccion?.length || 0),
+                0
+            ),
+            usuariosUnicos: new Set(
+                this.arr_asignacion
+                    .map((a) => a.externo?._id || a.funcionario?._id)
+                    .filter(Boolean)
+            ).size,
+        };
+    }
+
+    /**
+     * Inicializa las opciones disponibles para cada filtro con mejor lógica
+     */
+    async inicializarOpcionesFiltro(): Promise<void> {
+        // Generar opciones únicas para fechas usando utilidades centralizadas
         const fechasMap = new Map<string, string>();
         this.arr_asignacion.forEach((item) => {
             if (item.createdAt) {
-                const fecha = this.formatearFecha(new Date(item.createdAt));
+                const fecha = formatearFecha(item.createdAt, false);
                 fechasMap.set(fecha, fecha);
             }
         });
@@ -194,21 +299,24 @@ export class ListaAsignacionesComponent implements OnInit {
             ([key, value]) => ({
                 label: value,
                 value: key,
+                icon: 'pi pi-calendar',
             })
         );
 
-        // Generar opciones únicas para externos
-        const externosMap = new Map<string, string>();
+        // Generar opciones únicas para usuarios (externos Y funcionarios)
+        const usuariosMap = new Map<string, IInfoUsuario>();
         this.arr_asignacion.forEach((item) => {
-            if (item.externo) {
-                const externoInfo = `${item.externo.name} (${item.externo.dni})`;
-                externosMap.set(item.externo._id, externoInfo);
+            const infoUsuario = this.obtenerInfoUsuario(item);
+            if (infoUsuario) {
+                usuariosMap.set(infoUsuario.id, infoUsuario);
             }
         });
-        this.externosUnicos = Array.from(externosMap.entries()).map(
-            ([key, value]) => ({
-                label: value,
-                value: key,
+
+        this.usuariosUnicos = Array.from(usuariosMap.values()).map(
+            (usuario) => ({
+                label: `${usuario.nombreCompleto} (${usuario.dni}) - ${usuario.tipo}`,
+                value: usuario.id,
+                icon: usuario.icono,
             })
         );
 
@@ -223,47 +331,105 @@ export class ListaAsignacionesComponent implements OnInit {
             ([key, value]) => ({
                 label: value,
                 value: key,
+                icon: 'pi pi-mobile',
             })
         );
+
+        RecoleccionLogger.debug('Opciones de filtro inicializadas', {
+            fechas: this.fechasUnicas.length,
+            usuarios: this.usuariosUnicos.length,
+            devices: this.devicesUnicos.length,
+        });
     }
 
     /**
-     * Formatea una fecha al formato DD/MM/YYYY
+     * Extrae información unificada del usuario (externo o funcionario)
+     * Este método helper resuelve el problema principal que mencionaste
      */
-    formatearFecha(date: Date): string {
-        try {
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
-        } catch (error) {
-            return 'Fecha inválida';
+    obtenerInfoUsuario(asignacion: IAsignacion): IInfoUsuario | null {
+        if (asignacion.externo) {
+            return {
+                id: asignacion.externo._id,
+                nombre: asignacion.externo.name,
+                nombreCompleto: asignacion.externo.name,
+                dni: asignacion.externo.dni,
+                tipo: 'externo',
+                icono: 'pi pi-user',
+                colorClase: 'text-blue-600',
+            };
         }
+
+        if (asignacion.funcionario) {
+            const nombreCompleto = `${asignacion.funcionario.name} ${
+                asignacion.funcionario.last_name || ''
+            }`.trim();
+            return {
+                id: asignacion.funcionario._id,
+                nombre: asignacion.funcionario.name,
+                apellido: asignacion.funcionario.last_name,
+                nombreCompleto,
+                dni: asignacion.funcionario.dni,
+                tipo: 'funcionario',
+                icono: 'pi pi-id-card',
+                colorClase: 'text-green-600',
+            };
+        }
+
+        return null;
     }
 
     /**
-     * Aplica los filtros seleccionados a la lista de asignaciones
+     * Calcula estadísticas específicas de una asignación para mostrar en la tabla
      */
-    async aplicarFiltros() {
+    calcularEstadisticasAsignacion(
+        asignacion: IAsignacion
+    ): IEstadisticasAsignacion {
+        const puntos = asignacion.puntos_recoleccion || [];
+        const puntosRetorno = puntos.filter((p) => p.retorno).length;
+        const puntosRecoleccion = puntos.length - puntosRetorno;
+
+        // Encontrar la última actividad
+        let ultimaActividad = asignacion.createdAt;
+        if (puntos.length > 0) {
+            const ultimoPunto = puntos.reduce((ultimo, actual) =>
+                new Date(actual.timestamp) > new Date(ultimo.timestamp)
+                    ? actual
+                    : ultimo
+            );
+            ultimaActividad = ultimoPunto.timestamp;
+        }
+
+        return {
+            totalPuntos: puntos.length,
+            puntosRecoleccion,
+            puntosRetorno,
+            ultimaActividad,
+            tiempoRelativo: obtenerTiempoRelativo(ultimaActividad),
+        };
+    }
+
+    /**
+     * Aplica los filtros seleccionados a la lista de asignaciones con lógica mejorada
+     */
+    async aplicarFiltros(): Promise<void> {
         let resultados = [...this.arr_asignacion];
 
         // Filtrar por fechas seleccionadas
         if (this.selectedFechas.length > 0) {
             const fechasValores = this.selectedFechas.map((f) => f.value);
             resultados = resultados.filter((item) => {
-                const fechaFormateada = this.formatearFecha(
-                    new Date(item.createdAt)
-                );
+                const fechaFormateada = formatearFecha(item.createdAt, false);
                 return fechasValores.includes(fechaFormateada);
             });
         }
 
-        // Filtrar por externos seleccionados
-        if (this.selectedExternos.length > 0) {
-            const externosIds = this.selectedExternos.map((e) => e.value);
-            resultados = resultados.filter(
-                (item) => item.externo && externosIds.includes(item.externo._id)
-            );
+        // Filtrar por usuarios seleccionados (externos O funcionarios)
+        if (this.selectedUsuarios.length > 0) {
+            const usuariosIds = this.selectedUsuarios.map((u) => u.value);
+            resultados = resultados.filter((item) => {
+                const infoUsuario = this.obtenerInfoUsuario(item);
+                return infoUsuario && usuariosIds.includes(infoUsuario.id);
+            });
         }
 
         // Filtrar por dispositivos seleccionados
@@ -275,93 +441,111 @@ export class ListaAsignacionesComponent implements OnInit {
         }
 
         this.asignacionesFiltradas = resultados;
+
+        RecoleccionLogger.debug('Filtros aplicados', {
+            original: this.arr_asignacion.length,
+            filtrado: this.asignacionesFiltradas.length,
+            filtros: {
+                fechas: this.selectedFechas.length,
+                usuarios: this.selectedUsuarios.length,
+                devices: this.selectedDevices.length,
+            },
+        });
+
         await this.loadMarkers();
     }
 
     /**
      * Limpia todos los filtros aplicados
      */
-    limpiarFiltros() {
+    limpiarFiltros(): void {
         this.selectedFechas = [];
-        this.selectedExternos = [];
+        this.selectedUsuarios = [];
         this.selectedDevices = [];
         this.asignacionesFiltradas = [...this.arr_asignacion];
+
+        RecoleccionLogger.info('Filtros limpiados');
         this.loadMarkers();
     }
 
     /**
-     * Carga los marcadores en el mapa basados en las asignaciones filtradas
+     * Carga los marcadores en el mapa basados en las asignaciones filtradas con mejor performance
      */
-    async loadMarkers() {
-        setTimeout(async () => {
-            if (!this.mapCustom) return;
+    async loadMarkers(): Promise<void> {
+        return await medirRendimiento('Carga de marcadores', async () => {
+            setTimeout(async () => {
+                if (!this.mapCustom) return;
 
-            this.clearMarkers();
+                this.clearMarkers();
 
-            // Verificar si hay puntos para mostrar
-            let hasPuntos = false;
-            this.asignacionesFiltradas.forEach((element: any) => {
-                if (
-                    element.puntos_recoleccion &&
-                    element.puntos_recoleccion.length > 0
-                ) {
-                    hasPuntos = true;
-                }
-            });
+                // Verificar si hay puntos para mostrar
+                const asignacionesConPuntos = this.asignacionesFiltradas.filter(
+                    (a) =>
+                        a.puntos_recoleccion && a.puntos_recoleccion.length > 0
+                );
 
-            if (!hasPuntos) {
-                console.log('No hay puntos para mostrar en el mapa');
-                return;
-            }
-
-            const bounds = new google.maps.LatLngBounds();
-
-            // Inicializar agrupador de marcadores
-            if (!this.markerCluster) {
-                this.markerCluster = new MarkerClusterer({
-                    map: this.mapCustom,
-                });
-            } else {
-                this.markerCluster.clearMarkers();
-            }
-
-            // Agregar marcadores para cada punto de recolección
-            this.asignacionesFiltradas.forEach((element: any) => {
-                if (
-                    !element.puntos_recoleccion ||
-                    element.puntos_recoleccion.length === 0
-                ) {
+                if (asignacionesConPuntos.length === 0) {
+                    RecoleccionLogger.info(
+                        'No hay puntos para mostrar en el mapa'
+                    );
                     return;
                 }
 
-                element.puntos_recoleccion.forEach((punto: any) => {
-                    const marker = this.addMarker(
-                        punto,
-                        element.deviceId,
-                        element.externo.name
+                const bounds = new google.maps.LatLngBounds();
+
+                // Inicializar agrupador de marcadores
+                if (!this.markerCluster) {
+                    this.markerCluster = new MarkerClusterer({
+                        map: this.mapCustom,
+                    });
+                } else {
+                    this.markerCluster.clearMarkers();
+                }
+
+                // Agregar marcadores para cada punto de recolección
+                let totalMarcadores = 0;
+                asignacionesConPuntos.forEach((asignacion) => {
+                    const infoUsuario = this.obtenerInfoUsuario(asignacion);
+
+                    asignacion.puntos_recoleccion?.forEach(
+                        (punto: IPuntoRecoleccion) => {
+                            const marker = this.addMarker(
+                                punto,
+                                asignacion.deviceId,
+                                infoUsuario
+                            );
+                            const position = { lat: punto.lat, lng: punto.lng };
+                            bounds.extend(position);
+                            totalMarcadores++;
+                        }
                     );
-                    const position = { lat: punto.lat, lng: punto.lng };
-                    bounds.extend(position);
                 });
-            });
 
-            // Ajustar el mapa a los límites de los marcadores
-            this.mapCustom.fitBounds(bounds);
+                // Ajustar el mapa a los límites de los marcadores
+                if (totalMarcadores > 0) {
+                    this.mapCustom.fitBounds(bounds);
 
-            // Si solo hay un punto, ajustar el zoom
-            if (bounds.getNorthEast().equals(bounds.getSouthWest())) {
-                this.mapCustom.setZoom(15);
-            }
-        }, 1000);
+                    // Si solo hay un punto, ajustar el zoom
+                    if (bounds.getNorthEast().equals(bounds.getSouthWest())) {
+                        this.mapCustom.setZoom(15);
+                    }
+                }
+
+                RecoleccionLogger.info('Marcadores cargados', {
+                    total: totalMarcadores,
+                    asignaciones: asignacionesConPuntos.length,
+                });
+            }, 100);
+        });
     }
 
     /**
-     * Agrega un marcador al mapa
+     * Agrega un marcador al mapa con información mejorada del usuario
      */
     addMarker(
-        location: any,
+        location: IPuntoRecoleccion,
         deviceName?: string,
-        externoName?: string
+        infoUsuario?: IInfoUsuario | null
     ): google.maps.marker.AdvancedMarkerElement {
         const iconElement = document.createElement('div');
         iconElement.style.width = '60px';
@@ -375,19 +559,23 @@ export class ListaAsignacionesComponent implements OnInit {
         iconElement.style.position = 'absolute';
         iconElement.style.transform = 'translate(-50%, -50%)';
 
+        const title = `${
+            location.retorno ? 'Retorno' : 'Punto de recolección'
+        } - ${deviceName} - ${
+            infoUsuario?.nombreCompleto || 'Usuario no disponible'
+        }`;
+
         const marcador = new google.maps.marker.AdvancedMarkerElement({
             position: { lat: location.lat, lng: location.lng },
             content: iconElement,
             map: this.mapCustom,
-            title: `${
-                location.retorno ? 'Retorno' : 'Punto de recolección'
-            } - ${deviceName} - ${externoName}`,
+            title,
             gmpClickable: true,
         });
 
         // Agregar listener para mostrar información al hacer clic
         marcador.addListener('click', () => {
-            this.showInfoWindow(location, deviceName, externoName, marcador);
+            this.showInfoWindow(location, deviceName, infoUsuario, marcador);
         });
 
         this.markers.push(marcador);
@@ -401,42 +589,107 @@ export class ListaAsignacionesComponent implements OnInit {
     }
 
     /**
-     * Muestra una ventana de información para un marcador
+     * Muestra una ventana de información para un marcador con datos completos del usuario
      */
     showInfoWindow(
-        location: any,
+        location: IPuntoRecoleccion,
         deviceName?: string,
-        externoName?: string,
-        marker?: any
-    ) {
+        infoUsuario?: IInfoUsuario | null,
+        marker?: google.maps.marker.AdvancedMarkerElement
+    ): void {
         this.closeAllInfoWindows();
 
+        const fechaFormateada = formatearFecha(location.timestamp);
+        const tiempoRelativo = obtenerTiempoRelativo(location.timestamp);
+
         const content = `
-            <div style="font-family: Arial, sans-serif; max-width: 250px;">
-                <h4 style="margin: 0 0 10px 0; color: #333;">
+            <div style="font-family: Arial, sans-serif; max-width: 280px;">
+                <h4 style="margin: 0 0 12px 0; color: #333; display: flex; align-items: center; gap: 8px;">
+                    <i class="${
+                        location.retorno ? 'pi pi-home' : 'pi pi-map-marker'
+                    }" 
+                       style="color: ${
+                           location.retorno ? '#ff9800' : '#4caf50'
+                       };"></i>
                     ${
                         location.retorno
                             ? 'Retorno a Estación'
                             : 'Punto de Recolección'
                     }
                 </h4>
-                <div style="margin: 5px 0; font-size: 12px; color: #666;">
-                    <strong>Dispositivo:</strong> ${deviceName || 'N/A'}<br>
-                    <strong>Externo:</strong> ${externoName || 'N/A'}<br>
-                    <strong>Fecha:</strong> ${this.formatDateFull(
-                        new Date(location.timestamp)
-                    )}<br>
-                    <strong>Coordenadas:</strong> ${location.lat.toFixed(
-                        6
-                    )}, ${location.lng.toFixed(6)}
+                
+                <div style="margin: 8px 0; font-size: 13px; color: #666; line-height: 1.4;">
+                    <div style="margin: 4px 0; display: flex; align-items: center; gap: 6px;">
+                        <i class="pi pi-mobile" style="color: #2196f3; width: 12px;"></i>
+                        <strong>Dispositivo:</strong> ${deviceName || 'N/A'}
+                    </div>
+                    
+                    <div style="margin: 4px 0; display: flex; align-items: center; gap: 6px;">
+                        <i class="${
+                            infoUsuario?.icono || 'pi pi-user'
+                        }" style="color: ${
+            infoUsuario?.tipo === 'funcionario' ? '#4caf50' : '#2196f3'
+        }; width: 12px;"></i>
+                        <strong>${
+                            infoUsuario?.tipo === 'funcionario'
+                                ? 'Funcionario'
+                                : 'Externo'
+                        }:</strong> 
+                        ${infoUsuario?.nombreCompleto || 'No disponible'}
+                    </div>
+                    
+                    ${
+                        infoUsuario?.dni
+                            ? `
+                        <div style="margin: 4px 0; display: flex; align-items: center; gap: 6px;">
+                            <i class="pi pi-id-card" style="color: #ff9800; width: 12px;"></i>
+                            <strong>DNI:</strong> ${infoUsuario.dni}
+                        </div>
+                    `
+                            : ''
+                    }
+                    
+                    <div style="margin: 4px 0; display: flex; align-items: center; gap: 6px;">
+                        <i class="pi pi-calendar" style="color: #9c27b0; width: 12px;"></i>
+                        <strong>Fecha:</strong> ${fechaFormateada}
+                    </div>
+                    
+                    <div style="margin: 4px 0; display: flex; align-items: center; gap: 6px;">
+                        <i class="pi pi-clock" style="color: #607d8b; width: 12px;"></i>
+                        <strong>Hace:</strong> ${tiempoRelativo}
+                    </div>
+                    
+                    <div style="margin: 4px 0; display: flex; align-items: center; gap: 6px;">
+                        <i class="pi pi-map" style="color: #795548; width: 12px;"></i>
+                        <strong>Coordenadas:</strong> ${location.lat.toFixed(
+                            6
+                        )}, ${location.lng.toFixed(6)}
+                    </div>
+                    
+                    ${
+                        location.accuracy
+                            ? `
+                        <div style="margin: 4px 0; display: flex; align-items: center; gap: 6px;">
+                            <i class="pi pi-target" style="color: #00bcd4; width: 12px;"></i>
+                            <strong>Precisión:</strong> ±${location.accuracy.toFixed(
+                                0
+                            )}m
+                        </div>
+                    `
+                            : ''
+                    }
                 </div>
-                <a href="https://www.google.com/maps/dir/?api=1&destination=${
-                    location.lat
-                },${location.lng}"
-                   target="_blank"
-                   style="display: inline-block; padding: 5px 10px; background-color: #4285F4; color: white; text-decoration: none; border-radius: 4px; font-size: 12px;">
-                    Cómo llegar
-                </a>
+                
+                <div style="margin-top: 12px; text-align: center;">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=${
+                        location.lat
+                    },${location.lng}"
+                       target="_blank"
+                       style="display: inline-block; padding: 8px 16px; background-color: #4285F4; color: white; text-decoration: none; border-radius: 6px; font-size: 12px; font-weight: 500;">
+                        <i class="pi pi-external-link" style="margin-right: 4px;"></i>
+                        Cómo llegar
+                    </a>
+                </div>
             </div>
         `;
 
@@ -455,9 +708,11 @@ export class ListaAsignacionesComponent implements OnInit {
     /**
      * Cierra todas las ventanas de información abiertas
      */
-    closeAllInfoWindows() {
+    closeAllInfoWindows(): void {
         if (this.infoWindows && this.infoWindows.length) {
-            this.infoWindows.forEach((infoWindow: any) => infoWindow.close());
+            this.infoWindows.forEach((infoWindow: google.maps.InfoWindow) =>
+                infoWindow.close()
+            );
         }
         if (this.groupedInfoWindow) {
             this.groupedInfoWindow.close();
@@ -467,7 +722,7 @@ export class ListaAsignacionesComponent implements OnInit {
     /**
      * Limpia todos los marcadores del mapa
      */
-    clearMarkers() {
+    clearMarkers(): void {
         for (let marker of this.markers) {
             marker.map = null;
         }
@@ -480,32 +735,74 @@ export class ListaAsignacionesComponent implements OnInit {
     }
 
     /**
-     * Formatea una fecha al formato completo DD/MM/YYYY HH:mm
-     */
-    formatDateFull(date: Date): string {
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        return `${day}/${month}/${year} ${hours}:${minutes}`;
-    }
-
-    /**
      * Navega al detalle de una ruta específica
      */
-    verDetalleRuta(asignacionId: string) {
+    verDetalleRuta(asignacionId: string): void {
         this.router.navigate(['/recolectores/detalle-ruta', asignacionId]);
+        RecoleccionLogger.info('Navegando a detalle de ruta', { asignacionId });
     }
 
     /**
      * Refresca la lista de asignaciones
      */
-    refreshList() {
+    refreshList(): void {
+        RecoleccionLogger.info('Refrescando lista de asignaciones');
         this.listar_asignacion();
     }
 
-    ngOnDestroy(): void {
-        this.clearMarkers();
+    /**
+     * Método centralizado para mostrar mensajes al usuario
+     */
+    private mostrarMensaje(
+        severity: 'success' | 'info' | 'warn' | 'error',
+        summary: string,
+        detail: string
+    ): void {
+        this.messageService.add({
+            severity,
+            summary,
+            detail,
+            life: CONFIGURACION_DEFECTO.INTERFAZ.TIEMPO_TOAST,
+        });
+    }
+
+    // Getters para usar en el template
+
+    /**
+     * Expone la función formatearFecha para usar en el template
+     */
+    formatearFecha = formatearFecha;
+
+    /**
+     * Expone la función obtenerTiempoRelativo para usar en el template
+     */
+    obtenerTiempoRelativo = obtenerTiempoRelativo;
+
+    /**
+     * Obtiene el texto de resumen de filtros aplicados para mostrar al usuario
+     */
+    get resumenFiltros(): string {
+        const filtros = [];
+        if (this.selectedFechas.length > 0)
+            filtros.push(`${this.selectedFechas.length} fecha(s)`);
+        if (this.selectedUsuarios.length > 0)
+            filtros.push(`${this.selectedUsuarios.length} usuario(s)`);
+        if (this.selectedDevices.length > 0)
+            filtros.push(`${this.selectedDevices.length} dispositivo(s)`);
+
+        return filtros.length > 0
+            ? `Filtros activos: ${filtros.join(', ')}`
+            : 'Sin filtros activos';
+    }
+
+    /**
+     * Verifica si hay filtros activos
+     */
+    get hayFiltrosActivos(): boolean {
+        return (
+            this.selectedFechas.length > 0 ||
+            this.selectedUsuarios.length > 0 ||
+            this.selectedDevices.length > 0
+        );
     }
 }

@@ -1,9 +1,87 @@
 <!-- lista-asignaciones.component.html -->
 <p-toast></p-toast>
 
+<!-- Panel de estadísticas generales (NUEVO) -->
+<div
+    class="estadisticas-generales mb-4"
+    *ngIf="!load_list && arr_asignacion.length > 0"
+>
+    <p-card header="Resumen General" styleClass="estadisticas-card">
+        <div class="grid">
+            <div class="col-6 md:col-3">
+                <div class="statistic-item">
+                    <div class="statistic-icon">
+                        <i class="pi pi-list text-blue-500 text-2xl"></i>
+                    </div>
+                    <div class="statistic-content">
+                        <div class="statistic-value">
+                            {{ estadisticasGenerales.totalAsignaciones }}
+                        </div>
+                        <div class="statistic-label">Total Asignaciones</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 md:col-3">
+                <div class="statistic-item">
+                    <div class="statistic-icon">
+                        <i
+                            class="pi pi-check-circle text-green-500 text-2xl"
+                        ></i>
+                    </div>
+                    <div class="statistic-content">
+                        <div class="statistic-value">
+                            {{ estadisticasGenerales.asignacionesConPuntos }}
+                        </div>
+                        <div class="statistic-label">Con Puntos GPS</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 md:col-3">
+                <div class="statistic-item">
+                    <div class="statistic-icon">
+                        <i
+                            class="pi pi-map-marker text-orange-500 text-2xl"
+                        ></i>
+                    </div>
+                    <div class="statistic-content">
+                        <div class="statistic-value">
+                            {{ estadisticasGenerales.totalPuntosRecoleccion }}
+                        </div>
+                        <div class="statistic-label">Puntos Totales</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 md:col-3">
+                <div class="statistic-item">
+                    <div class="statistic-icon">
+                        <i class="pi pi-users text-purple-500 text-2xl"></i>
+                    </div>
+                    <div class="statistic-content">
+                        <div class="statistic-value">
+                            {{ estadisticasGenerales.usuariosUnicos }}
+                        </div>
+                        <div class="statistic-label">Usuarios Únicos</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </p-card>
+</div>
+
 <!-- Contenedor del mapa -->
 <div class="map-container mb-5">
-    <h2>Vista General de Asignaciones</h2>
+    <div class="flex justify-content-between align-items-center mb-3">
+        <h2 class="m-0">Vista General de Asignaciones</h2>
+        <div class="flex align-items-center gap-2">
+            <p-tag
+                [value]="resumenFiltros"
+                [severity]="hayFiltrosActivos ? 'info' : 'secondary'"
+                [icon]="
+                    hayFiltrosActivos ? 'pi pi-filter' : 'pi pi-filter-slash'
+                "
+            ></p-tag>
+        </div>
+    </div>
     <div
         class="card"
         id="map-lista-asignaciones"
@@ -11,70 +89,154 @@
     ></div>
 </div>
 
-<!-- Sección de filtros -->
+<!-- Sección de filtros mejorada -->
 <div
     class="grid p-fluid mb-3"
     *ngIf="check_create && arr_asignacion.length > 0"
 >
     <div class="col-12 md:col-4">
+        <label class="font-semibold block mb-2">Filtrar por Fecha</label>
         <p-multiSelect
             [options]="fechasUnicas"
             [(ngModel)]="selectedFechas"
-            defaultLabel="Filtrar por Fecha"
+            defaultLabel="Selecciona fechas"
             optionLabel="label"
             [showToggleAll]="true"
             [filter]="true"
+            filterPlaceHolder="Buscar fecha..."
             (onChange)="aplicarFiltros()"
+            appendTo="body"
         >
+            <ng-template pTemplate="selectedItems" let-items>
+                <div
+                    class="flex flex-wrap gap-1"
+                    *ngIf="items && items.length > 0; else noSelection"
+                >
+                    <p-tag
+                        *ngFor="let item of items; let i = index"
+                        [value]="item.label"
+                        severity="info"
+                        [ngStyle]="i > 2 ? { display: 'none' } : {}"
+                    ></p-tag>
+                    <p-tag
+                        *ngIf="items.length > 3"
+                        [value]="'+' + (items.length - 3) + ' más'"
+                        severity="secondary"
+                    ></p-tag>
+                </div>
+                <ng-template #noSelection>
+                    <span>Selecciona fechas</span>
+                </ng-template>
+            </ng-template>
         </p-multiSelect>
     </div>
+
     <div class="col-12 md:col-4">
+        <label class="font-semibold block mb-2">Filtrar por Usuario</label>
         <p-multiSelect
-            [options]="externosUnicos"
-            [(ngModel)]="selectedExternos"
-            defaultLabel="Filtrar por Externo"
+            [options]="usuariosUnicos"
+            [(ngModel)]="selectedUsuarios"
+            defaultLabel="Selecciona usuarios"
             optionLabel="label"
             [showToggleAll]="true"
             [filter]="true"
+            filterPlaceHolder="Buscar usuario..."
             (onChange)="aplicarFiltros()"
+            appendTo="body"
         >
+            <ng-template pTemplate="selectedItems" let-items>
+                <div
+                    class="flex flex-wrap gap-1"
+                    *ngIf="items && items.length > 0; else noUserSelection"
+                >
+                    <p-tag
+                        *ngFor="let item of items; let i = index"
+                        [value]="item.label.split(' (')[0]"
+                        severity="success"
+                        [ngStyle]="i > 1 ? { display: 'none' } : {}"
+                    ></p-tag>
+                    <p-tag
+                        *ngIf="items.length > 2"
+                        [value]="'+' + (items.length - 2) + ' más'"
+                        severity="secondary"
+                    ></p-tag>
+                </div>
+                <ng-template #noUserSelection>
+                    <span>Selecciona usuarios</span>
+                </ng-template>
+            </ng-template>
         </p-multiSelect>
     </div>
+
     <div class="col-12 md:col-4">
+        <label class="font-semibold block mb-2">Filtrar por Dispositivo</label>
         <p-multiSelect
             [options]="devicesUnicos"
             [(ngModel)]="selectedDevices"
-            defaultLabel="Filtrar por Dispositivo"
+            defaultLabel="Selecciona dispositivos"
             optionLabel="label"
             [showToggleAll]="true"
             [filter]="true"
+            filterPlaceHolder="Buscar dispositivo..."
             (onChange)="aplicarFiltros()"
+            appendTo="body"
         >
+            <ng-template pTemplate="selectedItems" let-items>
+                <div
+                    class="flex flex-wrap gap-1"
+                    *ngIf="items && items.length > 0; else noDeviceSelection"
+                >
+                    <p-tag
+                        *ngFor="let item of items; let i = index"
+                        [value]="item.label"
+                        severity="warning"
+                        [ngStyle]="i > 2 ? { display: 'none' } : {}"
+                    ></p-tag>
+                    <p-tag
+                        *ngIf="items.length > 3"
+                        [value]="'+' + (items.length - 3) + ' más'"
+                        severity="secondary"
+                    ></p-tag>
+                </div>
+                <ng-template #noDeviceSelection>
+                    <span>Selecciona dispositivos</span>
+                </ng-template>
+            </ng-template>
         </p-multiSelect>
     </div>
 </div>
 
-<!-- Botones de acción -->
-<div class="flex justify-content-between mb-3">
-    <button
-        pButton
-        label="Limpiar Filtros"
-        icon="pi pi-filter-slash"
-        class="p-button-outlined"
-        (click)="limpiarFiltros()"
-    ></button>
+<!-- Botones de acción mejorados -->
+<div class="flex justify-content-between align-items-center mb-3">
+    <div class="flex gap-2">
+        <p-button
+            label="Limpiar Filtros"
+            icon="pi pi-filter-slash"
+            severity="secondary"
+            [outlined]="true"
+            (click)="limpiarFiltros()"
+            [disabled]="!hayFiltrosActivos"
+        ></p-button>
 
-    <button
-        pButton
-        label="Actualizar Lista"
-        icon="pi pi-refresh"
-        class="p-button-outlined"
-        (click)="refreshList()"
-        [loading]="load_list"
-    ></button>
+        <p-button
+            label="Actualizar"
+            icon="pi pi-refresh"
+            severity="info"
+            [outlined]="true"
+            (click)="refreshList()"
+            [loading]="load_list"
+        ></p-button>
+    </div>
+
+    <div class="flex align-items-center gap-2">
+        <span class="text-sm text-gray-600">
+            Mostrando {{ asignacionesFiltradas.length }} de
+            {{ arr_asignacion.length }}
+        </span>
+    </div>
 </div>
 
-<!-- Tabla de asignaciones -->
+<!-- Tabla de asignaciones mejorada -->
 <p-table
     #dt
     [value]="asignacionesFiltradas"
@@ -84,6 +246,9 @@
         'deviceId',
         'externo.name',
         'externo.dni',
+        'funcionario.name',
+        'funcionario.last_name',
+        'funcionario.dni',
         'createdAt'
     ]"
     [paginator]="true"
@@ -92,158 +257,319 @@
     [rowsPerPageOptions]="[5, 10, 25, 50]"
     currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
     [tableStyle]="{ 'min-width': '100%' }"
+    sortMode="multiple"
+    [multiSortMeta]="[{ field: 'createdAt', order: -1 }]"
 >
-    <!-- Encabezado de la tabla con búsqueda -->
+    <!-- Encabezado de la tabla con búsqueda mejorado -->
     <ng-template pTemplate="caption">
         <div class="flex justify-content-between align-items-center">
-            <h5 class="m-0">Lista de Asignaciones de Recolección</h5>
-            <span class="p-input-icon-left">
-                <i class="pi pi-search"></i>
-                <input
-                    pInputText
-                    type="text"
-                    placeholder="Buscar en la tabla..."
-                    (input)="
-                        dt.filterGlobal($any($event.target).value, 'contains')
-                    "
-                />
-            </span>
+            <h5 class="m-0 flex align-items-center gap-2">
+                <i class="pi pi-list text-blue-500"></i>
+                Lista de Asignaciones de Recolección
+            </h5>
+            <div class="flex gap-2 align-items-center">
+                <span class="p-input-icon-left">
+                    <i class="pi pi-search"></i>
+                    <input
+                        pInputText
+                        type="text"
+                        placeholder="Buscar en la tabla..."
+                        (input)="
+                            dt.filterGlobal(
+                                $any($event.target).value,
+                                'contains'
+                            )
+                        "
+                    />
+                </span>
+            </div>
         </div>
     </ng-template>
 
-    <!-- Encabezados de las columnas -->
+    <!-- Encabezados de las columnas mejorados -->
     <ng-template pTemplate="header">
         <tr>
             <th style="width: 3rem">#</th>
-            <th pSortableColumn="createdAt">
-                Fecha
+            <th pSortableColumn="createdAt" style="min-width: 140px">
+                Fecha Creación
                 <p-sortIcon field="createdAt"></p-sortIcon>
             </th>
-            <th pSortableColumn="deviceId">
-                Dispositivo
+            <th pSortableColumn="deviceId" style="min-width: 120px">
+                Dispositivo GPS
                 <p-sortIcon field="deviceId"></p-sortIcon>
             </th>
-            <th pSortableColumn="externo.name">
-                Externo
-                <p-sortIcon field="externo.name"></p-sortIcon>
-            </th>
-            <th>DNI</th>
-            <th>Puntos de Recolección</th>
-            <th style="width: 8rem">Acciones</th>
+            <th style="min-width: 200px">Usuario Asignado</th>
+            <th style="min-width: 100px">DNI</th>
+            <th style="min-width: 150px">Puntos GPS</th>
+            <th style="min-width: 120px">Última Actividad</th>
+            <th style="width: 100px">Acciones</th>
         </tr>
     </ng-template>
 
-    <!-- Filas de datos -->
+    <!-- Filas de datos mejoradas - AQUÍ ESTÁ LA SOLUCIÓN PRINCIPAL -->
     <ng-template pTemplate="body" let-item let-i="rowIndex">
         <tr>
-            <td>{{ i + 1 }}</td>
-            <td>{{ item.createdAt | date : "dd/MM/yyyy HH:mm" }}</td>
+            <!-- Número de fila -->
             <td>
-                <span class="font-semibold">{{ item.deviceId }}</span>
+                <span class="font-semibold text-primary">{{ i + 1 }}</span>
             </td>
+
+            <!-- Fecha de creación -->
             <td>
-                <div class="flex align-items-center">
-                    <i class="pi pi-user mr-2 text-blue-500"></i>
-                    {{ item.externo?.name }}
+                <div class="text-sm">
+                    <div class="font-medium">
+                        {{ item.createdAt | date : "dd/MM/yyyy" }}
+                    </div>
+                    <div class="text-gray-500">
+                        {{ item.createdAt | date : "HH:mm" }}
+                    </div>
                 </div>
             </td>
+
+            <!-- Dispositivo GPS -->
             <td>
-                <span class="text-sm text-gray-600">{{
-                    item.externo?.dni
-                }}</span>
+                <div class="flex align-items-center gap-2">
+                    <i class="pi pi-mobile text-blue-500"></i>
+                    <span class="font-semibold">{{ item.deviceId }}</span>
+                </div>
             </td>
+
+            <!-- SOLUCIÓN: Usuario asignado (externo O funcionario) -->
             <td>
-                <div class="flex align-items-center">
+                <div
+                    class="flex align-items-center gap-2"
+                    *ngIf="
+                        obtenerInfoUsuario(item) as infoUsuario;
+                        else sinUsuario
+                    "
+                >
                     <i
-                        class="pi pi-map-marker mr-2"
                         [class]="
-                            item.puntos_recoleccion.length > 0
-                                ? 'text-green-500'
-                                : 'text-gray-400'
+                            infoUsuario.icono + ' ' + infoUsuario.colorClase
                         "
                     ></i>
-                    <span
-                        [class]="
-                            item.puntos_recoleccion.length > 0
-                                ? 'font-semibold text-green-600'
-                                : 'text-gray-500'
-                        "
-                    >
-                        {{
-                            item.puntos_recoleccion.length > 0
-                                ? item.puntos_recoleccion.length
-                                : "Sin Registro"
-                        }}
-                    </span>
+                    <div>
+                        <div
+                            class="font-medium"
+                            [class]="infoUsuario.colorClase"
+                        >
+                            {{ infoUsuario.nombreCompleto }}
+                        </div>
+                        <div
+                            class="text-xs text-gray-500 uppercase font-medium"
+                        >
+                            {{ infoUsuario.tipo }}
+                        </div>
+                    </div>
+                </div>
+                <ng-template #sinUsuario>
+                    <div class="flex align-items-center gap-2">
+                        <i class="pi pi-question-circle text-gray-400"></i>
+                        <span class="text-gray-500 italic"
+                            >Usuario no asignado</span
+                        >
+                    </div>
+                </ng-template>
+            </td>
+
+            <!-- DNI del usuario -->
+            <td>
+                <span
+                    class="text-sm font-mono"
+                    *ngIf="obtenerInfoUsuario(item) as infoUsuario; else sinDni"
+                >
+                    {{ infoUsuario.dni }}
+                </span>
+                <ng-template #sinDni>
+                    <span class="text-gray-400 text-sm">--</span>
+                </ng-template>
+            </td>
+
+            <!-- Estadísticas de puntos GPS -->
+            <td>
+                <div *ngIf="calcularEstadisticasAsignacion(item) as stats">
+                    <div class="flex align-items-center gap-2">
+                        <i
+                            class="pi pi-map-marker"
+                            [class]="
+                                stats.totalPuntos > 0
+                                    ? 'text-green-500'
+                                    : 'text-gray-400'
+                            "
+                        ></i>
+                        <div>
+                            <div
+                                class="font-semibold"
+                                [class]="
+                                    stats.totalPuntos > 0
+                                        ? 'text-green-600'
+                                        : 'text-gray-500'
+                                "
+                            >
+                                {{
+                                    stats.totalPuntos > 0
+                                        ? stats.totalPuntos
+                                        : "Sin Registro"
+                                }}
+                            </div>
+                            <div
+                                class="text-xs text-gray-500"
+                                *ngIf="stats.totalPuntos > 0"
+                            >
+                                {{ stats.puntosRecoleccion }} recolección,
+                                {{ stats.puntosRetorno }} retornos
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </td>
+
+            <!-- Última actividad -->
             <td>
-                <div class="flex gap-2">
-                    <button
-                        pButton
+                <div *ngIf="calcularEstadisticasAsignacion(item) as stats">
+                    <div class="text-sm">
+                        <div class="font-medium">
+                            {{ stats.ultimaActividad | date : "dd/MM HH:mm" }}
+                        </div>
+                        <div class="text-gray-500 text-xs">
+                            {{ stats.tiempoRelativo }}
+                        </div>
+                    </div>
+                </div>
+            </td>
+
+            <!-- Acciones -->
+            <td>
+                <div class="flex gap-1">
+                    <p-button
                         icon="pi pi-eye"
-                        class="p-button-rounded p-button-outlined p-button-sm"
-                        pTooltip="Ver detalle de ruta"
+                        severity="info"
+                        [outlined]="true"
+                        size="small"
+                        pTooltip="Ver detalle completo de la ruta"
                         tooltipPosition="top"
                         (click)="verDetalleRuta(item._id)"
-                    ></button>
+                    ></p-button>
+
+                    <!-- Indicador visual de puntos disponibles -->
+                    <p-tag
+                        *ngIf="
+                            item.puntos_recoleccion &&
+                            item.puntos_recoleccion.length > 0
+                        "
+                        [value]="item.puntos_recoleccion.length.toString()"
+                        severity="success"
+                        [style]="{ 'font-size': '0.7rem' }"
+                        pTooltip="Número de puntos GPS disponibles"
+                    ></p-tag>
                 </div>
             </td>
         </tr>
     </ng-template>
 
-    <!-- Mensaje cuando no hay datos -->
+    <!-- Mensaje cuando no hay datos mejorado -->
     <ng-template pTemplate="emptymessage">
         <tr>
-            <td colspan="7" class="text-center">
+            <td colspan="8" class="text-center">
                 <div
-                    class="flex flex-column align-items-center justify-content-center p-4"
+                    class="flex flex-column align-items-center justify-content-center p-5"
                 >
-                    <i class="pi pi-search text-4xl text-gray-400 mb-3"></i>
-                    <h6 class="text-gray-600 mb-2">
-                        No se encontraron asignaciones
-                    </h6>
-                    <p class="text-gray-500 text-sm">
-                        Intenta ajustar los filtros o crear una nueva asignación
+                    <i class="pi pi-search text-6xl text-gray-300 mb-4"></i>
+                    <h5 class="text-gray-600 mb-2">
+                        {{
+                            hayFiltrosActivos
+                                ? "No se encontraron resultados"
+                                : "No hay asignaciones disponibles"
+                        }}
+                    </h5>
+                    <p class="text-gray-500 text-sm mb-3">
+                        {{
+                            hayFiltrosActivos
+                                ? "Intenta ajustar los filtros de búsqueda"
+                                : "Las asignaciones aparecerán aquí cuando se creen"
+                        }}
                     </p>
+                    <p-button
+                        *ngIf="hayFiltrosActivos"
+                        label="Limpiar Filtros"
+                        icon="pi pi-filter-slash"
+                        severity="secondary"
+                        [outlined]="true"
+                        size="small"
+                        (click)="limpiarFiltros()"
+                    ></p-button>
                 </div>
             </td>
         </tr>
     </ng-template>
 
-    <!-- Controles del paginador -->
+    <!-- Controles del paginador mejorados -->
     <ng-template pTemplate="paginatorleft">
-        <button
-            pButton
-            type="button"
-            icon="pi pi-refresh"
-            class="p-button-text"
-            pTooltip="Actualizar lista"
-            (click)="refreshList()"
-        ></button>
+        <div class="flex align-items-center gap-2">
+            <p-button
+                type="button"
+                icon="pi pi-refresh"
+                severity="secondary"
+                [text]="true"
+                pTooltip="Actualizar lista"
+                (click)="refreshList()"
+                [loading]="load_list"
+            ></p-button>
+
+            <p-button
+                type="button"
+                icon="pi pi-filter-slash"
+                severity="secondary"
+                [text]="true"
+                pTooltip="Limpiar todos los filtros"
+                (click)="limpiarFiltros()"
+                [disabled]="!hayFiltrosActivos"
+            ></p-button>
+        </div>
     </ng-template>
 
     <ng-template pTemplate="paginatorright">
-        <div class="flex align-items-center gap-2">
-            <span class="text-muted text-sm">
-                Total: {{ asignacionesFiltradas.length }} registros
-            </span>
-            <i
-                class="pi pi-info-circle text-blue-500"
-                pTooltip="Haz clic en el ícono del ojo para ver los detalles de cada ruta"
-            ></i>
+        <div class="flex align-items-center gap-3">
+            <div class="text-sm text-gray-600">
+                <i class="pi pi-info-circle mr-1"></i>
+                {{ asignacionesFiltradas.length }} de
+                {{ arr_asignacion.length }} registros
+            </div>
+
+            <div
+                class="flex align-items-center gap-1"
+                *ngIf="hayFiltrosActivos"
+            >
+                <i class="pi pi-filter text-blue-500"></i>
+                <span class="text-xs text-blue-600 font-medium"
+                    >Filtros activos</span
+                >
+            </div>
         </div>
     </ng-template>
 </p-table>
 
 <!-- Información adicional cuando no hay permisos -->
 <div
-    *ngIf="!check_create && arr_asignacion.length === 0"
-    class="text-center p-4"
+    *ngIf="!check_create && arr_asignacion.length === 0 && !load_list"
+    class="text-center p-5"
 >
-    <p-message
-        severity="info"
-        text="No tienes permisos para ver las asignaciones o no hay asignaciones disponibles en este momento."
-    >
+    <p-message severity="info" styleClass="w-full">
+        <div class="flex align-items-center gap-3">
+            <i class="pi pi-shield text-blue-500 text-2xl"></i>
+            <div>
+                <div class="font-medium mb-1">Acceso Restringido</div>
+                <div class="text-sm">
+                    No tienes permisos para ver las asignaciones o no hay
+                    asignaciones disponibles en este momento.
+                </div>
+            </div>
+        </div>
     </p-message>
+</div>
+
+<!-- Indicador de carga -->
+<div class="text-center p-5" *ngIf="load_list">
+    <p-progressSpinner></p-progressSpinner>
+    <p class="mt-3 text-gray-600">Cargando asignaciones...</p>
 </div>
