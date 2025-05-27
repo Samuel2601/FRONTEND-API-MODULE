@@ -95,11 +95,9 @@ export class HomeComponent implements OnInit {
                         // return b._id.getTimestamp() - a._id.getTimestamp();
                     });
 
-                    console.log(fichasOrdenadas);
-
                     // Tomar las primeras 5 después de ordenar (ahora serán las más recientes)
-                    const ultimas5Fichas = fichasOrdenadas.slice(0, 5);
-
+                    const ultimas5Fichas = fichasOrdenadas;
+                    console.log(ultimas5Fichas);
                     // Limpiamos el array de productos antes de agregar las 5 nuevas
                     this.productos = [];
 
@@ -112,14 +110,14 @@ export class HomeComponent implements OnInit {
                                 'obtener_imagen/ficha_sectorial/' +
                                 element.foto[0],
                             url: '/ver-ficha/' + element._id,
-                            title: this.extractTitleFromMarker(
-                                element.title_marcador
-                            ),
-                            descripcion: element.title_marcador,
+                            status: element.estado.nombre,
+                            actividad: element.actividad.nombre,
+                            name: this.cortarTexto(element.title_marcador),
+                            date: element.fecha_evento,
                             mobil: true,
                         });
                     });
-
+                    console.log(this.productos);
                     // Aplicar el filtro después de agregar los elementos
                     this.filterProductos();
                 }
@@ -129,56 +127,20 @@ export class HomeComponent implements OnInit {
             }
         );
     }
-
-    /**
-     * Extraer título más corto del title_marcador para móvil
-     */
-    private extractTitleFromMarker(titleMarcador: string): string {
-        // Extraer las primeras palabras significativas
-        const words = titleMarcador.split(' ');
-        if (words.length <= 4) return titleMarcador;
-
-        // Tomar las primeras 4-5 palabras más relevantes
-        const shortTitle = words.slice(0, 4).join(' ');
-        return shortTitle + (words.length > 4 ? '...' : '');
+    isDialogButton: boolean = false;
+    buttonObjetc: any;
+    showButtonInfo(button: any) {
+        this.buttonObjetc = button;
+        this.isDialogButton = true;
     }
 
-    /**
-     * Configuración del carrusel responsivo
-     */
-    private setupCarousel(): void {
-        this.responsiveOptions = [
-            {
-                breakpoint: '1200px',
-                numVisible: 1,
-                numScroll: 1,
-            },
-            {
-                breakpoint: '768px',
-                numVisible: 1,
-                numScroll: 1,
-            },
-        ];
-    }
+    cortarTexto(texto: string, max: number = 50): string {
+        if (texto.length <= max) return texto;
 
-    private initializeProductsExpandState(): void {
-        this.filteredProductos.forEach((product) => {
-            product.expanded = false;
-        });
-    }
-
-    /**
-     * Alternar información móvil expandible
-     */
-    toggleProductInfo(product: any): void {
-        product.expanded = !product.expanded;
-
-        // Opcional: cerrar otros elementos expandidos
-        this.filteredProductos.forEach((p) => {
-            if (p.id !== product.id) {
-                p.expanded = false;
-            }
-        });
+        const corte = texto.lastIndexOf(' ', max);
+        return (
+            texto.substring(0, corte > 0 ? corte : max) + '...'
+        ).toUpperCase();
     }
 
     validateDateView(date_view: Date | string): boolean {
@@ -1047,12 +1009,14 @@ export class HomeComponent implements OnInit {
     }
     getSeverity(status: string) {
         switch (status) {
-            case 'INSTOCK':
+            case 'Finalizado':
                 return 'success';
-            case 'LOWSTOCK':
+            case 'En proceso':
+                return 'info';
+            case 'Planificada':
+                return 'info';
+            case 'Pendiente':
                 return 'warning';
-            case 'OUTOFSTOCK':
-                return 'danger';
             default:
                 return 'danger';
         }
@@ -1079,5 +1043,49 @@ export class HomeComponent implements OnInit {
         http.open('HEAD', url, false);
         http.send();
         return http.status !== 404;
+    }
+
+    // Añadir al componente
+    handleQuickAccess(service: string) {
+        switch (service) {
+            case 'predial':
+                // Lógica para impuesto predial
+                const idCiudadano = this.auth.authToken()?.sub;
+                if (idCiudadano) {
+                    this.auth.redirect_external(this.auth.token()).subscribe({
+                        next: (res) => window.open(res, '_blank'),
+                        error: (err) => console.error(err),
+                    });
+                } else {
+                    window.open(
+                        'https://consulta.esmeraldas.gob.ec/valorespagados.jsp',
+                        '_blank'
+                    );
+                }
+                break;
+            case 'tramites':
+                window.open('https://tramites.esmeraldas.gob.ec/', '_blank');
+                break;
+            case 'noticias':
+                window.open(
+                    'https://esmeraldas.gob.ec/noticias.html',
+                    '_blank'
+                );
+                break;
+        }
+    }
+
+    getIconClass(label: string): string {
+        const iconMap: { [key: string]: string } = {
+            Turismo: 'fas fa-map-marked-alt',
+            'Impuesto Predial': 'fas fa-home',
+            ESMEVIAL: 'fas fa-car',
+            EPMAPSE: 'fas fa-tint',
+            BOMBEROS: 'fas fa-fire-extinguisher',
+            RECOLECTORES: 'fas fa-trash',
+            Denuncias: 'fas fa-bullhorn',
+            // Añade más mapeos según necesites
+        };
+        return iconMap[label] || 'fas fa-cog';
     }
 }

@@ -1,500 +1,219 @@
-<div class="surface-section px-4 py-8 md:px-6 lg:px-8 overflow-hidden">
-    <div class="flex flex-wrap">
-        <!-- Solo las mejoras necesarias para tu carrusel existente -->
-
-        <!-- Reemplazar la sección del carrusel existente -->
-        <div class="home-carousel-section">
-            <!-- Artículo lateral (mantienes tu lógica existente) -->
-            <article
-                *ngIf="!isMobil() || (isMobil() && !token)"
-                class="carousel-text-section"
+<div class="container">
+    <!-- Hero Section -->
+    <section class="hero-section fade-in">
+        <h1 class="hero-title">Desarrollemos una<br />buena comunicación.</h1>
+        <p class="hero-subtitle">
+            Conectando ciudadanos con servicios municipales de manera eficiente
+        </p>
+        <div class="hero-buttons">
+            <button
+                *ngIf="!token"
+                class="btn-primary"
+                [routerLink]="'/auth/signup'"
             >
-                <span class="update-notice" [style.display]="'none'">
-                    Revisa nuestra actualización en Play Store
-                </span>
+                <i class="fas fa-play"></i>
+                Empezar
+            </button>
+            <button *ngIf="token" class="btn-primary" (click)="incidente()">
+                <i class="fas fa-play"></i>
+                Empezar
+            </button>
+            <button class="btn-secondary" [routerLink]="'/auth/politicas'">
+                Nuestras Políticas
+            </button>
+        </div>
+    </section>
 
-                <h2 class="main-title">
-                    Desarrollemos una <br />
-                    buena comunicación.
-                </h2>
-
-                <div class="action-buttons">
-                    <button
-                        *ngIf="!token"
-                        pButton
-                        pRipple
-                        type="button"
-                        label="Empezar"
-                        icon="pi pi-arrow-right"
-                        iconPos="right"
-                        class="primary-button"
-                        [routerLink]="'/auth/signup'"
-                    >
-                        <span class="p-button-label">Empezar</span>
-                    </button>
-
-                    <button
-                        *ngIf="token"
-                        pButton
-                        pRipple
-                        type="button"
-                        label="Empezar"
-                        icon="pi pi-arrow-right"
-                        iconPos="right"
-                        class="primary-button"
-                        (click)="incidente()"
-                    >
-                        <span class="p-button-label">Empezar</span>
-                    </button>
-
-                    <button
-                        pButton
-                        pRipple
-                        type="button"
-                        label="Nuestras Políticas"
-                        class="secondary-button"
-                        [routerLink]="'/auth/politicas'"
-                    >
-                        <span class="p-button-label">Nuestras Políticas</span>
-                    </button>
-                </div>
-            </article>
-
-            <!-- Tu carrusel con mejoras mínimas -->
-            <div class="carousel-container">
-                <p-carousel
-                    [value]="filteredProductos"
-                    [numVisible]="1"
-                    [numScroll]="1"
-                    [circular]="true"
-                    [responsiveOptions]="responsiveOptions"
-                    [autoplayInterval]="5000"
-                    [showIndicators]="true"
-                    [showNavigators]="!isMobil()"
-                    styleClass="custom-carousel"
-                >
-                    <ng-template let-product pTemplate="item">
-                        <div
-                            class="carousel-item-improved"
-                            *ngIf="(isMobil() && product.mobil) || !isMobil()"
-                        >
-                            <!-- NUEVO: Título visible en móvil -->
-                            <div *ngIf="isMobil()" class="mobile-title-card">
-                                <h3>
-                                    {{
-                                        product.title ||
-                                            product.descripcion ||
-                                            "Evento Municipal"
-                                    }}
-                                </h3>
-                            </div>
-
-                            <!-- Tu contenedor de imagen existente con pequeñas mejoras -->
-                            <div class="image-container-improved">
-                                <img
-                                    [src]="product.image"
-                                    [alt]="
-                                        product.title || 'Imagen de actividad'
-                                    "
-                                    class="main-image-improved"
-                                    (click)="showimage(product)"
-                                    loading="lazy"
-                                />
-
-                                <!-- Tus elementos superpuestos existentes con mejoras para móvil -->
-                                <ng-container *ngIf="product.items">
-                                    <!-- Solo mostrar el primer item en móvil, todos en desktop -->
-                                    <article
-                                        *ngIf="product.items[0]"
-                                        class="info-card-improved info-position-1"
-                                        [class.mobile-only-first]="isMobil()"
-                                    >
-                                        <img
-                                            *ngIf="product.items[0].logo"
-                                            [src]="product.items[0].logo"
-                                            alt="Logo"
-                                            class="card-avatar"
-                                        />
-                                        <div class="card-content">
-                                            <p class="card-title">
-                                                {{ product.items[0].titulo }}
-                                            </p>
-                                            <p
-                                                class="card-description"
-                                                [innerHTML]="
-                                                    product.items[0].descripcion
-                                                "
-                                            ></p>
-                                        </div>
-                                        <img
-                                            *ngIf="product.items[0].extra"
-                                            [src]="product.items[0].extra"
-                                            alt="Extra"
-                                            class="card-extra"
-                                        />
-                                    </article>
-
-                                    <!-- Solo en desktop: segundo y tercer elemento -->
-                                    <article
-                                        *ngIf="product.items[1] && !isMobil()"
-                                        class="info-card-improved info-position-2"
-                                    >
-                                        <img
-                                            *ngIf="product.items[1].logo"
-                                            [src]="product.items[1].logo"
-                                            alt="Logo"
-                                            class="card-avatar"
-                                        />
-                                        <div class="card-content">
-                                            <p class="card-title">
-                                                {{ product.items[1].titulo }}
-                                            </p>
-                                            <p
-                                                class="card-description"
-                                                [innerHTML]="
-                                                    product.items[1].descripcion
-                                                "
-                                            ></p>
-                                        </div>
-                                        <img
-                                            *ngIf="product.items[1].extra"
-                                            [src]="product.items[1].extra"
-                                            alt="Extra"
-                                            class="card-extra"
-                                        />
-                                    </article>
-
-                                    <article
-                                        *ngIf="product.items[2] && !isMobil()"
-                                        class="info-card-improved info-position-3"
-                                    >
-                                        <img
-                                            *ngIf="product.items[2].logo"
-                                            [src]="product.items[2].logo"
-                                            alt="Logo"
-                                            class="card-avatar"
-                                        />
-                                        <div class="card-content">
-                                            <p class="card-title">
-                                                {{ product.items[2].titulo }}
-                                            </p>
-                                            <p
-                                                class="card-description"
-                                                [innerHTML]="
-                                                    product.items[2].descripcion
-                                                "
-                                            ></p>
-                                        </div>
-                                        <img
-                                            *ngIf="product.items[2].extra"
-                                            [src]="product.items[2].extra"
-                                            alt="Extra"
-                                            class="card-extra"
-                                        />
-                                    </article>
-                                </ng-container>
-
-                                <!-- NUEVO: Indicador de más información solo en móvil -->
-                                <div
-                                    *ngIf="
-                                        isMobil() &&
-                                        product.items &&
-                                        product.items.length > 1
-                                    "
-                                    class="more-info-badge"
-                                >
-                                    +{{ product.items.length - 1 }} más
-                                </div>
-                            </div>
-
-                            <!-- NUEVO: Sección expandible para móvil -->
-                            <div
-                                *ngIf="
-                                    isMobil() &&
-                                    product.items &&
-                                    product.items.length > 1
-                                "
-                                class="mobile-expand-section"
-                            >
-                                <button
-                                    (click)="toggleProductInfo(product)"
-                                    class="expand-toggle-btn"
-                                    [class.expanded]="product.expanded"
-                                >
-                                    <span>{{
-                                        product.expanded
-                                            ? "Ver menos información"
-                                            : "Ver más información"
-                                    }}</span>
-                                    <i
-                                        class="pi"
-                                        [class.pi-chevron-up]="product.expanded"
-                                        [class.pi-chevron-down]="
-                                            !product.expanded
-                                        "
-                                    ></i>
-                                </button>
-
-                                <div
-                                    *ngIf="product.expanded"
-                                    class="expanded-content"
-                                >
-                                    <div
-                                        *ngFor="
-                                            let item of product.items;
-                                            let i = index
-                                        "
-                                        class="expanded-item"
-                                        [class.hidden]="i === 0"
-                                    >
-                                        <div class="item-header">
-                                            <img
-                                                *ngIf="item.logo"
-                                                [src]="item.logo"
-                                                [alt]="item.titulo"
-                                                class="item-avatar"
-                                            />
-                                            <h4>{{ item.titulo }}</h4>
-                                        </div>
-                                        <p [innerHTML]="item.descripcion"></p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </ng-template>
-                </p-carousel>
+    <!-- Quick Access Section (Reemplaza el carousel) -->
+    <section class="quick-access fade-in">
+        <h2 class="quick-access-title">Acceso Rápido</h2>
+        <div class="quick-access-grid">
+            <div
+                class="quick-access-item"
+                (click)="handleQuickAccess('predial')"
+            >
+                <i class="fas fa-home"></i>
+                <h4>Impuesto Predial</h4>
+            </div>
+            <div class="quick-access-item" (click)="incidente()">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h4>Reportar Incidente</h4>
+            </div>
+            <div
+                class="quick-access-item"
+                (click)="handleQuickAccess('tramites')"
+            >
+                <i class="fas fa-file-alt"></i>
+                <h4>Trámites</h4>
+            </div>
+            <div
+                class="quick-access-item"
+                (click)="handleQuickAccess('noticias')"
+            >
+                <i class="fas fa-newspaper"></i>
+                <h4>Noticias</h4>
             </div>
         </div>
+    </section>
 
-        <!--
-<div
-            class="w-full xl:w-4 relative flex justify-content-center align-items-center"
-        >
-            <img
-                src="assets/layout/images/hero-15.png"
-                alt="Image"
-                class="rounded-top"
-            />
-
-            <article
-                class="absolute flex align-items-center w-24rem border-round-xl z-2 right-0 md:right-50 gap-3 px-4 py-3"
-                style="
-                    bottom: 41%;
-                    backdrop-filter: blur(40px);
-                    background-color: rgba(255, 255, 255, 0.5);
-                "
-            >
-                <img
-                    src="assets/icon/icono-ico.png"
-                    alt="Image"
-                    class="border-circle"
-                    width="64"
-                />
-                <div class="flex flex-column justify-content-center w-full">
-                    <p
-                        class="m-0 font-semibold text-sm line-height-1.5 text-black-alpha-60"
-                    >
-                        ESMERALDAS LA BELLA
-                    </p>
-                    <p
-                        class="m-0 font-medium text-sm line-height-1.5 text-black-alpha-80"
-                    >
-                        Novedades
-                        <span class="text-indigo-500">cerca de ti</span>
-                    </p>
-                </div>
-                <img
-                    src="assets/icon/grafc1.png"
-                    alt="Image"
-                    class="border-circle"
-                    width="64"
-                />
-            </article>
-
-            <article
-                class="absolute flex align-items-center w-24rem p-1 border-round-xl z-2 right-0 md:right-50 gap-3 px-4 py-3"
-                style="
-                    bottom: 24%;
-                    backdrop-filter: blur(40px);
-                    background-color: rgba(255, 255, 255, 0.5);
-                "
-            >
-                <img
-                    src="assets/icon/icono-ico.png"
-                    alt="Image"
-                    class="border-circle"
-                />
-                <div class="flex flex-column justify-content-center w-full">
-                    <p
-                        class="m-0 font-semibold text-sm line-height-1.5 text-black-alpha-60"
-                    >
-                        ESMERALDAS LA BELLA
-                    </p>
-                    <p
-                        class="m-0 font-medium text-sm line-height-1.5 text-black-alpha-80"
-                    >
-                        Se ha registrado tu incidente
-                    </p>
-                </div>
-            </article>
-            <article
-                class="absolute flex align-items-center w-24rem p-1 border-round-xl z-2 right-0 md:right-50 gap-3 px-4 py-3"
-                style="
-                    bottom: 7%;
-                    backdrop-filter: blur(40px);
-                    background-color: rgba(255, 255, 255, 0.5);
-                "
-            >
-                <img
-                    src="assets/icon/icono-ico.png"
-                    alt="Image"
-                    class="border-circle"
-                />
-                <div class="flex flex-column justify-content-center w-full">
-                    <p
-                        class="m-0 font-semibold text-sm line-height-1.5 text-black-alpha-60"
-                    >
-                        ESMERALDAS LA BELLA
-                    </p>
-                    <p
-                        class="m-0 font-medium text-sm line-height-1.5 text-black-alpha-80"
-                    >
-                        Your revenue <span class="text-red-500"></span>getting
-                        low
-                    </p>
-                </div>
-                <img
-                    src="assets/icon/grafsc1.png"
-                    alt="Image"
-                    class="border-circle"
-                    width="64"
-                />
-            </article>
+    <!-- Fichas Section -->
+    <section class="fichas-section fade-in" *ngIf="visible_fichas_mostrar">
+        <div class="fichas-header">
+            <h2 class="section-title">Destacadas</h2>
         </div>
-         as
-        -->
-    </div>
-</div>
-
-<div *ngIf="visible_fichas_mostrar">
-    <h3>Eventos:</h3>
-    <p-button
-        *ngIf="!isMobil()"
-        label="Añadir Todos al Calendario"
-        icon="pi pi-calendar"
-        (click)="addAllEventsToCalendar()"
-    ></p-button>
-    <app-mapa-mostrar-fichas
-        *ngIf="visible_fichas_mostrar"
-    ></app-mapa-mostrar-fichas>
-</div>
-
-<ng-container *ngFor="let buttons of setbuttons">
-    <div
-        class="surface-section px-4 pb-8 md:px-6 lg:px-8 overflow-hidden"
-        [ngStyle]="{
-            'padding-top': isMobil() ? '0px !important' : '5rem !important'
-        }"
-    >
-        <!-- Título con el label y una línea horizontal -->
-        <h2 class="section-title">{{ buttons.label }}</h2>
-        <hr class="section-divider" />
-
-        <div class="button-container">
-            <ng-container *ngFor="let button of buttons.items; let i = index">
-                <div class="cube" *ngIf="button.view !== false">
-                    <div class="cube-face cube-front">
-                        <div
-                            class="white-grad"
-                            style="--b: 0px 3px 8px 3px; --r: 50% 50% 50% 50%"
-                            *ngIf="button.style == true"
-                            [ngClass]="{ 'z-index-99': !button.dev }"
-                        >
+        <p-carousel
+            [value]="productos"
+            [numVisible]="3"
+            [numScroll]="3"
+            [circular]="true"
+            [responsiveOptions]="responsiveOptions"
+        >
+            <ng-template let-product pTemplate="item">
+                <div class="border-1 surface-border border-round m-2 p-3">
+                    <div class="mb-3">
+                        <div class="relative mx-auto">
                             <img
-                                style="border-radius: 50%"
-                                [src]="button.icon"
-                                alt="{{ button.label }}"
-                                class="custom-icon"
+                                src="{{ product.image }}"
+                                [alt]="product.name"
+                                class="w-full border-round"
+                                style="height: 200px; object-fit: cover"
+                                [style.display]="
+                                    product.image ? 'block' : 'none'
+                                "
+                            />
+                            <p-tag
+                                [value]="product.actividad"
+                                [severity]="getSeverity(product.status)"
+                                class="absolute"
+                                [ngStyle]="{ 'left.px': 5, 'top.px': 5 }"
                             />
                         </div>
-
-                        <img
-                            *ngIf="button.style == false"
-                            [src]="button.icon"
-                            alt="{{ button.label }}"
-                            class="custom-icon"
-                        />
-                        <p>{{ button.label }}</p>
                     </div>
-                    <div class="cube-face cube-back">
-                        <p>{{ button.info }}</p>
-                        <p-button
-                            class="mt-3"
-                            *ngIf="button"
-                            (click)="
-                                button.items
-                                    ? (button.showInfo = true)
-                                    : button.command()
-                            "
-                            [label]="button.label"
-                        >
-                        </p-button>
+                    <div class="mb-3 font-medium">
+                        {{ product.name }}
                     </div>
-                    <p-dialog
-                        [header]="button.label"
-                        *ngIf="button.items && button.items.length > 0"
-                        [(visible)]="button.showInfo"
-                        [modal]="true"
-                        [style]="{ width: isMobil() ? '90vw' : '50vw' }"
-                        appendTo="body"
+                    <div
+                        class="flex justify-content-between align-items-center"
                     >
-                        <div class="button-container">
-                            <div
-                                class="cube"
-                                *ngFor="
-                                    let items of button.items;
-                                    let i = index
-                                "
-                            >
-                                <div class="cube-face cube-front">
-                                    <div
-                                        class="white-grad"
-                                        style="
-                                            --b: 0px 3px 8px 3px;
-                                            --r: 50% 50% 50% 50%;
-                                        "
-                                    >
-                                        <img
-                                            [ngStyle]=" {
-                                                      'border-radius': '50%',
-                                                  }
-                                        "
-                                            [src]="items.icon"
-                                            alt="{{ button.label }}"
-                                            class="custom-icon"
-                                        />
-                                    </div>
-
-                                    <p>{{ items.label }}</p>
-                                </div>
-                                <div class="cube-face cube-back">
-                                    <p>{{ items.info }}</p>
-                                    <p-button
-                                        class="mt-3"
-                                        *ngIf="items"
-                                        (click)="items.command()"
-                                        [label]="items.label"
-                                    >
-                                    </p-button>
-                                </div>
-                            </div>
+                        <div class="mt-0 font-semibold text-xl">
+                            {{ product.date | date : "dd/MM/yyyy" }}
                         </div>
-                    </p-dialog>
+                        <span>
+                            <p-button
+                                icon="pi 
+                                pi-arrow-up-right-and-arrow-down-left-from-center"
+                                styleClass="ml-2"
+                                (click)="openLink(product.url)"
+                            />
+                        </span>
+                    </div>
                 </div>
-            </ng-container>
+            </ng-template>
+        </p-carousel>
+    </section>
+
+    <!-- Events Section -->
+    <section class="events-section fade-in" *ngIf="visible_fichas_mostrar">
+        <div class="events-header">
+            <h2 class="section-title">Eventos Destacadas</h2>
+            <button
+                *ngIf="!isMobil()"
+                class="calendar-btn"
+                (click)="addAllEventsToCalendar()"
+            >
+                <i class="fas fa-calendar-plus"></i>
+                Añadir al Calendario
+            </button>
+        </div>
+        <app-mapa-mostrar-fichas></app-mapa-mostrar-fichas>
+    </section>
+
+    <!-- Dynamic Services Sections -->
+    <section
+        *ngFor="let buttons of setbuttons"
+        class="services-section fade-in"
+    >
+        <h2 class="section-title">{{ buttons.label }}</h2>
+        <div class="services-grid">
+            <div
+                *ngFor="let button of buttons.items"
+                class="service-card"
+                [style.display]="button.view === false ? 'none' : 'block'"
+                (click)="
+                    button.items ? showButtonInfo(button) : button.command()
+                "
+            >
+                <div class="service-icon">
+                    <img
+                        [src]="button.icon"
+                        [alt]="button.label"
+                        *ngIf="button.icon.includes('http')"
+                    />
+                    <i
+                        [class]="getIconClass(button.label)"
+                        *ngIf="!button.icon.includes('http')"
+                    ></i>
+                </div>
+                <div class="text-banner">
+                    <h3>{{ button.label }}</h3>
+                    <p>{{ button.info }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<p-dialog
+    [header]="buttonObjetc.label"
+    *ngIf="
+        isDialogButton &&
+        buttonObjetc &&
+        buttonObjetc?.items &&
+        buttonObjetc?.items?.length > 0
+    "
+    [(visible)]="isDialogButton"
+    [modal]="true"
+    [style]="{ width: isMobil() ? '90vw' : '50vw' }"
+    appendTo="body"
+>
+    <div class="button-container">
+        <div
+            class="cube"
+            *ngFor="let items of buttonObjetc.items; let i = index"
+        >
+            <div class="cube-face cube-front">
+                <div
+                    class="white-grad"
+                    style="--b: 0px 3px 8px 3px; --r: 50% 50% 50% 50%"
+                >
+                    <img
+                        [ngStyle]=" {
+                              'border-radius': '50%',
+                          }
+                "
+                        [src]="items.icon"
+                        alt="{{ buttonObjetc.label }}"
+                        class="custom-icon"
+                    />
+                </div>
+
+                <p>{{ items.label }}</p>
+            </div>
+            <div class="cube-face cube-back">
+                <p>{{ items.info }}</p>
+                <p-button
+                    class="mt-3"
+                    *ngIf="items"
+                    (click)="items.command()"
+                    [label]="items.label"
+                >
+                </p-button>
+            </div>
         </div>
     </div>
-</ng-container>
+</p-dialog>
+
+<!-- Mantén todos tus p-dialog existentes -->
 
 <!--
 <div

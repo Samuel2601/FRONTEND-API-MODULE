@@ -23,6 +23,7 @@
     "@angular/platform-browser-dynamic": "^18.2.13",
     "@angular/router": "^18.2.13",
     "@auth0/angular-jwt": "^5.2.0",
+    "@capacitor-community/background-geolocation": "^1.2.22",
     "@capacitor/android": "^6.2.1",
     "@capacitor/angular": "^2.0.3",
     "@capacitor/app": "^6.0.2",

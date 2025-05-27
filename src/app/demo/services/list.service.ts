@@ -139,9 +139,9 @@ export class ListService {
             .set('populate', 'estado,actividad')
             .set(
                 'select',
-                'titulo,title_marcador,descripcion,foto,fecha_evento,slug'
+                'titulo,title_marcador,descripcion,foto,fecha_evento,slug,estado'
             )
-            .set('limit', '5');
+            .set('limit', '10');
         return this.http.get(this.url + 'ficha_sectorial', {
             params: params,
         });
