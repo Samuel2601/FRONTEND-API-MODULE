@@ -10,18 +10,163 @@
         id="map2"
         style="min-height: 50vh; margin-left: -18px; margin-right: -18px"
     ></div>
-    <!-- velocidad.component.html -->
+
+    <!-- Control de Background Tracking - Solo mostrar cuando hay asignación -->
+    <div class="velocidad-container mb-5" *ngIf="asignacion">
+        <p-card
+            header="Seguimiento Automático"
+            subheader="Control del seguimiento de ubicación en segundo plano"
+            [style]="{ width: 'auto' }"
+            styleClass="p-fluid"
+        >
+            <!-- Estado actual del tracking -->
+            <div class="mb-3">
+                <p-tag
+                    [value]="backgroundTrackingStatus"
+                    [severity]="
+                        backgroundTrackingActive ? 'success' : 'secondary'
+                    "
+                    [icon]="
+                        backgroundTrackingActive
+                            ? 'pi pi-check-circle'
+                            : 'pi pi-pause-circle'
+                    "
+                >
+                </p-tag>
+            </div>
+
+            <!-- Botón para toggle del background tracking -->
+            <div class="mb-3">
+                <p-button
+                    [icon]="
+                        backgroundTrackingActive ? 'pi pi-pause' : 'pi pi-play'
+                    "
+                    [label]="
+                        backgroundTrackingActive
+                            ? 'Pausar Seguimiento'
+                            : 'Activar Seguimiento'
+                    "
+                    [severity]="
+                        backgroundTrackingActive ? 'warning' : 'success'
+                    "
+                    [style]="{ padding: '15px', width: '100%' }"
+                    (click)="toggleBackgroundTracking()"
+                    [disabled]="!asignacion"
+                >
+                </p-button>
+            </div>
+
+            <!-- Información explicativa -->
+            <div class="text-sm text-gray-600 mb-2">
+                <p class="mb-2">
+                    <i class="pi pi-info-circle mr-2"></i>
+                    El seguimiento automático registra tu ubicación cada 30
+                    segundos mientras trabajas, incluso cuando la app está en
+                    segundo plano.
+                </p>
+            </div>
+
+            <!-- Indicadores de ahorro de batería -->
+            <div class="grid">
+                <div class="col-6">
+                    <div class="text-center p-2 border-round bg-green-50">
+                        <i class="pi pi-bolt text-green-500 text-2xl mb-2"></i>
+                        <div class="text-sm font-medium text-green-700">
+                            Ahorro de Batería
+                        </div>
+                        <div class="text-xs text-green-600">
+                            Optimizado automáticamente
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="text-center p-2 border-round bg-blue-50">
+                        <i class="pi pi-shield text-blue-500 text-2xl mb-2"></i>
+                        <div class="text-sm font-medium text-blue-700">
+                            Precisión GPS
+                        </div>
+                        <div class="text-xs text-blue-600">
+                            ±15 metros típico
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </p-card>
+    </div>
+
+    <!-- Mejorar el botón de Driving Mode existente con información adicional -->
     <div
         class="velocidad-container mb-5"
         *ngIf="!ruta && asignacion && isMobil()"
     >
+        <p-card
+            header="Modo de Conducción"
+            subheader="Seguimiento de alta precisión mientras conduces"
+            [style]="{ width: 'auto' }"
+            styleClass="p-fluid"
+        >
+            <div class="mb-3">
+                <p-button
+                    icon="pi pi-car"
+                    [label]="
+                        drivingMode
+                            ? 'Finalizar Conducción'
+                            : 'Iniciar Conducción'
+                    "
+                    [style]="{ padding: '20px', width: '100%' }"
+                    [severity]="drivingMode ? 'info' : 'help'"
+                    (click)="toggleDrivingMode()"
+                >
+                </p-button>
+            </div>
+
+            <!-- Información sobre el modo de conducción -->
+            <div class="text-sm text-gray-600">
+                <p class="mb-1">
+                    <i class="pi pi-compass mr-2"></i>
+                    El modo conducción proporciona seguimiento en tiempo real
+                    con mayor precisión.
+                </p>
+                <p class="mb-0">
+                    <i class="pi pi-info-circle mr-2"></i>
+                    Usa más batería pero es ideal para rutas activas.
+                </p>
+            </div>
+        </p-card>
+    </div>
+
+    <!-- Botón para finalizar turno - Solo mostrar cuando hay seguimiento activo -->
+    <div
+        class="velocidad-container mb-5"
+        *ngIf="asignacion && (backgroundTrackingActive || drivingMode)"
+    >
         <p-button
-            icon="pi pi-car"
-            [label]="drivingMode ? 'Stop Driving Mode' : 'Start Driving Mode'"
-            [style]="{ padding: '20px' }"
-            [severity]="drivingMode ? 'info' : 'help'"
-            (click)="toggleDrivingMode()"
-        ></p-button>
+            icon="pi pi-sign-out"
+            label="Finalizar Turno de Trabajo"
+            severity="secondary"
+            [style]="{ padding: '15px', width: '100%' }"
+            (click)="finalizarAsignacion()"
+        >
+        </p-button>
+
+        <div class="text-center mt-2">
+            <small class="text-gray-500">
+                Esto detendrá todo el seguimiento y sincronizará tus datos
+            </small>
+        </div>
+    </div>
+
+    <!-- Información sobre permisos - Solo mostrar si no hay seguimiento activo -->
+    <div
+        class="velocidad-container mb-5"
+        *ngIf="asignacion && !backgroundTrackingActive && !drivingMode"
+    >
+        <p-message
+            severity="info"
+            text="Para un mejor funcionamiento, considera activar el seguimiento automático. 
+              Esto te permitirá trabajar sin preocuparte por registrar manualmente cada ubicación."
+        >
+        </p-message>
     </div>
 
     <!-- velocidad.component.html -->

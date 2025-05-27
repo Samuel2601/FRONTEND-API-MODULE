@@ -2,437 +2,532 @@ import { Injectable } from '@angular/core';
 import { catchError, map, Observable, of, tap, throwError } from 'rxjs';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-
 import { Preferences } from '@capacitor/preferences';
-/*import {
-    BackgroundGeolocationPlugin,
-    WatcherOptions,
-    Location,
-    CallbackError,
-} from '@capacitor-community/background-geolocation';*/
 import { registerPlugin } from '@capacitor/core';
 import { BehaviorSubject } from 'rxjs';
 import { Geolocation } from '@capacitor/geolocation';
 import { Network } from '@capacitor/network';
 import { AuthService } from 'src/app/demo/services/auth.service';
-/*
+
+// Importaciones para background geolocation
+import {
+    BackgroundGeolocationPlugin,
+    WatcherOptions,
+    Location,
+    CallbackError,
+} from '@capacitor-community/background-geolocation';
+
+// Importar las interfaces y utilidades creadas
+import {
+    IAsignacion,
+    IPuntoRecoleccion,
+    IDispositivoGPS,
+    IValidacionUbicacion,
+    IConfigSeguimiento,
+    IApiResponse,
+    CONFIGURACION_DEFECTO,
+    MENSAJES,
+    CODIGOS_ERROR,
+    CapacidadVehiculo,
+} from '../interfaces/recoleccion.interfaces';
+
+import {
+    validarUbicacion,
+    calcularDistancia,
+    RecoleccionLogger,
+    medirRendimiento,
+} from '../utils/recoleccion.utils';
+
+// Registrar el plugin de background geolocation
 const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>(
     'BackgroundGeolocation'
 );
-*/
+
 @Injectable({
     providedIn: 'root',
 })
 export class UbicacionService {
-    private ubicaciones = new BehaviorSubject<
-        { lat: number; lng: number; timestamp: string }[]
+    // Estados del servicio con tipado fuerte
+    private ubicaciones = new BehaviorSubject<IPuntoRecoleccion[]>([]);
+    private retornos = new BehaviorSubject<
+        { label: string; value: CapacidadVehiculo }[]
     >([]);
-    private retornos = new BehaviorSubject<any[]>([]);
-
     private velocidadActual = new BehaviorSubject<number>(0);
-    private DistanciaRecorrida = new BehaviorSubject<number>(0);
+    private distanciaRecorrida = new BehaviorSubject<number>(0);
+
+    // Control del watcher de background
+    private watcherId: string | null = null;
+    private isBackgroundTracking = false;
+
+    // Configuración usando las constantes centralizadas
+    private readonly config: IConfigSeguimiento = {
+        backgroundTracking: false,
+        drivingMode: false,
+        intervaloMinimo: CONFIGURACION_DEFECTO.SEGUIMIENTO.INTERVALO_MINIMO,
+        distanciaMinima: CONFIGURACION_DEFECTO.SEGUIMIENTO.DISTANCIA_MINIMA,
+        precisionMaxima: CONFIGURACION_DEFECTO.SEGUIMIENTO.PRECISION_MAXIMA,
+        velocidadMaxima: CONFIGURACION_DEFECTO.SEGUIMIENTO.VELOCIDAD_MAXIMA,
+    };
 
     public url: string;
+
     constructor(private _http: HttpClient, private auth: AuthService) {
         this.url = GLOBAL.url;
-        //this.initializeNetworkListener();
-        //this.loadInitialLocations();
-        //this.iniciarWatcher();
+        RecoleccionLogger.info('UbicacionService inicializado');
     }
-    private lastUpdateTimestamp: number | null = null;
-    private readonly MIN_SPEED_KMH = 90 * 1000; // Velocidad mínima en km/h para considerar la ubicación como válida
 
-    /*iniciarWatcher() {
-        const options: WatcherOptions = {
-            backgroundMessage: 'Cancela para prevenir drenar tu batería',
-            backgroundTitle: 'Aviso de rastreo',
-            requestPermissions: true,
-            stale: true,
-            distanceFilter: 40, // Ajusta este valor según tus necesidades
-        };
+    /**
+     * Inicia el seguimiento de ubicación en segundo plano
+     * Ahora usa la configuración centralizada y logging consistente
+     */
+    async iniciarBackgroundTracking(): Promise<boolean> {
+        return await medirRendimiento(
+            'Iniciar Background Tracking',
+            async () => {
+                try {
+                    // Verificar si ya está activo el tracking
+                    if (this.isBackgroundTracking) {
+                        RecoleccionLogger.info(
+                            'Background tracking ya está activo'
+                        );
+                        return true;
+                    }
 
-        BackgroundGeolocation.addWatcher(
-            options,
-            async (location: Location, error: CallbackError) => {
-                if (error) {
-                    if (error.code === 'NOT_AUTHORIZED') {
-                        if (
-                            window.confirm(
-                                'Esta aplicación necesita tu ubicación, ' +
-                                    'pero no tiene permiso.\n\n' +
-                                    '¿Abrir configuración ahora?'
-                            )
-                        ) {
-                            BackgroundGeolocation.openSettings();
+                    // Configuración del watcher usando constantes centralizadas
+                    const options: WatcherOptions = {
+                        backgroundMessage:
+                            'La aplicación está rastreando tu ubicación para optimizar las rutas de recolección',
+                        backgroundTitle: 'Seguimiento de Recolección Activo',
+                        requestPermissions: true,
+                        stale: false,
+                        distanceFilter: this.config.distanciaMinima,
+                    };
+
+                    // Crear el watcher
+                    this.watcherId = await BackgroundGeolocation.addWatcher(
+                        options,
+                        (location: Location, error: CallbackError) => {
+                            this.handleBackgroundLocation(location, error);
                         }
-                    }
-                    return console.error(error);
-                }
-                const velocidad = location.speed; // La velocidad está en metros por segundo (m/s)
+                    );
 
-                // Actualiza el BehaviorSubject con la nueva velocidad
-                this.velocidadActual.next(velocidad || 0);
+                    this.isBackgroundTracking = true;
+                    this.config.backgroundTracking = true;
 
-                const now = Date.now();
-                const currentLocation = await Geolocation.getCurrentPosition();
-                const nuevaUbicacion = {
-                    _id: '1515',
-                    lat: currentLocation.coords.latitude,
-                    lng: currentLocation.coords.longitude,
-                    timestamp: new Date().toISOString(),
-                    speed: location.speed ? location.speed * 3.6 : 0,
-                    destacado: false,
-                };
-                const nuevaUbicacion = {
-                    lat: location.latitude,
-                    lng: location.longitude,
-                    timestamp: new Date().toISOString(),
-                    speed: location.speed ? location.speed * 3.6 : 0, // Convertir m/s a km/h si `speed` está disponible
-                    destacado: false,
-                };*
-                // Solo guarda y emite si la nueva ubicación es válida
-                const valid = this.isValidLocation(nuevaUbicacion, now).resp;
-                if (valid) {
-                    await this.saveLocation(nuevaUbicacion, valid);
-                    this.ubicaciones.next([
-                        ...this.ubicaciones.getValue(),
-                        nuevaUbicacion,
-                    ]);
-                    this.lastUpdateTimestamp = now;
+                    RecoleccionLogger.info('Background tracking iniciado', {
+                        watcherId: this.watcherId,
+                        config: this.config,
+                    });
+
+                    return true;
+                } catch (error) {
+                    RecoleccionLogger.error(
+                        'Error al iniciar background tracking',
+                        error
+                    );
+                    return false;
                 }
             }
-        )
-            .then((watcherId) => {
-                console.log('Watcher ID:', watcherId);
-            })
-            .catch((err) => {
-                console.error('Error al iniciar el watcher', err);
-            });
-    }*/
-
-    isValidLocation(nuevaUbicacion: {
-        lat: number;
-        lng: number;
-        timestamp: string;
-        speed?: number;
-        accuracy?: number;
-    }): { resp: boolean; message: string } {
-        const respuesta = {
-            resp: false,
-            message: '',
-        };
-
-        // Obtener el valor de ubicaciones
-        const ubicaciones = this.ubicaciones.getValue();
-
-        // Filtrar los objetos que tienen retorno en true
-        const filteredUbicaciones = ubicaciones.filter(
-            (ubicacion: any) => ubicacion.retorno === false
         );
-
-        const lastUbicacion =
-            filteredUbicaciones[filteredUbicaciones.length - 1];
-
-        // Verifica si es la primera ubicación
-        if (!lastUbicacion) {
-            respuesta.resp = true;
-            respuesta.message = 'Primera ubicación registrada';
-            return respuesta;
-        }
-
-        if (nuevaUbicacion.accuracy && nuevaUbicacion.accuracy > 100) {
-            respuesta.message =
-                'La precisión de la ubicación es muy baja. Intenta nuevamente.';
-            return respuesta;
-        }
-
-        const distancia = this.calculateDistance(lastUbicacion, nuevaUbicacion);
-        if (distancia <= 20) {
-            respuesta.message =
-                'No se ha detectado movimiento suficiente. Intenta moverte.';
-            return respuesta;
-        }
-
-        const tiempo =
-            (Date.now() - new Date(lastUbicacion.timestamp).getTime()) /
-            1000 /
-            3600;
-        const maxPossibleDistance = this.MIN_SPEED_KMH * tiempo;
-        if (distancia > maxPossibleDistance) {
-            respuesta.message =
-                'El movimiento es demasiado rápido para ser real. Verifica tu ubicación.';
-            return respuesta;
-        }
-
-        respuesta.resp = true;
-        respuesta.message = 'Ubicación válida';
-        return respuesta;
     }
 
-    calculateDistance(
-        loc1: { lat: number; lng: number },
-        loc2: { lat: number; lng: number }
-    ) {
-        const R = 6371e3; // metros
-        const φ1 = (loc1.lat * Math.PI) / 180;
-        const φ2 = (loc2.lat * Math.PI) / 180;
-        const Δφ = ((loc2.lat - loc1.lat) * Math.PI) / 180;
-        const Δλ = ((loc2.lng - loc1.lng) * Math.PI) / 180;
+    /**
+     * Maneja las ubicaciones recibidas del background geolocation
+     * Ahora usa la validación centralizada y manejo de errores consistente
+     */
+    private async handleBackgroundLocation(
+        location: Location,
+        error: CallbackError
+    ): Promise<void> {
+        // Manejar errores del background geolocation usando códigos centralizados
+        if (error) {
+            RecoleccionLogger.error('Error en background geolocation', error);
 
-        const a =
-            Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-            Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        return R * c; // en metros
-    }
-    private hasNotifiedUser: boolean = false;
-    private lastStatus: boolean = false; // Estado anterior de la red
-
-    async initializeNetworkListener() {
-        const status = await Network.getStatus();
-        //console.log('Initial Network Status:', JSON.stringify(status));
-        this.lastStatus = status.connected;
-
-        Network.addListener('networkStatusChange', async (status) => {
-            //console.log('Network status changed:', JSON.stringify(status));
-
-            // Verifica si el estado de la red ha cambiado de desconectado a conectado
-            if (!this.lastStatus && status.connected) {
-                // Si estaba desconectado y ahora está conectado, intenta sincronizar
-                await this.syncData();
-                this.hasNotifiedUser = false; // Resetear la notificación
-            } else if (!status.connected && !this.hasNotifiedUser) {
-                // Si está desconectado y aún no se ha notificado al usuario
-                alert(
-                    'Estás desconectado. La próxima vez que te conectes, enviaremos tu información.'
+            // Caso especial: permisos denegados usando códigos de error centralizados
+            if (error.code === 'NOT_AUTHORIZED') {
+                const shouldOpenSettings = confirm(
+                    `${MENSAJES.ERROR.ERROR_PERMISOS}\n\n` +
+                        'Los permisos de ubicación son necesarios para:\n' +
+                        '• Registrar puntos de recolección\n' +
+                        '• Optimizar rutas de trabajo\n' +
+                        '• Proporcionar informes precisos\n\n' +
+                        '¿Deseas abrir la configuración para otorgar permisos?'
                 );
-                this.hasNotifiedUser = true; // Marca como notificado
-            }
 
-            // Actualiza el estado de la red
-            this.lastStatus = status.connected;
-        });
-    }
-
-    async syncData() {
-        try {
-            const locations = await Preferences.get({ key: 'locations' });
-            const asign = await Preferences.get({ key: 'asign' });
-            const capacidad_retorno = await Preferences.get({
-                key: 'capacidad_retorno',
-            });
-            //console.log('locations:', JSON.stringify(locations));
-            //console.log('asign:', JSON.stringify(asign));
-
-            if (locations.value && asign.value) {
-                const parsedLocations = JSON.parse(locations.value);
-                const parsedAsign = JSON.parse(asign.value);
-                const parseCapcidad = JSON.parse(capacidad_retorno.value);
-                const token = this.auth.token();
-
-                // Verificamos que el datatoken sea de tipo string
-                if (!token || typeof token !== 'string') {
-                    console.error('Token inválido o no encontrado.');
-                    return;
+                if (shouldOpenSettings) {
+                    BackgroundGeolocation.openSettings();
                 }
-                const result = await this.updateRutaRecolector(
-                    token,
-                    parsedAsign._id,
-                    {
-                        puntos_recoleccion: parsedLocations,
-                        //capacidad_retorno: paserCapcidad,
-                    }
-                ).toPromise();
-                //console.log('ANTES DE ENVIAR RETORNOS', result);
-
-                // Cortar los nuevos registros que no están en los registros viejos
-                const nuevosSolo = parseCapcidad.slice(
-                    result.data.capacidad_retorno.length
-                );
-
-                // Concatenar los registros antiguos con los nuevos
-                const capacidadCombinada = [
-                    ...result.data.capacidad_retorno,
-                    ...nuevosSolo,
-                ];
-                const result2 = await this.updateRutaRecolector(
-                    token,
-                    parsedAsign._id,
-                    {
-                        //puntos_recoleccion: parsedLocations,
-                        capacidad_retorno: capacidadCombinada,
-                    }
-                ).toPromise();
-                //console.log('DESPUES DE ENVIAR RETORNOS', result2);
-
-                // Si deseas, puedes notificar al usuario sobre la sincronización exitosa
-                alert('Tu información ha sido enviada exitosamente.');
             }
-        } catch (error) {
-            console.error('Error al sincronizar datos:', JSON.stringify(error));
+            return;
+        }
+
+        // Procesar la ubicación recibida
+        if (location && location.latitude && location.longitude) {
+            RecoleccionLogger.debug('Nueva ubicación desde background', {
+                lat: location.latitude,
+                lng: location.longitude,
+                accuracy: location.accuracy,
+                speed: location.speed,
+            });
+
+            // Actualizar velocidad actual
+            const velocidadKmh = location.speed ? location.speed * 3.6 : 0;
+            this.velocidadActual.next(velocidadKmh);
+
+            // Obtener la asignación actual para vincular la ubicación
+            const asignacionActual = await this.getAsignacion();
+            if (!asignacionActual) {
+                RecoleccionLogger.warn(
+                    'No hay asignación activa, no se guardará la ubicación'
+                );
+                return;
+            }
+
+            // Crear objeto de ubicación usando la interface tipada
+            const nuevaUbicacion: IPuntoRecoleccion = {
+                _id: asignacionActual._id,
+                lat: location.latitude,
+                lng: location.longitude,
+                timestamp: new Date().toISOString(),
+                speed: velocidadKmh,
+                accuracy: location.accuracy || 0,
+                destacado: false,
+                retorno: false,
+            };
+
+            // Usar la validación centralizada
+            const ultimaUbicacion = this.obtenerUltimaUbicacion();
+            const validacion = validarUbicacion(
+                nuevaUbicacion,
+                ultimaUbicacion
+            );
+
+            if (validacion.resp) {
+                await this.saveLocation(nuevaUbicacion, true);
+                RecoleccionLogger.info(
+                    'Ubicación de background guardada exitosamente'
+                );
+            } else {
+                RecoleccionLogger.warn('Ubicación de background rechazada', {
+                    motivo: validacion.message,
+                    codigo: validacion.code,
+                });
+            }
         }
     }
 
-    mergeCapacidades(viejos, nuevos) {
-        // Recorremos los nuevos registros
-        nuevos.forEach((nuevoRegistro) => {
-            // Verificamos si existe un registro con el mismo label en los registros viejos
-            const registroExistente = viejos.find(
-                (viejoRegistro) => viejoRegistro.label === nuevoRegistro.label
-            );
+    /**
+     * Detiene el seguimiento de ubicación en segundo plano
+     */
+    async detenerBackgroundTracking(): Promise<boolean> {
+        return await medirRendimiento(
+            'Detener Background Tracking',
+            async () => {
+                try {
+                    if (this.watcherId && this.isBackgroundTracking) {
+                        await BackgroundGeolocation.removeWatcher({
+                            id: this.watcherId,
+                        });
 
-            if (registroExistente) {
-                // Si existe, actualizamos los valores del registro viejo con el nuevo
-                registroExistente.value = nuevoRegistro.value;
-                registroExistente.verificacion = nuevoRegistro.verificacion;
-            } else {
-                // Si no existe, añadimos el nuevo registro a la lista de viejos
-                viejos.push(nuevoRegistro);
+                        this.watcherId = null;
+                        this.isBackgroundTracking = false;
+                        this.config.backgroundTracking = false;
+
+                        RecoleccionLogger.info('Background tracking detenido');
+                        return true;
+                    }
+                    return false;
+                } catch (error) {
+                    RecoleccionLogger.error(
+                        'Error al detener background tracking',
+                        error
+                    );
+                    return false;
+                }
+            }
+        );
+    }
+
+    /**
+     * Verifica si el background tracking está activo
+     */
+    isBackgroundTrackingActive(): boolean {
+        return this.isBackgroundTracking;
+    }
+
+    /**
+     * Función mejorada de validación de ubicaciones usando la utilidad centralizada
+     * Ya no duplicamos la lógica de validación
+     */
+    isValidLocation(nuevaUbicacion: IPuntoRecoleccion): IValidacionUbicacion {
+        const ultimaUbicacion = this.obtenerUltimaUbicacion();
+        return validarUbicacion(nuevaUbicacion, ultimaUbicacion);
+    }
+
+    /**
+     * Obtiene la última ubicación registrada (excluyendo retornos)
+     * Método helper para la validación
+     */
+    private obtenerUltimaUbicacion(): IPuntoRecoleccion | undefined {
+        const ubicaciones = this.ubicaciones.getValue();
+        const ubicacionesSinRetorno = ubicaciones.filter((u) => !u.retorno);
+        return ubicacionesSinRetorno[ubicacionesSinRetorno.length - 1];
+    }
+
+    /**
+     * Inicializa el listener de red con manejo de errores mejorado
+     */
+    async initializeNetworkListener(): Promise<void> {
+        try {
+            const status = await Network.getStatus();
+            let lastStatus = status.connected;
+            let hasNotifiedUser = false;
+
+            Network.addListener('networkStatusChange', async (status) => {
+                if (!lastStatus && status.connected) {
+                    RecoleccionLogger.info(
+                        'Conexión restaurada, sincronizando datos'
+                    );
+                    await this.syncData();
+                    hasNotifiedUser = false;
+                } else if (!status.connected && !hasNotifiedUser) {
+                    RecoleccionLogger.warn('Conexión perdida');
+                    alert(
+                        MENSAJES.ADVERTENCIA.SIN_CONEXION +
+                            '. La próxima vez que te conectes, enviaremos tu información.'
+                    );
+                    hasNotifiedUser = true;
+                }
+                lastStatus = status.connected;
+            });
+
+            RecoleccionLogger.info('Network listener inicializado');
+        } catch (error) {
+            RecoleccionLogger.error(
+                'Error inicializando network listener',
+                error
+            );
+        }
+    }
+
+    /**
+     * Sincroniza datos con manejo mejorado de errores y logging
+     */
+    async syncData(): Promise<void> {
+        return await medirRendimiento('Sincronización de datos', async () => {
+            try {
+                const [locations, asign, capacidad_retorno] = await Promise.all(
+                    [
+                        Preferences.get({ key: 'locations' }),
+                        Preferences.get({ key: 'asign' }),
+                        Preferences.get({ key: 'capacidad_retorno' }),
+                    ]
+                );
+
+                if (locations.value && asign.value) {
+                    const parsedLocations: IPuntoRecoleccion[] = JSON.parse(
+                        locations.value
+                    );
+                    const parsedAsign: IAsignacion = JSON.parse(asign.value);
+                    const parseCapacidad = JSON.parse(
+                        capacidad_retorno.value || '[]'
+                    );
+                    const token = this.auth.token();
+
+                    if (!token || typeof token !== 'string') {
+                        throw new Error(CODIGOS_ERROR.ASIGNACION_NO_ENCONTRADA);
+                    }
+
+                    RecoleccionLogger.info('Iniciando sincronización', {
+                        puntosCount: parsedLocations.length,
+                        asignacionId: parsedAsign._id,
+                    });
+
+                    const result = await this.updateRutaRecolector(
+                        token,
+                        parsedAsign._id,
+                        { puntos_recoleccion: parsedLocations }
+                    ).toPromise();
+
+                    const nuevosSolo = parseCapacidad.slice(
+                        result.data.capacidad_retorno.length
+                    );
+                    const capacidadCombinada = [
+                        ...result.data.capacidad_retorno,
+                        ...nuevosSolo,
+                    ];
+
+                    await this.updateRutaRecolector(token, parsedAsign._id, {
+                        capacidad_retorno: capacidadCombinada,
+                    }).toPromise();
+
+                    RecoleccionLogger.info(
+                        'Sincronización completada exitosamente'
+                    );
+                    alert(MENSAJES.EXITO.DATOS_SINCRONIZADOS);
+                } else {
+                    RecoleccionLogger.warn('No hay datos para sincronizar');
+                }
+            } catch (error) {
+                RecoleccionLogger.error('Error al sincronizar datos', error);
+                throw error;
             }
         });
-
-        return viejos;
     }
 
-    private getHeaders(token: string): HttpHeaders {
-        return new HttpHeaders({
-            'Content-Type': 'application/json',
-            Authorization: token,
-        });
-    }
-
-    updateRutaRecolector(
-        token: string,
-        id: string,
-        data: any
-    ): Observable<any> {
-        const headers = this.getHeaders(token);
-        return this._http
-            .put(`${this.url}recolector/${id}`, data, { headers })
-            .pipe(
-                map((response) => response),
-                catchError((error) => {
-                    console.error('Error en updateRutaRecolector:', error);
-                    return throwError(error);
-                })
-            );
-    }
-
-    async loadInitialLocations() {
+    /**
+     * Carga ubicaciones iniciales con mejor manejo de errores
+     */
+    async loadInitialLocations(): Promise<void> {
         try {
-            // Obtener las ubicaciones guardadas
-            const locations = await Preferences.get({ key: 'locations' });
-            const capacidad_retorno = await Preferences.get({
-                key: 'capacidad_retorno',
-            });
-            // Obtener el ID de asignación
+            const [locations, capacidad_retorno] = await Promise.all([
+                Preferences.get({ key: 'locations' }),
+                Preferences.get({ key: 'capacidad_retorno' }),
+            ]);
+
             const asignID = await this.getAsignacion();
 
-            // Verificar si se encontró alguna ubicación
             if (locations.value) {
-                const parsedLocations = JSON.parse(locations.value);
-                const paserCapcidad = JSON.parse(capacidad_retorno.value);
-
-                // Verificar si alguna ubicación contiene el ID de asignación
-                const containsAsignID = parsedLocations.some(
-                    (location: any) => location._id === asignID._id
+                const parsedLocations: IPuntoRecoleccion[] = JSON.parse(
+                    locations.value
                 );
+                const parsedCapacidad = JSON.parse(
+                    capacidad_retorno.value || '[]'
+                );
+
+                const containsAsignID = parsedLocations.some(
+                    (location) => location._id === asignID?._id
+                );
+
                 if (containsAsignID) {
-                    //console.log(                     'Se ha encontrado una ubicación con el ID de asignación:',                        asignID._id                    );
                     this.ubicaciones.next(parsedLocations);
-                    this.retornos.next(paserCapcidad);
+                    this.retornos.next(parsedCapacidad);
+                    RecoleccionLogger.info('Ubicaciones iniciales cargadas', {
+                        ubicacionesCount: parsedLocations.length,
+                        retornosCount: parsedCapacidad.length,
+                    });
                 } else {
-                    // Si no contiene el ID de asignación, borrar todas las ubicaciones
-                    //console.log(                        'No se ha encontrado ninguna ubicación con el ID de asignación. Borrando ubicaciones.'                    );
-                    await Preferences.remove({ key: 'locations' });
-                    await Preferences.remove({ key: 'capacidad_retorno' });
+                    await Promise.all([
+                        Preferences.remove({ key: 'locations' }),
+                        Preferences.remove({ key: 'capacidad_retorno' }),
+                    ]);
                     this.ubicaciones.next([]);
                     this.retornos.next([]);
+                    RecoleccionLogger.info(
+                        'Ubicaciones limpiadas por cambio de asignación'
+                    );
                 }
             } else {
-                // Si no hay ubicaciones, establecer la lista como vacía
-                console.log('No se encontraron ubicaciones guardadas.');
                 this.ubicaciones.next([]);
                 this.retornos.next([]);
+                RecoleccionLogger.info('No hay ubicaciones almacenadas');
             }
         } catch (error) {
-            console.error('Error loading locations:', error);
-            this.ubicaciones.next([]); // Asegurar que la lista esté vacía en caso de error
+            RecoleccionLogger.error('Error loading locations', error);
+            this.ubicaciones.next([]);
             this.retornos.next([]);
         }
     }
 
+    /**
+     * Guarda una ubicación con validación mejorada
+     */
     async saveLocation(
-        location: {
-            _id: string;
-            lat: number;
-            lng: number;
-            timestamp: string;
-            speed: number;
-            destacado: boolean;
-        },
+        location: IPuntoRecoleccion,
         valid?: boolean
-    ) {
-        valid = valid ? valid : this.isValidLocation(location).resp;
-        if (valid) {
+    ): Promise<void> {
+        const isValid =
+            valid !== undefined ? valid : this.isValidLocation(location).resp;
+
+        if (isValid) {
             const locations = await Preferences.get({ key: 'locations' });
-            const parsedLocations = locations.value
+            const parsedLocations: IPuntoRecoleccion[] = locations.value
                 ? JSON.parse(locations.value)
                 : [];
+
             parsedLocations.push(location);
+
             await Preferences.set({
                 key: 'locations',
                 value: JSON.stringify(parsedLocations),
             });
 
             this.ubicaciones.next([...this.ubicaciones.getValue(), location]);
+
+            RecoleccionLogger.debug('Ubicación guardada', {
+                tipo: location.retorno ? 'retorno' : 'recoleccion',
+                coordenadas: `${location.lat}, ${location.lng}`,
+            });
+        } else {
+            RecoleccionLogger.warn('Ubicación no guardada por validación');
         }
     }
-    async saveRetorno(
-        retorno:
-            | { label: 'Lleno'; value: 'Lleno' }
-            | { label: 'Medio'; value: 'Medio' }
-            | { label: 'Vacío'; value: 'Vacío' }
-    ) {
+
+    /**
+     * Guarda datos de retorno con tipado fuerte
+     */
+    async saveRetorno(retorno: {
+        label: string;
+        value: CapacidadVehiculo;
+    }): Promise<void> {
         const capacidad_retorno = await Preferences.get({
             key: 'capacidad_retorno',
         });
         const parsedRetornos = capacidad_retorno.value
             ? JSON.parse(capacidad_retorno.value)
             : [];
+
         parsedRetornos.push(retorno);
+
         await Preferences.set({
             key: 'capacidad_retorno',
             value: JSON.stringify(parsedRetornos),
         });
-        console.log(this.retornos.getValue());
-        if (this.retornos.getValue()) {
-            this.retornos.next([...this.retornos.getValue(), retorno]);
-        } else {
-            this.retornos.next([retorno]);
-        }
+
+        const currentRetornos = this.retornos.getValue();
+        this.retornos.next([...currentRetornos, retorno]);
+
+        RecoleccionLogger.info('Retorno guardado', {
+            capacidad: retorno.value,
+        });
     }
-    async saveAsignacion(asign: any): Promise<boolean> {
+
+    /**
+     * Guarda asignación con mejor manejo de errores
+     */
+    async saveAsignacion(asign: IAsignacion): Promise<boolean> {
         try {
             await Preferences.set({
                 key: 'asign',
                 value: JSON.stringify(asign),
             });
+            RecoleccionLogger.info('Asignación guardada', { id: asign._id });
             return true;
         } catch (error) {
-            console.error('Error al guardar la asignación:', error);
+            RecoleccionLogger.error('Error al guardar la asignación', error);
             return false;
         }
     }
-    getAsignacion = async () => {
-        const { value } = await Preferences.get({ key: 'asign' });
-        return JSON.parse(value);
-    };
 
+    /**
+     * Obtiene asignación con tipado fuerte
+     */
+    async getAsignacion(): Promise<IAsignacion | null> {
+        try {
+            const { value } = await Preferences.get({ key: 'asign' });
+            return value ? (JSON.parse(value) as IAsignacion) : null;
+        } catch (error) {
+            RecoleccionLogger.error('Error obteniendo asignación', error);
+            return null;
+        }
+    }
+
+    /**
+     * Obtiene observables con tipado fuerte
+     */
     getUbicaciones(): {
-        ubicaciones: Observable<any[]>;
-        retorno: Observable<any[]>;
+        ubicaciones: Observable<IPuntoRecoleccion[]>;
+        retorno: Observable<{ label: string; value: CapacidadVehiculo }[]>;
     } {
         return {
             ubicaciones: this.ubicaciones.asObservable(),
@@ -440,61 +535,130 @@ export class UbicacionService {
         };
     }
 
-    getVelocidadActual() {
+    getVelocidadActual(): Observable<number> {
         return this.velocidadActual.asObservable();
     }
-    getDistanciaRecorrida() {
-        return this.DistanciaRecorrida.asObservable();
+
+    getDistanciaRecorrida(): Observable<number> {
+        return this.distanciaRecorrida.asObservable();
     }
 
-    private storageKey = 'deviceGPSData'; // Clave para almacenar en sessionStorage
+    /**
+     * Headers con mejor manejo
+     */
+    private getHeaders(token: string): HttpHeaders {
+        return new HttpHeaders({
+            'Content-Type': 'application/json',
+            Authorization: token,
+        });
+    }
 
-    obtenerDeviceGPS(): Observable<any> {
-        // Intentar obtener datos del sessionStorage
+    /**
+     * Actualiza ruta con tipado fuerte en la respuesta
+     */
+    updateRutaRecolector(
+        token: string,
+        id: string,
+        data: any
+    ): Observable<IApiResponse> {
+        const headers = this.getHeaders(token);
+        return this._http
+            .put<IApiResponse>(`${this.url}recolector/${id}`, data, { headers })
+            .pipe(
+                map((response) => response),
+                catchError((error) => {
+                    RecoleccionLogger.error(
+                        'Error en updateRutaRecolector',
+                        error
+                    );
+                    return throwError(error);
+                })
+            );
+    }
+
+    /**
+     * Obtiene dispositivos GPS con tipado fuerte
+     */
+    private storageKey = 'deviceGPSData';
+
+    obtenerDeviceGPS(): Observable<IDispositivoGPS[]> {
         const cachedData = sessionStorage.getItem(this.storageKey);
-
         if (cachedData) {
-            // Retornar un Observable con los datos en caché
             return of(JSON.parse(cachedData));
         }
 
-        // Si no hay caché, realizar la solicitud HTTP
         let headers = new HttpHeaders()
             .set('Content-Type', 'application/json')
             .set('Authorization', 'Basic ' + btoa('CIUDADANIA:123456789'));
 
         return this._http
-            .get('https://inteligenciavehicular.com/api/devices', {
-                headers: headers,
-            })
+            .get<IDispositivoGPS[]>(
+                'https://inteligenciavehicular.com/api/devices',
+                { headers }
+            )
             .pipe(
                 tap((data) => {
-                    // Almacenar la respuesta en sessionStorage
                     sessionStorage.setItem(
                         this.storageKey,
                         JSON.stringify(data)
                     );
+                    RecoleccionLogger.info('Dispositivos GPS obtenidos', {
+                        count: data.length,
+                    });
+                }),
+                catchError((error) => {
+                    RecoleccionLogger.error(
+                        'Error obteniendo dispositivos GPS',
+                        error
+                    );
+                    return throwError(error);
                 })
             );
     }
 
-    // Método para invalidar la caché si es necesario
     invalidateCache(): void {
-        sessionStorage.removeItem(this.storageKey); // Limpiar la caché
+        sessionStorage.removeItem(this.storageKey);
+        RecoleccionLogger.info('Cache de dispositivos invalidado');
     }
 
-    async fetchRouteData(deviceId: string, from: string, to: string) {
+    /**
+     * Obtiene datos de ruta con mejor manejo de errores
+     */
+    async fetchRouteData(
+        deviceId: string,
+        from: string,
+        to: string
+    ): Promise<Observable<any>> {
         const url = `https://inteligenciavehicular.com/api/reports/route?deviceId=${deviceId}&type=allEvents&from=${from}&to=${to}`;
-        //console.log('LLAMADO: ', url);
         let headers = new HttpHeaders()
             .set('Content-Type', 'application/json')
             .set('Authorization', 'Basic ' + btoa('CIUDADANIA:123456789'));
 
         try {
+            RecoleccionLogger.info('Obteniendo datos de ruta', {
+                deviceId,
+                from,
+                to,
+            });
             return this._http.get(url, { headers });
         } catch (error) {
-            console.error('Error fetching route data:', error);
+            RecoleccionLogger.error('Error fetching route data', error);
             throw error;
         }
+    }
+
+    /**
+     * Obtiene configuración actual del seguimiento
+     */
+    getConfiguracionSeguimiento(): IConfigSeguimiento {
+        return { ...this.config };
+    }
+
+    /**
+     * Actualiza configuración del seguimiento
+     */
+    actualizarConfiguracion(nuevaConfig: Partial<IConfigSeguimiento>): void {
+        Object.assign(this.config, nuevaConfig);
+        RecoleccionLogger.info('Configuración actualizada', this.config);
     }
 }

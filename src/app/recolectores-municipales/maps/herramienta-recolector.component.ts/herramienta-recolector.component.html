@@ -1,0 +1,471 @@
+<!-- herramienta-recolector.component.html -->
+<p-toast></p-toast>
+
+<!-- Encabezado con información de asignación -->
+<div class="assignment-header mb-4" *ngIf="asignacion">
+    <div class="flex justify-content-between align-items-center">
+        <div>
+            <h2 class="text-2xl font-bold text-green-700">
+                <i class="pi pi-truck mr-2"></i>
+                Asignación Activa
+            </h2>
+            <p class="text-gray-600 mb-1">
+                <strong>Dispositivo:</strong>
+                {{ getDeviceGPS(asignacion.deviceId) }}
+            </p>
+            <p class="text-gray-600">
+                <i class="pi pi-calendar mr-1"></i>
+                {{ asignacion.createdAt | date : "dd/MM/yyyy HH:mm" }}
+            </p>
+        </div>
+        <div class="text-right">
+            <p-tag
+                [value]="backgroundTrackingStatus"
+                [severity]="backgroundTrackingActive ? 'success' : 'secondary'"
+                [icon]="
+                    backgroundTrackingActive
+                        ? 'pi pi-check-circle'
+                        : 'pi pi-pause-circle'
+                "
+            ></p-tag>
+        </div>
+    </div>
+</div>
+
+<!-- Contenedor del mapa -->
+<div class="map-container mb-5">
+    <div
+        class="card"
+        id="map-herramienta-recolector"
+        style="min-height: 50vh; margin-left: -18px; margin-right: -18px"
+    ></div>
+</div>
+
+<!-- Panel de seguimiento automático - Solo mostrar cuando hay asignación -->
+<div class="tracking-panel mb-4" *ngIf="asignacion">
+    <p-card
+        header="Seguimiento Automático"
+        subheader="Control del seguimiento de ubicación en segundo plano"
+        [style]="{ width: 'auto' }"
+        styleClass="p-fluid"
+    >
+        <!-- Estado actual del tracking -->
+        <div class="mb-3 text-center">
+            <p-tag
+                [value]="backgroundTrackingStatus"
+                [severity]="backgroundTrackingActive ? 'success' : 'secondary'"
+                [icon]="
+                    backgroundTrackingActive
+                        ? 'pi pi-check-circle'
+                        : 'pi pi-pause-circle'
+                "
+                styleClass="text-lg p-3"
+            ></p-tag>
+        </div>
+
+        <!-- Botón principal de control -->
+        <div class="mb-3">
+            <p-button
+                [icon]="backgroundTrackingActive ? 'pi pi-pause' : 'pi pi-play'"
+                [label]="
+                    backgroundTrackingActive
+                        ? 'Pausar Seguimiento'
+                        : 'Activar Seguimiento'
+                "
+                [severity]="backgroundTrackingActive ? 'warning' : 'success'"
+                [style]="{ padding: '15px', width: '100%' }"
+                (click)="toggleBackgroundTracking()"
+                [disabled]="!asignacion"
+            ></p-button>
+        </div>
+
+        <!-- Información explicativa -->
+        <div class="info-section mb-3">
+            <div
+                class="flex align-items-start gap-2 p-3 bg-blue-50 border-round"
+            >
+                <i class="pi pi-info-circle text-blue-500 mt-1"></i>
+                <div class="text-sm text-blue-700">
+                    <p class="mb-2 font-medium">
+                        ¿Cómo funciona el seguimiento automático?
+                    </p>
+                    <ul class="list-disc pl-4 mb-0">
+                        <li>
+                            Registra tu ubicación cada 30 segundos mientras
+                            trabajas
+                        </li>
+                        <li>
+                            Funciona incluso cuando la app está en segundo plano
+                        </li>
+                        <li>
+                            Se optimiza automáticamente para ahorrar batería
+                        </li>
+                        <li>
+                            Solo se activa cuando te mueves más de 15 metros
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Indicadores de rendimiento -->
+        <div class="grid">
+            <div class="col-6">
+                <div class="text-center p-3 border-round bg-green-50">
+                    <i class="pi pi-bolt text-green-500 text-2xl mb-2"></i>
+                    <div class="text-sm font-medium text-green-700">
+                        Ahorro de Batería
+                    </div>
+                    <div class="text-xs text-green-600">
+                        Optimizado automáticamente
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="text-center p-3 border-round bg-blue-50">
+                    <i class="pi pi-shield text-blue-500 text-2xl mb-2"></i>
+                    <div class="text-sm font-medium text-blue-700">
+                        Precisión GPS
+                    </div>
+                    <div class="text-xs text-blue-600">±15 metros típico</div>
+                </div>
+            </div>
+        </div>
+    </p-card>
+</div>
+
+<!-- Panel de modo conducción - Solo en móvil y con asignación -->
+<div class="driving-mode-panel mb-4" *ngIf="asignacion && isMobil()">
+    <p-card
+        header="Modo de Conducción"
+        subheader="Seguimiento de alta precisión mientras conduces"
+        [style]="{ width: 'auto' }"
+        styleClass="p-fluid"
+    >
+        <div class="mb-3">
+            <p-button
+                icon="pi pi-car"
+                [label]="
+                    drivingMode ? 'Finalizar Conducción' : 'Iniciar Conducción'
+                "
+                [severity]="drivingMode ? 'info' : 'help'"
+                [style]="{ padding: '20px', width: '100%' }"
+                (click)="toggleDrivingMode()"
+            ></p-button>
+        </div>
+
+        <!-- Información sobre el modo de conducción -->
+        <div class="info-section">
+            <div
+                class="flex align-items-start gap-2 p-3 bg-purple-50 border-round"
+            >
+                <i class="pi pi-compass text-purple-500 mt-1"></i>
+                <div class="text-sm text-purple-700">
+                    <p class="mb-1 font-medium">
+                        Características del modo conducción:
+                    </p>
+                    <ul class="list-disc pl-4 mb-0">
+                        <li>Seguimiento en tiempo real con mayor precisión</li>
+                        <li>Actualización cada 2 metros de movimiento</li>
+                        <li>Muestra tu vehículo en el mapa con dirección</li>
+                        <li>
+                            Consume más batería pero es ideal para rutas activas
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </p-card>
+</div>
+
+<!-- Herramientas de trabajo - Solo mostrar cuando hay asignación -->
+<div class="work-tools mb-4" *ngIf="asignacion">
+    <p-card
+        header="Herramientas de Trabajo"
+        subheader="Registra puntos de recolección y gestiona tu ruta"
+        [style]="{ width: 'auto' }"
+        styleClass="p-fluid"
+    >
+        <!-- Botón principal: Punto de recolección -->
+        <div class="mb-3">
+            <p-button
+                icon="pi pi-plus"
+                label="Registrar Punto de Recolección"
+                severity="success"
+                [style]="{ padding: '20px', width: '100%' }"
+                (click)="addManualLocation(true, false)"
+            ></p-button>
+        </div>
+
+        <!-- Botón de retorno a estación -->
+        <div class="mb-3">
+            <p-button
+                icon="pi pi-shop"
+                label="Retorno a la Estación"
+                severity="warning"
+                [style]="{ width: '100%' }"
+                (click)="confirmReturnToStation()"
+                [disabled]="isReturnButtonDisabled"
+            ></p-button>
+
+            <!-- Temporizador si el botón está deshabilitado -->
+            <div *ngIf="isReturnButtonDisabled" class="text-center mt-2">
+                <small class="text-orange-600">
+                    <i class="pi pi-clock mr-1"></i>
+                    Tiempo restante: {{ formatTime(returnTimeLeft) }}
+                </small>
+            </div>
+        </div>
+
+        <!-- Botón de sincronización -->
+        <div class="mb-3">
+            <p-button
+                icon="pi pi-cloud-upload"
+                label="Enviar Información"
+                severity="info"
+                [style]="{ width: '100%' }"
+                [loading]="syncingData"
+                (click)="enviarInformacion()"
+            ></p-button>
+        </div>
+    </p-card>
+</div>
+
+<!-- Botón para finalizar turno - Solo mostrar cuando hay seguimiento activo -->
+<div
+    class="end-shift-section mb-4"
+    *ngIf="asignacion && (backgroundTrackingActive || drivingMode)"
+>
+    <p-card styleClass="p-fluid">
+        <p-button
+            icon="pi pi-sign-out"
+            label="Finalizar Turno de Trabajo"
+            severity="secondary"
+            [style]="{ padding: '15px', width: '100%' }"
+            (click)="finalizarAsignacion()"
+        ></p-button>
+
+        <div class="text-center mt-2">
+            <small class="text-gray-500">
+                <i class="pi pi-info-circle mr-1"></i>
+                Esto detendrá todo el seguimiento y sincronizará tus datos
+            </small>
+        </div>
+    </p-card>
+</div>
+
+<!-- Mensaje informativo cuando no hay seguimiento activo -->
+<div
+    class="inactive-tracking-message mb-4"
+    *ngIf="asignacion && !backgroundTrackingActive && !drivingMode"
+>
+    <p-message severity="info" styleClass="w-full">
+        <div class="flex align-items-center">
+            <i class="pi pi-lightbulb text-blue-500 mr-2"></i>
+            <div>
+                <strong>Consejo:</strong> Para un mejor funcionamiento,
+                considera activar el seguimiento automático. Esto te permitirá
+                trabajar sin preocuparte por registrar manualmente cada
+                ubicación.
+            </div>
+        </div>
+    </p-message>
+</div>
+
+<!-- Mensaje cuando no hay asignación -->
+<div class="no-assignment-section" *ngIf="!asignacion && !loadingAsignacion">
+    <p-card styleClass="text-center">
+        <i class="pi pi-exclamation-triangle text-6xl text-orange-400 mb-4"></i>
+        <h4 class="text-gray-700 mb-3">No tienes una asignación activa</h4>
+        <p class="text-gray-600 mb-4">
+            Para comenzar a trabajar, necesitas tener una asignación activa para
+            el día de hoy.
+        </p>
+
+        <div class="flex flex-column gap-3">
+            <p-button
+                icon="pi pi-search"
+                label="Buscar Asignación"
+                severity="info"
+                (click)="consultaAsig()"
+                [loading]="loadingAsignacion"
+            ></p-button>
+
+            <small class="text-gray-500 mt-2">
+                Si crees que deberías tener una asignación, contacta con tu
+                supervisor.
+            </small>
+        </div>
+    </p-card>
+</div>
+
+<!-- Indicador de carga -->
+<div class="loading-section text-center p-4" *ngIf="loadingAsignacion">
+    <p-progressSpinner></p-progressSpinner>
+    <p class="mt-3 text-gray-600">Consultando tu asignación...</p>
+</div>
+
+<!-- Tabla de puntos registrados -->
+<p-card
+    *ngIf="table.length > 0"
+    header="Puntos Registrados Hoy"
+    [subheader]="
+        'Has registrado ' + table.length + ' puntos en tu turno actual'
+    "
+    [style]="{ width: 'auto' }"
+    styleClass="p-fluid mb-4"
+>
+    <p-table
+        [value]="table"
+        [scrollable]="true"
+        scrollHeight="300px"
+        [tableStyle]="{ 'min-width': 'auto' }"
+        responsiveLayout="scroll"
+        [paginator]="table.length > 10"
+        [rows]="10"
+    >
+        <ng-template pTemplate="header">
+            <tr>
+                <th style="width: 3rem">N°</th>
+                <th>Tipo</th>
+                <th>Hora</th>
+                <th style="width: 6rem">Ver</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-location let-i="rowIndex">
+            <tr
+                [ngClass]="{ 'highlight-row': location.retorno }"
+                [pTooltip]="
+                    location.retorno
+                        ? 'Punto de retorno a la estación'
+                        : 'Punto de recolección normal'
+                "
+                tooltipPosition="top"
+            >
+                <td>{{ i + 1 }}</td>
+                <td>
+                    <div class="flex align-items-center gap-2">
+                        <i
+                            [class]="
+                                location.retorno
+                                    ? 'pi pi-home text-orange-500'
+                                    : 'pi pi-map-marker text-green-500'
+                            "
+                        ></i>
+                        <span
+                            [class]="
+                                location.retorno
+                                    ? 'text-orange-600 font-medium'
+                                    : 'text-green-600'
+                            "
+                        >
+                            {{ location.retorno ? "Retorno" : "Recolección" }}
+                        </span>
+                    </div>
+                </td>
+                <td>
+                    <div class="text-sm">
+                        <div>{{ location.timestamp | date : "HH:mm:ss" }}</div>
+                        <div class="text-gray-500 text-xs">
+                            {{ location.timestamp | date : "dd/MM" }}
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <p-button
+                        icon="pi pi-eye"
+                        size="small"
+                        severity="info"
+                        [outlined]="true"
+                        pTooltip="Ver en mapa"
+                        (click)="getMarker(i)"
+                    ></p-button>
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="4" class="text-center p-4">
+                    <i class="pi pi-map text-4xl text-gray-400 mb-3"></i>
+                    <div class="text-gray-600">
+                        Aún no has registrado puntos
+                    </div>
+                    <small class="text-gray-500"
+                        >Los puntos que registres aparecerán aquí</small
+                    >
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+</p-card>
+
+<!-- Diálogo de confirmación para retorno -->
+<p-dialog
+    header="Retorno a Estación"
+    [(visible)]="displayDialog"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    styleClass="p-fluid"
+    [style]="{ width: '90vw', maxWidth: '400px' }"
+>
+    <!-- Pregunta principal -->
+    <div class="mb-4 text-center">
+        <i class="pi pi-question-circle text-4xl text-orange-500 mb-3"></i>
+        <h5 class="mb-2">¿Necesitas retornar a la estación?</h5>
+        <p class="text-gray-600 text-sm">
+            El retorno registrará tu ubicación actual y aplicará un período de
+            espera.
+        </p>
+    </div>
+
+    <!-- Información del tiempo de espera -->
+    <div class="mb-4">
+        <p-message severity="info">
+            <div class="flex align-items-center">
+                <i class="pi pi-clock mr-2"></i>
+                <span class="text-sm">
+                    Tiempo de espera después del retorno:
+                    {{ formatTime(returnDelay) }}
+                </span>
+            </div>
+        </p-message>
+    </div>
+
+    <!-- Selector de capacidad -->
+    <div class="mb-4">
+        <label class="block font-medium mb-2"
+            >¿Cómo está la capacidad de tu vehículo?</label
+        >
+        <p-dropdown
+            [options]="capacidadOpciones"
+            [(ngModel)]="capcidad_retorno"
+            placeholder="Selecciona la capacidad"
+            optionLabel="label"
+            dataKey="value"
+            [style]="{ width: '100%' }"
+            appendTo="body"
+        ></p-dropdown>
+        <small class="text-gray-500 mt-1">
+            Esta información ayuda a optimizar las rutas futuras
+        </small>
+    </div>
+
+    <!-- Botones de acción -->
+    <ng-template pTemplate="footer">
+        <div class="flex gap-2 justify-content-end">
+            <p-button
+                label="Cancelar"
+                severity="secondary"
+                [outlined]="true"
+                (click)="displayDialog = false"
+            ></p-button>
+            <p-button
+                label="Confirmar Retorno"
+                severity="warning"
+                icon="pi pi-check"
+                (click)="addManualLocation(true, true)"
+            ></p-button>
+        </div>
+    </ng-template>
+</p-dialog>

@@ -80,6 +80,11 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     private infoWindows: google.maps.InfoWindow[] = [];
     velocidad: number = 0;
     distancia: number = 0;
+
+    // Control del background tracking
+    backgroundTrackingActive: boolean = false;
+    backgroundTrackingStatus: string = 'Inactivo';
+
     constructor(
         private ubicacionService: UbicacionService,
         private googlemaps: GoogleMapsService,
@@ -106,6 +111,12 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         await this.initMap();
         setTimeout(async () => {
             await this.fetchDevices();
+
+            // Verificar el estado del background tracking al inicializar
+            this.backgroundTrackingActive =
+                this.ubicacionService.isBackgroundTrackingActive();
+            this.updateBackgroundTrackingStatus();
+
             if (this.config?.data?.id) {
                 this.id = this.config.data.id;
             }
@@ -125,6 +136,7 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             }
         }, 500);
     }
+
     check_create: boolean = false;
     deleteRegister: boolean = false;
 
@@ -352,9 +364,76 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         this.asignacionesFiltradas = [...this.arr_asignacion];
     }
 
-    ngOnDestroy(): void {}
-    isMobil(): boolean {
-        return this.helper.isMobil();
+    async ngOnDestroy(): Promise<void> {
+        // Detener seguimiento manual si está activo
+        if (this.drivingMode) {
+            await this.stopWatchingPosition();
+        }
+
+        // NOTA IMPORTANTE: No detenemos automáticamente el background tracking
+        // al destruir el componente porque queremos que siga funcionando
+        // incluso cuando el usuario navega a otras pantallas o minimiza la app.
+        // Solo se detiene cuando:
+        // 1. El usuario lo desactiva manualmente
+        // 2. Se cierra completamente la aplicación
+        // 3. Se completa/cancela la asignación
+
+        // Limpiar intervalos y timeouts
+        if (this.returnInterval) {
+            clearInterval(this.returnInterval);
+        }
+        if (this.timeoutId) {
+            clearTimeout(this.timeoutId);
+        }
+    }
+
+    /**
+     * Función para finalizar la asignación y detener el tracking
+     * Llamar esta función cuando se complete el trabajo del día
+     */
+    async finalizarAsignacion() {
+        try {
+            // Confirmar con el usuario
+            const confirmar = confirm(
+                '¿Estás seguro de que quieres finalizar tu turno de trabajo?\n\n' +
+                    'Esto detendrá el seguimiento automático de ubicación.'
+            );
+
+            if (confirmar) {
+                // Detener background tracking
+                if (this.backgroundTrackingActive) {
+                    await this.ubicacionService.detenerBackgroundTracking();
+                    this.backgroundTrackingActive = false;
+                }
+
+                // Detener seguimiento manual si está activo
+                if (this.drivingMode) {
+                    await this.stopWatchingPosition();
+                    this.drivingMode = false;
+                }
+
+                // Sincronizar datos finales
+                await this.ubicacionService.syncData();
+
+                // Limpiar asignación local
+                this.asignacion = null;
+
+                this.updateBackgroundTrackingStatus();
+
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Turno Finalizado',
+                    detail: 'Tu turno ha sido finalizado y todos los datos han sido enviados.',
+                });
+            }
+        } catch (error) {
+            console.error('Error al finalizar asignación:', error);
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Hubo un problema al finalizar el turno.',
+            });
+        }
     }
 
     //------------------------------------------CONSULTA DE ASIGNACION-------------------------------
@@ -386,23 +465,16 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
             let externo: any = null;
             let funcionario: any = null;
 
-            // Condicionalmente asignamos 'externo' o 'funcionario'
             if (this.auth.roleUserToken() === undefined) {
                 externo = this.auth.idUserToken();
             } else {
                 funcionario = this.auth.idUserToken();
             }
 
-            // Construimos el objeto de parámetros dinámicamente
             const params: any = { dateOnly };
+            if (funcionario) params.funcionario = funcionario;
+            if (externo) params.externo = externo;
 
-            if (funcionario) {
-                params.funcionario = funcionario;
-            }
-
-            if (externo) {
-                params.externo = externo;
-            }
             this.list
                 .listarAsignacionRecolectores(this.token, params, false)
                 .subscribe({
@@ -410,7 +482,6 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                         if (response.data.length > 0) {
                             this.asignacion = response.data[0];
 
-                            // Compara solo los _id
                             if (
                                 !asignacionaux ||
                                 this.asignacion._id !== asignacionaux._id
@@ -423,6 +494,9 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                             await this.ubicacionService.loadInitialLocations();
                             await this.seguimientoLocations();
                             await this.ubicacionService.initializeNetworkListener();
+
+                            // IMPORTANTE: Iniciar background tracking cuando hay asignación activa
+                            await this.iniciarBackgroundTrackingParaAsignacion();
                         } else {
                             this.messageService.add({
                                 severity: 'warn',
@@ -447,6 +521,44 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 summary: 'ERROR',
                 detail: 'Hubo un problema al realizar la consulta de asignación.',
             });
+        }
+    }
+
+    /**
+     * Inicia el background tracking cuando hay una asignación activa
+     * Esta función maneja la lógica inteligente de cuándo activar el seguimiento
+     */
+    async iniciarBackgroundTrackingParaAsignacion() {
+        try {
+            // Solo iniciar si hay asignación y no está ya activo
+            if (this.asignacion && !this.backgroundTrackingActive) {
+                console.log(
+                    'Iniciando background tracking para asignación:',
+                    this.asignacion._id
+                );
+
+                const success =
+                    await this.ubicacionService.iniciarBackgroundTracking();
+
+                if (success) {
+                    this.backgroundTrackingActive = true;
+                    this.updateBackgroundTrackingStatus();
+
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Seguimiento Activado',
+                        detail: 'El seguimiento automático de ubicación está ahora activo.',
+                    });
+                } else {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error de Seguimiento',
+                        detail: 'No se pudo activar el seguimiento automático de ubicación.',
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error al iniciar background tracking:', error);
         }
     }
 
@@ -562,6 +674,9 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
                 this.isReturnButtonDisabled = false;
             }
         }, 1000);
+    }
+    isMobil(): boolean {
+        return this.helper.isMobil();
     }
 
     async getLocation() {
@@ -1410,19 +1525,96 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
     MAX_ACCURACY = 50; // Máxima precisión permitida (en metros)
 
     // Alternar el modo de conducción
+    /**
+     * Función mejorada del toggle del driving mode que integra background tracking
+     */
     async toggleDrivingMode() {
         if (this.drivingMode) {
-            await this.stopWatchingPosition(); // Detener la observación
-        } else {
-            await this.startWatchingPosition(); // Iniciar la observación
-        }
-        this.drivingMode = !this.drivingMode; // Cambiar el estado
+            // Detener el seguimiento manual
+            await this.stopWatchingPosition();
 
-        // Cambiar dinámicamente la precisión y el filtro de distancia
-        if (this.drivingMode) {
-            this.MAX_ACCURACY = 100; // Aumenta el límite de precisión cuando conduces
+            // Si hay asignación, mantener background tracking activo
+            if (this.asignacion && !this.backgroundTrackingActive) {
+                await this.iniciarBackgroundTrackingParaAsignacion();
+            }
         } else {
-            this.MAX_ACCURACY = 50; // Precisión más estricta cuando no conduces
+            // Iniciar seguimiento manual más preciso
+            await this.startWatchingPosition();
+        }
+
+        this.drivingMode = !this.drivingMode;
+        this.updateBackgroundTrackingStatus();
+    }
+
+    /**
+     * Control manual del background tracking
+     * Útil para permitir al usuario activar/desactivar según necesite
+     */
+    async toggleBackgroundTracking() {
+        try {
+            if (this.backgroundTrackingActive) {
+                const success =
+                    await this.ubicacionService.detenerBackgroundTracking();
+                if (success) {
+                    this.backgroundTrackingActive = false;
+                    this.messageService.add({
+                        severity: 'info',
+                        summary: 'Seguimiento Pausado',
+                        detail: 'El seguimiento automático ha sido pausado.',
+                    });
+                }
+            } else {
+                if (!this.asignacion) {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'Sin Asignación',
+                        detail: 'Necesitas una asignación activa para usar el seguimiento automático.',
+                    });
+                    return;
+                }
+
+                const success =
+                    await this.ubicacionService.iniciarBackgroundTracking();
+                if (success) {
+                    this.backgroundTrackingActive = true;
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Seguimiento Activado',
+                        detail: 'El seguimiento automático está ahora activo.',
+                    });
+                }
+            }
+
+            this.updateBackgroundTrackingStatus();
+        } catch (error) {
+            console.error(
+                'Error al cambiar estado de background tracking:',
+                error
+            );
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'No se pudo cambiar el estado del seguimiento automático.',
+            });
+        }
+    }
+
+    /**
+     * Actualiza el texto del estado del background tracking para mostrar al usuario
+     */
+    private updateBackgroundTrackingStatus() {
+        if (this.backgroundTrackingActive) {
+            if (this.drivingMode) {
+                this.backgroundTrackingStatus = 'Activo + Modo Conducción';
+            } else {
+                this.backgroundTrackingStatus = 'Activo en Segundo Plano';
+            }
+        } else {
+            if (this.drivingMode) {
+                this.backgroundTrackingStatus = 'Solo Modo Conducción';
+            } else {
+                this.backgroundTrackingStatus = 'Inactivo';
+            }
         }
     }
 

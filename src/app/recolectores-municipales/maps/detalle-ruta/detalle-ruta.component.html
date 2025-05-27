@@ -1,0 +1,424 @@
+<!-- detalle-ruta.component.html -->
+<p-toast></p-toast>
+
+<!-- Encabezado con información de la ruta -->
+<div class="mb-4" *ngIf="ruta">
+    <div class="flex justify-content-between align-items-center">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">
+                Detalle de Ruta: {{ ruta.deviceId || "Sin identificar" }}
+            </h2>
+            <p class="text-gray-600">
+                <i class="pi pi-calendar mr-2"></i>
+                {{ ruta.createdAt | date : "dd/MM/yyyy HH:mm" }}
+            </p>
+        </div>
+        <div class="flex gap-2">
+            <p-button
+                icon="pi pi-refresh"
+                label="Actualizar Ruta"
+                [loading]="loadingUpdate"
+                [disabled]="loadingRuta"
+                (onClick)="updateRuta()"
+                styleClass="p-button-outlined"
+            ></p-button>
+        </div>
+    </div>
+</div>
+
+<!-- Contenedor del mapa -->
+<div class="map-container mb-5">
+    <div
+        class="card"
+        id="map-detalle-ruta"
+        style="min-height: 60vh; margin-left: -18px; margin-right: -18px"
+    ></div>
+
+    <!-- Controles de reproducción de ruta -->
+    <div class="route-controls mt-3" *ngIf="ruta && locations.length > 0">
+        <p-card
+            header="Control de Reproducción"
+            subheader="Reproduce la ruta GPS paso a paso"
+            [style]="{ width: 'auto' }"
+            styleClass="p-fluid"
+        >
+            <!-- Toggle principal de reproducción -->
+            <div class="mb-3">
+                <p-checkbox
+                    [(ngModel)]="isPlaying"
+                    binary="true"
+                    inputId="playing"
+                    (onChange)="toggleRoutePlayback()"
+                    label="Reproducir Ruta GPS"
+                ></p-checkbox>
+            </div>
+
+            <!-- Controles de velocidad - Solo visible durante reproducción -->
+            <div class="grid" *ngIf="isPlaying">
+                <!-- Control de velocidad con slider -->
+                <div class="col-12 md:col-6">
+                    <label class="font-bold block mb-2">
+                        Velocidad de Reproducción: {{ speedMultiplier }}x
+                    </label>
+                    <p-slider
+                        [(ngModel)]="speedMultiplier"
+                        [min]="1"
+                        [max]="20"
+                        [step]="1"
+                        [style]="{ width: '100%' }"
+                        (onSlideEnd)="setSpeed(speedMultiplier)"
+                    ></p-slider>
+                </div>
+
+                <!-- Botones de velocidad preestablecida -->
+                <div class="col-12 md:col-6">
+                    <label class="font-bold block mb-2"
+                        >Velocidades Rápidas:</label
+                    >
+                    <div class="flex gap-2 flex-wrap">
+                        <p-button
+                            label="2x"
+                            size="small"
+                            severity="secondary"
+                            (click)="setSpeed(2)"
+                            [outlined]="speedMultiplier !== 2"
+                        ></p-button>
+                        <p-button
+                            label="5x"
+                            size="small"
+                            severity="secondary"
+                            (click)="setSpeed(5)"
+                            [outlined]="speedMultiplier !== 5"
+                        ></p-button>
+                        <p-button
+                            label="10x"
+                            size="small"
+                            severity="secondary"
+                            (click)="setSpeed(10)"
+                            [outlined]="speedMultiplier !== 10"
+                        ></p-button>
+                        <p-button
+                            label="20x"
+                            size="small"
+                            severity="secondary"
+                            (click)="setSpeed(20)"
+                            [outlined]="speedMultiplier !== 20"
+                        ></p-button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controles adicionales durante reproducción -->
+            <div class="grid" *ngIf="isPlaying">
+                <!-- Checkbox para centrar mapa -->
+                <div class="col-12 md:col-6">
+                    <p-checkbox
+                        [(ngModel)]="shouldCenter"
+                        binary="true"
+                        inputId="centerMap"
+                        label="Seguir vehículo con la cámara"
+                    ></p-checkbox>
+                </div>
+
+                <!-- Botón de pausa/reanudar -->
+                <div class="col-12 md:col-6">
+                    <p-button
+                        [label]="isPaused ? 'Reanudar' : 'Pausar'"
+                        [icon]="isPaused ? 'pi pi-play' : 'pi pi-pause'"
+                        severity="info"
+                        (click)="togglePause()"
+                        [style]="{ width: '100%' }"
+                    ></p-button>
+                </div>
+            </div>
+
+            <!-- Información sobre la reproducción -->
+            <div class="mt-3 p-3 bg-blue-50 border-round" *ngIf="isPlaying">
+                <div class="flex align-items-center">
+                    <i class="pi pi-info-circle text-blue-500 mr-2"></i>
+                    <small class="text-blue-700">
+                        La reproducción muestra el recorrido real del vehículo
+                        basado en datos GPS. Los segmentos se resaltan conforme
+                        avanza la reproducción.
+                    </small>
+                </div>
+            </div>
+        </p-card>
+    </div>
+</div>
+
+<!-- Información de carga -->
+<div class="text-center p-4" *ngIf="loadingRuta">
+    <p-progressSpinner></p-progressSpinner>
+    <p class="mt-2 text-gray-600">Cargando información de la ruta...</p>
+</div>
+
+<!-- Tabla de puntos de recolección -->
+<p-card
+    *ngIf="table.length > 0"
+    header="Puntos de Recolección"
+    [subheader]="'Total de puntos registrados: ' + table.length"
+    [style]="{ width: 'auto' }"
+    styleClass="p-fluid mb-4"
+>
+    <p-table
+        [value]="table"
+        [scrollable]="true"
+        scrollHeight="400px"
+        [tableStyle]="{ 'min-width': 'auto' }"
+        responsiveLayout="scroll"
+        [paginator]="table.length > 10"
+        [rows]="10"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} puntos"
+    >
+        <ng-template pTemplate="header">
+            <tr>
+                <th style="width: 4rem">N°</th>
+                <th>Tipo</th>
+                <th>Latitud</th>
+                <th>Longitud</th>
+                <th>Fecha y Hora</th>
+                <th style="width: 8rem">Acciones</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-location let-i="rowIndex">
+            <tr
+                [ngClass]="{ 'highlight-row': location.retorno }"
+                [pTooltip]="
+                    location.retorno
+                        ? 'Este es un punto de retorno a la estación'
+                        : 'Punto de recolección normal'
+                "
+                tooltipPosition="top"
+            >
+                <td>
+                    <span class="font-semibold">{{ i + 1 }}</span>
+                </td>
+                <td>
+                    <div class="flex align-items-center gap-2">
+                        <i
+                            [class]="
+                                location.retorno
+                                    ? 'pi pi-home text-orange-500'
+                                    : 'pi pi-map-marker text-green-500'
+                            "
+                        ></i>
+                        <span
+                            [class]="
+                                location.retorno
+                                    ? 'text-orange-600 font-medium'
+                                    : 'text-green-600'
+                            "
+                        >
+                            {{ location.retorno ? "Retorno" : "Recolección" }}
+                        </span>
+                    </div>
+                </td>
+                <td>
+                    <code class="text-sm">{{
+                        location.lat | number : "1.6-6"
+                    }}</code>
+                </td>
+                <td>
+                    <code class="text-sm">{{
+                        location.lng | number : "1.6-6"
+                    }}</code>
+                </td>
+                <td>
+                    <div class="text-sm">
+                        <div>
+                            {{ location.timestamp | date : "dd/MM/yyyy" }}
+                        </div>
+                        <div class="text-gray-500">
+                            {{ location.timestamp | date : "HH:mm:ss" }}
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="flex gap-1">
+                        <p-button
+                            icon="pi pi-eye"
+                            size="small"
+                            severity="info"
+                            [outlined]="true"
+                            pTooltip="Ver en mapa"
+                            tooltipPosition="top"
+                            (click)="getMarker(i)"
+                        ></p-button>
+                        <a
+                            [href]="
+                                'https://www.google.com/maps/dir/?api=1&destination=' +
+                                location.lat +
+                                ',' +
+                                location.lng
+                            "
+                            target="_blank"
+                            class="p-button p-button-outlined p-button-sm p-button-success"
+                            pTooltip="Abrir en Google Maps"
+                            tooltipPosition="top"
+                        >
+                            <i class="pi pi-external-link"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="6" class="text-center">
+                    <div class="p-4">
+                        <i class="pi pi-map text-4xl text-gray-400 mb-3"></i>
+                        <h6 class="text-gray-600">
+                            No hay puntos de recolección registrados
+                        </h6>
+                        <p class="text-gray-500 text-sm">
+                            Los puntos aparecerán aquí cuando se registren en el
+                            sistema
+                        </p>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+</p-card>
+
+<!-- Tabla de datos GPS completos -->
+<p-card
+    *ngIf="ruta && ruta.ruta && ruta.ruta.length > 0"
+    header="Datos GPS Detallados"
+    [subheader]="'Registro completo del GPS: ' + ruta.ruta.length + ' puntos'"
+    [style]="{ width: 'auto' }"
+    styleClass="p-fluid"
+>
+    <p-table
+        [value]="ruta.ruta"
+        [scrollable]="true"
+        scrollHeight="400px"
+        [tableStyle]="{ 'min-width': 'auto' }"
+        responsiveLayout="scroll"
+        [paginator]="true"
+        [rows]="15"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros GPS"
+        [globalFilterFields]="['latitude', 'longitude', 'speed', 'fixTime']"
+    >
+        <ng-template pTemplate="caption">
+            <div class="flex justify-content-between align-items-center">
+                <span class="text-lg font-semibold"
+                    >Trazabilidad GPS Completa</span
+                >
+                <span class="p-input-icon-left">
+                    <i class="pi pi-search"></i>
+                    <input
+                        pInputText
+                        type="text"
+                        placeholder="Buscar en registros GPS..."
+                        (input)="$any($event.target).value"
+                    />
+                </span>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th style="width: 4rem">N°</th>
+                <th>Válido</th>
+                <th>Latitud</th>
+                <th>Longitud</th>
+                <th>Altitud</th>
+                <th>Velocidad</th>
+                <th>Fecha y Hora GPS</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-location let-i="rowIndex">
+            <tr>
+                <td>
+                    <span class="font-mono text-sm">{{ i + 1 }}</span>
+                </td>
+                <td>
+                    <p-tag
+                        [value]="location.valid ? 'Sí' : 'No'"
+                        [severity]="location.valid ? 'success' : 'warning'"
+                        [icon]="
+                            location.valid
+                                ? 'pi pi-check'
+                                : 'pi pi-exclamation-triangle'
+                        "
+                    ></p-tag>
+                </td>
+                <td>
+                    <code class="text-xs">{{
+                        location.latitude | number : "1.6-6"
+                    }}</code>
+                </td>
+                <td>
+                    <code class="text-xs">{{
+                        location.longitude | number : "1.6-6"
+                    }}</code>
+                </td>
+                <td>
+                    <span class="text-sm">
+                        {{
+                            location.altitude
+                                ? (location.altitude | number : "1.1-1") + " m"
+                                : "N/A"
+                        }}
+                    </span>
+                </td>
+                <td>
+                    <div class="flex align-items-center gap-2">
+                        <i class="pi pi-gauge text-blue-500"></i>
+                        <span class="font-medium"
+                            >{{ location.speed | number : "1.1-1" }} km/h</span
+                        >
+                    </div>
+                </td>
+                <td>
+                    <div class="text-sm">
+                        <div class="font-medium">
+                            {{ location.fixTime | date : "dd/MM/yyyy" }}
+                        </div>
+                        <div class="text-gray-500">
+                            {{ location.fixTime | date : "HH:mm:ss" }}
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="7" class="text-center">
+                    <div class="p-4">
+                        <i
+                            class="pi pi-satellite text-4xl text-gray-400 mb-3"
+                        ></i>
+                        <h6 class="text-gray-600">
+                            No hay datos GPS disponibles
+                        </h6>
+                        <p class="text-gray-500 text-sm">
+                            Intenta actualizar la ruta para obtener los datos
+                            más recientes
+                        </p>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+</p-card>
+
+<!-- Mensaje cuando no hay datos -->
+<div class="text-center p-5" *ngIf="!loadingRuta && !ruta">
+    <i class="pi pi-map text-6xl text-gray-300 mb-4"></i>
+    <h4 class="text-gray-600 mb-2">No se pudo cargar la ruta</h4>
+    <p class="text-gray-500 mb-4">
+        Verifica que el ID de la ruta sea correcto o que tengas los permisos
+        necesarios
+    </p>
+    <p-button
+        label="Intentar de nuevo"
+        icon="pi pi-refresh"
+        (click)="getRuta()"
+        [loading]="loadingRuta"
+    ></p-button>
+</div>

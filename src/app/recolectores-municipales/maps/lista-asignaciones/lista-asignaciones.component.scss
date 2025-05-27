@@ -1,0 +1,295 @@
+/* lista-asignaciones.component.scss */
+
+// Variables de colores
+$primary-color: #2196f3;
+$success-color: #4caf50;
+$warning-color: #ff9800;
+$danger-color: #f44336;
+$gray-light: #f5f5f5;
+$gray-medium: #9e9e9e;
+$gray-dark: #424242;
+
+// Contenedor principal del mapa
+.map-container {
+    position: relative;
+
+    h2 {
+        color: $gray-dark;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+
+        i {
+            margin-right: 0.5rem;
+            color: $primary-color;
+        }
+    }
+
+    .card {
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e0e0e0;
+        overflow: hidden;
+
+        // Asegurar que el mapa ocupe todo el espacio
+        #map-lista-asignaciones {
+            width: 100%;
+            height: 100%;
+            min-height: 50vh;
+            border-radius: 12px;
+        }
+    }
+}
+
+// Estilos para filtros
+.grid.p-fluid {
+    .p-multiselect {
+        .p-multiselect-label {
+            font-size: 0.9rem;
+            color: $gray-dark;
+        }
+    }
+}
+
+// Botones de acción
+.flex.justify-content-between {
+    .p-button {
+        &.p-button-outlined {
+            border-color: $primary-color;
+            color: $primary-color;
+
+            &:hover {
+                background-color: $primary-color;
+                color: white;
+            }
+        }
+    }
+}
+
+// Estilos para la tabla
+.p-table {
+    .p-table-header {
+        background-color: $gray-light;
+        border-bottom: 2px solid $primary-color;
+
+        th {
+            font-weight: 600;
+            color: $gray-dark;
+            padding: 1rem 0.75rem;
+
+            .p-sortable-column-icon {
+                color: $primary-color;
+            }
+        }
+    }
+
+    .p-table-tbody {
+        tr {
+            transition: background-color 0.2s ease;
+
+            &:hover {
+                background-color: rgba($primary-color, 0.05);
+            }
+
+            td {
+                padding: 0.75rem;
+                border-bottom: 1px solid #eee;
+
+                // Estilos específicos para diferentes tipos de contenido
+                .font-semibold {
+                    color: $gray-dark;
+                    font-weight: 600;
+                }
+
+                .text-sm {
+                    font-size: 0.875rem;
+                }
+
+                .text-gray-600 {
+                    color: $gray-medium;
+                }
+
+                .text-gray-500 {
+                    color: lighten($gray-medium, 10%);
+                }
+
+                // Estilos para indicadores de puntos
+                .pi-map-marker {
+                    &.text-green-500 {
+                        color: $success-color;
+                    }
+
+                    &.text-gray-400 {
+                        color: lighten($gray-medium, 20%);
+                    }
+                }
+
+                .text-green-600 {
+                    color: darken($success-color, 10%);
+                    font-weight: 500;
+                }
+
+                // Botones de acción
+                .p-button {
+                    &.p-button-rounded.p-button-outlined {
+                        width: 2rem;
+                        height: 2rem;
+
+                        &.p-button-sm {
+                            width: 1.75rem;
+                            height: 1.75rem;
+                        }
+
+                        &:hover {
+                            transform: scale(1.1);
+                            transition: transform 0.2s ease;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Mensaje cuando no hay datos
+    .p-table-emptymessage {
+        td {
+            text-align: center;
+            padding: 2rem;
+
+            .flex.flex-column {
+                .pi-search {
+                    color: lighten($gray-medium, 20%);
+                    margin-bottom: 1rem;
+                }
+
+                h6 {
+                    color: $gray-medium;
+                    margin-bottom: 0.5rem;
+                }
+
+                p {
+                    color: lighten($gray-medium, 10%);
+                    font-size: 0.875rem;
+                }
+            }
+        }
+    }
+}
+
+// Estilos para el paginador
+.p-paginator {
+    background-color: $gray-light;
+    border-top: 1px solid #e0e0e0;
+    padding: 0.75rem 1rem;
+
+    .p-paginator-left {
+        .p-button.p-button-text {
+            color: $primary-color;
+
+            &:hover {
+                background-color: rgba($primary-color, 0.1);
+            }
+        }
+    }
+
+    .p-paginator-right {
+        .text-muted {
+            color: $gray-medium;
+            font-size: 0.875rem;
+
+            .pi-info-circle {
+                margin-left: 0.5rem;
+                color: $primary-color;
+            }
+        }
+    }
+}
+
+// Estilos para mensajes informativos
+.p-message {
+    &.p-message-info {
+        background-color: rgba($primary-color, 0.1);
+        border-color: $primary-color;
+        color: darken($primary-color, 20%);
+        border-radius: 8px;
+
+        .p-message-wrapper {
+            padding: 1rem;
+
+            .p-message-icon {
+                color: $primary-color;
+            }
+        }
+    }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+    .map-container {
+        .card {
+            margin-left: -1rem !important;
+            margin-right: -1rem !important;
+        }
+    }
+
+    .grid.p-fluid {
+        .col-12.md\\:col-4 {
+            margin-bottom: 0.5rem;
+        }
+    }
+
+    .p-table {
+        font-size: 0.875rem;
+
+        th,
+        td {
+            padding: 0.5rem 0.25rem;
+        }
+    }
+}
+
+// Animaciones
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.p-table-tbody tr {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+// Tooltips personalizados
+.p-tooltip {
+    .p-tooltip-text {
+        background-color: $gray-dark;
+        color: white;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        padding: 0.5rem 0.75rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .p-tooltip-arrow {
+        border-top-color: $gray-dark;
+    }
+}
+
+// Estados de carga
+.p-table[aria-busy="true"] {
+    .p-table-loading-overlay {
+        background-color: rgba(255, 255, 255, 0.8);
+
+        .p-table-loading-icon {
+            font-size: 2rem;
+            color: $primary-color;
+        }
+    }
+}

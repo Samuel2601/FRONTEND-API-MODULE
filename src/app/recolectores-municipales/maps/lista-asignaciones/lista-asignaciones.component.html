@@ -1,0 +1,249 @@
+<!-- lista-asignaciones.component.html -->
+<p-toast></p-toast>
+
+<!-- Contenedor del mapa -->
+<div class="map-container mb-5">
+    <h2>Vista General de Asignaciones</h2>
+    <div
+        class="card"
+        id="map-lista-asignaciones"
+        style="min-height: 50vh; margin-left: -18px; margin-right: -18px"
+    ></div>
+</div>
+
+<!-- Sección de filtros -->
+<div
+    class="grid p-fluid mb-3"
+    *ngIf="check_create && arr_asignacion.length > 0"
+>
+    <div class="col-12 md:col-4">
+        <p-multiSelect
+            [options]="fechasUnicas"
+            [(ngModel)]="selectedFechas"
+            defaultLabel="Filtrar por Fecha"
+            optionLabel="label"
+            [showToggleAll]="true"
+            [filter]="true"
+            (onChange)="aplicarFiltros()"
+        >
+        </p-multiSelect>
+    </div>
+    <div class="col-12 md:col-4">
+        <p-multiSelect
+            [options]="externosUnicos"
+            [(ngModel)]="selectedExternos"
+            defaultLabel="Filtrar por Externo"
+            optionLabel="label"
+            [showToggleAll]="true"
+            [filter]="true"
+            (onChange)="aplicarFiltros()"
+        >
+        </p-multiSelect>
+    </div>
+    <div class="col-12 md:col-4">
+        <p-multiSelect
+            [options]="devicesUnicos"
+            [(ngModel)]="selectedDevices"
+            defaultLabel="Filtrar por Dispositivo"
+            optionLabel="label"
+            [showToggleAll]="true"
+            [filter]="true"
+            (onChange)="aplicarFiltros()"
+        >
+        </p-multiSelect>
+    </div>
+</div>
+
+<!-- Botones de acción -->
+<div class="flex justify-content-between mb-3">
+    <button
+        pButton
+        label="Limpiar Filtros"
+        icon="pi pi-filter-slash"
+        class="p-button-outlined"
+        (click)="limpiarFiltros()"
+    ></button>
+
+    <button
+        pButton
+        label="Actualizar Lista"
+        icon="pi pi-refresh"
+        class="p-button-outlined"
+        (click)="refreshList()"
+        [loading]="load_list"
+    ></button>
+</div>
+
+<!-- Tabla de asignaciones -->
+<p-table
+    #dt
+    [value]="asignacionesFiltradas"
+    [loading]="load_list"
+    responsiveLayout="scroll"
+    [globalFilterFields]="[
+        'deviceId',
+        'externo.name',
+        'externo.dni',
+        'createdAt'
+    ]"
+    [paginator]="true"
+    [rows]="10"
+    [showCurrentPageReport]="true"
+    [rowsPerPageOptions]="[5, 10, 25, 50]"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+    [tableStyle]="{ 'min-width': '100%' }"
+>
+    <!-- Encabezado de la tabla con búsqueda -->
+    <ng-template pTemplate="caption">
+        <div class="flex justify-content-between align-items-center">
+            <h5 class="m-0">Lista de Asignaciones de Recolección</h5>
+            <span class="p-input-icon-left">
+                <i class="pi pi-search"></i>
+                <input
+                    pInputText
+                    type="text"
+                    placeholder="Buscar en la tabla..."
+                    (input)="
+                        dt.filterGlobal($any($event.target).value, 'contains')
+                    "
+                />
+            </span>
+        </div>
+    </ng-template>
+
+    <!-- Encabezados de las columnas -->
+    <ng-template pTemplate="header">
+        <tr>
+            <th style="width: 3rem">#</th>
+            <th pSortableColumn="createdAt">
+                Fecha
+                <p-sortIcon field="createdAt"></p-sortIcon>
+            </th>
+            <th pSortableColumn="deviceId">
+                Dispositivo
+                <p-sortIcon field="deviceId"></p-sortIcon>
+            </th>
+            <th pSortableColumn="externo.name">
+                Externo
+                <p-sortIcon field="externo.name"></p-sortIcon>
+            </th>
+            <th>DNI</th>
+            <th>Puntos de Recolección</th>
+            <th style="width: 8rem">Acciones</th>
+        </tr>
+    </ng-template>
+
+    <!-- Filas de datos -->
+    <ng-template pTemplate="body" let-item let-i="rowIndex">
+        <tr>
+            <td>{{ i + 1 }}</td>
+            <td>{{ item.createdAt | date : "dd/MM/yyyy HH:mm" }}</td>
+            <td>
+                <span class="font-semibold">{{ item.deviceId }}</span>
+            </td>
+            <td>
+                <div class="flex align-items-center">
+                    <i class="pi pi-user mr-2 text-blue-500"></i>
+                    {{ item.externo?.name }}
+                </div>
+            </td>
+            <td>
+                <span class="text-sm text-gray-600">{{
+                    item.externo?.dni
+                }}</span>
+            </td>
+            <td>
+                <div class="flex align-items-center">
+                    <i
+                        class="pi pi-map-marker mr-2"
+                        [class]="
+                            item.puntos_recoleccion.length > 0
+                                ? 'text-green-500'
+                                : 'text-gray-400'
+                        "
+                    ></i>
+                    <span
+                        [class]="
+                            item.puntos_recoleccion.length > 0
+                                ? 'font-semibold text-green-600'
+                                : 'text-gray-500'
+                        "
+                    >
+                        {{
+                            item.puntos_recoleccion.length > 0
+                                ? item.puntos_recoleccion.length
+                                : "Sin Registro"
+                        }}
+                    </span>
+                </div>
+            </td>
+            <td>
+                <div class="flex gap-2">
+                    <button
+                        pButton
+                        icon="pi pi-eye"
+                        class="p-button-rounded p-button-outlined p-button-sm"
+                        pTooltip="Ver detalle de ruta"
+                        tooltipPosition="top"
+                        (click)="verDetalleRuta(item._id)"
+                    ></button>
+                </div>
+            </td>
+        </tr>
+    </ng-template>
+
+    <!-- Mensaje cuando no hay datos -->
+    <ng-template pTemplate="emptymessage">
+        <tr>
+            <td colspan="7" class="text-center">
+                <div
+                    class="flex flex-column align-items-center justify-content-center p-4"
+                >
+                    <i class="pi pi-search text-4xl text-gray-400 mb-3"></i>
+                    <h6 class="text-gray-600 mb-2">
+                        No se encontraron asignaciones
+                    </h6>
+                    <p class="text-gray-500 text-sm">
+                        Intenta ajustar los filtros o crear una nueva asignación
+                    </p>
+                </div>
+            </td>
+        </tr>
+    </ng-template>
+
+    <!-- Controles del paginador -->
+    <ng-template pTemplate="paginatorleft">
+        <button
+            pButton
+            type="button"
+            icon="pi pi-refresh"
+            class="p-button-text"
+            pTooltip="Actualizar lista"
+            (click)="refreshList()"
+        ></button>
+    </ng-template>
+
+    <ng-template pTemplate="paginatorright">
+        <div class="flex align-items-center gap-2">
+            <span class="text-muted text-sm">
+                Total: {{ asignacionesFiltradas.length }} registros
+            </span>
+            <i
+                class="pi pi-info-circle text-blue-500"
+                pTooltip="Haz clic en el ícono del ojo para ver los detalles de cada ruta"
+            ></i>
+        </div>
+    </ng-template>
+</p-table>
+
+<!-- Información adicional cuando no hay permisos -->
+<div
+    *ngIf="!check_create && arr_asignacion.length === 0"
+    class="text-center p-4"
+>
+    <p-message
+        severity="info"
+        text="No tienes permisos para ver las asignaciones o no hay asignaciones disponibles en este momento."
+    >
+    </p-message>
+</div>

@@ -8,12 +8,13 @@ import { ListService } from 'src/app/demo/services/list.service';
 import { AgregarRecolectorComponent } from '../agregar-recolector/agregar-recolector.component';
 import { App } from '@capacitor/app';
 import { UbicacionService } from '../service/ubicacion.service';
-import { AgregarUbicacionRecolectoresComponent } from '../agregar-ubicacion-recolectores/agregar-ubicacion-recolectores.component';
+//import { AgregarUbicacionRecolectoresComponent } from '../agregar-ubicacion-recolectores/agregar-ubicacion-recolectores.component';
 import { DeleteService } from 'src/app/demo/services/delete.service';
 import { GLOBAL } from '../../demo/services/GLOBAL';
 import { FilterService } from 'src/app/demo/services/filter.service';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ImportsModule } from 'src/app/demo/services/import';
+import { DetalleRutaComponent } from '../maps/detalle-ruta/detalle-ruta.component';
 
 @Component({
     selector: 'app-listar-recolectores',
@@ -159,22 +160,19 @@ export class ListarRecolectoresComponent implements OnInit {
         if (this.helper.isMobil()) {
             this.router.navigate(['/recolectores/map/' + register._id]);
         } else {
-            this.ref = this.dialogService.open(
-                AgregarUbicacionRecolectoresComponent,
-                {
-                    header:
-                        'Seguimiento de ruta del vehiculo: ' +
-                        this.getDeviceGPS(register.deviceId) +
-                        ' a cargo de: ' +
-                        (register.externo
-                            ? register.externo.name
-                            : register.funcionario.name +
-                              ' ' +
-                              register.funcionario.last_name),
-                    width: '90vw',
-                    data: { id: register._id },
-                }
-            );
+            this.ref = this.dialogService.open(DetalleRutaComponent, {
+                header:
+                    'Seguimiento de ruta del vehiculo: ' +
+                    this.getDeviceGPS(register.deviceId) +
+                    ' a cargo de: ' +
+                    (register.externo
+                        ? register.externo.name
+                        : register.funcionario.name +
+                          ' ' +
+                          register.funcionario.last_name),
+                width: '90vw',
+                data: { id: register._id },
+            });
             App.addListener('backButton', (data) => {
                 this.ref.close();
             });

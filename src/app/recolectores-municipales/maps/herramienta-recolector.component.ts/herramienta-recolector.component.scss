@@ -1,0 +1,957 @@
+/* herramienta-recolector.component.scss */
+
+// Variables de colores
+$primary-color: #2196f3;
+$success-color: #4caf50;
+$warning-color: #ff9800;
+$danger-color: #f44336;
+$info-color: #00bcd4;
+$purple-color: #9c27b0;
+$green-color: #4caf50;
+$blue-color: #2196f3;
+$orange-color: #ff9800;
+$gray-light: #f5f5f5;
+$gray-medium: #9e9e9e;
+$gray-dark: #424242;
+
+// Encabezado de asignación
+.assignment-header {
+    background: linear-gradient(
+        135deg,
+        lighten($green-color, 45%) 0%,
+        lighten($blue-color, 40%) 100%
+    );
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid rgba($green-color, 0.2);
+    box-shadow: 0 2px 12px rgba($green-color, 0.1);
+
+    .flex.justify-content-between {
+        align-items: flex-start;
+
+        div:first-child {
+            h2 {
+                color: darken($green-color, 10%);
+                margin-bottom: 0.75rem;
+                display: flex;
+                align-items: center;
+                font-weight: 700;
+
+                .pi-truck {
+                    font-size: 1.2em;
+                    color: $green-color;
+                }
+            }
+
+            p {
+                color: $gray-dark;
+                margin-bottom: 0.5rem;
+                font-size: 0.9rem;
+
+                strong {
+                    color: darken($gray-dark, 10%);
+                }
+
+                .pi-calendar {
+                    color: $blue-color;
+                }
+            }
+        }
+
+        .text-right {
+            .p-tag {
+                font-size: 0.875rem;
+                padding: 0.5rem 1rem;
+                border-radius: 20px;
+                font-weight: 600;
+
+                &[severity="success"] {
+                    background-color: $success-color;
+                    color: white;
+                    box-shadow: 0 2px 8px rgba($success-color, 0.3);
+                }
+
+                &[severity="secondary"] {
+                    background-color: $gray-medium;
+                    color: white;
+                }
+            }
+        }
+    }
+}
+
+// Contenedor del mapa
+.map-container {
+    position: relative;
+    margin-bottom: 1.5rem;
+
+    .card {
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        border: 1px solid #e0e0e0;
+        overflow: hidden;
+
+        #map-herramienta-recolector {
+            width: 100%;
+            height: 100%;
+            min-height: 50vh;
+            border-radius: 12px;
+        }
+    }
+}
+
+// Panel de seguimiento automático
+.tracking-panel {
+    .p-card {
+        border-radius: 12px;
+        box-shadow: 0 3px 15px rgba($blue-color, 0.1);
+        border: 2px solid rgba($blue-color, 0.1);
+        overflow: hidden;
+
+        .p-card-header {
+            background: linear-gradient(
+                135deg,
+                $blue-color 0%,
+                lighten($blue-color, 10%) 100%
+            );
+            color: white;
+            font-weight: 600;
+            padding: 1.25rem 1.5rem;
+
+            .p-card-title {
+                font-size: 1.1rem;
+            }
+
+            .p-card-subtitle {
+                opacity: 0.9;
+                font-size: 0.9rem;
+            }
+        }
+
+        .p-card-content {
+            padding: 1.5rem;
+        }
+
+        // Estado del tracking
+        .text-center {
+            .p-tag {
+                font-size: 1rem;
+                padding: 0.75rem 1.5rem;
+                border-radius: 25px;
+                font-weight: 600;
+                letter-spacing: 0.5px;
+
+                &[severity="success"] {
+                    background: linear-gradient(
+                        135deg,
+                        $success-color 0%,
+                        lighten($success-color, 10%) 100%
+                    );
+                    color: white;
+                    box-shadow: 0 3px 12px rgba($success-color, 0.3);
+                }
+
+                &[severity="secondary"] {
+                    background: linear-gradient(
+                        135deg,
+                        $gray-medium 0%,
+                        lighten($gray-medium, 10%) 100%
+                    );
+                    color: white;
+                }
+            }
+        }
+
+        // Botón principal
+        .p-button {
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+
+            &[severity="success"] {
+                background: linear-gradient(
+                    135deg,
+                    $success-color 0%,
+                    darken($success-color, 5%) 100%
+                );
+                border: none;
+
+                &:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba($success-color, 0.4);
+                }
+            }
+
+            &[severity="warning"] {
+                background: linear-gradient(
+                    135deg,
+                    $warning-color 0%,
+                    darken($warning-color, 5%) 100%
+                );
+                border: none;
+
+                &:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba($warning-color, 0.4);
+                }
+            }
+        }
+
+        // Sección informativa
+        .info-section {
+            .bg-blue-50 {
+                background: linear-gradient(
+                    135deg,
+                    rgba($blue-color, 0.05) 0%,
+                    rgba($blue-color, 0.08) 100%
+                );
+                border: 1px solid rgba($blue-color, 0.15);
+                border-radius: 10px;
+
+                .text-blue-500 {
+                    color: $blue-color;
+                }
+
+                .text-blue-700 {
+                    color: darken($blue-color, 15%);
+
+                    .font-medium {
+                        font-weight: 600;
+                    }
+
+                    ul {
+                        margin: 0.5rem 0 0 0;
+
+                        li {
+                            margin-bottom: 0.25rem;
+                            line-height: 1.4;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Indicadores de rendimiento
+        .grid {
+            .col-6 {
+                .text-center {
+                    transition: transform 0.2s ease;
+
+                    &:hover {
+                        transform: translateY(-2px);
+                    }
+
+                    &.bg-green-50 {
+                        background: linear-gradient(
+                            135deg,
+                            rgba($green-color, 0.08) 0%,
+                            rgba($green-color, 0.12) 100%
+                        );
+                        border: 1px solid rgba($green-color, 0.2);
+
+                        .text-green-500 {
+                            color: $green-color;
+                        }
+
+                        .text-green-700 {
+                            color: darken($green-color, 15%);
+                        }
+
+                        .text-green-600 {
+                            color: darken($green-color, 10%);
+                        }
+                    }
+
+                    &.bg-blue-50 {
+                        background: linear-gradient(
+                            135deg,
+                            rgba($blue-color, 0.08) 0%,
+                            rgba($blue-color, 0.12) 100%
+                        );
+                        border: 1px solid rgba($blue-color, 0.2);
+
+                        .text-blue-500 {
+                            color: $blue-color;
+                        }
+
+                        .text-blue-700 {
+                            color: darken($blue-color, 15%);
+                        }
+
+                        .text-blue-600 {
+                            color: darken($blue-color, 10%);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Panel de modo conducción
+.driving-mode-panel {
+    .p-card {
+        border-radius: 12px;
+        box-shadow: 0 3px 15px rgba($purple-color, 0.1);
+        border: 2px solid rgba($purple-color, 0.1);
+
+        .p-card-header {
+            background: linear-gradient(
+                135deg,
+                $purple-color 0%,
+                lighten($purple-color, 10%) 100%
+            );
+            color: white;
+            font-weight: 600;
+            padding: 1.25rem 1.5rem;
+        }
+
+        .p-card-content {
+            padding: 1.5rem;
+        }
+
+        .p-button {
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+
+            &[severity="help"] {
+                background: linear-gradient(
+                    135deg,
+                    $purple-color 0%,
+                    darken($purple-color, 5%) 100%
+                );
+                border: none;
+
+                &:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba($purple-color, 0.4);
+                }
+            }
+
+            &[severity="info"] {
+                background: linear-gradient(
+                    135deg,
+                    $info-color 0%,
+                    darken($info-color, 5%) 100%
+                );
+                border: none;
+
+                &:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba($info-color, 0.4);
+                }
+            }
+        }
+
+        .bg-purple-50 {
+            background: linear-gradient(
+                135deg,
+                rgba($purple-color, 0.05) 0%,
+                rgba($purple-color, 0.08) 100%
+            );
+            border: 1px solid rgba($purple-color, 0.15);
+            border-radius: 10px;
+
+            .text-purple-500 {
+                color: $purple-color;
+            }
+
+            .text-purple-700 {
+                color: darken($purple-color, 15%);
+            }
+        }
+    }
+}
+
+// Herramientas de trabajo
+.work-tools {
+    .p-card {
+        border-radius: 12px;
+        box-shadow: 0 3px 15px rgba($green-color, 0.1);
+        border: 2px solid rgba($green-color, 0.1);
+
+        .p-card-header {
+            background: linear-gradient(
+                135deg,
+                $green-color 0%,
+                lighten($green-color, 10%) 100%
+            );
+            color: white;
+            font-weight: 600;
+            padding: 1.25rem 1.5rem;
+        }
+
+        .p-card-content {
+            padding: 1.5rem;
+        }
+
+        .p-button {
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+
+            &[severity="success"] {
+                background: linear-gradient(
+                    135deg,
+                    $success-color 0%,
+                    darken($success-color, 5%) 100%
+                );
+
+                &:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba($success-color, 0.4);
+                }
+            }
+
+            &[severity="warning"] {
+                background: linear-gradient(
+                    135deg,
+                    $warning-color 0%,
+                    darken($warning-color, 5%) 100%
+                );
+
+                &:hover:not(:disabled) {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba($warning-color, 0.4);
+                }
+
+                &:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                }
+            }
+
+            &[severity="info"] {
+                background: linear-gradient(
+                    135deg,
+                    $info-color 0%,
+                    darken($info-color, 5%) 100%
+                );
+
+                &:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba($info-color, 0.4);
+                }
+            }
+        }
+
+        // Temporizador de retorno
+        .text-center.mt-2 {
+            small {
+                background-color: rgba($orange-color, 0.1);
+                color: darken($orange-color, 10%);
+                padding: 0.5rem 1rem;
+                border-radius: 20px;
+                font-weight: 500;
+
+                .pi-clock {
+                    color: $orange-color;
+                }
+            }
+        }
+    }
+}
+
+// Sección de finalizar turno
+.end-shift-section {
+    .p-card {
+        border-radius: 12px;
+        box-shadow: 0 3px 15px rgba($gray-medium, 0.1);
+        border: 2px solid rgba($gray-medium, 0.1);
+
+        .p-button {
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: linear-gradient(
+                135deg,
+                $gray-medium 0%,
+                darken($gray-medium, 5%) 100%
+            );
+            border: none;
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba($gray-medium, 0.3);
+            }
+        }
+
+        .text-center.mt-2 {
+            small {
+                color: $gray-medium;
+
+                .pi-info-circle {
+                    color: $blue-color;
+                }
+            }
+        }
+    }
+}
+
+// Mensaje de seguimiento inactivo
+.inactive-tracking-message {
+    .p-message {
+        border-radius: 12px;
+        border: 1px solid rgba($blue-color, 0.2);
+        background: linear-gradient(
+            135deg,
+            rgba($blue-color, 0.05) 0%,
+            rgba($blue-color, 0.08) 100%
+        );
+
+        .p-message-wrapper {
+            .p-message-icon {
+                color: $blue-color;
+            }
+
+            .p-message-summary,
+            .p-message-detail {
+                color: darken($blue-color, 15%);
+            }
+        }
+
+        .flex.align-items-center {
+            .pi-lightbulb {
+                color: $blue-color;
+                font-size: 1.2rem;
+            }
+        }
+    }
+}
+
+// Sección sin asignación
+.no-assignment-section {
+    .p-card {
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba($orange-color, 0.1);
+        border: 2px solid rgba($orange-color, 0.1);
+        text-align: center;
+
+        .pi-exclamation-triangle {
+            color: lighten($orange-color, 10%);
+            margin-bottom: 1.5rem;
+        }
+
+        h4 {
+            color: $gray-dark;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            color: $gray-medium;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .flex.flex-column {
+            align-items: center;
+
+            .p-button {
+                border-radius: 10px;
+                font-weight: 600;
+                background: linear-gradient(
+                    135deg,
+                    $info-color 0%,
+                    darken($info-color, 5%) 100%
+                );
+                border: none;
+                transition: all 0.3s ease;
+
+                &:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba($info-color, 0.4);
+                }
+            }
+
+            small {
+                color: $gray-medium;
+                font-style: italic;
+            }
+        }
+    }
+}
+
+// Indicador de carga
+.loading-section {
+    .p-progress-spinner {
+        .p-progress-spinner-circle {
+            stroke: $blue-color;
+        }
+    }
+
+    p {
+        color: $gray-medium;
+        font-style: italic;
+        margin-top: 1rem;
+    }
+}
+
+// Tabla de puntos registrados
+.p-card:has(.p-table) {
+    border-radius: 12px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+
+    .p-table {
+        .p-table-header {
+            background-color: $gray-light;
+
+            th {
+                font-weight: 600;
+                color: $gray-dark;
+                padding: 1rem 0.75rem;
+                border-bottom: 2px solid $green-color;
+            }
+        }
+
+        .p-table-tbody {
+            tr {
+                transition: all 0.2s ease;
+
+                &:hover {
+                    background-color: rgba($green-color, 0.05);
+                    transform: translateX(2px);
+                }
+
+                &.highlight-row {
+                    background-color: rgba($orange-color, 0.1);
+                    border-left: 4px solid $orange-color;
+
+                    &:hover {
+                        background-color: rgba($orange-color, 0.15);
+                    }
+                }
+
+                td {
+                    padding: 0.75rem;
+                    border-bottom: 1px solid #f0f0f0;
+
+                    .pi-home.text-orange-500 {
+                        color: $orange-color;
+                    }
+
+                    .pi-map-marker.text-green-500 {
+                        color: $green-color;
+                    }
+
+                    .text-orange-600 {
+                        color: darken($orange-color, 10%);
+
+                        &.font-medium {
+                            font-weight: 500;
+                        }
+                    }
+
+                    .text-green-600 {
+                        color: darken($green-color, 10%);
+                    }
+
+                    .text-gray-500 {
+                        color: $gray-medium;
+                    }
+
+                    .p-button {
+                        &.p-button-outlined {
+                            border-color: $info-color;
+                            color: $info-color;
+                            transition: all 0.2s ease;
+
+                            &:hover {
+                                background-color: $info-color;
+                                color: white;
+                                transform: scale(1.05);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .p-table-emptymessage {
+            td {
+                text-align: center;
+                padding: 3rem 1rem;
+
+                .pi-map {
+                    color: lighten($gray-medium, 20%);
+                    margin-bottom: 1rem;
+                }
+
+                .text-gray-600 {
+                    color: $gray-medium;
+                    margin-bottom: 0.5rem;
+                }
+
+                small {
+                    color: lighten($gray-medium, 10%);
+                }
+            }
+        }
+    }
+}
+
+// Diálogo de confirmación
+.p-dialog {
+    .p-dialog-header {
+        background: linear-gradient(
+            135deg,
+            $orange-color 0%,
+            lighten($orange-color, 10%) 100%
+        );
+        color: white;
+        font-weight: 600;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .p-dialog-content {
+        padding: 2rem;
+        border-radius: 0 0 12px 12px;
+
+        .text-center {
+            .pi-question-circle {
+                color: $orange-color;
+                margin-bottom: 1rem;
+            }
+
+            h5 {
+                color: $gray-dark;
+                margin-bottom: 1rem;
+            }
+
+            p {
+                color: $gray-medium;
+                line-height: 1.5;
+            }
+        }
+
+        .p-message {
+            border-radius: 8px;
+
+            &[severity="info"] {
+                background-color: rgba($blue-color, 0.1);
+                border-color: $blue-color;
+                color: darken($blue-color, 20%);
+
+                .pi-clock {
+                    color: $blue-color;
+                }
+            }
+        }
+
+        label {
+            color: $gray-dark;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .p-dropdown {
+            border-color: rgba($orange-color, 0.3);
+
+            &:focus-within {
+                border-color: $orange-color;
+                box-shadow: 0 0 0 0.2rem rgba($orange-color, 0.25);
+            }
+        }
+
+        small {
+            color: $gray-medium;
+            font-style: italic;
+        }
+    }
+
+    .p-dialog-footer {
+        padding: 1.5rem 2rem 2rem;
+        border-top: 1px solid #f0f0f0;
+
+        .flex.gap-2 {
+            justify-content: flex-end;
+
+            .p-button {
+                border-radius: 8px;
+                font-weight: 600;
+                transition: all 0.2s ease;
+
+                &[severity="secondary"] {
+                    background-color: transparent;
+                    color: $gray-medium;
+                    border-color: $gray-medium;
+
+                    &:hover {
+                        background-color: $gray-medium;
+                        color: white;
+                    }
+                }
+
+                &[severity="warning"] {
+                    background: linear-gradient(
+                        135deg,
+                        $warning-color 0%,
+                        darken($warning-color, 5%) 100%
+                    );
+                    border: none;
+
+                    &:hover {
+                        transform: translateY(-1px);
+                        box-shadow: 0 4px 12px rgba($warning-color, 0.3);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+    .assignment-header {
+        padding: 1rem;
+
+        .flex.justify-content-between {
+            flex-direction: column;
+            gap: 1rem;
+
+            .text-right {
+                text-align: left;
+            }
+        }
+    }
+
+    .map-container .card {
+        margin-left: -1rem !important;
+        margin-right: -1rem !important;
+    }
+
+    .tracking-panel,
+    .driving-mode-panel,
+    .work-tools {
+        .p-card .p-card-content {
+            padding: 1rem;
+        }
+
+        .grid .col-6 {
+            margin-bottom: 0.5rem;
+        }
+    }
+
+    .p-dialog {
+        width: 95vw !important;
+
+        .p-dialog-content {
+            padding: 1.5rem;
+        }
+
+        .p-dialog-footer {
+            padding: 1rem 1.5rem;
+
+            .flex.gap-2 {
+                flex-direction: column;
+
+                .p-button {
+                    width: 100%;
+                }
+            }
+        }
+    }
+}
+
+// Animaciones
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+.tracking-panel,
+.driving-mode-panel,
+.work-tools,
+.end-shift-section {
+    animation: slideInUp 0.6s ease-out;
+
+    &:nth-child(2) {
+        animation-delay: 0.1s;
+    }
+
+    &:nth-child(3) {
+        animation-delay: 0.2s;
+    }
+
+    &:nth-child(4) {
+        animation-delay: 0.3s;
+    }
+}
+
+.assignment-header {
+    animation: fadeInScale 0.5s ease-out;
+}
+
+.p-tag[severity="success"] {
+    animation: pulse 2s infinite;
+}
+
+// Estados especiales
+.p-button:not([disabled]):active {
+    transform: translateY(1px);
+}
+
+.p-card:hover {
+    transform: translateY(-2px);
+    transition: transform 0.3s ease;
+}
+
+// Indicadores de estado personalizados
+.status-indicator {
+    &.active {
+        &::before {
+            content: "";
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 8px;
+            height: 8px;
+            background-color: $success-color;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+    }
+}
+
+// Mejoras de accesibilidad
+.p-button:focus {
+    outline: 2px solid rgba($primary-color, 0.5);
+    outline-offset: 2px;
+}
+
+.p-card {
+    &:focus-within {
+        box-shadow: 0 0 0 2px rgba($primary-color, 0.25);
+    }
+}
