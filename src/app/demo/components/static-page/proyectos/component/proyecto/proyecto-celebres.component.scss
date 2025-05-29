@@ -130,7 +130,7 @@ $colorError: var(--error-color, #ff5757);
 
 .nominados-grid {
     display: grid;
-    //grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 1.5rem;
 }
 
@@ -223,7 +223,7 @@ $colorError: var(--error-color, #ff5757);
     opacity: 0.9;
 }
 
-// Sección detalle del nominado - MEJORADA
+// Sección detalle del nominado - MODIFICADA CON ESTILO LIMPIO
 .seccion-detalle {
     background-color: $colorTarjeta;
     border-radius: var(--border-radius);
@@ -235,6 +235,7 @@ $colorError: var(--error-color, #ff5757);
         display: flex;
         align-items: center;
         justify-content: space-between;
+        flex-direction: row;
         margin-bottom: 2rem;
         padding: 1rem;
         padding-bottom: 1rem;
@@ -256,8 +257,6 @@ $colorError: var(--error-color, #ff5757);
 
             button {
                 transition: transform 0.2s ease;
-                width: 40px;
-                height: 40px;
 
                 &:hover {
                     transform: scale(1.1);
@@ -270,8 +269,8 @@ $colorError: var(--error-color, #ff5757);
         padding: 1.5rem;
 
         &.con-imagen {
-            display: grid;
-            grid-template-columns: 1fr 350px;
+            display: flex;
+            //grid-template-columns: 1fr 300px;
             gap: 2rem;
             align-items: start;
         }
@@ -282,6 +281,16 @@ $colorError: var(--error-color, #ff5757);
         }
     }
 
+    @media (max-width: 768px) {
+        .detalle-contenido.con-imagen {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+
     .detalle-info {
         flex: 1;
     }
@@ -289,7 +298,6 @@ $colorError: var(--error-color, #ff5757);
     .detalle-info-completa {
         width: 100%;
     }
-
     // IMAGEN MEJORADA CON TAMAÑO FIJO
     .detalle-imagen {
         position: sticky;
@@ -323,6 +331,48 @@ $colorError: var(--error-color, #ff5757);
             background: var(--surface-card);
             border-radius: var(--border-radius);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    }
+
+    // Responsive para tablets
+    @media (max-width: 1024px) {
+        grid-template-columns: 1fr 300px;
+
+        .detalle-imagen img {
+            height: 400px;
+        }
+    }
+
+    // Responsive para móviles
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+
+        .detalle-imagen {
+            order: -1;
+            position: static;
+
+            img {
+                height: 350px;
+                width: 100%;
+                max-width: 300px;
+                margin: 0 auto;
+                display: block;
+            }
+
+            .nombre-movil {
+                display: block;
+            }
+        }
+
+        .detalle-info {
+            .detalle-encabezado {
+                text-align: center;
+
+                .detalle-subtitulo {
+                    font-size: 1.1rem;
+                }
+            }
         }
     }
 
@@ -424,136 +474,6 @@ $colorError: var(--error-color, #ff5757);
     }
 }
 
-// Responsive para tablets
-@media (max-width: 1024px) {
-    .seccion-detalle {
-        .detalle-contenido.con-imagen {
-            grid-template-columns: 1fr 280px;
-            gap: 1.5rem;
-        }
-
-        .detalle-imagen {
-            width: 280px;
-
-            img {
-                width: 280px;
-                height: 360px;
-            }
-        }
-    }
-}
-
-// Responsive para móviles - MEJORADO
-@media (max-width: 768px) {
-    .proyecto-container {
-        padding: 0.75rem;
-    }
-
-    .seccion-detalle {
-        .detalle-header {
-            flex-direction: row;
-            flex-wrap: wrap;
-            padding: 1rem 0.75rem;
-            gap: 0.5rem;
-
-            .detalle-titulo {
-                order: 3;
-                width: 100%;
-                margin: 0.75rem 0 0 0;
-                font-size: 1.4rem;
-                text-align: center;
-            }
-
-            .detalle-navegacion {
-                order: 2;
-                margin-left: auto;
-                gap: 0.75rem;
-
-                button {
-                    width: 45px;
-                    height: 45px;
-                    font-size: 1.2rem;
-                }
-            }
-
-            button:first-child {
-                order: 1;
-            }
-        }
-
-        .detalle-contenido {
-            padding: 1rem 0.75rem;
-
-            &.con-imagen {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
-        }
-
-        .detalle-imagen {
-            order: -1;
-            position: static;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-
-            img {
-                width: 100%;
-                max-width: 300px;
-                height: 380px;
-                margin: 0 auto;
-                display: block;
-            }
-
-            // MOSTRAR nombre en móvil
-            .nombre-movil {
-                display: block;
-            }
-        }
-
-        .detalle-info {
-            .detalle-encabezado {
-                text-align: center;
-
-                .detalle-subtitulo {
-                    font-size: 1.1rem;
-                }
-            }
-        }
-    }
-}
-
-// Responsive para móviles pequeños
-@media (max-width: 576px) {
-    .seccion-detalle {
-        .detalle-header {
-            .detalle-titulo {
-                font-size: 1.2rem;
-            }
-
-            .detalle-navegacion {
-                button {
-                    width: 40px;
-                    height: 40px;
-                    font-size: 1rem;
-                }
-            }
-        }
-
-        .detalle-imagen {
-            img {
-                max-width: 280px;
-                height: 350px;
-            }
-
-            .nombre-movil {
-                font-size: 1.1rem;
-            }
-        }
-    }
-}
-
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -570,26 +490,37 @@ $colorError: var(--error-color, #ff5757);
  */
 
 .biografia-contenido {
+    // Espaciado y estructura base
     padding: 1.5rem;
     margin: 1rem 0;
+
+    // Colores que se adaptan automáticamente al tema activo
     background-color: var(--surface-card);
     border: 1px solid var(--surface-border);
     border-radius: var(--border-radius);
+
+    // Sombra sutil que respeta el tema
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    // Transición suave para cambios de tema
     transition: all 0.3s ease;
 
+    // Párrafos dentro del contenedor
     p {
         color: var(--text-color);
         line-height: 1.6;
         margin-bottom: 1rem;
 
+        // Último párrafo sin margen inferior
         &:last-child {
             margin-bottom: 0;
         }
 
+        // Elementos enfatizados que mantienen jerarquía visual
         strong {
             color: var(--primary-color);
             font-weight: 600;
+            // Transición para hover en elementos interactivos
             transition: color 0.2s ease;
         }
 
@@ -598,6 +529,7 @@ $colorError: var(--error-color, #ff5757);
             font-style: italic;
             position: relative;
 
+            // Efecto sutil de subrayado para citas especiales
             &::after {
                 content: "";
                 position: absolute;
@@ -614,6 +546,7 @@ $colorError: var(--error-color, #ff5757);
         }
     }
 
+    // Estados interactivos que respetan el tema
     &:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
@@ -621,21 +554,28 @@ $colorError: var(--error-color, #ff5757);
 }
 
 .legado-contenido {
+    // Hereda del contenedor base pero con variaciones
     @extend .biografia-contenido;
 
+    // Personalización específica para legado
     background: linear-gradient(
         135deg,
         var(--surface-card) 0%,
         var(--surface-ground) 100%
     );
+
+    // Borde más prominente para diferenciar
     border-left: 4px solid var(--primary-color);
 
     p {
+        // Texto ligeramente más grande para énfasis
         font-size: 1.05rem;
 
         strong {
+            // Color más distintivo para elementos clave en legado
             color: var(--primary-500);
 
+            // Efecto hover para interactividad
             &:hover {
                 color: var(--primary-400);
             }
@@ -643,11 +583,50 @@ $colorError: var(--error-color, #ff5757);
     }
 }
 
+/*
+   * Variaciones responsivas que mantienen la coherencia temática
+   */
+@media (max-width: 768px) {
+    .proyecto-container {
+        padding: 1rem;
+    }
+
+    .biografia-contenido,
+    .legado-contenido {
+        padding: 1rem;
+        margin: 0.75rem 0;
+
+        p {
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+    }
+
+    .detalle-contenido.con-imagen {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .detalle-header {
+        flex-direction: column;
+        gap: 1rem;
+
+        .detalle-titulo {
+            text-align: center;
+            margin: 0;
+        }
+    }
+}
+
+/*
+   * Clases utilitarias adicionales para casos especiales
+   */
 .biografia--destacada {
     .biografia-contenido {
         border: 2px solid var(--primary-color);
         background: var(--primary-50);
 
+        // Ajuste para temas oscuros
         @media (prefers-color-scheme: dark) {
             background: var(--primary-900);
         }
@@ -661,6 +640,28 @@ $colorError: var(--error-color, #ff5757);
         p {
             margin-bottom: 0.5rem;
             font-size: 0.9rem;
+        }
+    }
+}
+
+// Estilos responsivos para móviles
+@media (max-width: 576px) {
+    .detalle-header {
+        flex-wrap: wrap;
+
+        button:first-child {
+            order: 1; // Botón volver
+        }
+
+        .detalle-titulo {
+            order: 3; // Título abajo
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        .detalle-navegacion {
+            order: 2; // Navegación
+            margin-left: auto;
         }
     }
 }
