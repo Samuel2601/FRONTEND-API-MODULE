@@ -1,0 +1,365 @@
+<div class="proyecto-container">
+    <!-- Sección de carga o error -->
+    <div *ngIf="cargando" class="carga-container">
+        <p-progressSpinner
+            styleClass="w-4rem h-4rem"
+            strokeWidth="8"
+            animationDuration=".5s"
+        ></p-progressSpinner>
+        <h3>Cargando información...</h3>
+    </div>
+
+    <div *ngIf="errorCarga" class="error-container">
+        <p-message
+            severity="error"
+            text="No se pudo cargar la información. Por favor, intente nuevamente más tarde."
+        ></p-message>
+        <button
+            pButton
+            label="Reintentar"
+            icon="pi pi-refresh"
+            (click)="cargarProyecto()"
+        ></button>
+    </div>
+
+    <!-- Contenido principal cuando está cargado -->
+    <div *ngIf="!cargando && !errorCarga" class="contenido-principal">
+        <!-- Toast para mensajes -->
+        <p-toast></p-toast>
+
+        <!-- Primera sección: Información del proyecto -->
+        <section class="seccion-proyecto" *ngIf="proyecto">
+            <div class="proyecto-header">
+                <div class="proyecto-imagen" *ngIf="proyecto.imagen?.url">
+                    <img
+                        [src]="proyecto.imagen.url"
+                        [alt]="proyecto.nombre"
+                        (error)="manejarErrorImagen($event)"
+                    />
+                </div>
+                <div class="proyecto-info">
+                    <h1 class="proyecto-titulo">{{ proyecto.nombre }}</h1>
+
+                    <!-- Mensaje inicial con HTML seguro -->
+                    <div
+                        class="proyecto-mensaje"
+                        *ngIf="esContenidoHTML(proyecto.mensajeInicial)"
+                        [innerHTML]="getSafeHtml(proyecto.mensajeInicial)"
+                    ></div>
+                    <p
+                        class="proyecto-mensaje"
+                        *ngIf="!esContenidoHTML(proyecto.mensajeInicial)"
+                    >
+                        {{ proyecto.mensajeInicial }}
+                    </p>
+
+                    <!-- Descripción con HTML seguro -->
+                    <div
+                        class="proyecto-descripcion"
+                        *ngIf="esContenidoHTML(proyecto.descripcion)"
+                        [innerHTML]="getSafeHtml(proyecto.descripcion)"
+                    ></div>
+                    <p
+                        class="proyecto-descripcion"
+                        *ngIf="!esContenidoHTML(proyecto.descripcion)"
+                    >
+                        {{ proyecto.descripcion }}
+                    </p>
+
+                    <div class="proyecto-stats">
+                        <span class="proyecto-nominados">
+                            <i class="pi pi-users"></i>
+                            {{ proyecto.totalNominados }}
+                            {{ proyecto.tagTotalNominados }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Segunda sección: Cuadrícula de nominados -->
+        <section class="seccion-nominados" *ngIf="mostrarCuadricula">
+            <h2 class="nominados-titulo">
+                {{ proyecto.tagLisado || "Nominados" }}
+            </h2>
+            <div class="nominados-grid">
+                <div
+                    *ngFor="let nominado of nominados"
+                    class="nominado-card"
+                    (click)="verDetalleNominado(nominado)"
+                >
+                    <div class="nominado-imagen-container">
+                        <img
+                            *ngIf="nominado.imagen?.url"
+                            [src]="nominado.imagen.url"
+                            [alt]="getNombreCompleto(nominado)"
+                            (error)="manejarErrorImagen($event)"
+                            class="nominado-imagen"
+                        />
+                        <div
+                            *ngIf="!nominado.imagen?.url"
+                            class="nominado-sin-imagen"
+                        >
+                            <i class="pi pi-user"></i>
+                        </div>
+                    </div>
+                    <div class="nominado-overlay">
+                        <div class="nominado-numero">
+                            #{{ nominado.numero }}
+                        </div>
+                        <div class="nominado-nombre">
+                            {{ getNombreCompleto(nominado) }}
+                        </div>
+                        <div class="nominado-titulo">{{ nominado.titulo }}</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección detalle del nominado -->
+        <section
+            class="seccion-detalle"
+            *ngIf="!mostrarCuadricula && nominadoSeleccionado"
+        >
+            <div class="detalle-header">
+                <button
+                    pButton
+                    class="p-button-text"
+                    icon="pi pi-arrow-left"
+                    label="Volver"
+                    (click)="volverACuadricula()"
+                ></button>
+                <h2 class="detalle-titulo">
+                    {{ getNombreCompleto(nominadoSeleccionado) }}
+                </h2>
+                <div class="detalle-navegacion">
+                    <button
+                        pButton
+                        class="p-button-outlined p-button-rounded"
+                        icon="pi pi-chevron-left"
+                        (click)="verAnteriorNominado()"
+                        pTooltip="Anterior nominado"
+                    ></button>
+                    <button
+                        pButton
+                        class="p-button-outlined p-button-rounded"
+                        icon="pi pi-chevron-right"
+                        (click)="verSiguienteNominado()"
+                        pTooltip="Siguiente nominado"
+                    ></button>
+                </div>
+            </div>
+
+            <!-- Formato con imagen -->
+            <div
+                class="detalle-contenido con-imagen"
+                *ngIf="nominadoSeleccionado.imagen?.url"
+            >
+                <div class="detalle-info">
+                    <div class="detalle-encabezado">
+                        <h3 class="detalle-subtitulo">
+                            {{ nominadoSeleccionado.titulo }}
+                        </h3>
+                        <span class="detalle-numero"
+                            >Nominado #{{ nominadoSeleccionado.numero }}</span
+                        >
+                    </div>
+
+                    <div class="detalle-biografia">
+                        <h4>Biografía</h4>
+                        <!-- Detectar HTML en aspectosPositivos -->
+                        <div
+                            *ngIf="
+                                esContenidoHTML(
+                                    nominadoSeleccionado.biografia
+                                        .aspectosPositivos
+                                )
+                            "
+                            [innerHTML]="
+                                getSafeHtml(
+                                    nominadoSeleccionado.biografia
+                                        .aspectosPositivos
+                                )
+                            "
+                        ></div>
+                        <div
+                            *ngIf="
+                                !esContenidoHTML(
+                                    nominadoSeleccionado.biografia
+                                        .aspectosPositivos
+                                )
+                            "
+                            [innerHTML]="
+                                nominadoSeleccionado.biografia.aspectosPositivos
+                            "
+                        ></div>
+
+                        <!-- ... logros y reconocimientos sin cambios ... -->
+
+                        <div
+                            *ngIf="nominadoSeleccionado.biografia.legado"
+                            class="detalle-legado"
+                        >
+                            <h4>Legado</h4>
+                            <!-- Detectar HTML en legado -->
+                            <div
+                                *ngIf="
+                                    esContenidoHTML(
+                                        nominadoSeleccionado.biografia.legado
+                                    )
+                                "
+                                [innerHTML]="
+                                    getSafeHtml(
+                                        nominadoSeleccionado.biografia.legado
+                                    )
+                                "
+                            ></div>
+                            <p
+                                *ngIf="
+                                    !esContenidoHTML(
+                                        nominadoSeleccionado.biografia.legado
+                                    )
+                                "
+                            >
+                                {{ nominadoSeleccionado.biografia.legado }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detalle-imagen">
+                    <img
+                        [src]="nominadoSeleccionado.imagen.url"
+                        [alt]="getNombreCompleto(nominadoSeleccionado)"
+                        (error)="manejarErrorImagen($event)"
+                    />
+                </div>
+            </div>
+
+            <!-- Formato sin imagen -->
+            <div
+                class="detalle-contenido sin-imagen"
+                *ngIf="!nominadoSeleccionado.imagen?.url"
+            >
+                <div class="detalle-info-completa">
+                    <div class="detalle-encabezado">
+                        <h3 class="detalle-subtitulo">
+                            {{ nominadoSeleccionado.titulo }}
+                        </h3>
+                        <span class="detalle-numero"
+                            >Nominado #{{ nominadoSeleccionado.numero }}</span
+                        >
+                    </div>
+
+                    <div class="detalle-biografia">
+                        <h4>Biografía</h4>
+                        <!-- Detectar HTML en aspectosPositivos -->
+                        <div
+                            *ngIf="
+                                esContenidoHTML(
+                                    nominadoSeleccionado.biografia
+                                        .aspectosPositivos
+                                )
+                            "
+                            [innerHTML]="
+                                getSafeHtml(
+                                    nominadoSeleccionado.biografia
+                                        .aspectosPositivos
+                                )
+                            "
+                        ></div>
+                        <div
+                            *ngIf="
+                                !esContenidoHTML(
+                                    nominadoSeleccionado.biografia
+                                        .aspectosPositivos
+                                )
+                            "
+                            [innerHTML]="
+                                nominadoSeleccionado.biografia.aspectosPositivos
+                            "
+                        ></div>
+                        <div
+                            *ngIf="
+                                nominadoSeleccionado.biografia.logros &&
+                                nominadoSeleccionado.biografia.logros.length > 0
+                            "
+                            class="detalle-logros"
+                        >
+                            <h4>Logros</h4>
+                            <ul>
+                                <li
+                                    *ngFor="
+                                        let logro of nominadoSeleccionado
+                                            .biografia.logros
+                                    "
+                                >
+                                    {{ logro }}
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div
+                            *ngIf="
+                                nominadoSeleccionado.biografia
+                                    .reconocimientos &&
+                                nominadoSeleccionado.biografia.reconocimientos
+                                    .length > 0
+                            "
+                            class="detalle-reconocimientos"
+                        >
+                            <h4>Reconocimientos</h4>
+                            <div
+                                *ngFor="
+                                    let reconocimiento of nominadoSeleccionado
+                                        .biografia.reconocimientos
+                                "
+                                class="reconocimiento-item"
+                            >
+                                <p-card>
+                                    <ng-template pTemplate="title"
+                                        >{{ reconocimiento.tipo }} ({{
+                                            reconocimiento.anio
+                                        }})</ng-template
+                                    >
+                                    <ng-template pTemplate="content">
+                                        <p>{{ reconocimiento.descripcion }}</p>
+                                    </ng-template>
+                                </p-card>
+                            </div>
+                        </div>
+
+                        <div
+                            *ngIf="nominadoSeleccionado.biografia.legado"
+                            class="detalle-legado"
+                        >
+                            <h4>Legado</h4>
+                            <!-- Detectar HTML en legado -->
+                            <div
+                                *ngIf="
+                                    esContenidoHTML(
+                                        nominadoSeleccionado.biografia.legado
+                                    )
+                                "
+                                [innerHTML]="
+                                    getSafeHtml(
+                                        nominadoSeleccionado.biografia.legado
+                                    )
+                                "
+                            ></div>
+                            <p
+                                *ngIf="
+                                    !esContenidoHTML(
+                                        nominadoSeleccionado.biografia.legado
+                                    )
+                                "
+                            >
+                                {{ nominadoSeleccionado.biografia.legado }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>

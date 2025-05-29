@@ -12,6 +12,7 @@ import { MapaTrashComponent } from './demo/components/static-page/mapa-trash/map
 import { MostrarFichasArticulosComponent } from './demo/components/static-page/mostrar-fichas-articulos/mostrar-fichas-articulos.component';
 import { TourismRoutingModule } from './tourism/tourism-routing.module';
 import { MobileFirstVisitGuard } from './guards/mobile-first-visit.guard';
+import { ProyectoCelebresComponent } from './demo/components/static-page/proyectos/component/proyecto/proyecto-celebres.component';
 
 @NgModule({
     imports: [
@@ -58,7 +59,10 @@ import { MobileFirstVisitGuard } from './guards/mobile-first-visit.guard';
                             //canActivate: [AuthGuard] // Aplica el guard aquí
                         },
                         { path: 'home', component: HomeComponent },
-
+                        {
+                            path: 'proyectos',
+                            component: ProyectoCelebresComponent,
+                        },
                         {
                             path: 'crear-ficha',
                             component: MapaFichaComponent,
