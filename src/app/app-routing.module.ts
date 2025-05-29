@@ -13,6 +13,10 @@ import { MostrarFichasArticulosComponent } from './demo/components/static-page/m
 import { TourismRoutingModule } from './tourism/tourism-routing.module';
 import { MobileFirstVisitGuard } from './guards/mobile-first-visit.guard';
 import { ProyectoCelebresComponent } from './demo/components/static-page/proyectos/component/proyecto/proyecto-celebres.component';
+import { ProyectoListComponent } from './demo/components/static-page/proyectos/component/proyecto-list/proyecto-list.component';
+import { ProyectoFormComponent } from './demo/components/static-page/proyectos/component/proyecto-form/proyecto-form.component';
+import { NominadoListComponent } from './demo/components/static-page/proyectos/component/nominado-list/nominado-list.component';
+import { NominadoFormComponent } from './demo/components/static-page/proyectos/component/nominado-form/nominado-form.component';
 
 @NgModule({
     imports: [
@@ -62,6 +66,27 @@ import { ProyectoCelebresComponent } from './demo/components/static-page/proyect
                         {
                             path: 'proyectos',
                             component: ProyectoCelebresComponent,
+                        },
+                        {
+                            path: 'proyectos-list',
+                            component: ProyectoListComponent,
+                        },
+                        {
+                            path: 'proyectos/nuevo',
+                            component: ProyectoFormComponent,
+                        },
+                        {
+                            path: 'proyectos/editar/:id',
+                            component: ProyectoFormComponent,
+                        },
+                        { path: 'nominados', component: NominadoListComponent },
+                        {
+                            path: 'nominados/nuevo',
+                            component: NominadoFormComponent,
+                        },
+                        {
+                            path: 'nominados/editar/:id',
+                            component: NominadoFormComponent,
                         },
                         {
                             path: 'crear-ficha',

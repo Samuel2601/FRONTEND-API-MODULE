@@ -5,6 +5,7 @@ import { ProyectoService } from '../../service/proyecto.service';
 import { ImportsModule } from 'src/app/demo/services/import';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
+import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 
 @Component({
     selector: 'app-proyecto-celebres',
@@ -22,6 +23,7 @@ export class ProyectoCelebresComponent implements OnInit {
     cargando: boolean = true;
     errorCarga: boolean = false;
     datosYaCargados: boolean = false;
+    public url = GLOBAL.url;
 
     constructor(
         private proyectoService: ProyectoService,
@@ -60,6 +62,7 @@ export class ProyectoCelebresComponent implements OnInit {
         this.cargando = true;
         this.proyectoService.getProyecto(id).subscribe({
             next: (response: any) => {
+                console.log(response);
                 this.proyecto = response.data[0];
                 this.cargarNominados(this.proyecto._id, nominadoId);
             },
@@ -79,6 +82,7 @@ export class ProyectoCelebresComponent implements OnInit {
     cargarNominados(proyectoId: string, nominadoId?: string): void {
         this.proyectoService.getNominados(proyectoId).subscribe({
             next: (response: any) => {
+                console.log(response);
                 this.nominados = response.data;
                 this.cargando = false;
                 this.datosYaCargados = true;

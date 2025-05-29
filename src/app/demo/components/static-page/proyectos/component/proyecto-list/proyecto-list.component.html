@@ -1,0 +1,195 @@
+<div class="admin-container">
+    <p-toast></p-toast>
+    <p-confirmDialog></p-confirmDialog>
+
+    <div class="card">
+        <div class="header">
+            <h1>Administración de Proyectos</h1>
+            <p>Gestione los proyectos de Célebres e Ilustres Esmeraldeños</p>
+        </div>
+
+        <!-- Barra de herramientas -->
+        <div class="toolbar">
+            <div class="left">
+                <button
+                    pButton
+                    type="button"
+                    label="Nuevo Proyecto"
+                    icon="pi pi-plus"
+                    class="p-button-success"
+                    (click)="crearNuevoProyecto()"
+                ></button>
+            </div>
+            <div class="right">
+                <span class="p-input-icon-left">
+                    <i class="pi pi-search"></i>
+                    <input
+                        pInputText
+                        type="text"
+                        placeholder="Buscar..."
+                        (input)="filtrarTabla($event)"
+                    />
+                </span>
+            </div>
+        </div>
+
+        <!-- Estado de carga -->
+        <div *ngIf="cargando" class="carga-container">
+            <p-progressSpinner
+                styleClass="w-4rem h-4rem"
+                strokeWidth="8"
+                animationDuration=".5s"
+            >
+            </p-progressSpinner>
+            <h3>Cargando proyectos...</h3>
+        </div>
+
+        <!-- Mensaje de error -->
+        <div *ngIf="errorCarga" class="error-container">
+            <p-message
+                severity="error"
+                text="No se pudieron cargar los proyectos. Por favor, intente nuevamente más tarde."
+            >
+            </p-message>
+            <button
+                pButton
+                label="Reintentar"
+                icon="pi pi-refresh"
+                (click)="cargarProyectos()"
+            ></button>
+        </div>
+
+        <!-- Tabla de proyectos -->
+        <div *ngIf="!cargando && !errorCarga" class="table-container">
+            <p-table
+                [value]="proyectos"
+                [paginator]="true"
+                [rows]="10"
+                [globalFilterFields]="['nombre', 'descripcion', 'numero']"
+                [rowsPerPageOptions]="[5, 10, 25, 50]"
+                styleClass="p-datatable-sm p-datatable-striped p-datatable-gridlines"
+                [showCurrentPageReport]="true"
+                currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} proyectos"
+                [tableStyle]="{ 'min-width': '60rem' }"
+            >
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th pSortableColumn="numero">
+                            Nº <p-sortIcon field="numero"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="nombre">
+                            Nombre <p-sortIcon field="nombre"></p-sortIcon>
+                        </th>
+                        <th>Imagen</th>
+                        <th pSortableColumn="estado">
+                            Estado <p-sortIcon field="estado"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="totalNominados">
+                            Nominados
+                            <p-sortIcon field="totalNominados"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="createdAt">
+                            Creado <p-sortIcon field="createdAt"></p-sortIcon>
+                        </th>
+                        <th>Acciones</th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-proyecto>
+                    <tr>
+                        <td>{{ proyecto.numero }}</td>
+                        <td>
+                            <div class="proyecto-nombre">
+                                {{ proyecto.nombre }}
+                            </div>
+                            <div class="proyecto-descripcion">
+                                {{ proyecto.descripcion | slice : 0 : 60
+                                }}{{
+                                    proyecto.descripcion.length > 60
+                                        ? "..."
+                                        : ""
+                                }}
+                            </div>
+                        </td>
+                        <td>
+                            <div
+                                class="imagen-container"
+                                *ngIf="proyecto.imagen?.url"
+                            >
+                                <img
+                                    [src]="
+                                        url +
+                                        'obtener_imagen/proyecto/' +
+                                        proyecto.imagen.url
+                                    "
+                                    [alt]="proyecto.nombre"
+                                    class="tabla-imagen"
+                                />
+                            </div>
+                            <div
+                                class="sin-imagen"
+                                *ngIf="!proyecto.imagen?.url"
+                            >
+                                <i class="pi pi-image"></i>
+                                <span>Sin imagen</span>
+                            </div>
+                        </td>
+                        <td>
+                            <p-tag
+                                [value]="getEstadoLabel(proyecto.estado)"
+                                [severity]="getSeveridadEstado(proyecto.estado)"
+                            >
+                            </p-tag>
+                        </td>
+                        <td>
+                            <div class="nominados-count">
+                                <i class="pi pi-users"></i>
+                                <span>{{ proyecto.totalNominados }}</span>
+                            </div>
+                        </td>
+                        <td>{{ formatearFecha(proyecto.createdAt) }}</td>
+                        <td>
+                            <div class="acciones-container">
+                                <button
+                                    pButton
+                                    type="button"
+                                    icon="pi pi-eye"
+                                    class="p-button-rounded p-button-text p-button-info"
+                                    pTooltip="Ver proyecto"
+                                    (click)="verProyecto(proyecto)"
+                                ></button>
+                                <button
+                                    pButton
+                                    type="button"
+                                    icon="pi pi-pencil"
+                                    class="p-button-rounded p-button-text p-button-warning"
+                                    pTooltip="Editar proyecto"
+                                    (click)="editarProyecto(proyecto)"
+                                ></button>
+                                <button
+                                    pButton
+                                    type="button"
+                                    icon="pi pi-trash"
+                                    class="p-button-rounded p-button-text p-button-danger"
+                                    pTooltip="Eliminar proyecto"
+                                    (click)="eliminarProyecto(proyecto)"
+                                ></button>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-message">
+                                <i class="pi pi-info-circle"></i>
+                                <p>No se encontraron proyectos</p>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+</div>

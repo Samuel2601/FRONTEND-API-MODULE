@@ -32,7 +32,11 @@
             <div class="proyecto-header">
                 <div class="proyecto-imagen" *ngIf="proyecto.imagen?.url">
                     <img
-                        [src]="proyecto.imagen.url"
+                        [src]="
+                            url +
+                            'obtener_imagen/proyecto/' +
+                            proyecto.imagen.url
+                        "
                         [alt]="proyecto.nombre"
                         (error)="manejarErrorImagen($event)"
                     />
@@ -91,7 +95,11 @@
                     <div class="nominado-imagen-container">
                         <img
                             *ngIf="nominado.imagen?.url"
-                            [src]="nominado.imagen.url"
+                            [src]="
+                                url +
+                                'obtener_imagen/nominado/' +
+                                nominado.imagen.url
+                            "
                             [alt]="getNombreCompleto(nominado)"
                             (error)="manejarErrorImagen($event)"
                             class="nominado-imagen"
@@ -139,6 +147,7 @@
                         icon="pi pi-chevron-left"
                         (click)="verAnteriorNominado()"
                         pTooltip="Anterior nominado"
+                        [disabled]="nominados.length <= 1"
                     ></button>
                     <button
                         pButton
@@ -146,6 +155,7 @@
                         icon="pi pi-chevron-right"
                         (click)="verSiguienteNominado()"
                         pTooltip="Siguiente nominado"
+                        [disabled]="nominados.length <= 1"
                     ></button>
                 </div>
             </div>
@@ -195,6 +205,55 @@
                         ></div>
 
                         <!-- ... logros y reconocimientos sin cambios ... -->
+                        <div
+                            *ngIf="
+                                nominadoSeleccionado.biografia.logros &&
+                                nominadoSeleccionado.biografia.logros.length > 0
+                            "
+                            class="detalle-logros"
+                        >
+                            <h4>Logros</h4>
+                            <ul>
+                                <li
+                                    *ngFor="
+                                        let logro of nominadoSeleccionado
+                                            .biografia.logros
+                                    "
+                                >
+                                    {{ logro }}
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div
+                            *ngIf="
+                                nominadoSeleccionado.biografia
+                                    .reconocimientos &&
+                                nominadoSeleccionado.biografia.reconocimientos
+                                    .length > 0
+                            "
+                            class="detalle-reconocimientos"
+                        >
+                            <h4>Reconocimientos</h4>
+                            <div
+                                *ngFor="
+                                    let reconocimiento of nominadoSeleccionado
+                                        .biografia.reconocimientos
+                                "
+                                class="reconocimiento-item"
+                            >
+                                <p-card>
+                                    <ng-template pTemplate="title"
+                                        >{{ reconocimiento.tipo }} ({{
+                                            reconocimiento.anio
+                                        }})</ng-template
+                                    >
+                                    <ng-template pTemplate="content">
+                                        <p>{{ reconocimiento.descripcion }}</p>
+                                    </ng-template>
+                                </p-card>
+                            </div>
+                        </div>
 
                         <div
                             *ngIf="nominadoSeleccionado.biografia.legado"
@@ -227,12 +286,21 @@
                     </div>
                 </div>
 
+                <!-- FORMATO CON IMAGEN - Actualizar la sección .detalle-imagen -->
                 <div class="detalle-imagen">
                     <img
-                        [src]="nominadoSeleccionado.imagen.url"
+                        [src]="
+                            url +
+                            'obtener_imagen/nominado/' +
+                            nominadoSeleccionado.imagen.url
+                        "
                         [alt]="getNombreCompleto(nominadoSeleccionado)"
                         (error)="manejarErrorImagen($event)"
                     />
+                    <!-- Nombre para móvil -->
+                    <div class="nombre-movil">
+                        {{ getNombreCompleto(nominadoSeleccionado) }}
+                    </div>
                 </div>
             </div>
 

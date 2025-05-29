@@ -596,34 +596,37 @@ export class AuthService {
     }
 
     public redirectToLoginIfNeeded(home: boolean) {
-        const currentUrl = this.router.url;
-        /*console.log(
-            'redirectToLoginIfNeeded',
-            !['/home', '/'].includes(currentUrl),
-            !currentUrl.startsWith('/auth/login'),
-            !currentUrl.startsWith('/ver-ficha'),
-            !home
-        );*/
+        const currentUrl = this.router.url.split('?')[0]; // Remove query parameters
+
         if (home) {
-            // console.log('Redirigiendo a login');
             this.router.navigate(['/auth/login']);
             if (this.helpers.llamadasActivas > 0) {
                 this.helpers.cerrarspinner('auth');
             }
+            return;
         }
-        // Verifica si la URL actual contiene '/auth/login' independientemente de los parámetros adicionales
+
+        // Rutas públicas que no requieren autenticación
+        const publicRoutes = ['/home', '/', '/proyectos'];
+        const isPublicRoute = publicRoutes.some(
+            (route) =>
+                currentUrl === route || currentUrl.startsWith(route + '/')
+        );
+
+        // Si es una ruta pública o ya está en auth/login, no redirigir
         if (
-            !['/home', '/'].includes(currentUrl) &&
-            !currentUrl.startsWith('/auth/login') &&
-            !currentUrl.startsWith('/ver-ficha') &&
-            !currentUrl.startsWith('/mapa-turistico') &&
-            !home
+            isPublicRoute ||
+            currentUrl.startsWith('/auth/login') ||
+            currentUrl.startsWith('/ver-ficha') ||
+            currentUrl.startsWith('/mapa-turistico')
         ) {
-            // console.log('Redirigiendo a login');
-            this.router.navigate(['/auth/login']);
-            if (this.helpers.llamadasActivas > 0) {
-                this.helpers.cerrarspinner('auth');
-            }
+            return;
+        }
+
+        // Redirigir a login para rutas protegidas
+        this.router.navigate(['/auth/login']);
+        if (this.helpers.llamadasActivas > 0) {
+            this.helpers.cerrarspinner('auth');
         }
     }
 }

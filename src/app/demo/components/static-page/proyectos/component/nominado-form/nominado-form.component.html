@@ -1,0 +1,588 @@
+<div class="admin-form-container">
+    <p-toast></p-toast>
+
+    <div class="card">
+        <div class="header">
+            <h1>{{ editando ? "Editar" : "Nuevo" }} Nominado</h1>
+            <p>
+                {{
+                    editando
+                        ? "Modifique la información del nominado"
+                        : "Complete la información para crear un nuevo nominado"
+                }}
+            </p>
+        </div>
+
+        <!-- Estado de carga -->
+        <div *ngIf="cargando || cargandoProyectos" class="carga-container">
+            <p-progressSpinner
+                styleClass="w-4rem h-4rem"
+                strokeWidth="8"
+                animationDuration=".5s"
+            >
+            </p-progressSpinner>
+            <h3>Cargando información...</h3>
+        </div>
+
+        <!-- Formulario -->
+        <div *ngIf="!cargando && !cargandoProyectos" class="form-container">
+            <form [formGroup]="nominadoForm" (ngSubmit)="onSubmit()">
+                <div class="p-fluid form-grid">
+                    <div class="form-section">
+                        <h3>Información Básica</h3>
+
+                        <div class="field">
+                            <label for="proyecto"
+                                >Proyecto
+                                <span class="required-marker">*</span></label
+                            >
+                            <p-dropdown
+                                id="proyecto"
+                                [options]="proyectos"
+                                formControlName="proyecto"
+                                optionLabel="nombre"
+                                optionValue="_id"
+                                placeholder="Seleccione un proyecto"
+                                [filter]="true"
+                                filterBy="nombre"
+                                [showClear]="true"
+                            >
+                            </p-dropdown>
+                            <small
+                                *ngIf="
+                                    nominadoForm.get('proyecto')?.invalid &&
+                                    nominadoForm.get('proyecto')?.touched
+                                "
+                                class="p-error"
+                            >
+                                Debe seleccionar un proyecto
+                            </small>
+                        </div>
+
+                        <div class="field">
+                            <label for="numero"
+                                >Número
+                                <span class="required-marker">*</span></label
+                            >
+                            <p-inputNumber
+                                id="numero"
+                                formControlName="numero"
+                                [min]="1"
+                                [showButtons]="true"
+                                [useGrouping]="false"
+                                [disabled]="editando"
+                            >
+                            </p-inputNumber>
+                            <small
+                                *ngIf="
+                                    nominadoForm.get('numero')?.invalid &&
+                                    nominadoForm.get('numero')?.touched
+                                "
+                                class="p-error"
+                            >
+                                El número es requerido y debe ser mayor a 0
+                            </small>
+                        </div>
+
+                        <div class="field">
+                            <label for="estado"
+                                >Estado
+                                <span class="required-marker">*</span></label
+                            >
+                            <p-dropdown
+                                id="estado"
+                                [options]="estadoOptions"
+                                formControlName="estado"
+                                optionLabel="label"
+                                optionValue="value"
+                            >
+                            </p-dropdown>
+                        </div>
+                    </div>
+
+                    <div class="form-section" formGroupName="persona">
+                        <h3>Datos Personales</h3>
+
+                        <div class="field">
+                            <label for="nombre"
+                                >Nombre
+                                <span class="required-marker">*</span></label
+                            >
+                            <input
+                                pInputText
+                                id="nombre"
+                                type="text"
+                                formControlName="nombre"
+                            />
+                            <small
+                                *ngIf="
+                                    nominadoForm.get('persona.nombre')
+                                        ?.invalid &&
+                                    nominadoForm.get('persona.nombre')?.touched
+                                "
+                                class="p-error"
+                            >
+                                El nombre es requerido (máximo 100 caracteres)
+                            </small>
+                        </div>
+
+                        <div class="field">
+                            <label for="apellidos">Apellidos</label>
+                            <input
+                                pInputText
+                                id="apellidos"
+                                type="text"
+                                formControlName="apellidos"
+                            />
+                            <small
+                                *ngIf="
+                                    nominadoForm.get('persona.apellidos')
+                                        ?.invalid &&
+                                    nominadoForm.get('persona.apellidos')
+                                        ?.touched
+                                "
+                                class="p-error"
+                            >
+                                Los apellidos no pueden exceder 100 caracteres
+                            </small>
+                        </div>
+
+                        <div class="field">
+                            <label for="nombreCompleto"
+                                >Nombre Completo (opcional)</label
+                            >
+                            <input
+                                pInputText
+                                id="nombreCompleto"
+                                type="text"
+                                formControlName="nombreCompleto"
+                            />
+                            <small class="info-text"
+                                >Si se deja vacío, se generará automáticamente
+                                con el nombre y apellidos</small
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Título o Cargo</h3>
+
+                        <div class="field">
+                            <label for="titulo"
+                                >Título o Cargo
+                                <span class="required-marker">*</span></label
+                            >
+                            <input
+                                pInputText
+                                id="titulo"
+                                type="text"
+                                formControlName="titulo"
+                            />
+                            <small
+                                *ngIf="
+                                    nominadoForm.get('titulo')?.invalid &&
+                                    nominadoForm.get('titulo')?.touched
+                                "
+                                class="p-error"
+                            >
+                                El título es requerido (máximo 200 caracteres)
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="form-section imagen-section">
+                        <h3>Imagen del Nominado</h3>
+
+                        <div class="imagen-upload-container">
+                            <div
+                                class="imagen-preview"
+                                *ngIf="previewImagenUrl"
+                            >
+                                <img
+                                    [src]="previewImagenUrl"
+                                    alt="Vista previa"
+                                />
+                                <button
+                                    pButton
+                                    type="button"
+                                    icon="pi pi-trash"
+                                    class="p-button-rounded p-button-danger imagen-eliminar"
+                                    (click)="eliminarImagen()"
+                                ></button>
+                            </div>
+
+                            <div class="upload-area" *ngIf="!previewImagenUrl">
+                                <p-fileUpload
+                                    #fileUpload
+                                    mode="basic"
+                                    chooseLabel="Seleccionar Imagen"
+                                    [auto]="true"
+                                    accept="image/*"
+                                    [maxFileSize]="5000000"
+                                    (onSelect)="onImagenSeleccionada($event)"
+                                    [showUploadButton]="false"
+                                    [showCancelButton]="false"
+                                >
+                                </p-fileUpload>
+
+                                <div class="upload-info">
+                                    <i class="pi pi-image"></i>
+                                    <p>
+                                        Arrastre una imagen aquí o haga clic en
+                                        Seleccionar Imagen
+                                    </p>
+                                    <small
+                                        >Formatos permitidos: JPG, PNG, GIF.
+                                        Tamaño máximo: 5MB</small
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="form-section full-width"
+                        formGroupName="biografia"
+                    >
+                        <h3>Biografía</h3>
+
+                        <div class="field">
+                            <label for="aspectosPositivos"
+                                >Aspectos Positivos
+                                <span class="required-marker">*</span></label
+                            >
+                            <p-editor
+                                [formControl]="
+                                    $any(
+                                        nominadoForm.get(
+                                            'biografia.aspectosPositivos'
+                                        )
+                                    )
+                                "
+                                [style]="{ height: '200px' }"
+                                placeholder="Escriba la biografía del nominado..."
+                            >
+                                <ng-template pTemplate="header">
+                                    <span class="ql-formats">
+                                        <button
+                                            type="button"
+                                            class="ql-bold"
+                                            aria-label="Bold"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="ql-italic"
+                                            aria-label="Italic"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="ql-underline"
+                                            aria-label="Underline"
+                                        ></button>
+                                    </span>
+                                    <span class="ql-formats">
+                                        <select class="ql-color"></select>
+                                        <select class="ql-background"></select>
+                                    </span>
+                                    <span class="ql-formats">
+                                        <button
+                                            type="button"
+                                            class="ql-list"
+                                            value="ordered"
+                                            aria-label="Ordered List"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="ql-list"
+                                            value="bullet"
+                                            aria-label="Bullet List"
+                                        ></button>
+                                    </span>
+                                    <span class="ql-formats">
+                                        <button
+                                            type="button"
+                                            class="ql-link"
+                                            aria-label="Link"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="ql-blockquote"
+                                            aria-label="Blockquote"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="ql-code-block"
+                                            aria-label="Code Block"
+                                        ></button>
+                                    </span>
+                                </ng-template>
+                            </p-editor>
+                            <small
+                                *ngIf="
+                                    nominadoForm.get(
+                                        'biografia.aspectosPositivos'
+                                    )?.invalid &&
+                                    nominadoForm.get(
+                                        'biografia.aspectosPositivos'
+                                    )?.touched
+                                "
+                                class="p-error"
+                            >
+                                La biografía es requerida (mínimo 50 caracteres)
+                            </small>
+                        </div>
+
+                        <div class="field">
+                            <label for="logros">Logros</label>
+                            <div class="p-inputgroup add-item-group">
+                                <span class="p-float-label" style="flex: 1">
+                                    <input
+                                        pInputText
+                                        #nuevoLogro
+                                        type="text"
+                                        id="nuevoLogro"
+                                    />
+                                    <label for="nuevoLogro">Nuevo logro</label>
+                                </span>
+                                <button
+                                    pButton
+                                    type="button"
+                                    icon="pi pi-plus"
+                                    class="p-button-success"
+                                    (click)="
+                                        agregarLogro(nuevoLogro.value);
+                                        nuevoLogro.value = ''
+                                    "
+                                ></button>
+                            </div>
+
+                            <div formArrayName="logros" class="items-container">
+                                <div
+                                    *ngFor="
+                                        let logro of logros.controls;
+                                        let i = index
+                                    "
+                                    class="item-row"
+                                >
+                                    <div class="item-content">
+                                        <i class="pi pi-star-fill"></i>
+                                        <input
+                                            pInputText
+                                            [formControlName]="i"
+                                        />
+                                    </div>
+                                    <button
+                                        pButton
+                                        type="button"
+                                        icon="pi pi-trash"
+                                        class="p-button-rounded p-button-danger p-button-text"
+                                        (click)="eliminarLogro(i)"
+                                    ></button>
+                                </div>
+
+                                <div
+                                    *ngIf="logros.controls.length === 0"
+                                    class="empty-list"
+                                >
+                                    <i class="pi pi-info-circle"></i>
+                                    <p>No hay logros registrados</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label for="reconocimientos">Reconocimientos</label>
+                            <button
+                                pButton
+                                type="button"
+                                label="Agregar reconocimiento"
+                                icon="pi pi-plus"
+                                class="p-button-success p-button-sm"
+                                (click)="agregarReconocimiento()"
+                            ></button>
+
+                            <div
+                                formArrayName="reconocimientos"
+                                class="items-container"
+                            >
+                                <div
+                                    *ngFor="
+                                        let reconocimiento of reconocimientos.controls;
+                                        let i = index
+                                    "
+                                    class="reconocimiento-item"
+                                    [formGroupName]="i"
+                                >
+                                    <div class="reconocimiento-header">
+                                        <span class="reconocimiento-numero"
+                                            >Reconocimiento #{{ i + 1 }}</span
+                                        >
+                                        <button
+                                            pButton
+                                            type="button"
+                                            icon="pi pi-trash"
+                                            class="p-button-rounded p-button-danger p-button-text"
+                                            (click)="eliminarReconocimiento(i)"
+                                        ></button>
+                                    </div>
+
+                                    <div class="reconocimiento-datos">
+                                        <div class="field">
+                                            <label
+                                                >Tipo
+                                                <span class="required-marker"
+                                                    >*</span
+                                                ></label
+                                            >
+                                            <input
+                                                pInputText
+                                                formControlName="tipo"
+                                            />
+                                            <small
+                                                *ngIf="
+                                                    reconocimiento.get('tipo')
+                                                        ?.invalid &&
+                                                    reconocimiento.get('tipo')
+                                                        ?.touched
+                                                "
+                                                class="p-error"
+                                            >
+                                                El tipo es requerido
+                                            </small>
+                                        </div>
+
+                                        <div class="field">
+                                            <label>Año</label>
+                                            <p-inputNumber
+                                                formControlName="anio"
+                                                [showButtons]="false"
+                                                [useGrouping]="false"
+                                            ></p-inputNumber>
+                                        </div>
+
+                                        <div class="field full-width">
+                                            <label
+                                                >Descripción
+                                                <span class="required-marker"
+                                                    >*</span
+                                                ></label
+                                            >
+                                            <textarea
+                                                pInputTextarea
+                                                formControlName="descripcion"
+                                                rows="3"
+                                            ></textarea>
+                                            <small
+                                                *ngIf="
+                                                    reconocimiento.get(
+                                                        'descripcion'
+                                                    )?.invalid &&
+                                                    reconocimiento.get(
+                                                        'descripcion'
+                                                    )?.touched
+                                                "
+                                                class="p-error"
+                                            >
+                                                La descripción es requerida
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div
+                                    *ngIf="
+                                        reconocimientos.controls.length === 0
+                                    "
+                                    class="empty-list"
+                                >
+                                    <i class="pi pi-info-circle"></i>
+                                    <p>No hay reconocimientos registrados</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label for="legado">Legado</label>
+                            <p-editor
+                                [formControl]="
+                                    $any(nominadoForm.get('biografia.legado'))
+                                "
+                                [style]="{ height: '150px' }"
+                                placeholder="Escriba el legado del nominado (opcional)..."
+                            >
+                                <ng-template pTemplate="header">
+                                    <span class="ql-formats">
+                                        <button
+                                            type="button"
+                                            class="ql-bold"
+                                            aria-label="Bold"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="ql-italic"
+                                            aria-label="Italic"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="ql-underline"
+                                            aria-label="Underline"
+                                        ></button>
+                                    </span>
+                                    <span class="ql-formats">
+                                        <select class="ql-color"></select>
+                                        <select class="ql-background"></select>
+                                    </span>
+                                    <span class="ql-formats">
+                                        <button
+                                            type="button"
+                                            class="ql-list"
+                                            value="ordered"
+                                            aria-label="Ordered List"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="ql-list"
+                                            value="bullet"
+                                            aria-label="Bullet List"
+                                        ></button>
+                                    </span>
+                                    <span class="ql-formats">
+                                        <button
+                                            type="button"
+                                            class="ql-link"
+                                            aria-label="Link"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="ql-blockquote"
+                                            aria-label="Blockquote"
+                                        ></button>
+                                    </span>
+                                </ng-template>
+                            </p-editor>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button
+                        pButton
+                        type="button"
+                        label="Cancelar"
+                        class="p-button-outlined"
+                        (click)="cancelar()"
+                        [disabled]="guardando"
+                    ></button>
+                    <button
+                        pButton
+                        type="submit"
+                        label="Guardar Nominado"
+                        icon="pi pi-save"
+                        [loading]="guardando"
+                        [disabled]="nominadoForm.invalid"
+                    ></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

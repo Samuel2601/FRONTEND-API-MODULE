@@ -19,20 +19,24 @@ export class MobileFirstVisitGuard implements CanActivate {
         route: ActivatedRouteSnapshot,
         state: RouterStateSnapshot
     ): boolean {
-        // Check if this is a mobile device
+        const currentUrl = state.url;
+
+        // Si está en '/proyectos', permite el acceso directo sin redirección
+        if (currentUrl.startsWith('/proyectos')) {
+            return true;
+        }
+
+        // Si es móvil y no ha visitado antes, redirige
         if (
             this.helperService.isMobil() &&
             !MobileFirstVisitGuard.hasVisitedBefore
         ) {
-            // Mark that we've visited before
             MobileFirstVisitGuard.hasVisitedBefore = true;
-
-            // Redirect to mapa-turistico
             this.router.navigate(['/mapa-turistico']);
             return false;
         }
 
-        // For desktop or returning mobile users, allow access to the original route
+        // En cualquier otro caso, permite el acceso
         return true;
     }
 }

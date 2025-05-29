@@ -1,0 +1,225 @@
+<div class="admin-container">
+    <p-toast></p-toast>
+    <p-confirmDialog></p-confirmDialog>
+
+    <div class="card">
+        <div class="header">
+            <h1>Administración de Nominados</h1>
+            <p>Gestione los nominados de Célebres e Ilustres Esmeraldeños</p>
+        </div>
+
+        <!-- Selector de proyecto -->
+        <div class="proyecto-selector">
+            <label for="proyecto">Seleccione un proyecto:</label>
+            <p-dropdown
+                id="proyecto"
+                [options]="proyectos"
+                [(ngModel)]="proyectoSeleccionado"
+                optionLabel="nombre"
+                optionValue="_id"
+                (onChange)="onCambioProyecto($event)"
+                [disabled]="cargando"
+                placeholder="Seleccione un proyecto"
+                [style]="{ width: '100%' }"
+                *ngIf="proyectos.length > 0"
+            >
+            </p-dropdown>
+            <p *ngIf="proyectos.length === 0 && !cargando" class="no-proyectos">
+                <i class="pi pi-exclamation-triangle"></i>
+                No hay proyectos disponibles. Debe crear un proyecto primero.
+            </p>
+        </div>
+
+        <!-- Barra de herramientas -->
+        <div class="toolbar" *ngIf="proyectoSeleccionado">
+            <div class="left">
+                <button
+                    pButton
+                    type="button"
+                    label="Nuevo Nominado"
+                    icon="pi pi-plus"
+                    class="p-button-success"
+                    (click)="crearNuevoNominado()"
+                    [disabled]="!proyectoSeleccionado"
+                ></button>
+            </div>
+            <div class="right">
+                <span class="p-input-icon-left">
+                    <i class="pi pi-search"></i>
+                    <input
+                        pInputText
+                        type="text"
+                        placeholder="Buscar..."
+                        (input)="filtrarTabla($event)"
+                    />
+                </span>
+            </div>
+        </div>
+
+        <!-- Estado de carga -->
+        <div *ngIf="cargando" class="carga-container">
+            <p-progressSpinner
+                styleClass="w-4rem h-4rem"
+                strokeWidth="8"
+                animationDuration=".5s"
+            >
+            </p-progressSpinner>
+            <h3>Cargando nominados...</h3>
+        </div>
+
+        <!-- Mensaje de error -->
+        <div *ngIf="errorCarga" class="error-container">
+            <p-message
+                severity="error"
+                text="No se pudieron cargar los nominados. Por favor, intente nuevamente más tarde."
+            >
+            </p-message>
+            <button
+                pButton
+                label="Reintentar"
+                icon="pi pi-refresh"
+                (click)="cargarNominados(proyectoSeleccionado)"
+            ></button>
+        </div>
+
+        <!-- Tabla de nominados -->
+        <div
+            *ngIf="!cargando && !errorCarga && proyectoSeleccionado"
+            class="table-container"
+        >
+            <p-table
+                [value]="nominados"
+                [paginator]="true"
+                [rows]="10"
+                [globalFilterFields]="[
+                    'persona.nombre',
+                    'persona.apellidos',
+                    'persona.nombreCompleto',
+                    'titulo',
+                    'numero'
+                ]"
+                [rowsPerPageOptions]="[5, 10, 25, 50]"
+                styleClass="p-datatable-sm p-datatable-striped p-datatable-gridlines"
+                [showCurrentPageReport]="true"
+                currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} nominados"
+                [tableStyle]="{ 'min-width': '60rem' }"
+            >
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th pSortableColumn="numero">
+                            Nº <p-sortIcon field="numero"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="persona.nombre">
+                            Nominado
+                            <p-sortIcon field="persona.nombre"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="titulo">
+                            Título <p-sortIcon field="titulo"></p-sortIcon>
+                        </th>
+                        <th>Imagen</th>
+                        <th pSortableColumn="estado">
+                            Estado <p-sortIcon field="estado"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="createdAt">
+                            Creado <p-sortIcon field="createdAt"></p-sortIcon>
+                        </th>
+                        <th>Acciones</th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-nominado>
+                    <tr>
+                        <td>{{ nominado.numero }}</td>
+                        <td>
+                            <div class="nominado-nombre">
+                                {{ getNombreCompleto(nominado) }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="nominado-titulo">
+                                {{ nominado.titulo }}
+                            </div>
+                        </td>
+                        <td>
+                            <div
+                                class="imagen-container"
+                                *ngIf="nominado.imagen?.url"
+                            >
+                                <img
+                                    [src]="nominado.imagen.url"
+                                    [alt]="getNombreCompleto(nominado)"
+                                    class="tabla-imagen"
+                                />
+                            </div>
+                            <div
+                                class="sin-imagen"
+                                *ngIf="!nominado.imagen?.url"
+                            >
+                                <i class="pi pi-user"></i>
+                                <span>Sin imagen</span>
+                            </div>
+                        </td>
+                        <td>
+                            <p-tag
+                                [value]="getEstadoLabel(nominado.estado)"
+                                [severity]="getSeveridadEstado(nominado.estado)"
+                            >
+                            </p-tag>
+                        </td>
+                        <td>{{ formatearFecha(nominado.createdAt) }}</td>
+                        <td>
+                            <div class="acciones-container">
+                                <button
+                                    pButton
+                                    type="button"
+                                    icon="pi pi-eye"
+                                    class="p-button-rounded p-button-text p-button-info"
+                                    pTooltip="Ver nominado"
+                                    (click)="verNominado(nominado)"
+                                ></button>
+                                <button
+                                    pButton
+                                    type="button"
+                                    icon="pi pi-pencil"
+                                    class="p-button-rounded p-button-text p-button-warning"
+                                    pTooltip="Editar nominado"
+                                    (click)="editarNominado(nominado)"
+                                ></button>
+                                <button
+                                    pButton
+                                    type="button"
+                                    icon="pi pi-trash"
+                                    class="p-button-rounded p-button-text p-button-danger"
+                                    pTooltip="Eliminar nominado"
+                                    (click)="eliminarNominado(nominado)"
+                                ></button>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-message">
+                                <i class="pi pi-info-circle"></i>
+                                <p>
+                                    No se encontraron nominados para este
+                                    proyecto
+                                </p>
+                                <button
+                                    pButton
+                                    type="button"
+                                    label="Crear nuevo nominado"
+                                    icon="pi pi-plus"
+                                    class="p-button-success p-button-sm"
+                                    (click)="crearNuevoNominado()"
+                                ></button>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+</div>

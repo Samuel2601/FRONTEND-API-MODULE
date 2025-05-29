@@ -1,0 +1,181 @@
+// Variables de PrimeNG para temas
+$colorPrimario: var(--primary-color, #157016);
+$colorTexto: var(--text-color, #333333);
+$colorFondo: var(--surface-ground, #ffffff);
+$colorBorde: var(--surface-border, #dee2e6);
+$colorTarjeta: var(--surface-card, #ffffff);
+$colorResaltado: var(--highlight-bg, #e3f8e3);
+
+.admin-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 1rem;
+
+  .card {
+    background-color: $colorTarjeta;
+    border-radius: var(--border-radius);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .header {
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid $colorBorde;
+    padding-bottom: 1rem;
+
+    h1 {
+      color: $colorPrimario;
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      margin: 0;
+      color: rgba($colorTexto, 0.7);
+    }
+  }
+
+  .proyecto-selector {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: $colorResaltado;
+    border-radius: var(--border-radius);
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: $colorPrimario;
+    }
+
+    .no-proyectos {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #f03a17;
+      margin: 0.5rem 0;
+
+      i {
+        font-size: 1.2rem;
+      }
+    }
+  }
+
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+
+      .right {
+        width: 100%;
+
+        input {
+          width: 100%;
+        }
+      }
+    }
+  }
+
+  .carga-container, .error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .table-container {
+    overflow-x: auto;
+
+    ::ng-deep .p-datatable {
+      .p-datatable-header {
+        background-color: $colorResaltado;
+        border-color: $colorBorde;
+      }
+
+      .p-datatable-thead > tr > th {
+        background-color: $colorResaltado;
+        color: $colorPrimario;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .imagen-container {
+    width: 60px;
+    height: 60px;
+    overflow: hidden;
+    border-radius: var(--border-radius);
+
+    .tabla-imagen {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .sin-imagen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    background-color: #f5f5f5;
+    border-radius: var(--border-radius);
+    color: #aaa;
+    font-size: 0.8rem;
+
+    i {
+      font-size: 1.2rem;
+      margin-bottom: 0.25rem;
+    }
+  }
+
+  .nominado-nombre {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .nominado-titulo {
+    font-size: 0.85rem;
+    color: rgba($colorTexto, 0.7);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+  }
+
+  .acciones-container {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .empty-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    color: rgba($colorTexto, 0.5);
+    gap: 1rem;
+
+    i {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      margin: 0;
+    }
+  }
+}

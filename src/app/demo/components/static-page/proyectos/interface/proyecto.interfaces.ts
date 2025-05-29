@@ -47,3 +47,10 @@ export interface Imagen {
     tipo?: string;
     fechaSubida?: Date;
 }
+
+export interface ApiResponse<T> {
+    success: boolean;
+    data: T;
+    message?: string;
+    error?: any;
+}

@@ -41,19 +41,12 @@ $colorError: var(--error-color, #ff5757);
 .proyecto-header {
     display: flex;
     flex-direction: column;
-
-    @media (min-width: 768px) {
-        flex-direction: row;
-    }
+    align-items: center;
 }
 
 .proyecto-imagen {
     flex: 0 0 auto;
-    max-width: 100%;
-
-    @media (min-width: 768px) {
-        max-width: 40%;
-    }
+    max-width: 100dvb;
 
     img {
         width: 100%;
@@ -137,7 +130,7 @@ $colorError: var(--error-color, #ff5757);
 
 .nominados-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    //grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 1.5rem;
 }
 
@@ -230,163 +223,344 @@ $colorError: var(--error-color, #ff5757);
     opacity: 0.9;
 }
 
-// Sección detalle del nominado
+// Sección detalle del nominado - MEJORADA
 .seccion-detalle {
     background-color: $colorTarjeta;
     border-radius: var(--border-radius);
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     animation: fadeIn 0.3s ease;
+
+    .detalle-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #eee;
+        background-color: $colorFondo;
+
+        .detalle-titulo {
+            flex-grow: 1;
+            text-align: center;
+            margin: 0 1rem;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .detalle-navegacion {
+            display: flex;
+            gap: 0.5rem;
+
+            button {
+                transition: transform 0.2s ease;
+                width: 40px;
+                height: 40px;
+
+                &:hover {
+                    transform: scale(1.1);
+                }
+            }
+        }
+    }
+
+    .detalle-contenido {
+        padding: 1.5rem;
+
+        &.con-imagen {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        &.sin-imagen {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+    }
+
+    .detalle-info {
+        flex: 1;
+    }
+
+    .detalle-info-completa {
+        width: 100%;
+    }
+
+    // IMAGEN MEJORADA CON TAMAÑO FIJO
+    .detalle-imagen {
+        position: sticky;
+        top: 2rem;
+        width: 350px;
+
+        img {
+            width: 350px;
+            height: 450px;
+            object-fit: cover;
+            object-position: center top;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--surface-border);
+            transition: transform 0.3s ease;
+
+            &:hover {
+                transform: scale(1.02);
+            }
+        }
+
+        // Nombre en móvil debajo de la imagen - OCULTO POR DEFECTO
+        .nombre-movil {
+            //display: none;
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            padding: 0.5rem;
+            background: var(--surface-card);
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    }
+
+    .detalle-encabezado {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #eee;
+
+        .detalle-subtitulo {
+            font-size: 1.3rem;
+            color: #666;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+        }
+
+        .detalle-numero {
+            display: inline-block;
+            background: #f8f9fa;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 600;
+        }
+    }
+
+    .detalle-biografia {
+        h4 {
+            color: #333;
+            font-size: 1.2rem;
+            margin: 1.5rem 0 1rem 0;
+            font-weight: 600;
+            position: relative;
+            padding-left: 1rem;
+
+            &:before {
+                content: "";
+                position: absolute;
+                left: 0;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 5px;
+                height: 18px;
+                background-color: $colorPrimario;
+                border-radius: 2px;
+            }
+        }
+
+        p,
+        div {
+            line-height: 1.7;
+            margin-bottom: 1rem;
+            color: #555;
+        }
+
+        ul {
+            margin: 0;
+            padding-left: 1.5rem;
+
+            li {
+                margin-bottom: 0.5rem;
+                line-height: 1.6;
+            }
+        }
+    }
+
+    .detalle-logros {
+        ul {
+            margin: 0;
+            padding-left: 1.5rem;
+
+            li {
+                margin-bottom: 0.5rem;
+                line-height: 1.5;
+            }
+        }
+    }
+
+    .detalle-reconocimientos {
+        display: grid;
+        //grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .reconocimiento-item {
+        margin-bottom: 1rem;
+
+        ::ng-deep .p-card {
+            .p-card-title {
+                font-size: 1rem;
+                color: $colorPrimario;
+            }
+
+            .p-card-content {
+                padding-top: 0.5rem;
+            }
+        }
+    }
+}
+
+// Responsive para tablets
+@media (max-width: 1024px) {
+    .seccion-detalle {
+        .detalle-contenido.con-imagen {
+            grid-template-columns: 1fr 280px;
+            gap: 1.5rem;
+        }
+
+        .detalle-imagen {
+            width: 280px;
+
+            img {
+                width: 280px;
+                height: 360px;
+            }
+        }
+    }
+}
+
+// Responsive para móviles - MEJORADO
+@media (max-width: 768px) {
+    .proyecto-container {
+        padding: 0.75rem;
+    }
+
+    .seccion-detalle {
+        .detalle-header {
+            flex-direction: row;
+            flex-wrap: wrap;
+            padding: 1rem 0.75rem;
+            gap: 0.5rem;
+
+            .detalle-titulo {
+                order: 3;
+                width: 100%;
+                margin: 0.75rem 0 0 0;
+                font-size: 1.4rem;
+                text-align: center;
+            }
+
+            .detalle-navegacion {
+                order: 2;
+                margin-left: auto;
+                gap: 0.75rem;
+
+                button {
+                    width: 45px;
+                    height: 45px;
+                    font-size: 1.2rem;
+                }
+            }
+
+            button:first-child {
+                order: 1;
+            }
+        }
+
+        .detalle-contenido {
+            padding: 1rem 0.75rem;
+
+            &.con-imagen {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        .detalle-imagen {
+            order: -1;
+            position: static;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            img {
+                width: 100%;
+                max-width: 300px;
+                height: 380px;
+                margin: 0 auto;
+                display: block;
+            }
+
+            // MOSTRAR nombre en móvil
+            .nombre-movil {
+                display: block;
+            }
+        }
+
+        .detalle-info {
+            .detalle-encabezado {
+                text-align: center;
+
+                .detalle-subtitulo {
+                    font-size: 1.1rem;
+                }
+            }
+        }
+    }
+}
+
+// Responsive para móviles pequeños
+@media (max-width: 576px) {
+    .seccion-detalle {
+        .detalle-header {
+            .detalle-titulo {
+                font-size: 1.2rem;
+            }
+
+            .detalle-navegacion {
+                button {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 1rem;
+                }
+            }
+        }
+
+        .detalle-imagen {
+            img {
+                max-width: 280px;
+                height: 350px;
+            }
+
+            .nombre-movil {
+                font-size: 1.1rem;
+            }
+        }
+    }
 }
 
 @keyframes fadeIn {
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
-    }
-}
-
-.detalle-header {
-    padding: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    border-bottom: 1px solid $colorBorde;
-    background-color: $colorResaltado;
-}
-
-.detalle-titulo {
-    margin: 0;
-    font-size: 1.5rem;
-    color: $colorPrimario;
-}
-
-.detalle-contenido {
-    padding: 1.5rem;
-
-    &.con-imagen {
-        display: flex;
-        flex-direction: column-reverse;
-        gap: 1.5rem;
-
-        @media (min-width: 768px) {
-            flex-direction: row;
-        }
-    }
-}
-
-.detalle-info {
-    flex: 1;
-
-    @media (min-width: 768px) {
-        padding-right: 1.5rem;
-    }
-}
-
-.detalle-info-completa {
-    width: 100%;
-}
-
-.detalle-imagen {
-    flex: 0 0 auto;
-    max-width: 100%;
-    margin-bottom: 1.5rem;
-
-    @media (min-width: 768px) {
-        max-width: 40%;
-        margin-bottom: 0;
-    }
-
-    img {
-        width: 100%;
-        height: auto;
-        border-radius: var(--border-radius);
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-    }
-}
-
-.detalle-encabezado {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid $colorBorde;
-}
-
-.detalle-subtitulo {
-    color: $colorPrimario;
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-    font-size: 1.25rem;
-}
-
-.detalle-numero {
-    display: inline-block;
-    background-color: $colorPrimario;
-    color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: var(--border-radius);
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-.detalle-biografia {
-    h4 {
-        color: $colorPrimario;
-        margin-top: 1.5rem;
-        margin-bottom: 0.75rem;
-        font-size: 1.1rem;
-        position: relative;
-        padding-left: 1rem;
-
-        &:before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 5px;
-            height: 18px;
-            background-color: $colorPrimario;
-            border-radius: 2px;
-        }
-    }
-
-    p {
-        line-height: 1.6;
-        margin-bottom: 1rem;
-    }
-}
-
-.detalle-logros {
-    ul {
-        margin: 0;
-        padding-left: 1.5rem;
-
-        li {
-            margin-bottom: 0.5rem;
-            line-height: 1.5;
-        }
-    }
-}
-
-.detalle-reconocimientos {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-.reconocimiento-item {
-    ::ng-deep .p-card {
-        .p-card-title {
-            font-size: 1rem;
-            color: $colorPrimario;
-        }
-
-        .p-card-content {
-            padding-top: 0.5rem;
-        }
     }
 }
 
@@ -396,37 +570,26 @@ $colorError: var(--error-color, #ff5757);
  */
 
 .biografia-contenido {
-    // Espaciado y estructura base
     padding: 1.5rem;
     margin: 1rem 0;
-
-    // Colores que se adaptan automáticamente al tema activo
     background-color: var(--surface-card);
     border: 1px solid var(--surface-border);
     border-radius: var(--border-radius);
-
-    // Sombra sutil que respeta el tema
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-    // Transición suave para cambios de tema
     transition: all 0.3s ease;
 
-    // Párrafos dentro del contenedor
     p {
         color: var(--text-color);
         line-height: 1.6;
         margin-bottom: 1rem;
 
-        // Último párrafo sin margen inferior
         &:last-child {
             margin-bottom: 0;
         }
 
-        // Elementos enfatizados que mantienen jerarquía visual
         strong {
             color: var(--primary-color);
             font-weight: 600;
-            // Transición para hover en elementos interactivos
             transition: color 0.2s ease;
         }
 
@@ -435,7 +598,6 @@ $colorError: var(--error-color, #ff5757);
             font-style: italic;
             position: relative;
 
-            // Efecto sutil de subrayado para citas especiales
             &::after {
                 content: "";
                 position: absolute;
@@ -452,7 +614,6 @@ $colorError: var(--error-color, #ff5757);
         }
     }
 
-    // Estados interactivos que respetan el tema
     &:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
@@ -460,28 +621,21 @@ $colorError: var(--error-color, #ff5757);
 }
 
 .legado-contenido {
-    // Hereda del contenedor base pero con variaciones
     @extend .biografia-contenido;
 
-    // Personalización específica para legado
     background: linear-gradient(
         135deg,
         var(--surface-card) 0%,
         var(--surface-ground) 100%
     );
-
-    // Borde más prominente para diferenciar
     border-left: 4px solid var(--primary-color);
 
     p {
-        // Texto ligeramente más grande para énfasis
         font-size: 1.05rem;
 
         strong {
-            // Color más distintivo para elementos clave en legado
             color: var(--primary-500);
 
-            // Efecto hover para interactividad
             &:hover {
                 color: var(--primary-400);
             }
@@ -489,31 +643,11 @@ $colorError: var(--error-color, #ff5757);
     }
 }
 
-/*
-   * Variaciones responsivas que mantienen la coherencia temática
-   */
-@media (max-width: 768px) {
-    .biografia-contenido,
-    .legado-contenido {
-        padding: 1rem;
-        margin: 0.75rem 0;
-
-        p {
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-    }
-}
-
-/*
-   * Clases utilitarias adicionales para casos especiales
-   */
 .biografia--destacada {
     .biografia-contenido {
         border: 2px solid var(--primary-color);
         background: var(--primary-50);
 
-        // Ajuste para temas oscuros
         @media (prefers-color-scheme: dark) {
             background: var(--primary-900);
         }
@@ -527,58 +661,6 @@ $colorError: var(--error-color, #ff5757);
         p {
             margin-bottom: 0.5rem;
             font-size: 0.9rem;
-        }
-    }
-}
-
-.detalle-header {
-    padding: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    border-bottom: 1px solid $colorBorde;
-    background-color: $colorResaltado;
-    justify-content: space-between; // Distribuir elementos
-}
-
-.detalle-titulo {
-    margin: 0;
-    font-size: 1.5rem;
-    color: $colorPrimario;
-    flex: 1; // Permite que el título tome el espacio disponible
-}
-
-.detalle-navegacion {
-    display: flex;
-    gap: 0.5rem;
-
-    button {
-        transition: transform 0.2s ease;
-
-        &:hover {
-            transform: scale(1.1);
-        }
-    }
-}
-
-// Estilos responsivos para móviles
-@media (max-width: 576px) {
-    .detalle-header {
-        flex-wrap: wrap;
-
-        button:first-child {
-            order: 1; // Botón volver
-        }
-
-        .detalle-titulo {
-            order: 3; // Título abajo
-            width: 100%;
-            margin-top: 0.5rem;
-        }
-
-        .detalle-navegacion {
-            order: 2; // Navegación
-            margin-left: auto;
         }
     }
 }

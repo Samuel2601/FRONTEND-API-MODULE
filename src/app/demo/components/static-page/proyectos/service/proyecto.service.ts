@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Nominado, Proyecto } from '../interface/proyecto.interfaces';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { CacheService } from 'src/app/demo/services/cache.service';
+import { AuthService } from 'src/app/demo/services/auth.service';
 
 @Injectable({
     providedIn: 'root',
@@ -12,15 +13,24 @@ export class ProyectoService {
     public url: string;
     private cacheExpiry = 5 * 60 * 1000; // 5 minutos
 
-    constructor(private http: HttpClient, private cacheService: CacheService) {
+    constructor(
+        private http: HttpClient,
+        private cacheService: CacheService,
+        private auth: AuthService
+    ) {
         this.url = GLOBAL.url;
     }
 
-    getProyecto(id: string): Observable<Proyecto> {
+    getProyecto(id: string, isId: boolean = false): Observable<Proyecto> {
         const cacheKey = `proyecto_${id}`;
         return this.cacheService.getOrFetch<Proyecto>(
             cacheKey,
-            () => this.http.get<Proyecto>(`${this.url}proyecto?numero=${id}`),
+            () =>
+                this.http.get<Proyecto>(
+                    isId
+                        ? `${this.url}proyecto/${id}`
+                        : `${this.url}proyecto?numero=${id}`
+                ),
             this.cacheExpiry
         );
     }
@@ -68,5 +78,55 @@ export class ProyectoService {
             params = params.append(campo, campos[campo]);
         });
         return params;
+    }
+
+    // proyecto.service.ts - Métodos updateProyecto y createProyecto modificados
+
+    updateProyecto(id: string, data: any): Observable<any> {
+        const headers = this.getFormDataHeaders(this.token());
+        return this.http.put(`${this.url}proyecto/${id}`, data, {
+            headers: headers,
+        });
+    }
+
+    createProyecto(data: any): Observable<any> {
+        const headers = this.getFormDataHeaders(this.token());
+        return this.http.post(`${this.url}proyecto`, data, {
+            headers: headers,
+        });
+    }
+
+    updateNominado(id: string, data: any): Observable<any> {
+        const headers = this.getFormDataHeaders(this.token());
+        return this.http.put(`${this.url}nominado/${id}`, data, {
+            headers: headers,
+        });
+    }
+
+    createNominado(data: any): Observable<any> {
+        const headers = this.getFormDataHeaders(this.token());
+        return this.http.post(`${this.url}nominado`, data, {
+            headers: headers,
+        });
+    }
+
+    // Nuevo método para headers de FormData
+    getFormDataHeaders(token: string): HttpHeaders {
+        return new HttpHeaders({
+            // NO incluir Content-Type para FormData - el browser lo establece automáticamente
+            Authorization: token,
+        });
+    }
+
+    // Mantener el método original para otros endpoints que usen JSON
+    getHeaders(token: string): HttpHeaders {
+        return new HttpHeaders({
+            'Content-Type': 'application/json',
+            Authorization: token,
+        });
+    }
+
+    token() {
+        return this.auth.token();
     }
 }

@@ -1,0 +1,364 @@
+<div class="admin-form-container">
+    <p-toast></p-toast>
+
+    <div class="card">
+        <div class="header">
+            <h1>{{ editando ? "Editar" : "Nuevo" }} Proyecto</h1>
+            <p>
+                {{
+                    editando
+                        ? "Modifique la información del proyecto"
+                        : "Complete la información para crear un nuevo proyecto"
+                }}
+            </p>
+        </div>
+
+        <!-- Estado de carga -->
+        <div *ngIf="cargando" class="carga-container">
+            <p-progressSpinner
+                styleClass="w-4rem h-4rem"
+                strokeWidth="8"
+                animationDuration=".5s"
+            >
+            </p-progressSpinner>
+            <h3>Cargando información...</h3>
+        </div>
+
+        <!-- Formulario -->
+        <div *ngIf="!cargando" class="form-container">
+            <form [formGroup]="proyectoForm" (ngSubmit)="onSubmit()">
+                <div class="p-fluid form-grid">
+                    <div class="form-section">
+                        <h3>Información Básica</h3>
+
+                        <div class="field">
+                            <label for="numero"
+                                >Número
+                                <span class="required-marker">*</span></label
+                            >
+                            <p-inputNumber
+                                id="numero"
+                                formControlName="numero"
+                                [min]="1"
+                                [showButtons]="true"
+                                [useGrouping]="false"
+                                [disabled]="editando"
+                            >
+                            </p-inputNumber>
+                            <small
+                                *ngIf="
+                                    proyectoForm.get('numero')?.invalid &&
+                                    proyectoForm.get('numero')?.touched
+                                "
+                                class="p-error"
+                            >
+                                El número es requerido y debe ser mayor a 0
+                            </small>
+                        </div>
+
+                        <div class="field">
+                            <label for="nombre"
+                                >Nombre
+                                <span class="required-marker">*</span></label
+                            >
+                            <input
+                                pInputText
+                                id="nombre"
+                                type="text"
+                                formControlName="nombre"
+                            />
+                            <small
+                                *ngIf="
+                                    proyectoForm.get('nombre')?.invalid &&
+                                    proyectoForm.get('nombre')?.touched
+                                "
+                                class="p-error"
+                            >
+                                El nombre es requerido (máximo 200 caracteres)
+                            </small>
+                        </div>
+
+                        <div class="field">
+                            <label for="estado"
+                                >Estado
+                                <span class="required-marker">*</span></label
+                            >
+                            <p-dropdown
+                                id="estado"
+                                [options]="estadoOptions"
+                                formControlName="estado"
+                                optionLabel="label"
+                                optionValue="value"
+                            >
+                            </p-dropdown>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Imagen del Proyecto</h3>
+
+                        <div class="imagen-upload-container">
+                            <div
+                                class="imagen-preview"
+                                *ngIf="previewImagenUrl"
+                            >
+                                <img
+                                    [src]="previewImagenUrl"
+                                    alt="Vista previa"
+                                />
+                                <button
+                                    pButton
+                                    type="button"
+                                    icon="pi pi-trash"
+                                    class="p-button-rounded p-button-danger imagen-eliminar"
+                                    (click)="eliminarImagen()"
+                                ></button>
+                            </div>
+
+                            <div class="upload-area" *ngIf="!previewImagenUrl">
+                                <p-fileUpload
+                                    #fileUpload
+                                    mode="basic"
+                                    chooseLabel="Seleccionar Imagen"
+                                    [auto]="true"
+                                    accept="image/*"
+                                    [maxFileSize]="5000000"
+                                    (onSelect)="onImagenSeleccionada($event)"
+                                    [showUploadButton]="false"
+                                    [showCancelButton]="false"
+                                >
+                                </p-fileUpload>
+
+                                <div class="upload-info">
+                                    <i class="pi pi-image"></i>
+                                    <p>
+                                        Arrastre una imagen aquí o haga clic en
+                                        Seleccionar Imagen
+                                    </p>
+                                    <small
+                                        >Formatos permitidos: JPG, PNG, GIF.
+                                        Tamaño máximo: 5MB</small
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section full-width">
+                        <h3>Textos del Proyecto</h3>
+
+                        <div class="field">
+                            <label for="mensajeInicial"
+                                >Mensaje Inicial
+                                <span class="required-marker">*</span></label
+                            >
+                            <p-editor
+                                formControlName="mensajeInicial"
+                                [style]="{ height: '200px' }"
+                                placeholder="Escriba el mensaje inicial del proyecto..."
+                            >
+                                <ng-template pTemplate="header">
+                                    <span class="ql-formats">
+                                        <button
+                                            type="button"
+                                            class="ql-bold"
+                                            aria-label="Bold"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="ql-italic"
+                                            aria-label="Italic"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="ql-underline"
+                                            aria-label="Underline"
+                                        ></button>
+                                    </span>
+                                    <span class="ql-formats">
+                                        <select class="ql-color"></select>
+                                        <select class="ql-background"></select>
+                                    </span>
+                                    <span class="ql-formats">
+                                        <button
+                                            type="button"
+                                            class="ql-list"
+                                            value="ordered"
+                                            aria-label="Ordered List"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="ql-list"
+                                            value="bullet"
+                                            aria-label="Bullet List"
+                                        ></button>
+                                    </span>
+                                    <span class="ql-formats">
+                                        <button
+                                            type="button"
+                                            class="ql-link"
+                                            aria-label="Link"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="ql-blockquote"
+                                            aria-label="Blockquote"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="ql-code-block"
+                                            aria-label="Code Block"
+                                        ></button>
+                                    </span>
+                                </ng-template>
+                            </p-editor>
+                            <small
+                                *ngIf="
+                                    proyectoForm.get('mensajeInicial')
+                                        ?.invalid &&
+                                    proyectoForm.get('mensajeInicial')?.touched
+                                "
+                                class="p-error"
+                            >
+                                El mensaje inicial es requerido
+                            </small>
+                        </div>
+
+                        <div class="field">
+                            <label for="descripcion"
+                                >Descripción
+                                <span class="required-marker">*</span></label
+                            >
+                            <p-editor
+                                formControlName="descripcion"
+                                [style]="{ height: '200px' }"
+                                placeholder="Escriba la descripción del proyecto..."
+                            >
+                                <ng-template pTemplate="header">
+                                    <span class="ql-formats">
+                                        <button
+                                            type="button"
+                                            class="ql-bold"
+                                            aria-label="Bold"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="ql-italic"
+                                            aria-label="Italic"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="ql-underline"
+                                            aria-label="Underline"
+                                        ></button>
+                                    </span>
+                                    <span class="ql-formats">
+                                        <select class="ql-color"></select>
+                                        <select class="ql-background"></select>
+                                    </span>
+                                    <span class="ql-formats">
+                                        <button
+                                            type="button"
+                                            class="ql-list"
+                                            value="ordered"
+                                            aria-label="Ordered List"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="ql-list"
+                                            value="bullet"
+                                            aria-label="Bullet List"
+                                        ></button>
+                                    </span>
+                                    <span class="ql-formats">
+                                        <button
+                                            type="button"
+                                            class="ql-link"
+                                            aria-label="Link"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="ql-blockquote"
+                                            aria-label="Blockquote"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="ql-code-block"
+                                            aria-label="Code Block"
+                                        ></button>
+                                    </span>
+                                </ng-template>
+                            </p-editor>
+                            <small
+                                *ngIf="
+                                    proyectoForm.get('descripcion')?.invalid &&
+                                    proyectoForm.get('descripcion')?.touched
+                                "
+                                class="p-error"
+                            >
+                                La descripción es requerida
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Personalización</h3>
+
+                        <div class="field">
+                            <label for="tagTotalNominados"
+                                >Etiqueta de Nominados
+                                <span class="required-marker">*</span></label
+                            >
+                            <input
+                                pInputText
+                                id="tagTotalNominados"
+                                type="text"
+                                formControlName="tagTotalNominados"
+                            />
+                            <small class="info-text"
+                                >Esta etiqueta se mostrará junto al número de
+                                nominados (ej: "12 Ilustres
+                                Esmeraldeños")</small
+                            >
+                        </div>
+
+                        <div class="field">
+                            <label for="tagLisado"
+                                >Título de Listado
+                                <span class="required-marker">*</span></label
+                            >
+                            <input
+                                pInputText
+                                id="tagLisado"
+                                type="text"
+                                formControlName="tagLisado"
+                            />
+                            <small class="info-text"
+                                >Este título se mostrará sobre la cuadrícula de
+                                nominados</small
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button
+                        pButton
+                        type="button"
+                        label="Cancelar"
+                        class="p-button-outlined"
+                        (click)="cancelar()"
+                        [disabled]="guardando"
+                    ></button>
+                    <button
+                        pButton
+                        type="submit"
+                        label="Guardar Proyecto"
+                        icon="pi pi-save"
+                        [loading]="guardando"
+                    ></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,287 @@
+// Variables de PrimeNG para temas
+$colorPrimario: var(--primary-color, #157016);
+$colorTexto: var(--text-color, #333333);
+$colorFondo: var(--surface-ground, #ffffff);
+$colorBorde: var(--surface-border, #dee2e6);
+$colorTarjeta: var(--surface-card, #ffffff);
+$colorResaltado: var(--highlight-bg, #e3f8e3);
+
+.admin-form-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+
+  .card {
+    background-color: $colorTarjeta;
+    border-radius: var(--border-radius);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .header {
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid $colorBorde;
+    padding-bottom: 1rem;
+
+    h1 {
+      color: $colorPrimario;
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      margin: 0;
+      color: rgba($colorTexto, 0.7);
+    }
+  }
+
+  .carga-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .form-container {
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+
+      @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-section {
+      background-color: $colorFondo;
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+      &.full-width {
+        grid-column: 1 / -1;
+      }
+
+      h3 {
+        color: $colorPrimario;
+        margin-top: 0;
+        margin-bottom: 1.25rem;
+        font-size: 1.2rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid $colorBorde;
+      }
+    }
+
+    .field {
+      margin-bottom: 1.5rem;
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: rgba($colorTexto, 0.8);
+      }
+
+      .required-marker {
+        color: #f03a17;
+      }
+
+      .info-text {
+        display: block;
+        margin-top: 0.25rem;
+        font-size: 0.85rem;
+        color: rgba($colorTexto, 0.6);
+      }
+
+      &.full-width {
+        grid-column: 1 / -1;
+      }
+    }
+
+    .p-error {
+      color: #f03a17;
+      margin-top: 0.25rem;
+      font-size: 0.85rem;
+      display: block;
+    }
+  }
+
+  .add-item-group {
+    margin-bottom: 1rem;
+  }
+
+  .items-container {
+    padding: 0.5rem;
+    border: 1px solid $colorBorde;
+    border-radius: var(--border-radius);
+    background-color: $colorTarjeta;
+    margin-top: 0.5rem;
+
+    .item-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.5rem;
+
+      .item-content {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex: 1;
+
+        i {
+          color: $colorPrimario;
+        }
+      }
+    }
+
+    .empty-list {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      color: rgba($colorTexto, 0.5);
+
+      i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      p {
+        margin: 0;
+      }
+    }
+  }
+
+  .reconocimiento-item {
+    border: 1px solid $colorBorde;
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: $colorResaltado;
+
+    .reconocimiento-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+
+      .reconocimiento-numero {
+        font-weight: 600;
+        color: $colorPrimario;
+      }
+    }
+
+    .reconocimiento-datos {
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      gap: 1rem;
+
+      @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+      }
+
+      .full-width {
+        grid-column: 1 / -1;
+      }
+    }
+  }
+
+  .imagen-upload-container {
+    .imagen-preview {
+      position: relative;
+      margin-bottom: 1rem;
+      width: 100%;
+      max-width: 300px;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+
+      img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .imagen-eliminar {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+      }
+    }
+
+    .upload-area {
+      border: 2px dashed $colorBorde;
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      text-align: center;
+      position: relative;
+
+      &:hover {
+        border-color: $colorPrimario;
+        background-color: rgba($colorResaltado, 0.3);
+      }
+
+      ::ng-deep .p-fileupload {
+        margin-bottom: 1rem;
+
+        .p-button {
+          margin: 0 auto;
+          display: block;
+        }
+      }
+
+      .upload-info {
+        margin-top: 1rem;
+
+        i {
+          font-size: 2rem;
+          color: rgba($colorPrimario, 0.6);
+          margin-bottom: 0.5rem;
+        }
+
+        p {
+          margin: 0 0 0.5rem;
+        }
+
+        small {
+          color: rgba($colorTexto, 0.6);
+        }
+      }
+    }
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid $colorBorde;
+
+    @media (max-width: 768px) {
+      flex-direction: column-reverse;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+
+  ::ng-deep {
+    .p-editor-container {
+      .p-editor-toolbar {
+        background-color: $colorResaltado;
+      }
+
+      .p-editor-content {
+        min-height: 200px;
+      }
+    }
+  }
+}
