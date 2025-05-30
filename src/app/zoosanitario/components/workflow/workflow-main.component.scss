@@ -1,0 +1,95 @@
+.workflow-container {
+    min-height: 100vh;
+    background-color: #f8f9fa;
+    padding: 1rem;
+}
+
+.workflow-header {
+    margin-bottom: 1rem;
+
+    .steps-container {
+        padding: 1rem;
+
+        .step-item {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+
+            &.completed {
+                background-color: #e8f5e8;
+                color: #2e7d32;
+            }
+
+            &.disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            &:not(.disabled):hover {
+                background-color: #e3f2fd;
+                cursor: pointer;
+            }
+
+            i:first-child {
+                margin-bottom: 0.5rem;
+            }
+
+            span {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 120px;
+            }
+        }
+    }
+}
+
+.workflow-info {
+    margin-bottom: 1rem;
+
+    h3 {
+        margin: 0 0 0.5rem 0;
+        color: #1976d2;
+    }
+
+    p {
+        margin: 0;
+    }
+}
+
+.workflow-content {
+    min-height: 500px;
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+@media (max-width: 768px) {
+    .workflow-container {
+        padding: 0.5rem;
+    }
+
+    .workflow-header .steps-container {
+        padding: 0.5rem;
+
+        .step-item span {
+            font-size: 0.75rem;
+            max-width: 80px;
+        }
+    }
+}

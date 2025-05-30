@@ -1,0 +1,189 @@
+.qr-scanner-content {
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.scanner-area {
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.camera-view {
+    .scanner-frame {
+        position: relative;
+        width: 250px;
+        height: 250px;
+        margin: 0 auto 1rem;
+
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 2px solid #3b82f6;
+            border-radius: 12px;
+            background: rgba(59, 130, 246, 0.1);
+
+            .scan-line {
+                position: absolute;
+                top: 50%;
+                left: 10%;
+                right: 10%;
+                height: 2px;
+                background: linear-gradient(
+                    90deg,
+                    transparent,
+                    #3b82f6,
+                    transparent
+                );
+                animation: scan 2s linear infinite;
+            }
+
+            .corner {
+                position: absolute;
+                width: 20px;
+                height: 20px;
+                border: 3px solid #3b82f6;
+
+                &.corner-tl {
+                    top: -2px;
+                    left: -2px;
+                    border-right: none;
+                    border-bottom: none;
+                }
+
+                &.corner-tr {
+                    top: -2px;
+                    right: -2px;
+                    border-left: none;
+                    border-bottom: none;
+                }
+
+                &.corner-bl {
+                    bottom: -2px;
+                    left: -2px;
+                    border-right: none;
+                    border-top: none;
+                }
+
+                &.corner-br {
+                    bottom: -2px;
+                    right: -2px;
+                    border-left: none;
+                    border-top: none;
+                }
+            }
+        }
+    }
+
+    .scan-instruction {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin: 0;
+    }
+}
+
+.manual-mode {
+    .manual-input-area {
+        max-width: 300px;
+        margin: 0 auto;
+
+        h4 {
+            margin: 0 0 0.5rem 0;
+            color: #374151;
+        }
+
+        .p-inputgroup {
+            margin-top: 1rem;
+        }
+    }
+}
+
+.success-state {
+    h4 {
+        margin: 0 0 1rem 0;
+    }
+
+    .result-code {
+        background: #f0f9ff;
+        border: 1px solid #e0f2fe;
+        border-radius: 8px;
+        padding: 1rem;
+        font-family: "Courier New", monospace;
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #0369a1;
+        margin-bottom: 1rem;
+    }
+}
+
+.error-state {
+    h4 {
+        margin: 0 0 1rem 0;
+    }
+}
+
+.loading-state {
+    h4 {
+        margin: 0 0 1rem 0;
+        color: #374151;
+    }
+}
+
+.scanner-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+
+    .mode-toggle {
+        flex: 1;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+}
+
+@keyframes scan {
+    0% {
+        transform: translateY(-100px);
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .scanner-area {
+        min-height: 250px;
+    }
+
+    .camera-view .scanner-frame {
+        width: 200px;
+        height: 200px;
+    }
+
+    .scanner-controls {
+        flex-direction: column;
+        gap: 1rem;
+
+        .action-buttons {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+}

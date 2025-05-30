@@ -1,0 +1,75 @@
+.reception-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.reception-header {
+    text-align: center;
+    margin-bottom: 2rem;
+
+    h2 {
+        color: var(--primary-color);
+    }
+}
+
+.reception-form {
+    .validation-status {
+        p-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid var(--primary-color);
+        }
+    }
+
+    .certificate-details {
+        .p-fieldset {
+            .p-fieldset-content {
+                padding: 1.5rem;
+            }
+        }
+
+        h5 {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+    }
+}
+
+.action-buttons {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #dee2e6;
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+    .reception-container {
+        padding: 0.5rem;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+
+        p-button {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+    }
+
+    .formgrid.grid .field.col-12.md\:col-4,
+    .formgrid.grid .field.col-12.md\:col-6,
+    .formgrid.grid .field.col-12.md\:col-8 {
+        padding: 0.5rem;
+    }
+}

@@ -1,0 +1,868 @@
+<div class="shipping-container">
+    <div class="shipping-header">
+        <h2 class="text-2xl font-bold text-primary mb-2">
+            <i class="pi pi-truck mr-2"></i>
+            Control de Despacho y Envío
+        </h2>
+        <p class="text-600 mb-4">
+            Gestión del despacho y seguimiento de productos cárnicos hasta su
+            destino final
+        </p>
+    </div>
+
+    <!-- Navegación de Vistas -->
+    <p-tabMenu
+        [model]="[
+        {label: 'Preparación', icon: 'pi pi-cog', command: () => currentView = 'preparation'},
+        {label: 'Seguimiento', icon: 'pi pi-map-marker', command: () => currentView = 'tracking'},
+        {label: 'Entrega', icon: 'pi pi-check-circle', command: () => currentView = 'delivery'}
+      ]"
+        [activeItem]="
+            currentView === 'preparation'
+                ? 0
+                : currentView === 'tracking'
+                ? 1
+                : 2
+        "
+        class="mb-4"
+    >
+    </p-tabMenu>
+
+    <!-- Vista de Preparación -->
+    <div *ngIf="currentView === 'preparation'">
+        <form [formGroup]="shippingForm">
+            <!-- Información General -->
+            <p-fieldset legend="Información General del Envío" class="mb-4">
+                <div class="formgrid grid">
+                    <div class="field col-12 md:col-4">
+                        <label
+                            for="guideNumber"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Número de Guía
+                        </label>
+                        <input
+                            id="guideNumber"
+                            type="text"
+                            pInputText
+                            formControlName="guideNumber"
+                            readonly
+                            class="w-full"
+                        />
+                    </div>
+
+                    <div class="field col-12 md:col-4">
+                        <label
+                            for="dispatchDate"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Fecha de Despacho
+                        </label>
+                        <p-calendar
+                            id="dispatchDate"
+                            formControlName="dispatchDate"
+                            [showTime]="true"
+                            dateFormat="dd/mm/yy"
+                            class="w-full"
+                        >
+                        </p-calendar>
+                    </div>
+
+                    <div class="field col-12 md:col-4">
+                        <label
+                            for="shippingType"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Tipo de Envío *
+                        </label>
+                        <p-dropdown
+                            id="shippingType"
+                            [options]="shippingTypes"
+                            formControlName="shippingType"
+                            placeholder="Seleccionar tipo"
+                            (onChange)="onShippingTypeChange()"
+                            class="w-full"
+                        >
+                        </p-dropdown>
+                    </div>
+                </div>
+            </p-fieldset>
+
+            <!-- Datos del Vehículo -->
+            <p-fieldset
+                legend="Datos del Vehículo"
+                formGroupName="vehicle"
+                class="mb-4"
+            >
+                <div class="formgrid grid">
+                    <div class="field col-12 md:col-3">
+                        <label
+                            for="vehicleType"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Tipo de Vehículo *
+                        </label>
+                        <p-dropdown
+                            id="vehicleType"
+                            [options]="vehicleTypes"
+                            formControlName="type"
+                            placeholder="Seleccionar tipo"
+                            (onChange)="onVehicleTypeChange()"
+                            class="w-full"
+                        >
+                        </p-dropdown>
+                    </div>
+
+                    <div class="field col-12 md:col-3">
+                        <label
+                            for="licensePlate"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Placa del Vehículo *
+                        </label>
+                        <input
+                            id="licensePlate"
+                            type="text"
+                            pInputText
+                            formControlName="licensePlate"
+                            placeholder="ABC-1234"
+                            class="w-full"
+                        />
+                    </div>
+
+                    <div class="field col-12 md:col-3">
+                        <label
+                            for="capacity"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Capacidad (kg) *
+                        </label>
+                        <p-inputNumber
+                            id="capacity"
+                            formControlName="capacity"
+                            [min]="1"
+                            suffix=" kg"
+                            class="w-full"
+                        >
+                        </p-inputNumber>
+                    </div>
+
+                    <div class="field col-12 md:col-3">
+                        <label
+                            for="operatingTemperature"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Temperatura Operativa (°C)
+                        </label>
+                        <p-inputNumber
+                            id="operatingTemperature"
+                            formControlName="operatingTemperature"
+                            [min]="-20"
+                            [max]="10"
+                            suffix=" °C"
+                            class="w-full"
+                        >
+                        </p-inputNumber>
+                    </div>
+                </div>
+
+                <!-- Datos del Conductor -->
+                <h5 class="text-primary mt-4 mb-3">Datos del Conductor</h5>
+                <div formGroupName="driver" class="formgrid grid">
+                    <div class="field col-12 md:col-4">
+                        <label
+                            for="driverName"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Nombre del Conductor *
+                        </label>
+                        <input
+                            id="driverName"
+                            type="text"
+                            pInputText
+                            formControlName="name"
+                            placeholder="Nombre completo"
+                            class="w-full"
+                        />
+                    </div>
+
+                    <div class="field col-12 md:col-4">
+                        <label
+                            for="driverIdNumber"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Número de Identificación *
+                        </label>
+                        <input
+                            id="driverIdNumber"
+                            type="text"
+                            pInputText
+                            formControlName="idNumber"
+                            placeholder="Cédula o pasaporte"
+                            class="w-full"
+                        />
+                    </div>
+
+                    <div class="field col-12 md:col-4">
+                        <label
+                            for="driverLicense"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Licencia de Conducir *
+                        </label>
+                        <input
+                            id="driverLicense"
+                            type="text"
+                            pInputText
+                            formControlName="license"
+                            placeholder="Número de licencia"
+                            class="w-full"
+                        />
+                    </div>
+                </div>
+            </p-fieldset>
+
+            <!-- Destino -->
+            <p-fieldset
+                legend="Información del Destino"
+                formGroupName="destination"
+                class="mb-4"
+            >
+                <div class="formgrid grid">
+                    <div class="field col-12 md:col-6">
+                        <label
+                            for="destinationType"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Tipo de Destino *
+                        </label>
+                        <p-dropdown
+                            id="destinationType"
+                            [options]="destinationTypes"
+                            formControlName="type"
+                            placeholder="Seleccionar tipo"
+                            class="w-full"
+                        >
+                        </p-dropdown>
+                    </div>
+
+                    <div class="field col-12 md:col-6">
+                        <label
+                            for="destinationName"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Nombre del Destinatario *
+                        </label>
+                        <input
+                            id="destinationName"
+                            type="text"
+                            pInputText
+                            formControlName="name"
+                            placeholder="Nombre o empresa"
+                            class="w-full"
+                        />
+                    </div>
+
+                    <div class="field col-12 md:col-8">
+                        <label
+                            for="destinationAddress"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Dirección *
+                        </label>
+                        <input
+                            id="destinationAddress"
+                            type="text"
+                            pInputText
+                            formControlName="address"
+                            placeholder="Dirección completa"
+                            class="w-full"
+                        />
+                    </div>
+
+                    <div class="field col-12 md:col-4">
+                        <label
+                            for="destinationPhone"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Teléfono *
+                        </label>
+                        <input
+                            id="destinationPhone"
+                            type="text"
+                            pInputText
+                            formControlName="phone"
+                            placeholder="Número de contacto"
+                            class="w-full"
+                        />
+                    </div>
+
+                    <div class="field col-12">
+                        <label
+                            for="destinationContact"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Persona de Contacto *
+                        </label>
+                        <input
+                            id="destinationContact"
+                            type="text"
+                            pInputText
+                            formControlName="contact"
+                            placeholder="Nombre de contacto"
+                            class="w-full"
+                        />
+                    </div>
+                </div>
+            </p-fieldset>
+
+            <!-- Productos del Envío -->
+            <p-fieldset legend="Productos del Envío" class="mb-4">
+                <div class="products-summary mb-4">
+                    <div
+                        class="flex justify-content-between align-items-center"
+                    >
+                        <div class="summary-stats">
+                            <span class="stat-item">
+                                <strong>Total Productos:</strong>
+                                {{ getTotalProducts() }}
+                            </span>
+                            <span class="stat-item ml-4">
+                                <strong>Peso Total:</strong>
+                                {{ getTotalWeight() | number : "1.2-2" }} kg
+                            </span>
+                        </div>
+                        <p-button
+                            icon="pi pi-plus"
+                            label="Agregar Producto"
+                            size="small"
+                            severity="secondary"
+                            (click)="addShippingProduct()"
+                        >
+                        </p-button>
+                    </div>
+                </div>
+
+                <div formArrayName="shippingProducts">
+                    <div
+                        *ngFor="
+                            let product of shippingProducts.controls;
+                            let i = index
+                        "
+                        [formGroupName]="i"
+                        class="product-shipping-item mb-4 p-3 border-1 border-300 border-round"
+                    >
+                        <div
+                            class="flex justify-content-between align-items-start mb-3"
+                        >
+                            <h6 class="m-0">Producto {{ i + 1 }}</h6>
+                            <p-button
+                                icon="pi pi-trash"
+                                severity="danger"
+                                size="small"
+                                text
+                                (click)="removeShippingProduct(i)"
+                            >
+                            </p-button>
+                        </div>
+
+                        <div class="formgrid grid">
+                            <div class="field col-12 md:col-6">
+                                <label class="block text-900 font-medium mb-2"
+                                    >ID del Producto *</label
+                                >
+                                <input
+                                    type="text"
+                                    pInputText
+                                    formControlName="productId"
+                                    placeholder="Identificador único"
+                                    class="w-full"
+                                />
+                            </div>
+
+                            <div class="field col-12 md:col-6">
+                                <label class="block text-900 font-medium mb-2"
+                                    >Tipo *</label
+                                >
+                                <input
+                                    type="text"
+                                    pInputText
+                                    formControlName="type"
+                                    placeholder="Tipo de producto"
+                                    class="w-full"
+                                />
+                            </div>
+
+                            <div class="field col-12 md:col-3">
+                                <label class="block text-900 font-medium mb-2"
+                                    >Cantidad *</label
+                                >
+                                <p-inputNumber
+                                    formControlName="quantity"
+                                    [min]="1"
+                                    class="w-full"
+                                >
+                                </p-inputNumber>
+                            </div>
+
+                            <div class="field col-12 md:col-3">
+                                <label class="block text-900 font-medium mb-2"
+                                    >Peso (kg) *</label
+                                >
+                                <p-inputNumber
+                                    formControlName="weight"
+                                    [min]="0.1"
+                                    [minFractionDigits]="2"
+                                    [maxFractionDigits]="2"
+                                    suffix=" kg"
+                                    class="w-full"
+                                >
+                                </p-inputNumber>
+                            </div>
+
+                            <div class="field col-12 md:col-3">
+                                <label class="block text-900 font-medium mb-2"
+                                    >Temperatura (°C)</label
+                                >
+                                <p-inputNumber
+                                    formControlName="departureTemperature"
+                                    [min]="-20"
+                                    [max]="10"
+                                    [minFractionDigits]="1"
+                                    [maxFractionDigits]="1"
+                                    suffix=" °C"
+                                    class="w-full"
+                                >
+                                </p-inputNumber>
+                            </div>
+
+                            <div class="field col-12 md:col-3">
+                                <label class="block text-900 font-medium mb-2"
+                                    >Empaque *</label
+                                >
+                                <p-dropdown
+                                    [options]="packagingTypes"
+                                    formControlName="packaging"
+                                    placeholder="Tipo de empaque"
+                                    class="w-full"
+                                >
+                                </p-dropdown>
+                            </div>
+
+                            <div class="field col-12 md:col-4">
+                                <label class="block text-900 font-medium mb-2"
+                                    >Etiquetado *</label
+                                >
+                                <input
+                                    type="text"
+                                    pInputText
+                                    formControlName="labeling"
+                                    placeholder="Información de etiquetas"
+                                    class="w-full"
+                                />
+                            </div>
+
+                            <div class="field col-12 md:col-4">
+                                <label class="block text-900 font-medium mb-2"
+                                    >Lote *</label
+                                >
+                                <input
+                                    type="text"
+                                    pInputText
+                                    formControlName="batch"
+                                    placeholder="Número de lote"
+                                    class="w-full"
+                                />
+                            </div>
+
+                            <div class="field col-12 md:col-4">
+                                <label class="block text-900 font-medium mb-2"
+                                    >Fecha de Vencimiento *</label
+                                >
+                                <p-calendar
+                                    formControlName="expirationDate"
+                                    dateFormat="dd/mm/yy"
+                                    class="w-full"
+                                >
+                                </p-calendar>
+                            </div>
+
+                            <div class="field col-12">
+                                <label class="block text-900 font-medium mb-2"
+                                    >Observaciones</label
+                                >
+                                <input
+                                    type="text"
+                                    pInputText
+                                    formControlName="observations"
+                                    placeholder="Observaciones del producto"
+                                    class="w-full"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    *ngIf="shippingProducts.length === 0"
+                    class="text-center text-600 p-4"
+                >
+                    No hay productos en el envío
+                </div>
+            </p-fieldset>
+
+            <!-- Condiciones de Transporte -->
+            <p-fieldset
+                legend="Condiciones de Transporte"
+                formGroupName="transportConditions"
+                class="mb-4"
+            >
+                <div class="formgrid grid">
+                    <div class="field col-12 md:col-3">
+                        <label
+                            for="initialTemperature"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Temperatura Inicial (°C)
+                        </label>
+                        <p-inputNumber
+                            id="initialTemperature"
+                            formControlName="initialTemperature"
+                            [min]="-20"
+                            [max]="10"
+                            suffix=" °C"
+                            class="w-full"
+                        >
+                        </p-inputNumber>
+                    </div>
+
+                    <div class="field col-12 md:col-3">
+                        <label
+                            for="initialHumidity"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Humedad Inicial (%)
+                        </label>
+                        <p-inputNumber
+                            id="initialHumidity"
+                            formControlName="initialHumidity"
+                            [min]="0"
+                            [max]="100"
+                            suffix=" %"
+                            class="w-full"
+                        >
+                        </p-inputNumber>
+                    </div>
+
+                    <div class="field col-12 md:col-3">
+                        <label
+                            for="estimatedTravelTime"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Tiempo Estimado (horas)
+                        </label>
+                        <p-inputNumber
+                            id="estimatedTravelTime"
+                            formControlName="estimatedTravelTime"
+                            [min]="0.5"
+                            suffix=" h"
+                            (onInput)="calculateEstimatedDelivery()"
+                            class="w-full"
+                        >
+                        </p-inputNumber>
+                    </div>
+
+                    <div class="field col-12 md:col-3">
+                        <label class="block text-900 font-medium mb-2">
+                            Entrega Estimada
+                        </label>
+                        <input
+                            type="text"
+                            pInputText
+                            [value]="estimatedDeliveryTime | date : 'medium'"
+                            readonly
+                            class="w-full"
+                        />
+                    </div>
+
+                    <div class="field col-12">
+                        <label
+                            for="transportRoute"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Ruta de Transporte
+                        </label>
+                        <textarea
+                            id="transportRoute"
+                            pInputTextarea
+                            formControlName="transportRoute"
+                            rows="2"
+                            placeholder="Describir la ruta a seguir..."
+                            class="w-full"
+                        >
+                        </textarea>
+                    </div>
+                </div>
+            </p-fieldset>
+
+            <!-- Botones de Acción -->
+            <div class="action-buttons flex justify-content-end gap-2">
+                <p-button
+                    label="Exportar Guía"
+                    icon="pi pi-download"
+                    severity="info"
+                    (click)="exportShippingGuide()"
+                >
+                </p-button>
+                <p-button
+                    label="Crear Envío"
+                    icon="pi pi-send"
+                    severity="success"
+                    [loading]="isLoading"
+                    [disabled]="
+                        shippingForm.invalid || shippingProducts.length === 0
+                    "
+                    (click)="startPreparation()"
+                >
+                </p-button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Vista de Seguimiento -->
+    <div *ngIf="currentView === 'tracking'">
+        <div class="tracking-container">
+            <!-- Estado Actual -->
+            <p-fieldset legend="Estado Actual del Envío" class="mb-4">
+                <div class="current-status">
+                    <div
+                        class="status-header flex justify-content-between align-items-center mb-4"
+                    >
+                        <div class="flex align-items-center gap-3">
+                            <i
+                                [class]="
+                                    'pi ' +
+                                    getStatusIcon(currentStatus) +
+                                    ' text-3xl'
+                                "
+                                [style.color]="getStatusColor(currentStatus)"
+                            ></i>
+                            <div>
+                                <h3 class="m-0">
+                                    {{ currentStatus | titlecase }}
+                                </h3>
+                                <p class="m-0 text-600">
+                                    Guía:
+                                    {{ shippingForm.get("guideNumber")?.value }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="action-buttons">
+                            <p-button
+                                *ngIf="currentStatus === 'PREPARATION'"
+                                label="Iniciar Envío"
+                                icon="pi pi-car"
+                                severity="info"
+                                (click)="startShipment()"
+                            >
+                            </p-button>
+                            <p-button
+                                *ngIf="currentStatus === 'IN_TRANSIT'"
+                                label="Marcar como Entregado"
+                                icon="pi pi-check"
+                                severity="success"
+                                (click)="markAsDelivered()"
+                            >
+                            </p-button>
+                        </div>
+                    </div>
+
+                    <!-- Información del Envío -->
+                    <div class="shipping-info">
+                        <div class="grid">
+                            <div class="col-12 md:col-6">
+                                <h5 class="text-primary mb-3">
+                                    Información del Vehículo
+                                </h5>
+                                <div class="info-item">
+                                    <strong>Placa:</strong>
+                                    {{
+                                        shippingForm.get("vehicle.licensePlate")
+                                            ?.value
+                                    }}
+                                </div>
+                                <div class="info-item">
+                                    <strong>Conductor:</strong>
+                                    {{
+                                        shippingForm.get("vehicle.driver.name")
+                                            ?.value
+                                    }}
+                                </div>
+                                <div class="info-item">
+                                    <strong>Temperatura:</strong>
+                                    {{
+                                        formatTemperature(
+                                            shippingForm.get(
+                                                "vehicle.operatingTemperature"
+                                            )?.value
+                                        )
+                                    }}
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-6">
+                                <h5 class="text-primary mb-3">Destino</h5>
+                                <div class="info-item">
+                                    <strong>Destinatario:</strong>
+                                    {{
+                                        shippingForm.get("destination.name")
+                                            ?.value
+                                    }}
+                                </div>
+                                <div class="info-item">
+                                    <strong>Dirección:</strong>
+                                    {{
+                                        shippingForm.get("destination.address")
+                                            ?.value
+                                    }}
+                                </div>
+                                <div class="info-item">
+                                    <strong>Teléfono:</strong>
+                                    {{
+                                        shippingForm.get("destination.phone")
+                                            ?.value
+                                    }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </p-fieldset>
+
+            <!-- Tracking en Tiempo Real -->
+            <p-fieldset legend="Seguimiento en Tiempo Real" class="mb-4">
+                <p-timeline [value]="realTimeTracking" align="left">
+                    <ng-template pTemplate="marker" let-event>
+                        <i class="pi pi-map-marker text-primary"></i>
+                    </ng-template>
+                    <ng-template pTemplate="content" let-event>
+                        <div
+                            class="tracking-event p-3 border-1 border-300 border-round mb-2"
+                        >
+                            <div
+                                class="flex justify-content-between align-items-start"
+                            >
+                                <div>
+                                    <h6 class="m-0 mb-1">{{ event.status }}</h6>
+                                    <p class="m-0 text-600 mb-2">
+                                        {{ event.location }}
+                                    </p>
+                                    <small class="text-500">{{
+                                        event.date | date : "medium"
+                                    }}</small>
+                                </div>
+                                <div class="text-right">
+                                    <div class="temperature-display">
+                                        <i
+                                            class="pi pi-thermometer text-blue-500"
+                                        ></i>
+                                        {{
+                                            formatTemperature(event.temperature)
+                                        }}
+                                    </div>
+                                </div>
+                            </div>
+                            <p
+                                *ngIf="event.observations"
+                                class="mt-2 mb-0 text-700"
+                            >
+                                {{ event.observations }}
+                            </p>
+                        </div>
+                    </ng-template>
+                </p-timeline>
+
+                <div
+                    *ngIf="realTimeTracking.length === 0"
+                    class="text-center text-600 p-4"
+                >
+                    <i class="pi pi-clock text-4xl mb-3"></i>
+                    <p>Esperando actualizaciones de seguimiento...</p>
+                </div>
+            </p-fieldset>
+        </div>
+    </div>
+
+    <!-- Vista de Entrega -->
+    <div *ngIf="currentView === 'delivery'">
+        <div class="delivery-container">
+            <p-fieldset legend="Confirmación de Entrega" class="mb-4">
+                <div class="delivery-form">
+                    <p class="mb-4 text-700">
+                        Complete la información de entrega para finalizar el
+                        proceso.
+                    </p>
+
+                    <!-- Formulario de entrega simplificado -->
+                    <div class="formgrid grid">
+                        <div class="field col-12 md:col-6">
+                            <label class="block text-900 font-medium mb-2">
+                                Nombre del Receptor *
+                            </label>
+                            <input
+                                type="text"
+                                pInputText
+                                placeholder="Nombre completo del receptor"
+                                class="w-full"
+                            />
+                        </div>
+
+                        <div class="field col-12 md:col-6">
+                            <label class="block text-900 font-medium mb-2">
+                                Identificación del Receptor *
+                            </label>
+                            <input
+                                type="text"
+                                pInputText
+                                placeholder="Cédula o documento"
+                                class="w-full"
+                            />
+                        </div>
+
+                        <div class="field col-12">
+                            <label class="block text-900 font-medium mb-2">
+                                Observaciones de Entrega
+                            </label>
+                            <textarea
+                                pInputTextarea
+                                rows="3"
+                                placeholder="Comentarios sobre la entrega..."
+                                class="w-full"
+                            >
+                            </textarea>
+                        </div>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="flex justify-content-end gap-2 mt-4">
+                        <p-button
+                            label="Volver a Tracking"
+                            icon="pi pi-arrow-left"
+                            severity="secondary"
+                            (click)="currentView = 'tracking'"
+                        >
+                        </p-button>
+                        <p-button
+                            label="Confirmar Entrega"
+                            icon="pi pi-check"
+                            severity="success"
+                            (click)="confirmDelivery()"
+                        >
+                        </p-button>
+                    </div>
+                </div>
+            </p-fieldset>
+        </div>
+    </div>
+</div>
+
+<p-confirmDialog></p-confirmDialog>

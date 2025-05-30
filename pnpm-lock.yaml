@@ -43,46 +43,49 @@ importers:
         version: 5.2.0(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))
       '@capacitor-community/background-geolocation':
         specifier: ^1.2.22
-        version: 1.2.22(@capacitor/core@6.2.1)
+        version: 1.2.22(@capacitor/core@7.2.0)
+      '@capacitor-mlkit/barcode-scanning':
+        specifier: ^7.2.1
+        version: 7.2.1(@capacitor/core@7.2.0)
       '@capacitor/android':
         specifier: ^6.2.1
-        version: 6.2.1(@capacitor/core@6.2.1)
+        version: 6.2.1(@capacitor/core@7.2.0)
       '@capacitor/angular':
         specifier: ^2.0.3
         version: 2.0.3(@angular-devkit/core@18.2.19(chokidar@3.6.0))(@angular-devkit/schematics@18.2.19(chokidar@3.6.0))
       '@capacitor/app':
         specifier: ^6.0.2
-        version: 6.0.2(@capacitor/core@6.2.1)
+        version: 6.0.2(@capacitor/core@7.2.0)
       '@capacitor/browser':
         specifier: ^6.0.5
-        version: 6.0.5(@capacitor/core@6.2.1)
+        version: 6.0.5(@capacitor/core@7.2.0)
       '@capacitor/camera':
         specifier: ^6.1.2
-        version: 6.1.2(@capacitor/core@6.2.1)
+        version: 6.1.2(@capacitor/core@7.2.0)
       '@capacitor/core':
-        specifier: ^6.2.1
-        version: 6.2.1
+        specifier: ^7.2.0
+        version: 7.2.0
       '@capacitor/device':
         specifier: ^6.0.2
-        version: 6.0.2(@capacitor/core@6.2.1)
+        version: 6.0.2(@capacitor/core@7.2.0)
       '@capacitor/filesystem':
         specifier: ^6.0.3
-        version: 6.0.3(@capacitor/core@6.2.1)
+        version: 6.0.3(@capacitor/core@7.2.0)
       '@capacitor/geolocation':
         specifier: ^6.1.0
-        version: 6.1.0(@capacitor/core@6.2.1)
+        version: 6.1.0(@capacitor/core@7.2.0)
       '@capacitor/ios':
         specifier: ^6.2.1
-        version: 6.2.1(@capacitor/core@6.2.1)
+        version: 6.2.1(@capacitor/core@7.2.0)
       '@capacitor/network':
         specifier: ^6.0.3
-        version: 6.0.3(@capacitor/core@6.2.1)
+        version: 6.0.3(@capacitor/core@7.2.0)
       '@capacitor/preferences':
         specifier: ^6.0.3
-        version: 6.0.3(@capacitor/core@6.2.1)
+        version: 6.0.3(@capacitor/core@7.2.0)
       '@codetrix-studio/capacitor-google-auth':
         specifier: 3.4.0-rc.4
-        version: 3.4.0-rc.4(@capacitor/core@6.2.1)
+        version: 3.4.0-rc.4(@capacitor/core@7.2.0)
       '@fullcalendar/angular':
         specifier: ^6.1.17
         version: 6.1.17(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(@fullcalendar/core@6.1.17)
@@ -104,6 +107,9 @@ importers:
       '@googlemaps/markerclusterer':
         specifier: ^2.5.3
         version: 2.5.3
+      '@ionic/angular':
+        specifier: ^8.5.8
+        version: 8.5.8(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(@angular/forms@18.2.13(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(@angular/platform-browser@18.2.13(@angular/animations@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10)))(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10)))(rxjs@7.8.2))(@angular/router@18.2.13(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(@angular/platform-browser@18.2.13(@angular/animations@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10)))(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10)))(rxjs@7.8.2))(rxjs@7.8.2)(zone.js@0.14.10)
       '@ng-bootstrap/ng-bootstrap':
         specifier: ^17.0.1
         version: 17.0.1(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(@angular/forms@18.2.13(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(@angular/platform-browser@18.2.13(@angular/animations@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10)))(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10)))(rxjs@7.8.2))(@angular/localize@18.2.13(@angular/compiler-cli@18.2.13(@angular/compiler@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.4.5))(@angular/compiler@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))))(@popperjs/core@2.11.8)(rxjs@7.8.2)
@@ -978,6 +984,11 @@ packages:
     peerDependencies:
       '@capacitor/core': '>=3.0.0'
 
+  '@capacitor-mlkit/barcode-scanning@7.2.1':
+    resolution: {integrity: sha512-zz1TYe//Fw/kx+x3cBDgWlskx3DA0BpXLGGaaEFfq+cP2F/3Bf2Gy/2LAKG+eIzMQ/McGGKMnUC6OpzrDqxwww==}
+    peerDependencies:
+      '@capacitor/core': '>=7.0.0'
+
   '@capacitor/android@6.2.1':
     resolution: {integrity: sha512-8gd4CIiQO5LAIlPIfd5mCuodBRxMMdZZEdj8qG8m+dQ1sQ2xyemVpzHmRK8qSCHorsBUCg3D62j2cp6bEBAkdw==}
     peerDependencies:
@@ -1012,8 +1023,8 @@ packages:
   '@capacitor/core@3.9.0':
     resolution: {integrity: sha512-j1lL0+/7stY8YhIq1Lm6xixvUqIn89vtyH5ZpJNNmcZ0kwz6K9eLkcG6fvq1UWMDgSVZg9JrRGSFhb4LLoYOsw==}
 
-  '@capacitor/core@6.2.1':
-    resolution: {integrity: sha512-urZwxa7hVE/BnA18oCFAdizXPse6fCKanQyEqpmz6cBJ2vObwMpyJDG5jBeoSsgocS9+Ax+9vb4ducWJn0y2qQ==}
+  '@capacitor/core@7.2.0':
+    resolution: {integrity: sha512-2zCnA6RJeZ9ec4470o8QMZEQTWpekw9FNoqm5TLc10jeCrhvHVI8MPgxdZVc3mOdFlyieYu4AS1fNxSqbS57Pw==}
 
   '@capacitor/device@6.0.2':
     resolution: {integrity: sha512-WDUxUkkuqEtbmE1YmyDzzGVJD8r5oRFgs/1zy+Xa7Da3MlBrgKaiQKZoRVdr6FTnAVyHnVP4LabN3w2sCuA3+A==}
@@ -1441,9 +1452,21 @@ packages:
     resolution: {integrity: sha512-XvJRx+2KR3YXyYtPUUy+qd9i7p+GO9Ko6VIIpWlBrpWwXDv8WLFeHTxz35CfQFUiBMLXlGHhGzys7lqit9gWag==}
     engines: {node: '>=18'}
 
+  '@ionic/angular@8.5.8':
+    resolution: {integrity: sha512-hlOamemFTXuUGSVz7uckohti4minP4r5FpnHuVK/K7fbz/I4pUx+8ZwujvI2v6f1eG5lNisQttLjr84ugagd1A==}
+    peerDependencies:
+      '@angular/core': '>=16.0.0'
+      '@angular/forms': '>=16.0.0'
+      '@angular/router': '>=16.0.0'
+      rxjs: '>=7.5.0'
+      zone.js: '>=0.13.0'
+
   '@ionic/cli-framework-output@2.2.8':
     resolution: {integrity: sha512-TshtaFQsovB4NWRBydbNFawql6yul7d5bMiW1WYYf17hd99V6xdDdk3vtF51bw6sLkxON3bDQpWsnUc9/hVo3g==}
     engines: {node: '>=16.0.0'}
+
+  '@ionic/core@8.5.8':
+    resolution: {integrity: sha512-RICgLpNOVw16AYeOswP68neu3w1zB90ApwDVSu+bchs3gxCNf34ic0O+fDLf3ZMqpfJ8qiJ6zNMgL5VqnWs30w==}
 
   '@ionic/utils-array@2.1.5':
     resolution: {integrity: sha512-HD72a71IQVBmQckDwmA8RxNVMTbxnaLbgFOl+dO5tbvW9CkkSFCv41h6fUuNsSEVgngfkn0i98HDuZC8mk+lTA==}
@@ -1697,8 +1720,18 @@ packages:
     cpu: [arm64]
     os: [darwin]
 
+  '@rollup/rollup-darwin-arm64@4.34.9':
+    resolution: {integrity: sha512-0CY3/K54slrzLDjOA7TOjN1NuLKERBgk9nY5V34mhmuu673YNb+7ghaDUs6N0ujXR7fz5XaS5Aa6d2TNxZd0OQ==}
+    cpu: [arm64]
+    os: [darwin]
+
   '@rollup/rollup-darwin-x64@4.22.4':
     resolution: {integrity: sha512-aJJyYKQwbHuhTUrjWjxEvGnNNBCnmpHDvrb8JFDbeSH3m2XdHcxDd3jthAzvmoI8w/kSjd2y0udT+4okADsZIw==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@rollup/rollup-darwin-x64@4.34.9':
+    resolution: {integrity: sha512-eOojSEAi/acnsJVYRxnMkPFqcxSMFfrw7r2iD9Q32SGkb/Q9FpUY1UlAu1DH9T7j++gZ0lHjnm4OyH2vCI7l7Q==}
     cpu: [x64]
     os: [darwin]
 
@@ -1717,8 +1750,18 @@ packages:
     cpu: [arm64]
     os: [linux]
 
+  '@rollup/rollup-linux-arm64-gnu@4.34.9':
+    resolution: {integrity: sha512-6TZjPHjKZUQKmVKMUowF3ewHxctrRR09eYyvT5eFv8w/fXarEra83A2mHTVJLA5xU91aCNOUnM+DWFMSbQ0Nxw==}
+    cpu: [arm64]
+    os: [linux]
+
   '@rollup/rollup-linux-arm64-musl@4.22.4':
     resolution: {integrity: sha512-Gl0AxBtDg8uoAn5CCqQDMqAx22Wx22pjDOjBdmG0VIWX3qUBHzYmOKh8KXHL4UpogfJ14G4wk16EQogF+v8hmA==}
+    cpu: [arm64]
+    os: [linux]
+
+  '@rollup/rollup-linux-arm64-musl@4.34.9':
+    resolution: {integrity: sha512-LD2fytxZJZ6xzOKnMbIpgzFOuIKlxVOpiMAXawsAZ2mHBPEYOnLRK5TTEsID6z4eM23DuO88X0Tq1mErHMVq0A==}
     cpu: [arm64]
     os: [linux]
 
@@ -1742,13 +1785,28 @@ packages:
     cpu: [x64]
     os: [linux]
 
+  '@rollup/rollup-linux-x64-gnu@4.34.9':
+    resolution: {integrity: sha512-FwBHNSOjUTQLP4MG7y6rR6qbGw4MFeQnIBrMe161QGaQoBQLqSUEKlHIiVgF3g/mb3lxlxzJOpIBhaP+C+KP2A==}
+    cpu: [x64]
+    os: [linux]
+
   '@rollup/rollup-linux-x64-musl@4.22.4':
     resolution: {integrity: sha512-UV6FZMUgePDZrFjrNGIWzDo/vABebuXBhJEqrHxrGiU6HikPy0Z3LfdtciIttEUQfuDdCn8fqh7wiFJjCNwO+g==}
     cpu: [x64]
     os: [linux]
 
+  '@rollup/rollup-linux-x64-musl@4.34.9':
+    resolution: {integrity: sha512-cYRpV4650z2I3/s6+5/LONkjIz8MBeqrk+vPXV10ORBnshpn8S32bPqQ2Utv39jCiDcO2eJTuSlPXpnvmaIgRA==}
+    cpu: [x64]
+    os: [linux]
+
   '@rollup/rollup-win32-arm64-msvc@4.22.4':
     resolution: {integrity: sha512-BjI+NVVEGAXjGWYHz/vv0pBqfGoUH0IGZ0cICTn7kB9PyjrATSkX+8WkguNjWoj2qSr1im/+tTGRaY+4/PdcQw==}
+    cpu: [arm64]
+    os: [win32]
+
+  '@rollup/rollup-win32-arm64-msvc@4.34.9':
+    resolution: {integrity: sha512-z4mQK9dAN6byRA/vsSgQiPeuO63wdiDxZ9yg9iyX2QTzKuQM7T4xlBoeUP/J8uiFkqxkcWndWi+W7bXdPbt27Q==}
     cpu: [arm64]
     os: [win32]
 
@@ -1759,6 +1817,11 @@ packages:
 
   '@rollup/rollup-win32-x64-msvc@4.22.4':
     resolution: {integrity: sha512-j8pPKp53/lq9lMXN57S8cFz0MynJk8OWNuUnXct/9KCpKU7DgU3bYMJhwWmcqC0UU29p8Lr0/7KEVcaM6bf47Q==}
+    cpu: [x64]
+    os: [win32]
+
+  '@rollup/rollup-win32-x64-msvc@4.34.9':
+    resolution: {integrity: sha512-AyleYRPU7+rgkMWbEh71fQlrzRfeP6SyMnRf9XX4fCdDPAJumdSBqYEcWPMzVQ4ScAl7E4oFfK0GUVn77xSwbw==}
     cpu: [x64]
     os: [win32]
 
@@ -1796,6 +1859,16 @@ packages:
 
   '@socket.io/component-emitter@3.1.2':
     resolution: {integrity: sha512-9BCxFwvbGg/RsZK9tjXd8s4UcwR0MWeFQ1XEKIQVVvAGJyINdrqKMcTRyLoK8Rse1GjzLV9cwjWV1olXRWEXVA==}
+
+  '@stencil/core@4.20.0':
+    resolution: {integrity: sha512-WPrTHFngvN081RY+dJPneKQLwnOFD60OMCOQGmmSHfCW0f4ujPMzzhwWU1gcSwXPWXz5O+8cBiiCaxAbJU7kAg==}
+    engines: {node: '>=16.0.0', npm: '>=7.10.0'}
+    hasBin: true
+
+  '@stencil/core@4.32.0':
+    resolution: {integrity: sha512-2sT6UqEzZCmSu4WcvVwWIBzQHOPudg6PNIl+DOymj1n5b/W/x6/lRCfmaI/hh5CW4eaHWIgvXgrLaZ5y7dXKUA==}
+    engines: {node: '>=16.0.0', npm: '>=7.10.0'}
+    hasBin: true
 
   '@tufjs/canonical-json@2.0.0':
     resolution: {integrity: sha512-yVtV8zsdo8qFHe+/3kw81dSLyF7D576A5cCFCi4X7B39tWT7SekaEFUnvnWJHz+9qO7qJTah1JbrDjWKqFtdWA==}
@@ -3614,6 +3687,9 @@ packages:
   ini@4.1.3:
     resolution: {integrity: sha512-X7rqawQBvfdjS10YU1y1YVreA3SsLrW9dX2CewP2EbBJM4ypVNLDkO5y04gejPwKIY9lR+7r9gn3rFPt/kmWFg==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
+
+  ionicons@7.4.0:
+    resolution: {integrity: sha512-ZK94MMqgzMCPPMhmk8Ouu6goyVHFIlw/ACP6oe3FrikcI0N7CX0xcwVaEbUc0G/v3W0shI93vo+9ve/KpvcNhQ==}
 
   ip-address@9.0.5:
     resolution: {integrity: sha512-zHtQzGojZXTwZTHQqra+ETKd4Sn3vgi7uBmlPoXVWZqYvuKmtI0l/VZTjqGmJY9x88GGOaZ9+G9ES8hC4T4X8g==}
@@ -6660,13 +6736,17 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
 
-  '@capacitor-community/background-geolocation@1.2.22(@capacitor/core@6.2.1)':
+  '@capacitor-community/background-geolocation@1.2.22(@capacitor/core@7.2.0)':
     dependencies:
-      '@capacitor/core': 6.2.1
+      '@capacitor/core': 7.2.0
 
-  '@capacitor/android@6.2.1(@capacitor/core@6.2.1)':
+  '@capacitor-mlkit/barcode-scanning@7.2.1(@capacitor/core@7.2.0)':
     dependencies:
-      '@capacitor/core': 6.2.1
+      '@capacitor/core': 7.2.0
+
+  '@capacitor/android@6.2.1(@capacitor/core@7.2.0)':
+    dependencies:
+      '@capacitor/core': 7.2.0
 
   '@capacitor/angular@2.0.3(@angular-devkit/core@18.2.19(chokidar@3.6.0))(@angular-devkit/schematics@18.2.19(chokidar@3.6.0))':
     dependencies:
@@ -6674,17 +6754,17 @@ snapshots:
       '@angular-devkit/schematics': 18.2.19(chokidar@3.6.0)
       jsonc-parser: 3.3.1
 
-  '@capacitor/app@6.0.2(@capacitor/core@6.2.1)':
+  '@capacitor/app@6.0.2(@capacitor/core@7.2.0)':
     dependencies:
-      '@capacitor/core': 6.2.1
+      '@capacitor/core': 7.2.0
 
-  '@capacitor/browser@6.0.5(@capacitor/core@6.2.1)':
+  '@capacitor/browser@6.0.5(@capacitor/core@7.2.0)':
     dependencies:
-      '@capacitor/core': 6.2.1
+      '@capacitor/core': 7.2.0
 
-  '@capacitor/camera@6.1.2(@capacitor/core@6.2.1)':
+  '@capacitor/camera@6.1.2(@capacitor/core@7.2.0)':
     dependencies:
-      '@capacitor/core': 6.2.1
+      '@capacitor/core': 7.2.0
 
   '@capacitor/cli@6.2.1':
     dependencies:
@@ -6712,37 +6792,37 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@capacitor/core@6.2.1':
+  '@capacitor/core@7.2.0':
     dependencies:
       tslib: 2.8.1
 
-  '@capacitor/device@6.0.2(@capacitor/core@6.2.1)':
+  '@capacitor/device@6.0.2(@capacitor/core@7.2.0)':
     dependencies:
-      '@capacitor/core': 6.2.1
+      '@capacitor/core': 7.2.0
 
-  '@capacitor/filesystem@6.0.3(@capacitor/core@6.2.1)':
+  '@capacitor/filesystem@6.0.3(@capacitor/core@7.2.0)':
     dependencies:
-      '@capacitor/core': 6.2.1
+      '@capacitor/core': 7.2.0
 
-  '@capacitor/geolocation@6.1.0(@capacitor/core@6.2.1)':
+  '@capacitor/geolocation@6.1.0(@capacitor/core@7.2.0)':
     dependencies:
-      '@capacitor/core': 6.2.1
+      '@capacitor/core': 7.2.0
 
-  '@capacitor/ios@6.2.1(@capacitor/core@6.2.1)':
+  '@capacitor/ios@6.2.1(@capacitor/core@7.2.0)':
     dependencies:
-      '@capacitor/core': 6.2.1
+      '@capacitor/core': 7.2.0
 
-  '@capacitor/network@6.0.3(@capacitor/core@6.2.1)':
+  '@capacitor/network@6.0.3(@capacitor/core@7.2.0)':
     dependencies:
-      '@capacitor/core': 6.2.1
+      '@capacitor/core': 7.2.0
 
-  '@capacitor/preferences@6.0.3(@capacitor/core@6.2.1)':
+  '@capacitor/preferences@6.0.3(@capacitor/core@7.2.0)':
     dependencies:
-      '@capacitor/core': 6.2.1
+      '@capacitor/core': 7.2.0
 
-  '@codetrix-studio/capacitor-google-auth@3.4.0-rc.4(@capacitor/core@6.2.1)':
+  '@codetrix-studio/capacitor-google-auth@3.4.0-rc.4(@capacitor/core@7.2.0)':
     dependencies:
-      '@capacitor/core': 6.2.1
+      '@capacitor/core': 7.2.0
 
   '@colors/colors@1.5.0': {}
 
@@ -7044,6 +7124,18 @@ snapshots:
     dependencies:
       mute-stream: 1.0.0
 
+  '@ionic/angular@8.5.8(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(@angular/forms@18.2.13(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(@angular/platform-browser@18.2.13(@angular/animations@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10)))(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10)))(rxjs@7.8.2))(@angular/router@18.2.13(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(@angular/platform-browser@18.2.13(@angular/animations@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10)))(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10)))(rxjs@7.8.2))(rxjs@7.8.2)(zone.js@0.14.10)':
+    dependencies:
+      '@angular/core': 18.2.13(rxjs@7.8.2)(zone.js@0.14.10)
+      '@angular/forms': 18.2.13(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(@angular/platform-browser@18.2.13(@angular/animations@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10)))(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10)))(rxjs@7.8.2)
+      '@angular/router': 18.2.13(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(@angular/platform-browser@18.2.13(@angular/animations@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10)))(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10)))(rxjs@7.8.2)
+      '@ionic/core': 8.5.8
+      ionicons: 7.4.0
+      jsonc-parser: 3.3.1
+      rxjs: 7.8.2
+      tslib: 2.8.1
+      zone.js: 0.14.10
+
   '@ionic/cli-framework-output@2.2.8':
     dependencies:
       '@ionic/utils-terminal': 2.3.5
@@ -7051,6 +7143,12 @@ snapshots:
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
+
+  '@ionic/core@8.5.8':
+    dependencies:
+      '@stencil/core': 4.20.0
+      ionicons: 7.4.0
+      tslib: 2.8.1
 
   '@ionic/utils-array@2.1.5':
     dependencies:
@@ -7350,7 +7448,13 @@ snapshots:
   '@rollup/rollup-darwin-arm64@4.22.4':
     optional: true
 
+  '@rollup/rollup-darwin-arm64@4.34.9':
+    optional: true
+
   '@rollup/rollup-darwin-x64@4.22.4':
+    optional: true
+
+  '@rollup/rollup-darwin-x64@4.34.9':
     optional: true
 
   '@rollup/rollup-linux-arm-gnueabihf@4.22.4':
@@ -7362,7 +7466,13 @@ snapshots:
   '@rollup/rollup-linux-arm64-gnu@4.22.4':
     optional: true
 
+  '@rollup/rollup-linux-arm64-gnu@4.34.9':
+    optional: true
+
   '@rollup/rollup-linux-arm64-musl@4.22.4':
+    optional: true
+
+  '@rollup/rollup-linux-arm64-musl@4.34.9':
     optional: true
 
   '@rollup/rollup-linux-powerpc64le-gnu@4.22.4':
@@ -7377,16 +7487,28 @@ snapshots:
   '@rollup/rollup-linux-x64-gnu@4.22.4':
     optional: true
 
+  '@rollup/rollup-linux-x64-gnu@4.34.9':
+    optional: true
+
   '@rollup/rollup-linux-x64-musl@4.22.4':
     optional: true
 
+  '@rollup/rollup-linux-x64-musl@4.34.9':
+    optional: true
+
   '@rollup/rollup-win32-arm64-msvc@4.22.4':
+    optional: true
+
+  '@rollup/rollup-win32-arm64-msvc@4.34.9':
     optional: true
 
   '@rollup/rollup-win32-ia32-msvc@4.22.4':
     optional: true
 
   '@rollup/rollup-win32-x64-msvc@4.22.4':
+    optional: true
+
+  '@rollup/rollup-win32-x64-msvc@4.34.9':
     optional: true
 
   '@schematics/angular@18.2.19(chokidar@3.6.0)':
@@ -7432,6 +7554,19 @@ snapshots:
   '@sindresorhus/merge-streams@2.3.0': {}
 
   '@socket.io/component-emitter@3.1.2': {}
+
+  '@stencil/core@4.20.0': {}
+
+  '@stencil/core@4.32.0':
+    optionalDependencies:
+      '@rollup/rollup-darwin-arm64': 4.34.9
+      '@rollup/rollup-darwin-x64': 4.34.9
+      '@rollup/rollup-linux-arm64-gnu': 4.34.9
+      '@rollup/rollup-linux-arm64-musl': 4.34.9
+      '@rollup/rollup-linux-x64-gnu': 4.34.9
+      '@rollup/rollup-linux-x64-musl': 4.34.9
+      '@rollup/rollup-win32-arm64-msvc': 4.34.9
+      '@rollup/rollup-win32-x64-msvc': 4.34.9
 
   '@tufjs/canonical-json@2.0.0': {}
 
@@ -10241,6 +10376,10 @@ snapshots:
   ini@1.3.8: {}
 
   ini@4.1.3: {}
+
+  ionicons@7.4.0:
+    dependencies:
+      '@stencil/core': 4.32.0
 
   ip-address@9.0.5:
     dependencies:

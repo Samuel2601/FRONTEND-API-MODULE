@@ -323,4 +323,19 @@ export class CacheService {
         // Also notify through RxJS for in-app communication
         this.cacheUpdates.next(key);
     }
+
+    /*
+     * clearByPattern
+     */
+
+    clearByPattern(pattern: string): void {
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (!key) continue;
+
+            if (key.startsWith(pattern)) {
+                this.remove(key);
+            }
+        }
+    }
 }

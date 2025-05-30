@@ -1,0 +1,980 @@
+<div class="internal-verification-container">
+    <div class="verification-header">
+        <h2 class="text-2xl font-bold text-primary mb-2">
+            <i class="pi pi-check-circle mr-2"></i>
+            Inspección Interna Post-Faenamiento
+        </h2>
+        <p class="text-600 mb-4">
+            Control de calidad e inocuidad de productos cárnicos para consumo
+            humano
+        </p>
+    </div>
+
+    <form [formGroup]="verificationForm">
+        <!-- Información General -->
+        <p-fieldset legend="Información General" class="mb-4">
+            <div class="formgrid grid">
+                <div class="field col-12 md:col-4">
+                    <label
+                        for="sheetNumber"
+                        class="block text-900 font-medium mb-2"
+                    >
+                        Número de Ficha
+                    </label>
+                    <input
+                        id="sheetNumber"
+                        type="text"
+                        pInputText
+                        formControlName="sheetNumber"
+                        readonly
+                        class="w-full"
+                    />
+                </div>
+
+                <div class="field col-12 md:col-4">
+                    <label
+                        for="inspectionDate"
+                        class="block text-900 font-medium mb-2"
+                    >
+                        Fecha de Inspección
+                    </label>
+                    <p-calendar
+                        id="inspectionDate"
+                        formControlName="inspectionDate"
+                        [showTime]="true"
+                        dateFormat="dd/mm/yy"
+                        class="w-full"
+                    >
+                    </p-calendar>
+                </div>
+
+                <div class="field col-12 md:col-4">
+                    <label class="block text-900 font-medium mb-2">
+                        Registro de Faenamiento
+                    </label>
+                    <input
+                        type="text"
+                        pInputText
+                        [value]="
+                            slaughterRecordData?.slaughterRecordData
+                                ?.recordNumber
+                        "
+                        readonly
+                        class="w-full"
+                    />
+                </div>
+            </div>
+        </p-fieldset>
+
+        <!-- Condiciones de Almacenamiento -->
+        <p-fieldset
+            legend="Condiciones de Almacenamiento"
+            formGroupName="storageConditions"
+            class="mb-4"
+        >
+            <div class="formgrid grid">
+                <div class="field col-12 md:col-3">
+                    <label
+                        for="storageTemperature"
+                        class="block text-900 font-medium mb-2"
+                    >
+                        Temperatura (°C)
+                    </label>
+                    <p-inputNumber
+                        id="storageTemperature"
+                        formControlName="temperature"
+                        [min]="-10"
+                        [max]="10"
+                        suffix=" °C"
+                        class="w-full"
+                    >
+                    </p-inputNumber>
+                </div>
+
+                <div class="field col-12 md:col-3">
+                    <label
+                        for="storageHumidity"
+                        class="block text-900 font-medium mb-2"
+                    >
+                        Humedad (%)
+                    </label>
+                    <p-inputNumber
+                        id="storageHumidity"
+                        formControlName="humidity"
+                        [min]="0"
+                        [max]="100"
+                        suffix=" %"
+                        class="w-full"
+                    >
+                    </p-inputNumber>
+                </div>
+
+                <div class="field col-12 md:col-3">
+                    <label
+                        for="storageTime"
+                        class="block text-900 font-medium mb-2"
+                    >
+                        Tiempo de Almacenamiento (horas)
+                    </label>
+                    <p-inputNumber
+                        id="storageTime"
+                        formControlName="storageTime"
+                        [min]="0"
+                        suffix=" h"
+                        class="w-full"
+                    >
+                    </p-inputNumber>
+                </div>
+
+                <div class="field col-12 md:col-3">
+                    <label
+                        for="hygienicConditions"
+                        class="block text-900 font-medium mb-2"
+                    >
+                        Condiciones Higiénicas
+                    </label>
+                    <input
+                        id="hygienicConditions"
+                        type="text"
+                        pInputText
+                        formControlName="hygienicConditions"
+                        placeholder="Describir condiciones..."
+                        class="w-full"
+                    />
+                </div>
+            </div>
+        </p-fieldset>
+
+        <!-- Resumen de Inspección -->
+        <p-fieldset legend="Resumen de Inspección" class="mb-4">
+            <div class="summary-grid mb-4">
+                <div class="summary-item">
+                    <div class="summary-value text-primary">
+                        {{ productInspections.length }}
+                    </div>
+                    <div class="summary-label">Total Productos</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value text-green-600">
+                        {{ inspectionSummary.suitableProducts }}
+                    </div>
+                    <div class="summary-label">Aprobados</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value text-red-600">
+                        {{ inspectionSummary.confiscatedProducts }}
+                    </div>
+                    <div class="summary-label">Decomisados</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value text-blue-600">
+                        {{
+                            inspectionSummary.approvalPercentage
+                                | number : "1.1-2"
+                        }}%
+                    </div>
+                    <div class="summary-label">% Aprobación</div>
+                </div>
+            </div>
+
+            <div class="flex justify-content-end">
+                <p-button
+                    icon="pi pi-download"
+                    label="Generar Reporte"
+                    severity="info"
+                    size="small"
+                    (click)="generateQualityReport()"
+                >
+                </p-button>
+            </div>
+        </p-fieldset>
+
+        <!-- Inspecciones de Productos -->
+        <p-fieldset legend="Inspecciones de Productos" class="mb-4">
+            <!-- Navegación de Productos -->
+            <div class="product-navigation mb-4">
+                <div
+                    class="flex justify-content-between align-items-center mb-3"
+                >
+                    <div class="flex align-items-center gap-3">
+                        <h4 class="m-0">
+                            Productos a Inspeccionar:
+                            {{ productInspections.length }}
+                        </h4>
+                        <p-button
+                            icon="pi pi-plus"
+                            label="Agregar Producto"
+                            size="small"
+                            severity="secondary"
+                            (click)="addNewProduct()"
+                        >
+                        </p-button>
+                    </div>
+
+                    <div
+                        class="flex align-items-center gap-2"
+                        *ngIf="productInspections.length > 0"
+                    >
+                        <span class="text-sm">
+                            {{ currentProductIndex + 1 }} de
+                            {{ productInspections.length }}
+                        </span>
+                        <p-progressBar
+                            [value]="getProgressValue()"
+                            [style]="{ width: '100px', height: '6px' }"
+                        >
+                        </p-progressBar>
+                    </div>
+                </div>
+
+                <!-- Carrusel de productos -->
+                <div
+                    *ngIf="productInspections.length > 1"
+                    class="product-carousel mb-4"
+                >
+                    <p-carousel
+                        [value]="productInspections.controls"
+                        [numVisible]="4"
+                        [numScroll]="1"
+                        [responsiveOptions]="[
+                            {
+                                breakpoint: '1024px',
+                                numVisible: 3,
+                                numScroll: 1
+                            },
+                            {
+                                breakpoint: '768px',
+                                numVisible: 2,
+                                numScroll: 1
+                            },
+                            { breakpoint: '560px', numVisible: 1, numScroll: 1 }
+                        ]"
+                    >
+                        <ng-template let-product let-i="index" pTemplate="item">
+                            <div class="product-card p-2">
+                                <p-card
+                                    [class]="
+                                        'product-nav-card cursor-pointer ' +
+                                        (i === currentProductIndex
+                                            ? 'selected'
+                                            : '')
+                                    "
+                                    (click)="navigateToProduct(i)"
+                                >
+                                    <div class="text-center">
+                                        <div class="text-sm font-bold">
+                                            {{
+                                                product.get("productId")
+                                                    ?.value ||
+                                                    "Producto " + (i + 1)
+                                            }}
+                                        </div>
+                                        <div class="text-xs text-600">
+                                            {{ product.get("type")?.value }}
+                                        </div>
+                                        <p-tag
+                                            [value]="
+                                                product.get('classification')
+                                                    ?.value
+                                            "
+                                            [severity]="
+                                                getClassificationSeverity(
+                                                    product.get(
+                                                        'classification'
+                                                    )?.value
+                                                )
+                                            "
+                                            class="mt-1"
+                                        >
+                                        </p-tag>
+                                    </div>
+                                </p-card>
+                            </div>
+                        </ng-template>
+                    </p-carousel>
+                </div>
+            </div>
+
+            <!-- Formulario del Producto Actual -->
+            <div
+                *ngIf="productInspections.length > 0"
+                [formGroup]="getCurrentProduct()"
+                class="current-product-form"
+            >
+                <div
+                    class="flex justify-content-between align-items-center mb-3"
+                >
+                    <h4 class="text-primary m-0">
+                        Inspección:
+                        {{ getCurrentProduct().get("productId")?.value }}
+                    </h4>
+                    <p-button
+                        icon="pi pi-trash"
+                        severity="danger"
+                        size="small"
+                        [disabled]="productInspections.length <= 1"
+                        (click)="removeProduct(currentProductIndex)"
+                    >
+                    </p-button>
+                </div>
+
+                <p-tabView>
+                    <!-- Tab: Información Básica -->
+                    <p-tabPanel
+                        header="Identificación"
+                        leftIcon="pi pi-info-circle"
+                    >
+                        <div class="formgrid grid">
+                            <div class="field col-12 md:col-6">
+                                <label
+                                    for="productId"
+                                    class="block text-900 font-medium mb-2"
+                                >
+                                    ID del Producto *
+                                </label>
+                                <input
+                                    id="productId"
+                                    type="text"
+                                    pInputText
+                                    formControlName="productId"
+                                    placeholder="ID único del producto"
+                                    class="w-full"
+                                />
+                            </div>
+
+                            <div class="field col-12 md:col-6">
+                                <label
+                                    for="productType"
+                                    class="block text-900 font-medium mb-2"
+                                >
+                                    Tipo de Producto *
+                                </label>
+                                <input
+                                    id="productType"
+                                    type="text"
+                                    pInputText
+                                    formControlName="type"
+                                    placeholder="Tipo de producto cárnico"
+                                    class="w-full"
+                                />
+                            </div>
+
+                            <div class="field col-12">
+                                <h5 class="text-primary mb-3">
+                                    Datos del Producto Original
+                                </h5>
+                                <div
+                                    *ngIf="
+                                        getProductData(
+                                            getCurrentProduct().get('productId')
+                                                ?.value
+                                        )
+                                    "
+                                    class="product-original-data"
+                                >
+                                    <div class="grid">
+                                        <div class="col-12 md:col-6">
+                                            <div class="mb-2">
+                                                <strong>Animal ID:</strong>
+                                                {{
+                                                    getProductData(
+                                                        getCurrentProduct().get(
+                                                            "productId"
+                                                        )?.value
+                                                    )?.animalId
+                                                }}
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong>Peso:</strong>
+                                                {{
+                                                    getProductData(
+                                                        getCurrentProduct().get(
+                                                            "productId"
+                                                        )?.value
+                                                    )?.weight
+                                                }}
+                                                kg
+                                            </div>
+                                        </div>
+                                        <div class="col-12 md:col-6">
+                                            <div class="mb-2">
+                                                <strong>Calidad:</strong>
+                                                {{
+                                                    getProductData(
+                                                        getCurrentProduct().get(
+                                                            "productId"
+                                                        )?.value
+                                                    )?.quality
+                                                }}
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong
+                                                    >Fecha
+                                                    Procesamiento:</strong
+                                                >
+                                                {{
+                                                    getProductData(
+                                                        getCurrentProduct().get(
+                                                            "productId"
+                                                        )?.value
+                                                    )?.processingDate
+                                                        | date : "short"
+                                                }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </p-tabPanel>
+
+                    <!-- Tab: Inspección Organoléptica -->
+                    <p-tabPanel
+                        header="Inspección Organoléptica"
+                        leftIcon="pi pi-eye"
+                    >
+                        <div formGroupName="organoleptlcInspection">
+                            <div class="formgrid grid">
+                                <div class="field col-12 md:col-6">
+                                    <label
+                                        for="color"
+                                        class="block text-900 font-medium mb-2"
+                                    >
+                                        Color *
+                                    </label>
+                                    <input
+                                        id="color"
+                                        type="text"
+                                        pInputText
+                                        formControlName="color"
+                                        placeholder="Describir color observado"
+                                        class="w-full"
+                                    />
+                                </div>
+
+                                <div class="field col-12 md:col-6">
+                                    <label
+                                        for="odor"
+                                        class="block text-900 font-medium mb-2"
+                                    >
+                                        Olor *
+                                    </label>
+                                    <input
+                                        id="odor"
+                                        type="text"
+                                        pInputText
+                                        formControlName="odor"
+                                        placeholder="Describir olor detectado"
+                                        class="w-full"
+                                    />
+                                </div>
+
+                                <div class="field col-12 md:col-6">
+                                    <label
+                                        for="texture"
+                                        class="block text-900 font-medium mb-2"
+                                    >
+                                        Textura *
+                                    </label>
+                                    <input
+                                        id="texture"
+                                        type="text"
+                                        pInputText
+                                        formControlName="texture"
+                                        placeholder="Describir textura al tacto"
+                                        class="w-full"
+                                    />
+                                </div>
+
+                                <div class="field col-12 md:col-6">
+                                    <label
+                                        for="appearance"
+                                        class="block text-900 font-medium mb-2"
+                                    >
+                                        Apariencia *
+                                    </label>
+                                    <input
+                                        id="appearance"
+                                        type="text"
+                                        pInputText
+                                        formControlName="appearance"
+                                        placeholder="Describir apariencia general"
+                                        class="w-full"
+                                    />
+                                </div>
+
+                                <div class="field col-12 md:col-6">
+                                    <label
+                                        for="ph"
+                                        class="block text-900 font-medium mb-2"
+                                    >
+                                        pH
+                                    </label>
+                                    <p-inputNumber
+                                        id="ph"
+                                        formControlName="ph"
+                                        [min]="4"
+                                        [max]="8"
+                                        [minFractionDigits]="2"
+                                        [maxFractionDigits]="2"
+                                        class="w-full"
+                                    >
+                                    </p-inputNumber>
+                                </div>
+
+                                <div class="field col-12 md:col-6">
+                                    <label
+                                        for="productTemperature"
+                                        class="block text-900 font-medium mb-2"
+                                    >
+                                        Temperatura del Producto (°C)
+                                    </label>
+                                    <p-inputNumber
+                                        id="productTemperature"
+                                        formControlName="temperature"
+                                        [min]="-10"
+                                        [max]="10"
+                                        [minFractionDigits]="1"
+                                        [maxFractionDigits]="1"
+                                        suffix=" °C"
+                                        class="w-full"
+                                    >
+                                    </p-inputNumber>
+                                </div>
+                            </div>
+                        </div>
+                    </p-tabPanel>
+
+                    <!-- Tab: Inspección Sanitaria -->
+                    <p-tabPanel
+                        header="Inspección Sanitaria"
+                        leftIcon="pi pi-shield"
+                    >
+                        <div formGroupName="sanitaryInspection">
+                            <div class="formgrid grid">
+                                <div class="field col-12">
+                                    <h5 class="text-primary mb-3">
+                                        Hallazgos Patológicos
+                                    </h5>
+                                    <div class="flex flex-column gap-3">
+                                        <div class="flex align-items-center">
+                                            <p-checkbox
+                                                formControlName="parasitePresence"
+                                                binary="true"
+                                                inputId="parasitePresence"
+                                                (onChange)="
+                                                    onSanitaryFindingChange(
+                                                        currentProductIndex
+                                                    )
+                                                "
+                                            >
+                                            </p-checkbox>
+                                            <label
+                                                for="parasitePresence"
+                                                class="ml-2 text-900 font-medium"
+                                            >
+                                                Presencia de Parásitos
+                                            </label>
+                                        </div>
+
+                                        <div class="flex align-items-center">
+                                            <p-checkbox
+                                                formControlName="pathologicalLesions"
+                                                binary="true"
+                                                inputId="pathologicalLesions"
+                                                (onChange)="
+                                                    onSanitaryFindingChange(
+                                                        currentProductIndex
+                                                    )
+                                                "
+                                            >
+                                            </p-checkbox>
+                                            <label
+                                                for="pathologicalLesions"
+                                                class="ml-2 text-900 font-medium"
+                                            >
+                                                Lesiones Patológicas
+                                            </label>
+                                        </div>
+
+                                        <div class="flex align-items-center">
+                                            <p-checkbox
+                                                formControlName="visibleContamination"
+                                                binary="true"
+                                                inputId="visibleContamination"
+                                                (onChange)="
+                                                    onSanitaryFindingChange(
+                                                        currentProductIndex
+                                                    )
+                                                "
+                                            >
+                                            </p-checkbox>
+                                            <label
+                                                for="visibleContamination"
+                                                class="ml-2 text-900 font-medium"
+                                            >
+                                                Contaminación Visible
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="field col-12"
+                                    *ngIf="
+                                        getCurrentProduct().get(
+                                            'sanitaryInspection.parasitePresence'
+                                        )?.value ||
+                                        getCurrentProduct().get(
+                                            'sanitaryInspection.pathologicalLesions'
+                                        )?.value ||
+                                        getCurrentProduct().get(
+                                            'sanitaryInspection.visibleContamination'
+                                        )?.value
+                                    "
+                                >
+                                    <label
+                                        for="findingsDescription"
+                                        class="block text-900 font-medium mb-2"
+                                    >
+                                        Descripción de Hallazgos *
+                                    </label>
+                                    <textarea
+                                        id="findingsDescription"
+                                        pInputTextarea
+                                        formControlName="findingsDescription"
+                                        rows="4"
+                                        placeholder="Describir detalladamente los hallazgos encontrados..."
+                                        class="w-full"
+                                    >
+                                    </textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </p-tabPanel>
+
+                    <!-- Tab: Pruebas de Laboratorio -->
+                    <p-tabPanel
+                        header="Laboratorio"
+                        leftIcon="pi pi-calendar-plus"
+                    >
+                        <div class="laboratory-section">
+                            <div
+                                class="flex justify-content-between align-items-center mb-3"
+                            >
+                                <h5 class="m-0">Pruebas de Laboratorio</h5>
+                                <p-button
+                                    icon="pi pi-plus"
+                                    label="Agregar Prueba"
+                                    size="small"
+                                    severity="secondary"
+                                    (click)="
+                                        addLaboratoryTest(currentProductIndex)
+                                    "
+                                >
+                                </p-button>
+                            </div>
+
+                            <div formArrayName="laboratoryTests">
+                                <div
+                                    *ngFor="
+                                        let test of getLaboratoryTests(
+                                            currentProductIndex
+                                        ).controls;
+                                        let i = index
+                                    "
+                                    [formGroupName]="i"
+                                    class="test-item mb-3 p-3 border-1 border-300 border-round"
+                                >
+                                    <div
+                                        class="flex justify-content-between align-items-start mb-2"
+                                    >
+                                        <h6 class="m-0">Prueba {{ i + 1 }}</h6>
+                                        <p-button
+                                            icon="pi pi-trash"
+                                            severity="danger"
+                                            size="small"
+                                            text
+                                            (click)="
+                                                removeLaboratoryTest(
+                                                    currentProductIndex,
+                                                    i
+                                                )
+                                            "
+                                        >
+                                        </p-button>
+                                    </div>
+
+                                    <div class="formgrid grid">
+                                        <div class="field col-12 md:col-6">
+                                            <label
+                                                class="block text-900 font-medium mb-2"
+                                                >Tipo de Prueba *</label
+                                            >
+                                            <p-dropdown
+                                                [options]="testTypes"
+                                                formControlName="testType"
+                                                placeholder="Seleccionar tipo"
+                                                class="w-full"
+                                            >
+                                            </p-dropdown>
+                                        </div>
+
+                                        <div class="field col-12 md:col-6">
+                                            <label
+                                                class="block text-900 font-medium mb-2"
+                                                >Fecha de Prueba *</label
+                                            >
+                                            <p-calendar
+                                                formControlName="testDate"
+                                                [showTime]="true"
+                                                dateFormat="dd/mm/yy"
+                                                class="w-full"
+                                            >
+                                            </p-calendar>
+                                        </div>
+
+                                        <div class="field col-12 md:col-4">
+                                            <label
+                                                class="block text-900 font-medium mb-2"
+                                                >Resultado *</label
+                                            >
+                                            <input
+                                                type="text"
+                                                pInputText
+                                                formControlName="result"
+                                                placeholder="Resultado cualitativo"
+                                                class="w-full"
+                                            />
+                                        </div>
+
+                                        <div class="field col-12 md:col-4">
+                                            <label
+                                                class="block text-900 font-medium mb-2"
+                                                >Valor Numérico</label
+                                            >
+                                            <p-inputNumber
+                                                formControlName="numericValue"
+                                                [minFractionDigits]="2"
+                                                [maxFractionDigits]="4"
+                                                class="w-full"
+                                            >
+                                            </p-inputNumber>
+                                        </div>
+
+                                        <div class="field col-12 md:col-4">
+                                            <label
+                                                class="block text-900 font-medium mb-2"
+                                                >Unidad</label
+                                            >
+                                            <input
+                                                type="text"
+                                                pInputText
+                                                formControlName="unit"
+                                                placeholder="mg/kg, UFC/g, etc."
+                                                class="w-full"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div
+                                *ngIf="
+                                    getLaboratoryTests(currentProductIndex)
+                                        .length === 0
+                                "
+                                class="text-center text-600 p-4"
+                            >
+                                No hay pruebas de laboratorio registradas
+                            </div>
+                        </div>
+                    </p-tabPanel>
+
+                    <!-- Tab: Clasificación Final -->
+                    <p-tabPanel
+                        header="Clasificación"
+                        leftIcon="pi pi-check-square"
+                    >
+                        <div class="formgrid grid">
+                            <div class="field col-12 md:col-6">
+                                <label
+                                    for="classification"
+                                    class="block text-900 font-medium mb-2"
+                                >
+                                    Clasificación Final *
+                                </label>
+                                <p-dropdown
+                                    id="classification"
+                                    [options]="classificationOptions"
+                                    formControlName="classification"
+                                    placeholder="Seleccionar clasificación"
+                                    (onChange)="
+                                        onClassificationChange(
+                                            currentProductIndex
+                                        )
+                                    "
+                                    class="w-full"
+                                >
+                                    <ng-template let-option pTemplate="item">
+                                        <p-tag
+                                            [value]="option.label"
+                                            [severity]="option.severity"
+                                        ></p-tag>
+                                    </ng-template>
+                                </p-dropdown>
+                            </div>
+
+                            <div class="field col-12 md:col-6">
+                                <label
+                                    for="destination"
+                                    class="block text-900 font-medium mb-2"
+                                >
+                                    Destino del Producto *
+                                </label>
+                                <p-dropdown
+                                    id="destination"
+                                    [options]="destinationOptions"
+                                    formControlName="destination"
+                                    placeholder="Seleccionar destino"
+                                    class="w-full"
+                                >
+                                </p-dropdown>
+                            </div>
+
+                            <div
+                                class="field col-12"
+                                *ngIf="
+                                    getCurrentProduct().get('classification')
+                                        ?.value !== 'SUITABLE_FOR_CONSUMPTION'
+                                "
+                            >
+                                <label
+                                    for="classificationReason"
+                                    class="block text-900 font-medium mb-2"
+                                >
+                                    Razón de la Clasificación *
+                                </label>
+                                <textarea
+                                    id="classificationReason"
+                                    pInputTextarea
+                                    formControlName="classificationReason"
+                                    rows="3"
+                                    placeholder="Explicar la razón de la clasificación..."
+                                    class="w-full"
+                                >
+                                </textarea>
+                            </div>
+
+                            <div class="field col-12">
+                                <label
+                                    for="productObservations"
+                                    class="block text-900 font-medium mb-2"
+                                >
+                                    Observaciones del Producto
+                                </label>
+                                <textarea
+                                    id="productObservations"
+                                    pInputTextarea
+                                    formControlName="observations"
+                                    rows="3"
+                                    placeholder="Observaciones adicionales..."
+                                    class="w-full"
+                                >
+                                </textarea>
+                            </div>
+                        </div>
+                    </p-tabPanel>
+                </p-tabView>
+
+                <!-- Navegación entre productos -->
+                <div
+                    class="flex justify-content-between align-items-center mt-3"
+                >
+                    <p-button
+                        label="Anterior"
+                        icon="pi pi-chevron-left"
+                        severity="secondary"
+                        [disabled]="currentProductIndex === 0"
+                        (click)="navigateToProduct(currentProductIndex - 1)"
+                    >
+                    </p-button>
+
+                    <span class="text-sm text-600">
+                        {{ currentProductIndex + 1 }} de
+                        {{ productInspections.length }}
+                    </span>
+
+                    <p-button
+                        label="Siguiente"
+                        icon="pi pi-chevron-right"
+                        iconPos="right"
+                        severity="secondary"
+                        [disabled]="
+                            currentProductIndex ===
+                            productInspections.length - 1
+                        "
+                        (click)="navigateToProduct(currentProductIndex + 1)"
+                    >
+                    </p-button>
+                </div>
+            </div>
+        </p-fieldset>
+
+        <!-- Observaciones y Recomendaciones Generales -->
+        <div class="formgrid grid mb-4">
+            <div class="field col-12 md:col-6">
+                <label
+                    for="generalObservations"
+                    class="block text-900 font-medium mb-2"
+                >
+                    Observaciones Generales
+                </label>
+                <textarea
+                    id="generalObservations"
+                    pInputTextarea
+                    formControlName="generalObservations"
+                    rows="4"
+                    placeholder="Observaciones generales sobre la inspección..."
+                    class="w-full"
+                >
+                </textarea>
+            </div>
+
+            <div class="field col-12 md:col-6">
+                <label
+                    for="recommendations"
+                    class="block text-900 font-medium mb-2"
+                >
+                    Recomendaciones
+                </label>
+                <textarea
+                    id="recommendations"
+                    pInputTextarea
+                    formControlName="recommendations"
+                    rows="4"
+                    placeholder="Recomendaciones para mejorar la calidad..."
+                    class="w-full"
+                >
+                </textarea>
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="action-buttons flex justify-content-end gap-2">
+            <p-button
+                label="Guardar y Continuar"
+                icon="pi pi-check"
+                severity="success"
+                [loading]="isLoading"
+                [disabled]="
+                    verificationForm.invalid || productInspections.length === 0
+                "
+                (click)="saveAndContinue()"
+            >
+            </p-button>
+        </div>
+    </form>
+</div>
+
+<p-confirmDialog></p-confirmDialog>

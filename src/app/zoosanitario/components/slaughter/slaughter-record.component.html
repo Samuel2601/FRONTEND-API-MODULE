@@ -1,0 +1,767 @@
+<div class="slaughter-record-container">
+    <div class="slaughter-header">
+        <h2 class="text-2xl font-bold text-primary mb-2">
+            <i class="pi pi-cog mr-2"></i>
+            Registro de Faenamiento
+        </h2>
+        <p class="text-600 mb-4">
+            Control del proceso de sacrificio y obtención de productos cárnicos
+        </p>
+    </div>
+
+    <form [formGroup]="slaughterForm">
+        <!-- Información General -->
+        <p-fieldset legend="Información General" class="mb-4">
+            <div class="formgrid grid">
+                <div class="field col-12 md:col-4">
+                    <label
+                        for="recordNumber"
+                        class="block text-900 font-medium mb-2"
+                    >
+                        Número de Registro
+                    </label>
+                    <input
+                        id="recordNumber"
+                        type="text"
+                        pInputText
+                        formControlName="recordNumber"
+                        readonly
+                        class="w-full"
+                    />
+                </div>
+
+                <div class="field col-12 md:col-4">
+                    <label
+                        for="slaughterDate"
+                        class="block text-900 font-medium mb-2"
+                    >
+                        Fecha de Faenamiento
+                    </label>
+                    <p-calendar
+                        id="slaughterDate"
+                        formControlName="slaughterDate"
+                        [showTime]="true"
+                        dateFormat="dd/mm/yy"
+                        class="w-full"
+                    >
+                    </p-calendar>
+                </div>
+
+                <div class="field col-12 md:col-4">
+                    <label class="block text-900 font-medium mb-2">
+                        Animales Aptos
+                    </label>
+                    <input
+                        type="text"
+                        pInputText
+                        [value]="suitableAnimals.length + ' animales'"
+                        readonly
+                        class="w-full"
+                    />
+                </div>
+            </div>
+        </p-fieldset>
+
+        <!-- Resumen de Procesamiento -->
+        <p-fieldset legend="Resumen de Procesamiento" class="mb-4">
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-value text-primary">
+                        {{ processingSummary.processedAnimals }}
+                    </div>
+                    <div class="summary-label">Procesados</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value text-blue-600">
+                        {{ processingSummary.liveWeight | number : "1.1-2" }} kg
+                    </div>
+                    <div class="summary-label">Peso Vivo</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value text-green-600">
+                        {{ processingSummary.carcassWeight | number : "1.1-2" }}
+                        kg
+                    </div>
+                    <div class="summary-label">Peso Canal</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value text-orange-600">
+                        {{ processingSummary.averageYield | number : "1.1-2" }}%
+                    </div>
+                    <div class="summary-label">Rendimiento</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value text-red-600">
+                        {{ processingSummary.totalConfiscations }}
+                    </div>
+                    <div class="summary-label">Decomisos</div>
+                </div>
+            </div>
+        </p-fieldset>
+
+        <!-- Procesamientos -->
+        <p-fieldset legend="Procesamientos" class="mb-4">
+            <!-- Navegación de Procesamientos -->
+            <div class="processing-navigation mb-4">
+                <div
+                    class="flex justify-content-between align-items-center mb-3"
+                >
+                    <h4 class="m-0">Animales en Procesamiento</h4>
+                    <div class="flex align-items-center gap-2">
+                        <span class="text-sm">
+                            {{ currentProcessingIndex + 1 }} de
+                            {{ processings.length }}
+                        </span>
+                        <p-progressBar
+                            [value]="getProgressValue()"
+                            [style]="{ width: '100px', height: '6px' }"
+                        >
+                        </p-progressBar>
+                    </div>
+                </div>
+
+                <p-carousel
+                    [value]="processings.controls"
+                    [numVisible]="4"
+                    [numScroll]="1"
+                    [responsiveOptions]="[
+                        { breakpoint: '1024px', numVisible: 3, numScroll: 1 },
+                        { breakpoint: '768px', numVisible: 2, numScroll: 1 },
+                        { breakpoint: '560px', numVisible: 1, numScroll: 1 }
+                    ]"
+                >
+                    <ng-template let-processing let-i="index" pTemplate="item">
+                        <div class="processing-card p-2">
+                            <p-card
+                                [class]="
+                                    'processing-nav-card cursor-pointer ' +
+                                    (i === currentProcessingIndex
+                                        ? 'selected'
+                                        : '')
+                                "
+                                (click)="navigateToProcessing(i)"
+                            >
+                                <div class="text-center">
+                                    <div class="text-sm font-bold">
+                                        {{ processing.get("animalId")?.value }}
+                                    </div>
+                                    <div class="text-xs text-600">
+                                        {{
+                                            getAnimalData(
+                                                processing.get("animalId")
+                                                    ?.value
+                                            )?.type
+                                        }}
+                                    </div>
+                                    <p-tag
+                                        [value]="getProcessingStatus(i)"
+                                        [severity]="
+                                            getProcessingStatusSeverity(i)
+                                        "
+                                        class="mt-1"
+                                    >
+                                    </p-tag>
+                                    <div class="text-xs mt-1">
+                                        {{ getProcessingDuration(i) }}
+                                    </div>
+                                </div>
+                            </p-card>
+                        </div>
+                    </ng-template>
+                </p-carousel>
+            </div>
+
+            <!-- Formulario del Procesamiento Actual -->
+            <div
+                *ngIf="processings.length > 0"
+                [formGroup]="getCurrentProcessing()"
+                class="current-processing-form"
+            >
+                <div
+                    class="flex justify-content-between align-items-center mb-3"
+                >
+                    <h4 class="text-primary m-0">
+                        Procesamiento:
+                        {{ getCurrentProcessing().get("animalId")?.value }}
+                    </h4>
+                    <div class="flex gap-2">
+                        <p-button
+                            label="Iniciar"
+                            icon="pi pi-play"
+                            severity="success"
+                            size="small"
+                            [disabled]="
+                                isProcessingActive(currentProcessingIndex) ||
+                                isProcessingCompleted(currentProcessingIndex)
+                            "
+                            (click)="startProcessing(currentProcessingIndex)"
+                        >
+                        </p-button>
+                        <p-button
+                            label="Finalizar"
+                            icon="pi pi-stop"
+                            severity="warning"
+                            size="small"
+                            [disabled]="
+                                !isProcessingActive(currentProcessingIndex)
+                            "
+                            (click)="endProcessing(currentProcessingIndex)"
+                        >
+                        </p-button>
+                    </div>
+                </div>
+
+                <p-tabView>
+                    <!-- Tab: Información del Procesamiento -->
+                    <p-tabPanel header="Procesamiento" leftIcon="pi pi-cog">
+                        <div class="formgrid grid">
+                            <!-- Datos del Animal -->
+                            <div class="field col-12 md:col-6">
+                                <h5 class="text-primary mb-3">
+                                    Datos del Animal
+                                </h5>
+                                <div class="animal-data">
+                                    <div class="mb-2">
+                                        <strong>ID:</strong>
+                                        {{
+                                            getCurrentProcessing().get(
+                                                "animalId"
+                                            )?.value
+                                        }}
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Tipo:</strong>
+                                        {{
+                                            getAnimalData(
+                                                getCurrentProcessing().get(
+                                                    "animalId"
+                                                )?.value
+                                            )?.type
+                                        }}
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Peso:</strong>
+                                        {{
+                                            getAnimalData(
+                                                getCurrentProcessing().get(
+                                                    "animalId"
+                                                )?.value
+                                            )?.weight
+                                        }}
+                                        kg
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Condición:</strong>
+                                        {{
+                                            getAnimalData(
+                                                getCurrentProcessing().get(
+                                                    "animalId"
+                                                )?.value
+                                            )?.generalCondition
+                                        }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Control de Tiempo -->
+                            <div class="field col-12 md:col-6">
+                                <h5 class="text-primary mb-3">
+                                    Control de Tiempo
+                                </h5>
+                                <div class="time-control">
+                                    <div class="mb-2">
+                                        <strong>Inicio:</strong>
+                                        <span
+                                            *ngIf="
+                                                getCurrentProcessing().get(
+                                                    'startTime'
+                                                )?.value
+                                            "
+                                        >
+                                            {{
+                                                getCurrentProcessing().get(
+                                                    "startTime"
+                                                )?.value | date : "medium"
+                                            }}
+                                        </span>
+                                        <span
+                                            *ngIf="
+                                                !getCurrentProcessing().get(
+                                                    'startTime'
+                                                )?.value
+                                            "
+                                            class="text-600"
+                                        >
+                                            No iniciado
+                                        </span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Fin:</strong>
+                                        <span
+                                            *ngIf="
+                                                getCurrentProcessing().get(
+                                                    'endTime'
+                                                )?.value
+                                            "
+                                        >
+                                            {{
+                                                getCurrentProcessing().get(
+                                                    "endTime"
+                                                )?.value | date : "medium"
+                                            }}
+                                        </span>
+                                        <span
+                                            *ngIf="
+                                                !getCurrentProcessing().get(
+                                                    'endTime'
+                                                )?.value
+                                            "
+                                            class="text-600"
+                                        >
+                                            En proceso
+                                        </span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Duración:</strong>
+                                        {{
+                                            getProcessingDuration(
+                                                currentProcessingIndex
+                                            )
+                                        }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field col-12 md:col-6">
+                                <label
+                                    for="processingMethod"
+                                    class="block text-900 font-medium mb-2"
+                                >
+                                    Método de Procesamiento *
+                                </label>
+                                <p-dropdown
+                                    id="processingMethod"
+                                    [options]="processingMethods"
+                                    formControlName="processingMethod"
+                                    placeholder="Seleccionar método"
+                                    class="w-full"
+                                >
+                                </p-dropdown>
+                            </div>
+
+                            <div class="field col-12 md:col-6">
+                                <label
+                                    for="processTemperature"
+                                    class="block text-900 font-medium mb-2"
+                                >
+                                    Temperatura de Proceso (°C)
+                                </label>
+                                <p-inputNumber
+                                    id="processTemperature"
+                                    formControlName="processTemperature"
+                                    [min]="-10"
+                                    [max]="50"
+                                    suffix=" °C"
+                                    class="w-full"
+                                >
+                                </p-inputNumber>
+                            </div>
+
+                            <div class="field col-12">
+                                <label
+                                    for="observations"
+                                    class="block text-900 font-medium mb-2"
+                                >
+                                    Observaciones del Procesamiento
+                                </label>
+                                <textarea
+                                    id="observations"
+                                    pInputTextarea
+                                    formControlName="observations"
+                                    rows="3"
+                                    placeholder="Observaciones del proceso..."
+                                    class="w-full"
+                                >
+                                </textarea>
+                            </div>
+                        </div>
+                    </p-tabPanel>
+
+                    <!-- Tab: Productos Obtenidos -->
+                    <p-tabPanel
+                        header="Productos Obtenidos"
+                        leftIcon="pi pi-box"
+                    >
+                        <div class="products-section">
+                            <div
+                                class="flex justify-content-between align-items-center mb-3"
+                            >
+                                <h5 class="m-0">Productos Obtenidos</h5>
+                                <p-button
+                                    icon="pi pi-plus"
+                                    label="Agregar Producto"
+                                    size="small"
+                                    severity="secondary"
+                                    (click)="
+                                        addObtainedProduct(
+                                            currentProcessingIndex
+                                        )
+                                    "
+                                >
+                                </p-button>
+                            </div>
+
+                            <div formArrayName="obtainedProducts">
+                                <div
+                                    *ngFor="
+                                        let product of getObtainedProducts(
+                                            currentProcessingIndex
+                                        ).controls;
+                                        let i = index
+                                    "
+                                    [formGroupName]="i"
+                                    class="product-item mb-3 p-3 border-1 border-300 border-round"
+                                >
+                                    <div
+                                        class="flex justify-content-between align-items-start mb-2"
+                                    >
+                                        <h6 class="m-0">
+                                            Producto {{ i + 1 }}
+                                        </h6>
+                                        <p-button
+                                            icon="pi pi-trash"
+                                            severity="danger"
+                                            size="small"
+                                            text
+                                            (click)="
+                                                removeObtainedProduct(
+                                                    currentProcessingIndex,
+                                                    i
+                                                )
+                                            "
+                                        >
+                                        </p-button>
+                                    </div>
+
+                                    <div class="formgrid grid">
+                                        <div class="field col-12 md:col-6">
+                                            <label
+                                                class="block text-900 font-medium mb-2"
+                                                >Tipo *</label
+                                            >
+                                            <p-dropdown
+                                                [options]="productTypes"
+                                                formControlName="type"
+                                                placeholder="Seleccionar tipo"
+                                                class="w-full"
+                                            >
+                                            </p-dropdown>
+                                        </div>
+
+                                        <div class="field col-12 md:col-6">
+                                            <label
+                                                class="block text-900 font-medium mb-2"
+                                                >Peso (kg) *</label
+                                            >
+                                            <p-inputNumber
+                                                formControlName="weight"
+                                                [min]="0"
+                                                suffix=" kg"
+                                                [minFractionDigits]="2"
+                                                [maxFractionDigits]="2"
+                                                (onInput)="updateSummary()"
+                                                class="w-full"
+                                            >
+                                            </p-inputNumber>
+                                        </div>
+
+                                        <div class="field col-12 md:col-6">
+                                            <label
+                                                class="block text-900 font-medium mb-2"
+                                                >Calidad *</label
+                                            >
+                                            <p-dropdown
+                                                [options]="qualityGrades"
+                                                formControlName="quality"
+                                                placeholder="Seleccionar calidad"
+                                                class="w-full"
+                                            >
+                                            </p-dropdown>
+                                        </div>
+
+                                        <div class="field col-12 md:col-6">
+                                            <label
+                                                class="block text-900 font-medium mb-2"
+                                                >Observaciones</label
+                                            >
+                                            <input
+                                                type="text"
+                                                pInputText
+                                                formControlName="observations"
+                                                placeholder="Observaciones del producto"
+                                                class="w-full"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div
+                                *ngIf="
+                                    getObtainedProducts(currentProcessingIndex)
+                                        .length === 0
+                                "
+                                class="text-center text-600 p-4"
+                            >
+                                No hay productos registrados
+                            </div>
+                        </div>
+                    </p-tabPanel>
+
+                    <!-- Tab: Decomisos -->
+                    <p-tabPanel
+                        header="Decomisos"
+                        leftIcon="pi pi-exclamation-triangle"
+                    >
+                        <div class="confiscations-section">
+                            <div
+                                class="flex justify-content-between align-items-center mb-3"
+                            >
+                                <h5 class="m-0">Decomisos</h5>
+                                <p-button
+                                    icon="pi pi-plus"
+                                    label="Agregar Decomiso"
+                                    size="small"
+                                    severity="warning"
+                                    (click)="
+                                        addConfiscation(currentProcessingIndex)
+                                    "
+                                >
+                                </p-button>
+                            </div>
+
+                            <div formArrayName="confiscations">
+                                <div
+                                    *ngFor="
+                                        let confiscation of getConfiscations(
+                                            currentProcessingIndex
+                                        ).controls;
+                                        let i = index
+                                    "
+                                    [formGroupName]="i"
+                                    class="confiscation-item mb-3 p-3 border-1 border-300 border-round"
+                                >
+                                    <div
+                                        class="flex justify-content-between align-items-start mb-2"
+                                    >
+                                        <h6 class="m-0">
+                                            Decomiso {{ i + 1 }}
+                                        </h6>
+                                        <p-button
+                                            icon="pi pi-trash"
+                                            severity="danger"
+                                            size="small"
+                                            text
+                                            (click)="
+                                                removeConfiscation(
+                                                    currentProcessingIndex,
+                                                    i
+                                                )
+                                            "
+                                        >
+                                        </p-button>
+                                    </div>
+
+                                    <div class="formgrid grid">
+                                        <div class="field col-12 md:col-6">
+                                            <label
+                                                class="block text-900 font-medium mb-2"
+                                                >Parte Decomisada *</label
+                                            >
+                                            <input
+                                                type="text"
+                                                pInputText
+                                                formControlName="part"
+                                                placeholder="Ej: Hígado, Riñón, etc."
+                                                class="w-full"
+                                            />
+                                        </div>
+
+                                        <div class="field col-12 md:col-6">
+                                            <label
+                                                class="block text-900 font-medium mb-2"
+                                                >Razón *</label
+                                            >
+                                            <p-dropdown
+                                                [options]="confiscationReasons"
+                                                formControlName="reason"
+                                                placeholder="Seleccionar razón"
+                                                class="w-full"
+                                            >
+                                            </p-dropdown>
+                                        </div>
+
+                                        <div class="field col-12 md:col-6">
+                                            <label
+                                                class="block text-900 font-medium mb-2"
+                                                >Peso (kg) *</label
+                                            >
+                                            <p-inputNumber
+                                                formControlName="weight"
+                                                [min]="0"
+                                                suffix=" kg"
+                                                [minFractionDigits]="2"
+                                                [maxFractionDigits]="2"
+                                                (onInput)="updateSummary()"
+                                                class="w-full"
+                                            >
+                                            </p-inputNumber>
+                                        </div>
+
+                                        <div class="field col-12 md:col-6">
+                                            <label
+                                                class="block text-900 font-medium mb-2"
+                                                >Disposición Final *</label
+                                            >
+                                            <input
+                                                type="text"
+                                                pInputText
+                                                formControlName="finalDisposition"
+                                                placeholder="Ej: Destrucción, Compostaje"
+                                                class="w-full"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div
+                                *ngIf="
+                                    getConfiscations(currentProcessingIndex)
+                                        .length === 0
+                                "
+                                class="text-center text-600 p-4"
+                            >
+                                No hay decomisos registrados
+                            </div>
+                        </div>
+                    </p-tabPanel>
+
+                    <!-- Tab: Rendimiento -->
+                    <p-tabPanel
+                        header="Rendimiento"
+                        leftIcon="pi pi-chart-line"
+                    >
+                        <div class="yield-section">
+                            <div class="formgrid grid">
+                                <div class="field col-12 md:col-6">
+                                    <label
+                                        for="yieldPercentage"
+                                        class="block text-900 font-medium mb-2"
+                                    >
+                                        Rendimiento (%)
+                                    </label>
+                                    <p-inputNumber
+                                        id="yieldPercentage"
+                                        formControlName="yieldPercentage"
+                                        [min]="0"
+                                        [max]="100"
+                                        suffix=" %"
+                                        [readonly]="true"
+                                        class="w-full"
+                                    >
+                                    </p-inputNumber>
+                                    <small class="text-600">
+                                        Calculado automáticamente según peso de
+                                        productos obtenidos
+                                    </small>
+                                </div>
+
+                                <div class="field col-12 md:col-6">
+                                    <h5 class="text-primary mb-3">
+                                        Cálculo de Rendimiento
+                                    </h5>
+                                    <div class="yield-calculation">
+                                        <div class="mb-2">
+                                            <strong>Peso Vivo:</strong>
+                                            {{ getCurrentAnimalWeight() }} kg
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>Peso Productos:</strong>
+                                            {{
+                                                getTotalProductWeight(
+                                                    currentProcessingIndex
+                                                ) | number : "1.2-2"
+                                            }}
+                                            kg
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>Rendimiento:</strong>
+                                            {{
+                                                getCurrentYieldPercentage()
+                                                    | number : "1.2-2"
+                                            }}%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </p-tabPanel>
+                </p-tabView>
+
+                <!-- Navegación entre procesamientos -->
+                <div
+                    class="flex justify-content-between align-items-center mt-3"
+                >
+                    <p-button
+                        label="Anterior"
+                        icon="pi pi-chevron-left"
+                        severity="secondary"
+                        [disabled]="currentProcessingIndex === 0"
+                        (click)="
+                            navigateToProcessing(currentProcessingIndex - 1)
+                        "
+                    >
+                    </p-button>
+
+                    <span class="text-sm text-600">
+                        {{ currentProcessingIndex + 1 }} de
+                        {{ processings.length }}
+                    </span>
+
+                    <p-button
+                        label="Siguiente"
+                        icon="pi pi-chevron-right"
+                        iconPos="right"
+                        severity="secondary"
+                        [disabled]="
+                            currentProcessingIndex === processings.length - 1
+                        "
+                        (click)="
+                            navigateToProcessing(currentProcessingIndex + 1)
+                        "
+                    >
+                    </p-button>
+                </div>
+            </div>
+        </p-fieldset>
+
+        <!-- Botones de Acción -->
+        <div class="action-buttons flex justify-content-end gap-2">
+            <p-button
+                label="Guardar y Continuar"
+                icon="pi pi-check"
+                severity="success"
+                [loading]="isLoading"
+                [disabled]="
+                    slaughterForm.invalid ||
+                    processingSummary.processedAnimals === 0
+                "
+                (click)="saveAndContinue()"
+            >
+            </p-button>
+        </div>
+    </form>
+</div>
+
+<p-confirmDialog></p-confirmDialog>

@@ -1,0 +1,147 @@
+<p-dialog
+    [(visible)]="visible"
+    [header]="header"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '90vw', 'max-width': '500px' }"
+    (onShow)="onShow()"
+    (onHide)="onHide()"
+>
+    <div class="qr-scanner-content">
+        <!-- Scanner Area -->
+        <div class="scanner-area">
+            <!-- Camera View (cuando está escaneando) -->
+            <div *ngIf="isScanning && !manualMode" class="camera-view">
+                <div class="scanner-frame">
+                    <div class="scanner-overlay">
+                        <div class="scan-line"></div>
+                        <div class="corner corner-tl"></div>
+                        <div class="corner corner-tr"></div>
+                        <div class="corner corner-bl"></div>
+                        <div class="corner corner-br"></div>
+                    </div>
+                </div>
+                <p class="scan-instruction">
+                    Apunte la cámara hacia el código QR
+                </p>
+            </div>
+
+            <!-- Manual Mode -->
+            <div *ngIf="manualMode" class="manual-mode">
+                <div class="manual-input-area">
+                    <i class="pi pi-qrcode text-6xl text-primary mb-3"></i>
+                    <h4>Ingreso Manual</h4>
+                    <p class="text-600 mb-3">
+                        Ingrese el código del certificado zoosanitario
+                    </p>
+
+                    <div class="p-inputgroup">
+                        <input
+                            type="text"
+                            pInputText
+                            [(ngModel)]="manualInput"
+                            placeholder="Número del certificado"
+                            class="text-center"
+                            appUpperCase="full"
+                            (keyup.enter)="onManualSubmit()"
+                            #manualInputField
+                        />
+                        <button
+                            type="button"
+                            pButton
+                            icon="pi pi-check"
+                            class="p-button-primary"
+                            (click)="onManualSubmit()"
+                        ></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success State -->
+            <div *ngIf="scanResult" class="success-state">
+                <i class="pi pi-check-circle text-6xl text-green-500 mb-3"></i>
+                <h4 class="text-green-600">¡Código Detectado!</h4>
+                <div class="result-code">
+                    {{ scanResult }}
+                </div>
+                <p-progressBar
+                    mode="indeterminate"
+                    [style]="{ height: '6px' }"
+                    class="mt-3"
+                >
+                </p-progressBar>
+                <p class="text-600 mt-2">Procesando...</p>
+            </div>
+
+            <!-- Error State -->
+            <div *ngIf="error && !manualMode" class="error-state">
+                <i
+                    class="pi pi-exclamation-triangle text-6xl text-red-500 mb-3"
+                ></i>
+                <h4 class="text-red-600">Error de Escáner</h4>
+                <p class="text-600 mb-3">{{ error }}</p>
+                <p-button
+                    label="Ingreso Manual"
+                    icon="pi pi-pencil"
+                    severity="secondary"
+                    (click)="toggleManualMode()"
+                >
+                </p-button>
+            </div>
+
+            <!-- Loading State -->
+            <div
+                *ngIf="!isScanning && !manualMode && !scanResult && !error"
+                class="loading-state"
+            >
+                <i class="pi pi-camera text-6xl text-primary mb-3"></i>
+                <h4>Inicializando Cámara</h4>
+                <p-progressSpinner
+                    strokeWidth="3"
+                    [style]="{ width: '50px', height: '50px' }"
+                    class="mt-3"
+                >
+                </p-progressSpinner>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="scanner-controls">
+            <!-- Mode Toggle -->
+            <div class="mode-toggle" *ngIf="!scanResult">
+                <p-button
+                    [label]="manualMode ? 'Usar Cámara' : 'Ingreso Manual'"
+                    [icon]="manualMode ? 'pi pi-camera' : 'pi pi-pencil'"
+                    severity="secondary"
+                    size="small"
+                    [disabled]="isScanning"
+                    (click)="toggleManualMode()"
+                >
+                </p-button>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <p-button
+                    label="Cancelar"
+                    icon="pi pi-times"
+                    severity="secondary"
+                    (click)="cancel()"
+                >
+                </p-button>
+
+                <p-button
+                    *ngIf="!scanResult && !manualMode"
+                    label="Reintentar"
+                    icon="pi pi-refresh"
+                    severity="primary"
+                    [disabled]="isScanning"
+                    (click)="startScanning()"
+                >
+                </p-button>
+            </div>
+        </div>
+    </div>
+</p-dialog>

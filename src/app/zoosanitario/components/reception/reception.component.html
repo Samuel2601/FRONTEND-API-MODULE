@@ -1,0 +1,275 @@
+<div class="reception-container">
+    <div class="reception-header">
+        <h2 class="text-2xl font-bold text-primary mb-2">
+            <i class="pi pi-qrcode mr-2"></i>
+            Recepción de Certificado Zoosanitario
+        </h2>
+        <p class="text-600 mb-4">
+            Escanee el código QR o ingrese manualmente el número del certificado
+            zoosanitario
+        </p>
+    </div>
+
+    <!-- Formulario de Recepción -->
+    <form [formGroup]="receptionForm" class="reception-form">
+        <!-- Sección de Entrada de Certificado -->
+        <p-fieldset legend="Ingreso del Certificado" class="mb-4">
+            <div class="formgrid grid">
+                <!-- Campo de Número de Certificado -->
+                <div class="field col-12 md:col-8">
+                    <label
+                        for="certificateNumber"
+                        class="block text-900 font-medium mb-2"
+                    >
+                        Número de Certificado *
+                    </label>
+                    <div class="p-inputgroup">
+                        <input
+                            id="certificateNumber"
+                            type="text"
+                            pInputText
+                            formControlName="certificateNumber"
+                            placeholder="Ingrese o escanee el número del certificado"
+                            [class.ng-invalid]="
+                                receptionForm.get('certificateNumber')
+                                    ?.invalid &&
+                                receptionForm.get('certificateNumber')?.touched
+                            "
+                            class="w-full"
+                        />
+                        <button
+                            type="button"
+                            pButton
+                            icon="pi pi-search"
+                            class="p-button-primary"
+                            [disabled]="
+                                !receptionForm.get('certificateNumber')
+                                    ?.value || isLoading
+                            "
+                            (click)="validateCertificate()"
+                        ></button>
+                    </div>
+                    <small
+                        *ngIf="
+                            receptionForm.get('certificateNumber')?.invalid &&
+                            receptionForm.get('certificateNumber')?.touched
+                        "
+                        class="p-error"
+                    >
+                        El número de certificado es requerido (mínimo 5
+                        caracteres)
+                    </small>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="field col-12 md:col-4">
+                    <label class="block text-900 font-medium mb-2"
+                        >Opciones de Ingreso</label
+                    >
+                    <div class="flex flex-column gap-2">
+                        <p-button
+                            label="Escanear QR"
+                            icon="pi pi-camera"
+                            severity="secondary"
+                            size="small"
+                            [disabled]="isScanning || isLoading"
+                            [loading]="isScanning"
+                            (click)="scanQRCode()"
+                        >
+                        </p-button>
+                        <p-button
+                            label="Ingreso Manual"
+                            icon="pi pi-pencil"
+                            severity="secondary"
+                            size="small"
+                            [disabled]="isLoading"
+                            (click)="manualEntry()"
+                        >
+                        </p-button>
+                    </div>
+                </div>
+            </div>
+        </p-fieldset>
+
+        <!-- Estado de Validación -->
+        <div
+            *ngIf="validationStatus !== 'pending'"
+            class="validation-status mb-4"
+        >
+            <p-card>
+                <div class="flex align-items-center">
+                    <i [class]="'text-2xl mr-3 ' + getValidationIcon()"></i>
+                    <div>
+                        <h4 class="m-0 mb-1">Estado de Validación</h4>
+                        <p class="m-0 text-600">{{ getValidationMessage() }}</p>
+                    </div>
+                </div>
+            </p-card>
+        </div>
+
+        <!-- Detalles del Certificado -->
+        <div
+            *ngIf="showCertificateDetails && certificateData"
+            class="certificate-details mb-4"
+        >
+            <p-fieldset legend="Detalles del Certificado" [toggleable]="true">
+                <div class="formgrid grid">
+                    <!-- Información Básica -->
+                    <div class="field col-12 md:col-6">
+                        <h5 class="text-primary mb-3">Información Básica</h5>
+                        <div class="mb-2">
+                            <strong>Número:</strong>
+                            {{ certificateData.certificateNumber }}
+                        </div>
+                        <div class="mb-2">
+                            <strong>Autorizado para:</strong>
+                            {{ certificateData.authorizedTo }}
+                        </div>
+                        <div class="mb-2">
+                            <strong>Total de Productos:</strong>
+                            {{ certificateData.totalProducts }}
+                        </div>
+                        <div class="mb-2">
+                            <strong>Válido hasta:</strong>
+                            <span
+                                [class]="
+                                    validationStatus === 'expired'
+                                        ? 'text-red-500 font-bold'
+                                        : 'text-green-600'
+                                "
+                            >
+                                {{ formatDate(certificateData.validUntil) }}
+                            </span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Vehículo:</strong>
+                            {{ certificateData.vehicle }}
+                        </div>
+                    </div>
+
+                    <!-- Origen -->
+                    <div class="field col-12 md:col-6">
+                        <h5 class="text-primary mb-3">Información de Origen</h5>
+                        <div
+                            class="mb-2"
+                            *ngIf="certificateData.origin?.owner?.name"
+                        >
+                            <strong>Propietario:</strong>
+                            {{ certificateData.origin.owner.name }}
+                        </div>
+                        <div
+                            class="mb-2"
+                            *ngIf="certificateData.origin?.location?.province"
+                        >
+                            <strong>Ubicación:</strong>
+                            {{ certificateData.origin.location.province }},
+                            {{ certificateData.origin.location.canton }}
+                        </div>
+                        <div
+                            class="mb-2"
+                            *ngIf="certificateData.origin?.premises?.type"
+                        >
+                            <strong>Tipo de Predio:</strong>
+                            {{ certificateData.origin.premises.type }}
+                        </div>
+                    </div>
+
+                    <!-- Destino -->
+                    <div class="field col-12 md:col-6">
+                        <h5 class="text-primary mb-3">
+                            Información de Destino
+                        </h5>
+                        <div
+                            class="mb-2"
+                            *ngIf="certificateData.destination?.slaughterhouse"
+                        >
+                            <strong>Matadero:</strong>
+                            {{ certificateData.destination.slaughterhouse }}
+                        </div>
+                        <div
+                            class="mb-2"
+                            *ngIf="certificateData.destination?.municipality"
+                        >
+                            <strong>Municipio:</strong>
+                            {{ certificateData.destination.municipality }}
+                        </div>
+                        <div
+                            class="mb-2"
+                            *ngIf="
+                                certificateData.destination?.location?.province
+                            "
+                        >
+                            <strong>Ubicación:</strong>
+                            {{ certificateData.destination.location.province }},
+                            {{ certificateData.destination.location.canton }}
+                        </div>
+                    </div>
+
+                    <!-- Productos -->
+                    <div class="field col-12 md:col-6">
+                        <h5 class="text-primary mb-3">Productos Declarados</h5>
+                        <div
+                            *ngFor="let product of certificateData.products"
+                            class="mb-2 p-2 border-1 border-300 border-round"
+                        >
+                            <div><strong>Tipo:</strong> {{ product.type }}</div>
+                            <div>
+                                <strong>Cantidad:</strong>
+                                {{ product.quantity }} {{ product.unit }}
+                            </div>
+                            <div *ngIf="product.description">
+                                <strong>Descripción:</strong>
+                                {{ product.description }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </p-fieldset>
+        </div>
+
+        <!-- Notas de Recepción -->
+        <div class="field mb-4">
+            <label for="receptionNotes" class="block text-900 font-medium mb-2">
+                Notas de Recepción
+            </label>
+            <textarea
+                id="receptionNotes"
+                pInputTextarea
+                formControlName="receptionNotes"
+                rows="3"
+                cols="30"
+                placeholder="Observaciones adicionales sobre la recepción..."
+                class="w-full"
+            >
+            </textarea>
+        </div>
+
+        <!-- Botones de Acción Final -->
+        <div class="action-buttons flex justify-content-end gap-2">
+            <p-button
+                label="Rechazar"
+                icon="pi pi-times"
+                severity="danger"
+                [disabled]="validationStatus !== 'valid'"
+                (click)="rejectCertificate()"
+            >
+            </p-button>
+            <p-button
+                label="Aceptar y Continuar"
+                icon="pi pi-check"
+                severity="success"
+                [disabled]="validationStatus !== 'valid'"
+                (click)="acceptCertificate()"
+            >
+            </p-button>
+        </div>
+    </form>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="isLoading" class="loading-container">
+        <p-progressSpinner strokeWidth="3"></p-progressSpinner>
+        <p class="mt-2 text-center">Validando certificado...</p>
+    </div>
+</div>
+
+<p-confirmDialog></p-confirmDialog>
