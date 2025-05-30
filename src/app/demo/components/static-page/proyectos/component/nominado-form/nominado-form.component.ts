@@ -6,6 +6,7 @@ import { Nominado, Proyecto } from '../../interface/proyecto.interfaces';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ImportsModule } from 'src/app/demo/services/import';
 import { DomSanitizer } from '@angular/platform-browser';
+import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 
 @Component({
     selector: 'app-nominado-form',
@@ -104,6 +105,8 @@ export class NominadoFormComponent implements OnInit {
         });
     }
 
+    url = GLOBAL.url;
+
     cargarNominado(id: string): void {
         this.cargando = true;
         this.proyectoService.getNominado(id).subscribe({
@@ -165,7 +168,10 @@ export class NominadoFormComponent implements OnInit {
 
                 // Cargar imagen si existe
                 if (nominado.imagen?.url) {
-                    this.previewImagenUrl = nominado.imagen.url;
+                    this.previewImagenUrl =
+                        this.url +
+                        '/obtener_imagen/nominado/' +
+                        nominado.imagen.url;
                 }
 
                 this.cargando = false;

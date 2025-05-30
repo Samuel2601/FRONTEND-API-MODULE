@@ -4,6 +4,7 @@ import { ProyectoService } from '../../service/proyecto.service';
 import { Nominado, Proyecto } from '../../interface/proyecto.interfaces';
 import { Router } from '@angular/router';
 import { ImportsModule } from 'src/app/demo/services/import';
+import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 
 @Component({
     selector: 'app-nominado-list',
@@ -20,6 +21,8 @@ export class NominadoListComponent implements OnInit {
     cargando: boolean = true;
     errorCarga: boolean = false;
     filtroGlobal: string = '';
+
+    url = GLOBAL.url;
 
     estadoOptions = [
         { label: 'Activo', value: 'activo' },

@@ -146,7 +146,11 @@
                                 *ngIf="nominado.imagen?.url"
                             >
                                 <img
-                                    [src]="nominado.imagen.url"
+                                    [src]="
+                                        url +
+                                        '/obtener_imagen/nominado/' +
+                                        nominado.imagen.url
+                                    "
                                     [alt]="getNombreCompleto(nominado)"
                                     class="tabla-imagen"
                                 />
