@@ -196,6 +196,6 @@
 // Dark mode support
 @media (prefers-color-scheme: dark) {
     .certificate-list-container {
-        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        background: var(--surface-0);
     }
 }

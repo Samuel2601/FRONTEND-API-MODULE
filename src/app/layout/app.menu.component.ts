@@ -72,9 +72,43 @@ export class AppMenuComponent implements OnInit {
             canViewFichaReporte: await this.boolPermiss('reporteficha', 'get'),
             canViewAdministracion: await this.boolPermiss('/categoria', 'post'),
             canViewPanelControl: await this.boolPermiss('dashboard', 'get'),
+            canViewZooSanitario: await this.boolPermiss(
+                '/zoosanitarycertificate',
+                'get'
+            ),
         };
 
         this.model = [
+            {
+                label: 'ZooSanitario',
+                visible: permissions.canViewZooSanitario,
+                items: [
+                    {
+                        label: 'Certificados',
+                        icon: 'pi pi-fw pi-file-edit',
+                        routerLink: ['/zoosanitario/certificates'],
+                        visible: permissions.canViewZooSanitario,
+                    },
+                    {
+                        label: 'Flujo de Trabajo',
+                        icon: 'pi pi-fw pi-exclamation-triangle',
+                        routerLink: ['/zoosanitario/workflow/reception'],
+                        visible: permissions.canViewZooSanitario,
+                    },
+                    {
+                        label: 'Reportes',
+                        icon: 'pi pi-fw pi-chart-bar',
+                        routerLink: ['/zoosanitario/reports'],
+                        visible: permissions.canViewZooSanitario,
+                    },
+                    {
+                        label: 'Inicio',
+                        icon: 'pi pi-fw pi-home',
+                        routerLink: ['/zoosanitario/dashboard'],
+                        visible: permissions.canViewZooSanitario,
+                    },
+                ].filter((item) => item.visible !== false),
+            },
             {
                 label: 'Ficha Socio Economica',
                 visible: permissions.canViewregistro,

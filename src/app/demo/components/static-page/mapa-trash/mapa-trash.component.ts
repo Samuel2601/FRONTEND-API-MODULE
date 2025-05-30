@@ -13,8 +13,7 @@ import { CommonModule } from '@angular/common';
 import * as turf from '@turf/turf';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { Subscription, debounceTime, takeUntil, Subject } from 'rxjs';
-import { Plugins } from '@capacitor/core';
-const { Geolocation } = Plugins;
+
 import { App } from '@capacitor/app';
 import {
     ConfirmationService,
@@ -52,6 +51,7 @@ import { BadgeModule } from 'primeng/badge';
 import { CalendarModule } from 'primeng/calendar';
 import { RutasService } from 'src/app/demo/services/rutas';
 import { ImportsModule } from 'src/app/demo/services/import';
+import { Geolocation } from '@capacitor/geolocation';
 
 interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
     id?: string;

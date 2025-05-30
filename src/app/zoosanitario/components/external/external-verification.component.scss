@@ -14,7 +14,8 @@
 }
 
 .evaluation-summary {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    background: var(--primary-color);
+    color: var(--white-color);
     padding: 1rem;
     border-radius: 8px;
     border-left: 4px solid var(--primary-color);

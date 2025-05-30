@@ -1,8 +1,8 @@
 // ===== GLOBAL CONFIGURATION =====
 export const GLOBAL = {
-    url: 'http://127.0.0.1:4202/new/',
+    //url: 'http://127.0.0.1:4202/new/',
 
-    //url: 'https://geoapi.esmeraldas.gob.ec/new/',
+    url: 'https://geoapi.esmeraldas.gob.ec/new/',
     version: '1.0.0',
     appName: 'ESMERALDAS LA BELLA',
     defaultLanguage: 'es',

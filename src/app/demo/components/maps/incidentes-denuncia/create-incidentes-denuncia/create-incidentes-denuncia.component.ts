@@ -4,7 +4,6 @@ import { CreateService } from 'src/app/demo/services/create.service';
 import { ListService } from 'src/app/demo/services/list.service';
 import { AdminService } from 'src/app/demo/services/admin.service';
 import { Router } from '@angular/router';
-import { Plugins, Capacitor } from '@capacitor/core';
 import {
     Camera,
     CameraResultType,

@@ -14,7 +14,7 @@ export class ZoosanitaryCertificateService extends BaseService<any> {
         cacheService: CacheService,
         auth: AuthService
     ) {
-        super(http, cacheService, auth, '/zoosanitarycertificate');
+        super(http, cacheService, auth, 'zoosanitarycertificate');
     }
 
     validateByQR(certificateNumber: string): Observable<any> {

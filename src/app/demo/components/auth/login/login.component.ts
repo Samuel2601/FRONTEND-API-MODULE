@@ -10,9 +10,9 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { Howl } from 'howler';
 import { NativeBiometric } from 'capacitor-native-biometric';
 import { AuthService } from 'src/app/demo/services/auth.service';
-import { Plugins } from '@capacitor/core';
+
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
-const { App } = Plugins;
+
 @Component({
     selector: 'app-login',
     templateUrl: './login.component.html',

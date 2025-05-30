@@ -26,7 +26,6 @@ import {
 import * as turf from '@turf/turf';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { Subscription, debounceTime, forkJoin, map, filter } from 'rxjs';
-import { Capacitor, Plugins } from '@capacitor/core';
 import {
     Geolocation,
     PermissionStatus,

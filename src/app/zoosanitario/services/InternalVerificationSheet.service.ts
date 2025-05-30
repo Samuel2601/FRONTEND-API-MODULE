@@ -14,7 +14,7 @@ export class InternalVerificationSheetService extends BaseService<any> {
         cacheService: CacheService,
         auth: AuthService
     ) {
-        super(http, cacheService, auth, '/internalverificationsheet');
+        super(http, cacheService, auth, 'internalverificationsheet');
     }
 
     getBySlaughterRecordId(slaughterRecordId: string): Observable<any[]> {

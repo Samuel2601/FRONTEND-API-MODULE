@@ -124,6 +124,13 @@ import { NominadoFormComponent } from './demo/components/static-page/proyectos/c
                             path: 'mapa-recolectores',
                             component: MapaTrashComponent,
                         },
+                        {
+                            path: 'zoosanitario',
+                            loadChildren: () =>
+                                import(
+                                    './zoosanitario/zoosanitario.module'
+                                ).then((m) => m.ZooSanitarioModule),
+                        },
                     ],
                 },
                 {

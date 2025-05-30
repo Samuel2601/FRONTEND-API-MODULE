@@ -248,7 +248,8 @@ export class ShippingComponent implements OnInit, OnDestroy {
         this.calculateEstimatedDelivery();
     }
 
-    private addShippingProduct(productData?: any) {
+    // Make addShippingProduct public
+    public addShippingProduct(productData?: any) {
         const product = this.fb.group({
             productId: [productData?.productId || '', Validators.required],
             type: [productData?.type || '', Validators.required],
@@ -273,6 +274,36 @@ export class ShippingComponent implements OnInit, OnDestroy {
         });
 
         this.shippingProducts.push(product);
+    }
+
+    // Add tabItems property
+    public tabItems = [
+        {
+            label: 'Preparación',
+            icon: 'pi pi-cog',
+            command: () => (this.currentView = 'preparation'),
+        },
+        {
+            label: 'Seguimiento',
+            icon: 'pi pi-map-marker',
+            command: () => (this.currentView = 'tracking'),
+        },
+        {
+            label: 'Entrega',
+            icon: 'pi pi-check-circle',
+            command: () => (this.currentView = 'delivery'),
+        },
+    ];
+
+    // Add method to get active tab item
+    public getActiveTabItem(): any {
+        return this.tabItems[
+            this.currentView === 'preparation'
+                ? 0
+                : this.currentView === 'tracking'
+                ? 1
+                : 2
+        ];
     }
 
     private generateBatchNumber(): string {

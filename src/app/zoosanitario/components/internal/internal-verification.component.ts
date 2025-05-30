@@ -451,11 +451,21 @@ export class InternalVerificationComponent implements OnInit, OnDestroy {
         });
     }
 
-    getClassificationSeverity(classification: string): string {
+    getClassificationSeverity(
+        classification: string
+    ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
         const option = this.classificationOptions.find(
             (opt) => opt.value === classification
         );
-        return option?.severity || 'info';
+        return (
+            (option?.severity as
+                | 'success'
+                | 'secondary'
+                | 'info'
+                | 'warning'
+                | 'danger'
+                | 'contrast') || 'info'
+        );
     }
 
     getProgressValue(): number {

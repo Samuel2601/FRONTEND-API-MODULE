@@ -11,19 +11,10 @@
     </div>
 
     <!-- Navegación de Vistas -->
+    <!-- Replace the tabMenu section with this corrected version -->
     <p-tabMenu
-        [model]="[
-        {label: 'Preparación', icon: 'pi pi-cog', command: () => currentView = 'preparation'},
-        {label: 'Seguimiento', icon: 'pi pi-map-marker', command: () => currentView = 'tracking'},
-        {label: 'Entrega', icon: 'pi pi-check-circle', command: () => currentView = 'delivery'}
-      ]"
-        [activeItem]="
-            currentView === 'preparation'
-                ? 0
-                : currentView === 'tracking'
-                ? 1
-                : 2
-        "
+        [model]="tabItems"
+        [activeItem]="getActiveTabItem()"
         class="mb-4"
     >
     </p-tabMenu>

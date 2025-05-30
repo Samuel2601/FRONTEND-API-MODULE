@@ -464,7 +464,9 @@ export class CertificateListComponent implements OnInit, OnDestroy {
     }
 
     // Utilidades
-    getStatusSeverity(status: string): string {
+    getStatusSeverity(
+        status: string
+    ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
         const severities = {
             ACTIVE: 'success',
             EXPIRED: 'danger',
@@ -504,5 +506,12 @@ export class CertificateListComponent implements OnInit, OnDestroy {
     clear(table: Table) {
         table.clear();
         this.globalFilter = '';
+    }
+
+    getProductTypes(certificate: ZoosanitaryCertificate): string {
+        if (!certificate.products || certificate.products.length === 0) {
+            return 'Sin detalle';
+        }
+        return certificate.products.map((p) => p.type).join(', ');
     }
 }

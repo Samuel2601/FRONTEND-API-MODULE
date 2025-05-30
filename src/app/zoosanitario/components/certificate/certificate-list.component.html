@@ -199,197 +199,187 @@
                         <p-tag
                             severity="info"
                             [value]="'Total: ' + totalRecords"
-                        >
-                        </p-tag>
+                        ></p-tag>
                     </div>
                 </div>
             </ng-template>
 
-            <!-- Checkbox Column -->
-            <p-column
-                selectionMode="multiple"
-                headerStyle="width: 3rem"
-            ></p-column>
+            <!-- Definición de columnas -->
+            <ng-template pTemplate="header">
+                <tr>
+                    <th style="width: 3rem">
+                        <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                    </th>
+                    <th style="width: 3rem"></th>
+                    <th pSortableColumn="certificateNumber">
+                        Número
+                        <p-sortIcon field="certificateNumber"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="authorizedTo">
+                        Autorizado Para
+                        <p-sortIcon field="authorizedTo"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="totalProducts">
+                        Productos
+                        <p-sortIcon field="totalProducts"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="validUntil">
+                        Válido Hasta
+                        <p-sortIcon field="validUntil"></p-sortIcon>
+                    </th>
+                    <th>Vehículo</th>
+                    <th style="width: 12rem">Acciones</th>
+                </tr>
+            </ng-template>
 
-            <!-- Status Indicator Column -->
-            <p-column header="" headerStyle="width: 3rem">
-                <ng-template pTemplate="body" let-certificate>
-                    <div class="status-indicators">
-                        <i
-                            *ngIf="isExpired(certificate)"
-                            class="pi pi-exclamation-triangle text-red-500"
-                            pTooltip="Certificado expirado"
-                            tooltipPosition="top"
-                        >
-                        </i>
-                        <i
-                            *ngIf="isExpiringSoon(certificate)"
-                            class="pi pi-clock text-orange-500"
-                            pTooltip="Expira pronto"
-                            tooltipPosition="top"
-                        >
-                        </i>
-                    </div>
-                </ng-template>
-            </p-column>
-
-            <!-- Certificate Number Column -->
-            <p-column
-                field="certificateNumber"
-                header="Número"
-                [sortable]="true"
-            >
-                <ng-template pTemplate="body" let-certificate>
-                    <div class="certificate-number">
-                        <strong>{{ certificate.certificateNumber }}</strong>
-                        <p-tag
-                            [value]="
-                                certificate.status | status : 'certificate'
-                            "
-                            [severity]="getStatusSeverity(certificate.status)"
-                            [icon]="'pi ' + getStatusIcon(certificate.status)"
-                            class="mt-1"
-                        >
-                        </p-tag>
-                    </div>
-                </ng-template>
-            </p-column>
-
-            <!-- Authorized To Column -->
-            <p-column
-                field="authorizedTo"
-                header="Autorizado Para"
-                [sortable]="true"
-            >
-                <ng-template pTemplate="body" let-certificate>
-                    <div class="authorized-info">
-                        <div class="authorized-name">
-                            {{ certificate.authorizedTo }}
+            <!-- Definición de filas -->
+            <ng-template pTemplate="body" let-certificate>
+                <tr>
+                    <td>
+                        <p-tableCheckbox
+                            [value]="certificate"
+                        ></p-tableCheckbox>
+                    </td>
+                    <td>
+                        <div class="status-indicators">
+                            <i
+                                *ngIf="isExpired(certificate)"
+                                class="pi pi-exclamation-triangle text-red-500"
+                                pTooltip="Certificado expirado"
+                                tooltipPosition="top"
+                            ></i>
+                            <i
+                                *ngIf="isExpiringSoon(certificate)"
+                                class="pi pi-clock text-orange-500"
+                                pTooltip="Expira pronto"
+                                tooltipPosition="top"
+                            ></i>
                         </div>
-                        <div class="authorized-details">
+                    </td>
+                    <td>
+                        <div class="certificate-number">
+                            <strong>{{ certificate.certificateNumber }}</strong>
+                            <p-tag
+                                [value]="
+                                    certificate.status | status : 'certificate'
+                                "
+                                [severity]="
+                                    getStatusSeverity(certificate.status)
+                                "
+                                [icon]="
+                                    'pi ' + getStatusIcon(certificate.status)
+                                "
+                                class="mt-1"
+                            ></p-tag>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="authorized-info">
+                            <div class="authorized-name">
+                                {{ certificate.authorizedTo }}
+                            </div>
+                            <div class="authorized-details">
+                                <small class="text-600">
+                                    Origen:
+                                    {{
+                                        certificate.origin?.location
+                                            ?.province || "No especificado"
+                                    }}
+                                </small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="products-info">
+                            <p-tag
+                                [value]="certificate.totalProducts.toString()"
+                                severity="info"
+                            ></p-tag>
+                            <div class="products-detail mt-1">
+                                <small class="text-600">
+                                    {{ getProductTypes(certificate) }}
+                                </small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="validity-info">
+                            <div
+                                [class]="
+                                    isExpired(certificate)
+                                        ? 'text-red-500 font-bold'
+                                        : isExpiringSoon(certificate)
+                                        ? 'text-orange-500 font-bold'
+                                        : ''
+                                "
+                            >
+                                {{ formatDate(certificate.validUntil) }}
+                            </div>
                             <small class="text-600">
-                                Origen:
-                                {{
-                                    certificate.origin?.location?.province ||
-                                        "No especificado"
-                                }}
+                                Emitido: {{ formatDate(certificate.issueDate) }}
                             </small>
                         </div>
-                    </div>
-                </ng-template>
-            </p-column>
-
-            <!-- Products Column -->
-            <p-column
-                field="totalProducts"
-                header="Productos"
-                [sortable]="true"
-            >
-                <ng-template pTemplate="body" let-certificate>
-                    <div class="products-info">
-                        <p-tag
-                            [value]="certificate.totalProducts.toString()"
-                            severity="info"
-                        >
-                        </p-tag>
-                        <div class="products-detail mt-1">
-                            <small class="text-600">
-                                {{ certificate.products?.map(p => p.type).join(', ') || 'Sin detalle' }}
-                            </small>
+                    </td>
+                    <td>
+                        <div class="vehicle-info">
+                            <i class="pi pi-car mr-1"></i>
+                            {{ certificate.vehicle }}
+                            <div
+                                *ngIf="certificate.vehicleDetails?.licensePlate"
+                            >
+                                <small class="text-600">
+                                    {{
+                                        certificate.vehicleDetails.licensePlate
+                                    }}
+                                </small>
+                            </div>
                         </div>
-                    </div>
-                </ng-template>
-            </p-column>
+                    </td>
+                    <td>
+                        <div class="actions-column">
+                            <p-button
+                                icon="pi pi-eye"
+                                severity="info"
+                                size="small"
+                                pTooltip="Ver detalles"
+                                tooltipPosition="top"
+                                (click)="viewCertificate(certificate)"
+                            ></p-button>
 
-            <!-- Valid Until Column -->
-            <p-column
-                field="validUntil"
-                header="Válido Hasta"
-                [sortable]="true"
-            >
-                <ng-template pTemplate="body" let-certificate>
-                    <div class="validity-info">
-                        <div
-                            [class]="
-                                isExpired(certificate)
-                                    ? 'text-red-500 font-bold'
-                                    : isExpiringSoon(certificate)
-                                    ? 'text-orange-500 font-bold'
-                                    : ''
-                            "
-                        >
-                            {{ formatDate(certificate.validUntil) }}
+                            <p-button
+                                icon="pi pi-play"
+                                severity="success"
+                                size="small"
+                                pTooltip="Iniciar flujo"
+                                tooltipPosition="top"
+                                [disabled]="certificate.status !== 'ACTIVE'"
+                                (click)="
+                                    startWorkflowWithCertificate(certificate)
+                                "
+                            ></p-button>
+
+                            <p-button
+                                icon="pi pi-copy"
+                                severity="secondary"
+                                size="small"
+                                pTooltip="Duplicar"
+                                tooltipPosition="top"
+                                (click)="duplicateCertificate(certificate)"
+                            ></p-button>
+
+                            <p-button
+                                icon="pi pi-ban"
+                                severity="danger"
+                                size="small"
+                                pTooltip="Cancelar"
+                                tooltipPosition="top"
+                                [disabled]="certificate.status !== 'ACTIVE'"
+                                (click)="cancelCertificate(certificate)"
+                            ></p-button>
                         </div>
-                        <small class="text-600">
-                            Emitido: {{ formatDate(certificate.issueDate) }}
-                        </small>
-                    </div>
-                </ng-template>
-            </p-column>
-
-            <!-- Vehicle Column -->
-            <p-column field="vehicle" header="Vehículo">
-                <ng-template pTemplate="body" let-certificate>
-                    <div class="vehicle-info">
-                        <i class="pi pi-car mr-1"></i>
-                        {{ certificate.vehicle }}
-                        <div *ngIf="certificate.vehicleDetails?.licensePlate">
-                            <small class="text-600">
-                                {{ certificate.vehicleDetails.licensePlate }}
-                            </small>
-                        </div>
-                    </div>
-                </ng-template>
-            </p-column>
-
-            <!-- Actions Column -->
-            <p-column header="Acciones" headerStyle="width: 12rem">
-                <ng-template pTemplate="body" let-certificate>
-                    <div class="actions-column">
-                        <p-button
-                            icon="pi pi-eye"
-                            severity="info"
-                            size="small"
-                            pTooltip="Ver detalles"
-                            tooltipPosition="top"
-                            (click)="viewCertificate(certificate)"
-                        >
-                        </p-button>
-
-                        <p-button
-                            icon="pi pi-play"
-                            severity="success"
-                            size="small"
-                            pTooltip="Iniciar flujo"
-                            tooltipPosition="top"
-                            [disabled]="certificate.status !== 'ACTIVE'"
-                            (click)="startWorkflowWithCertificate(certificate)"
-                        >
-                        </p-button>
-
-                        <p-button
-                            icon="pi pi-copy"
-                            severity="secondary"
-                            size="small"
-                            pTooltip="Duplicar"
-                            tooltipPosition="top"
-                            (click)="duplicateCertificate(certificate)"
-                        >
-                        </p-button>
-
-                        <p-button
-                            icon="pi pi-ban"
-                            severity="danger"
-                            size="small"
-                            pTooltip="Cancelar"
-                            tooltipPosition="top"
-                            [disabled]="certificate.status !== 'ACTIVE'"
-                            (click)="cancelCertificate(certificate)"
-                        >
-                        </p-button>
-                    </div>
-                </ng-template>
-            </p-column>
+                    </td>
+                </tr>
+            </ng-template>
 
             <!-- Empty Message -->
             <ng-template pTemplate="emptymessage">

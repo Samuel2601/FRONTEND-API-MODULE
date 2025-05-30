@@ -14,7 +14,7 @@ export class ShippingSheetService extends BaseService<any> {
         cacheService: CacheService,
         auth: AuthService
     ) {
-        super(http, cacheService, auth, '/shippingsheet');
+        super(http, cacheService, auth, 'shippingsheet');
     }
 
     getByInternalSheetId(internalSheetId: string): Observable<any[]> {

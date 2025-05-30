@@ -14,7 +14,7 @@ export class SlaughterRecordService extends BaseService<any> {
         cacheService: CacheService,
         auth: AuthService
     ) {
-        super(http, cacheService, auth, '/slaughterrecord');
+        super(http, cacheService, auth, 'slaughterrecord');
     }
 
     getByExternalSheetId(externalSheetId: string): Observable<any[]> {

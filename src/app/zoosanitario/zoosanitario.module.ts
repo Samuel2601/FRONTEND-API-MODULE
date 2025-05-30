@@ -30,6 +30,7 @@ import { CertificateListComponent } from './components/certificate/certificate-l
 import { ReportsComponent } from './components/reports/reports.component';
 import { QrScannerModalComponent } from './components/qr-scanner/qr-scanner-modal.component';
 import { ReportService } from './services/Report.service';
+import { ConfirmationService } from 'primeng/api';
 
 // Rutas del módulo
 const routes: Routes = [
@@ -138,6 +139,8 @@ const routes: Routes = [
 
         WorkflowGuard,
         WorkflowResolver,
+
+        ConfirmationService,
     ],
     exports: [
         // Exportar componentes que podrían usarse en otros módulos

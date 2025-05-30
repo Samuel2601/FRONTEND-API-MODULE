@@ -14,7 +14,7 @@ export class ExternalVerificationSheetService extends BaseService<any> {
         cacheService: CacheService,
         auth: AuthService
     ) {
-        super(http, cacheService, auth, '/externalverificationsheet');
+        super(http, cacheService, auth, 'externalverificationsheet');
     }
 
     getByCertificateId(certificateId: string): Observable<any[]> {
