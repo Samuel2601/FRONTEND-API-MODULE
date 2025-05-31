@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+﻿import { Component } from '@angular/core';
 
 @Component({
+    standalone: false,
   selector: 'app-edit-direccion-geo',
   templateUrl: './edit-direccion-geo.component.html',
   styleUrl: './edit-direccion-geo.component.scss'
@@ -8,3 +9,4 @@ import { Component } from '@angular/core';
 export class EditDireccionGeoComponent {
 
 }
+

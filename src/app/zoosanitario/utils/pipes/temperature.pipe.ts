@@ -1,7 +1,8 @@
-// ===== TEMPERATURE PIPE =====
+﻿// ===== TEMPERATURE PIPE =====
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
+    standalone: false,
     name: 'temperature',
 })
 export class TemperaturePipe implements PipeTransform {
@@ -24,3 +25,4 @@ export class TemperaturePipe implements PipeTransform {
         return `${formattedValue}°C`;
     }
 }
+

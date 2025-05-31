@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -7,6 +7,7 @@ import { CreateService } from 'src/app/demo/services/create.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 
 @Component({
+    standalone: false,
   selector: 'app-create-actividad-proyecto',
   templateUrl: './create-actividad-proyecto.component.html',
   styleUrl: './create-actividad-proyecto.component.scss',
@@ -51,3 +52,4 @@ export class CreateActividadProyectoComponent implements OnInit{
   }
 
 }
+

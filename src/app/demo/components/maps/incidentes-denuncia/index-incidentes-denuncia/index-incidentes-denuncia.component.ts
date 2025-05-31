@@ -1,4 +1,4 @@
-import {
+﻿import {
     Component,
     OnInit,
     ViewChild,
@@ -27,6 +27,7 @@ import { UpdateService } from 'src/app/demo/services/update.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { forkJoin } from 'rxjs';
 @Component({
+    standalone: false,
     selector: 'app-index-incidentes-denuncia',
     templateUrl: './index-incidentes-denuncia.component.html',
     styleUrl: './index-incidentes-denuncia.component.scss',
@@ -156,7 +157,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
         this.displayBasic = false;
     }
 
-    checkstatus = ['danger', 'warning', 'danger', 'success'];
+    checkstatus = ['danger', 'warn', 'danger', 'success'];
 
     @ViewChild('contentimage') modalContent: TemplateRef<any> | undefined;
     incidentesDenuncias: any[] = [];
@@ -524,7 +525,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
     getSeverity(
         status: string,
         fecha?: any
-    ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
+    ): 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast' {
         switch (status.toLowerCase()) {
             case 'suspendido':
                 return 'danger';
@@ -546,7 +547,7 @@ export class IndexIncidentesDenunciaComponent implements OnInit, OnChanges {
                 ) {
                     return 'danger';
                 } else {
-                    return 'warning';
+                    return 'warn';
                 }
 
             case 'planificada':

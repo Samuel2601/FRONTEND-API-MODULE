@@ -1,26 +1,27 @@
-import { Component, OnInit } from '@angular/core';
-import { PrimeNGConfig } from 'primeng/api';
+﻿import { Component, OnInit } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { HelperService } from './demo/services/helper.service';
+import { PrimeNG } from 'primeng/config';
 
 @Component({
+    standalone: false,
     selector: 'app-root',
     templateUrl: './app.component.html',
 })
 export class AppComponent implements OnInit {
     constructor(
-        private primengConfig: PrimeNGConfig,
-        private config: PrimeNGConfig,
+        private primengConfig: PrimeNG,
+        private config: PrimeNG,
         private translateService: TranslateService,
-        private helpers:HelperService
+        private helpers: HelperService
     ) {}
 
     ngOnInit() {
-        if(this.helpers.isMobil()&&!this.helpers.isAndroid()){
+        if (this.helpers.isMobil() && !this.helpers.isAndroid()) {
             this.helpers.applySafeAreaCSS();
         }
         this.translateService.setDefaultLang('es');
-        this.primengConfig.ripple = true;
+        this.primengConfig.ripple.set(true);
         this.config.setTranslation({
             accept: 'Accept',
             reject: 'Cancel',

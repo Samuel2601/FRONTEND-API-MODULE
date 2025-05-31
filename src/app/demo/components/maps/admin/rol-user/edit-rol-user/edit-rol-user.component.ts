@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+﻿import { Component } from '@angular/core';
 
 @Component({
+    standalone: false,
   selector: 'app-edit-rol-user',
   templateUrl: './edit-rol-user.component.html',
   styleUrl: './edit-rol-user.component.scss'
@@ -8,3 +9,4 @@ import { Component } from '@angular/core';
 export class EditRolUserComponent {
 
 }
+

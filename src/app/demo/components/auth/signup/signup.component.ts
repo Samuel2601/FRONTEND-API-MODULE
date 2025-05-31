@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { AdminService } from '../../../services/admin.service';
 import { MessageService } from 'primeng/api';
 import {
@@ -23,6 +23,7 @@ import {
 } from '@angular/forms';
 import { filter } from 'rxjs';
 @Component({
+    standalone: false,
     selector: 'app-signup',
     templateUrl: './signup.component.html',
     styleUrls: ['./signup.component.scss'],
@@ -492,7 +493,7 @@ export class SignupComponent {
             reader.readAsDataURL(im);
         } else {
             this.messageService.add({
-                severity: 'warning',
+                severity: 'warn',
                 summary: 'MAX img',
                 detail: 'Solo puede enviar 3 imangenes',
             });

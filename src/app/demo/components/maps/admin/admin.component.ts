@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 @Component({
+    standalone: false,
   selector: 'app-admin',
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.scss'
@@ -47,3 +48,4 @@ export class AdminComponent implements OnInit{
   }
 
 }
+

@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+﻿import { Component } from '@angular/core';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ListService } from 'src/app/demo/services/list.service';
 
 @Component({
+    standalone: false,
   selector: 'app-index-direccion-geo',
   templateUrl: './index-direccion-geo.component.html',
   styleUrl: './index-direccion-geo.component.scss'
@@ -56,3 +57,4 @@ export class IndexDireccionGeoComponent {
     //console.log('Eliminar la categoría:', categoria);
   }
 }
+

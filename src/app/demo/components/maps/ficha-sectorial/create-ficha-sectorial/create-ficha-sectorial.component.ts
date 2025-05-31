@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CreateService } from 'src/app/demo/services/create.service';
@@ -19,6 +19,7 @@ import { GalleriaModule } from 'primeng/galleria';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
+    standalone: false,
     selector: 'app-create-ficha-sectorial',
     templateUrl: './create-ficha-sectorial.component.html',
     styleUrl: './create-ficha-sectorial.component.scss',
@@ -41,7 +42,7 @@ export class CreateFichaSectorialComponent implements OnInit {
         private helper: HelperService,
         private messageService: MessageService,
         private ref: DynamicDialogRef,
-        private auth:AuthService
+        private auth: AuthService
     ) {
         this.fichaSectorialForm = this.fb.group({
             descripcion: ['', Validators.required],
@@ -211,7 +212,6 @@ export class CreateFichaSectorialComponent implements OnInit {
             this.load_carrusel = true;
         }, 1000);
 
-        
         /*
     const files: FileList = event.target.files;
     //console.log(files);
@@ -230,22 +230,22 @@ export class CreateFichaSectorialComponent implements OnInit {
           alert('Por favor, seleccione archivos de imagen que sean menores a 4MB.');
           return;
         }
-  
+
         const reader = new FileReader();
         reader.onload = (e: any) => {
           this.imagenesSeleccionadas.push(e.target.result);
         };
         reader.readAsDataURL(file);
-        this.selectedFiles.push(file);        
+        this.selectedFiles.push(file);
       }
-      setTimeout(() => {        
+      setTimeout(() => {
         this.load_carrusel = true;
       }, 500);
     }*/
     }
 
     eliminarImagen(index: number) {
-       // this.load_carrusel = false;
+        // this.load_carrusel = false;
         this.upload = true;
         this.imagenesSeleccionadas.splice(index, 1);
         // Eliminar la imagen del arreglo selectedFiles
@@ -346,7 +346,7 @@ export class CreateFichaSectorialComponent implements OnInit {
             }
         } else {
             this.messageService.add({
-                severity: 'warning',
+                severity: 'warn',
                 summary: 'MAX img',
                 detail: 'Solo puede enviar 5 imangenes',
             });

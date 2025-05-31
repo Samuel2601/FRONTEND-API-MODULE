@@ -1,4 +1,4 @@
-import {
+﻿import {
     AfterViewInit,
     Component,
     EventEmitter,
@@ -31,6 +31,7 @@ import { FilterService } from 'src/app/demo/services/filter.service';
 import { forkJoin, map } from 'rxjs';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 @Component({
+    standalone: false,
     selector: 'app-index-ficha-sectorial',
     templateUrl: './index-ficha-sectorial.component.html',
     styleUrl: './index-ficha-sectorial.component.scss',
@@ -47,7 +48,7 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
     }
     getSeverity(
         status: string
-    ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
+    ): 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast' {
         if (status) {
             switch (status.toLowerCase()) {
                 case 'suspendido':
@@ -60,7 +61,7 @@ export class IndexFichaSectorialComponent implements OnInit, OnChanges {
                     return 'info';
 
                 case 'pendiente':
-                    return 'warning';
+                    return 'warn';
 
                 case 'planificada':
                     return 'info';

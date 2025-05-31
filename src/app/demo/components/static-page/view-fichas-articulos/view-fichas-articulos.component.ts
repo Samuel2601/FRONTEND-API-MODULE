@@ -60,17 +60,20 @@ export class ViewFichasArticulosComponent implements OnInit {
                 if (response.data && response.data.length > 0) {
                     // 1. Filtrar solo los elementos con "createdAt" definido
                     let fichasConFecha = response.data.filter(
-                        (item: any) => item.createdAt && item._id !== this.ficha._id
+                        (item: any) =>
+                            item.createdAt && item._id !== this.ficha._id
                     );
 
                     // 2. Ordenar las fichas por "createdAt" de más reciente a más antiguo
                     fichasConFecha.sort((a: any, b: any) => {
-                        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                        return (
+                            new Date(b.createdAt).getTime() -
+                            new Date(a.createdAt).getTime()
+                        );
                     });
 
                     // 3. Guardar las fichas filtradas en el array
                     this.fichas_sectoriales_arr = fichasConFecha;
-
                 } else {
                     // Si no hay datos, inicializar el array vacío
                     this.fichas_sectoriales_arr = [];
@@ -89,7 +92,6 @@ export class ViewFichasArticulosComponent implements OnInit {
             // console.log('RECIBIO LA FICHA: ', this.fichaId);
             if (this.fichaId) {
                 await this.obtenerFicha();
-
             }
         });
     }
@@ -221,7 +223,7 @@ export class ViewFichasArticulosComponent implements OnInit {
         | 'severity-success'
         | 'severity-secondary'
         | 'severity-info'
-        | 'severity-warning'
+        | 'severity-warn'
         | 'severity-danger'
         | 'severity-contrast' {
         if (status) {
@@ -236,7 +238,7 @@ export class ViewFichasArticulosComponent implements OnInit {
                     return 'severity-info';
 
                 case 'pendiente':
-                    return 'severity-warning';
+                    return 'severity-warn';
 
                 case 'planificada':
                     return 'severity-info';

@@ -1,4 +1,4 @@
-// ===== DEBOUNCE CLICK DIRECTIVE =====
+﻿// ===== DEBOUNCE CLICK DIRECTIVE =====
 import {
     Directive,
     EventEmitter,
@@ -11,6 +11,7 @@ import {
 import { Subject, debounceTime, takeUntil } from 'rxjs';
 
 @Directive({
+    standalone: false,
     selector: '[appDebounceClick]',
 })
 export class DebounceClickDirective implements OnInit, OnDestroy {
@@ -38,3 +39,4 @@ export class DebounceClickDirective implements OnInit, OnDestroy {
         this.clicks.next(event);
     }
 }
+

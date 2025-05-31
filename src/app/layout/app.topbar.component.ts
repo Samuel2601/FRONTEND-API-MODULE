@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, Renderer2, ViewChild } from '@angular/core';
+﻿import { Component, ElementRef, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { LayoutService } from './service/app.layout.service';
 import { GLOBAL } from '../demo/services/GLOBAL';
@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../demo/services/auth.service';
 
 @Component({
+    standalone: false,
     selector: 'app-topbar',
     templateUrl: './app.topbar.component.html',
 })
@@ -44,3 +45,4 @@ export class AppTopBarComponent implements OnInit {
         window.location.reload();
     }
 }
+

@@ -1,9 +1,10 @@
-import { Component, Input, OnInit } from '@angular/core';
+﻿import { Component, Input, OnInit } from '@angular/core';
 import { LayoutService } from '../service/app.layout.service';
 import { MenuService } from '../app.menu.service';
 import { CookieService } from 'ngx-cookie-service';
 
 @Component({
+    standalone: false,
     selector: 'app-config',
     templateUrl: './app.config.component.html',
 })
@@ -115,3 +116,4 @@ export class AppConfigComponent implements OnInit{
         this.scale++;
     }
 }
+

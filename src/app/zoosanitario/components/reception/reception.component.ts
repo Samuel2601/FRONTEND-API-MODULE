@@ -1,4 +1,4 @@
-import {
+﻿import {
     Component,
     OnInit,
     Output,
@@ -13,6 +13,7 @@ import { QrScannerService } from '../../services/QrScanner.service';
 import { ZoosanitaryCertificateService } from '../../services/ZoosanitaryCertificate.service';
 
 @Component({
+    standalone: false,
     selector: 'app-reception',
     templateUrl: './reception.component.html',
     styleUrls: ['./reception.component.scss'],
@@ -261,3 +262,4 @@ export class ReceptionComponent implements OnInit, OnDestroy {
         }
     }
 }
+

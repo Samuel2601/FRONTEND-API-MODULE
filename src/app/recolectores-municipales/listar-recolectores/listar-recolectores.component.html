@@ -384,12 +384,14 @@
                         <p-checkbox
                             binary="true"
                             formControlName="verificacion"
-                            [label]="
-                                observacion.value.verificacion
-                                    ? 'Si es el chofer'
-                                    : 'No es el chofer'
-                            "
                         ></p-checkbox>
+                        <span class="ml-2">
+                            {{
+                                observacion.value.verificacion
+                                    ? "Si es el chofer"
+                                    : "No es el chofer"
+                            }}
+                        </span>
                     </div>
                 </div>
 
@@ -581,7 +583,7 @@
             size="large"
             icon="pi pi-eraser"
             label="Eliminar"
-            severity="warning"
+            severity="danger"
             (onClick)="confirm($event, viewregister)"
         ></p-button>
     </div>

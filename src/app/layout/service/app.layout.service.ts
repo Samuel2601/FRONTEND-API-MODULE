@@ -31,7 +31,7 @@ export class LayoutService {
         inputStyle: 'outlined',
         menuMode: 'static',
         colorScheme: 'light',
-        theme: 'saga-green',//'lara-light-indigo',
+        theme: 'saga-green', //'lara-light-indigo',
         scale: 14,
     };
     configConst: AppConfig = {
@@ -39,7 +39,7 @@ export class LayoutService {
         inputStyle: 'outlined',
         menuMode: 'static',
         colorScheme: 'light',
-        theme: 'saga-green',//'lara-light-indigo',
+        theme: 'saga-green', //'lara-light-indigo',
         scale: 14,
     };
 
@@ -82,7 +82,10 @@ export class LayoutService {
             this._config.theme !== this.configConst.theme ||
             this._config.scale !== this.configConst.scale
         ) {
-            this.cookieService.set(this.COOKIE_NAME, JSON.stringify(this._config));
+            this.cookieService.set(
+                this.COOKIE_NAME,
+                JSON.stringify(this._config)
+            );
             //console.log('Guardando', JSON.parse(this.cookieService.get(this.COOKIE_NAME)));
         }
     }

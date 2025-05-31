@@ -3,7 +3,7 @@
 // Variables de colores
 $primary-color: #2196f3;
 $success-color: #4caf50;
-$warning-color: #ff9800;
+$warn-color: #ff9800;
 $danger-color: #f44336;
 $info-color: #00bcd4;
 $purple-color: #9c27b0;
@@ -182,17 +182,17 @@ $gray-dark: #424242;
                 }
             }
 
-            &[severity="warning"] {
+            &[severity="warn"] {
                 background: linear-gradient(
                     135deg,
-                    $warning-color 0%,
-                    darken($warning-color, 5%) 100%
+                    $warn-color 0%,
+                    darken($warn-color, 5%) 100%
                 );
                 border: none;
 
                 &:hover {
                     transform: translateY(-2px);
-                    box-shadow: 0 6px 20px rgba($warning-color, 0.4);
+                    box-shadow: 0 6px 20px rgba($warn-color, 0.4);
                 }
             }
         }
@@ -405,16 +405,16 @@ $gray-dark: #424242;
                 }
             }
 
-            &[severity="warning"] {
+            &[severity="warn"] {
                 background: linear-gradient(
                     135deg,
-                    $warning-color 0%,
-                    darken($warning-color, 5%) 100%
+                    $warn-color 0%,
+                    darken($warn-color, 5%) 100%
                 );
 
                 &:hover:not(:disabled) {
                     transform: translateY(-2px);
-                    box-shadow: 0 6px 20px rgba($warning-color, 0.4);
+                    box-shadow: 0 6px 20px rgba($warn-color, 0.4);
                 }
 
                 &:disabled {
@@ -783,17 +783,17 @@ $gray-dark: #424242;
                     }
                 }
 
-                &[severity="warning"] {
+                &[severity="warn"] {
                     background: linear-gradient(
                         135deg,
-                        $warning-color 0%,
-                        darken($warning-color, 5%) 100%
+                        $warn-color 0%,
+                        darken($warn-color, 5%) 100%
                     );
                     border: none;
 
                     &:hover {
                         transform: translateY(-1px);
-                        box-shadow: 0 4px 12px rgba($warning-color, 0.3);
+                        box-shadow: 0 4px 12px rgba($warn-color, 0.3);
                     }
                 }
             }

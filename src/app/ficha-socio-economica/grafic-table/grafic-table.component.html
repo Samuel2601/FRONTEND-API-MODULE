@@ -7,7 +7,7 @@
     <!-- Header -->
     <ng-template pTemplate="header" *ngIf="!isMobil()">
         <div class="flex justify-content-end p-3 bg-surface-100 rounded-top-xl">
-            <p-dataViewLayoutOptions></p-dataViewLayoutOptions>
+            <!--            <p-dataViewLayoutOptions></p-dataViewLayoutOptions>-->
         </div>
     </ng-template>
 
@@ -40,7 +40,7 @@
                                 [(ngModel)]="showChart[item.key]"
                                 onLabel="Gráfico"
                                 offLabel="Tabla"
-                                onIcon="pi pi-chart-bar"
+                                [onIcon]="'pi pi-chart-bar'"
                                 offIcon="pi pi-table"
                                 styleClass="p-mb-2"
                             ></p-toggleButton>

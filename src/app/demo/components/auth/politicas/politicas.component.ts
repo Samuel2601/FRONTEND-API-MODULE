@@ -3,7 +3,7 @@ import { ImportsModule } from 'src/app/demo/services/import';
 
 @Component({
     selector: 'app-politica',
-    //standalone: true,
+    standalone: false,
     //imports: [ImportsModule],
     templateUrl: './politicas.component.html',
 })

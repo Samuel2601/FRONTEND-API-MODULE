@@ -213,7 +213,7 @@
                     [(ngModel)]="nuevoComentario"
                     rows="3"
                     placeholder="Escribe un comentario..."
-                    [autoResize]="true"
+                    autoResize="true"
                     class="w-full"
                 ></textarea>
             </div>
@@ -241,7 +241,6 @@
                     <label for="rating" class="font-medium">Valoración:</label>
                     <p-rating
                         id="rating"
-                        [cancel]="false"
                         [(ngModel)]="hitrate"
                         [readonly]="false"
                         [stars]="5"
@@ -279,7 +278,6 @@
                                 </div>
                                 <p-rating
                                     id="rating"
-                                    [cancel]="false"
                                     [(ngModel)]="comentario.calificacion"
                                     [readonly]="false"
                                     [stars]="5"

@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+﻿import { Component, HostListener, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { CreateActividadProyectoComponent } from '../create-actividad-proyecto/create-actividad-proyecto.component';
@@ -11,6 +11,7 @@ import { MessageService } from 'primeng/api';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { forkJoin } from 'rxjs';
 @Component({
+    standalone: false,
     selector: 'app-index-actividad-proyecto',
     templateUrl: './index-actividad-proyecto.component.html',
     styleUrl: './index-actividad-proyecto.component.scss',
@@ -107,3 +108,4 @@ export class IndexActividadProyectoComponent implements OnInit {
         }
     }
 }
+

@@ -1,4 +1,4 @@
-// ===== WORKFLOW MAIN COMPONENT TS =====
+﻿// ===== WORKFLOW MAIN COMPONENT TS =====
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -7,6 +7,7 @@ import { MessageService } from 'primeng/api';
 import { WorkflowManagerService } from '../../services/WorkflowManager.service';
 
 @Component({
+    standalone: false,
     selector: 'app-workflow-main',
     templateUrl: './workflow-main.component.html',
     styleUrls: ['./workflow-main.component.scss'],
@@ -150,3 +151,4 @@ export class WorkflowMainComponent implements OnInit, OnDestroy {
         }
     }
 }
+

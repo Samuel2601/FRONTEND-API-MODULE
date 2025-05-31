@@ -1,4 +1,4 @@
-// ===== CLICK OUTSIDE DIRECTIVE =====
+﻿// ===== CLICK OUTSIDE DIRECTIVE =====
 import {
     Directive,
     ElementRef,
@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 
 @Directive({
+    standalone: false,
     selector: '[appClickOutside]',
 })
 export class ClickOutsideDirective {
@@ -27,3 +28,4 @@ export class ClickOutsideDirective {
         }
     }
 }
+

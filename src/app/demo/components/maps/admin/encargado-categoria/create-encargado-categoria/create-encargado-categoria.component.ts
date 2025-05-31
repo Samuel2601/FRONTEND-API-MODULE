@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ListService } from 'src/app/demo/services/list.service';
 import { CreateService } from 'src/app/demo/services/create.service';
@@ -8,6 +8,7 @@ import { MessageService } from 'primeng/api';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
+    standalone: false,
     selector: 'app-create-encargado-categoria',
     templateUrl: './create-encargado-categoria.component.html',
     styleUrl: './create-encargado-categoria.component.scss',
@@ -126,3 +127,4 @@ export class CreateEncargadoCategoriaComponent implements OnInit {
         }
     }
 }
+

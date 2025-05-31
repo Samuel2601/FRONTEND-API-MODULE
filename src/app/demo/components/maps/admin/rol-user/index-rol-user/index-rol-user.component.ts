@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+﻿import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ListService } from 'src/app/demo/services/list.service';
 import { DialogService, DynamicDialogRef, DynamicDialogConfig, DynamicDialogComponent  } from 'primeng/dynamicdialog';
@@ -9,6 +9,7 @@ import { AuthService } from 'src/app/demo/services/auth.service';
 import { UpdateService } from 'src/app/demo/services/update.service';
 import { PermisosDemo } from './permisos.component';
 @Component({
+    standalone: false,
     selector: 'app-index-rol-user',
     templateUrl: './index-rol-user.component.html',
     styleUrl: './index-rol-user.component.scss',
@@ -122,3 +123,4 @@ export class IndexRolUserComponent implements OnInit {
 
 
 }
+

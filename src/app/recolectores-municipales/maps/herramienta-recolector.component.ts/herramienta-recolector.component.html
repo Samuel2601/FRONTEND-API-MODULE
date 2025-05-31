@@ -72,7 +72,7 @@
                         ? 'Pausar Seguimiento'
                         : 'Activar Seguimiento'
                 "
-                [severity]="backgroundTrackingActive ? 'warning' : 'success'"
+                [severity]="backgroundTrackingActive ? 'danger' : 'success'"
                 [style]="{ padding: '15px', width: '100%' }"
                 (click)="toggleBackgroundTracking()"
                 [disabled]="!asignacion"
@@ -202,7 +202,7 @@
             <p-button
                 icon="pi pi-shop"
                 label="Retorno a la Estación"
-                severity="warning"
+                severity="danger"
                 [style]="{ width: '100%' }"
                 (click)="confirmReturnToStation()"
                 [disabled]="isReturnButtonDisabled"
@@ -462,7 +462,7 @@
             ></p-button>
             <p-button
                 label="Confirmar Retorno"
-                severity="warning"
+                severity="danger"
                 icon="pi pi-check"
                 (click)="addManualLocation(true, true)"
             ></p-button>

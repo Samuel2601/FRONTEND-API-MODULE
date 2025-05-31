@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { MessageService } from 'primeng/api';
 import { FilterService } from 'src/app/demo/services/filter.service';
@@ -12,6 +12,7 @@ import {
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { Checkbox } from 'primeng/checkbox';
 @Component({
+    standalone: false,
     selector: 'app-edit-actividad-proyecto',
     templateUrl: './edit-actividad-proyecto.component.html',
     styleUrl: './edit-actividad-proyecto.component.scss',
@@ -85,3 +86,4 @@ export class EditActividadProyectoComponent {
             );
     }
 }
+

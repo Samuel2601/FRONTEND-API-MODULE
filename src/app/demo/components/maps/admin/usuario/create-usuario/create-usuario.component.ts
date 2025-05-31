@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+﻿import { Component } from '@angular/core';
 
 @Component({
+    standalone: false,
   selector: 'app-create-usuario',
   templateUrl: './create-usuario.component.html',
   styleUrl: './create-usuario.component.scss'
@@ -8,3 +9,4 @@ import { Component } from '@angular/core';
 export class CreateUsuarioComponent {
 
 }
+

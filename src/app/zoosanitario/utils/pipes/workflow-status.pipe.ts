@@ -1,7 +1,8 @@
-// ===== WORKFLOW STATUS PIPE =====
+﻿// ===== WORKFLOW STATUS PIPE =====
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
+    standalone: false,
     name: 'workflowStatus',
 })
 export class WorkflowStatusPipe implements PipeTransform {
@@ -26,3 +27,4 @@ export class WorkflowStatusPipe implements PipeTransform {
         };
     }
 }
+

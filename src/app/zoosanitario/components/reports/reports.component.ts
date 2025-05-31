@@ -1,4 +1,4 @@
-// ===== REPORTS COMPONENT TS =====
+﻿// ===== REPORTS COMPONENT TS =====
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subject, forkJoin } from 'rxjs';
@@ -42,6 +42,7 @@ interface KPICard {
 }
 
 @Component({
+    standalone: false,
     selector: 'app-reports',
     templateUrl: './reports.component.html',
     styleUrls: ['./reports.component.scss'],
@@ -641,3 +642,4 @@ export class ReportsComponent implements OnInit, OnDestroy {
         this.activeTabIndex = event.index;
     }
 }
+

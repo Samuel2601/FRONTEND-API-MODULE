@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -17,6 +17,7 @@ import { ImportsModule } from 'src/app/demo/services/import';
 import { DetalleRutaComponent } from '../maps/detalle-ruta/detalle-ruta.component';
 
 @Component({
+    standalone: false,
     selector: 'app-listar-recolectores',
     templateUrl: './listar-recolectores.component.html',
     styleUrl: './listar-recolectores.component.scss',
@@ -453,3 +454,4 @@ export class ListarRecolectoresComponent implements OnInit {
             );
     }
 }
+

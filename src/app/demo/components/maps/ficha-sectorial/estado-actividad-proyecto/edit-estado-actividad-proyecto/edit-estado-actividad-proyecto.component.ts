@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+﻿import { Component } from '@angular/core';
 
 @Component({
+    standalone: false,
   selector: 'app-edit-estado-actividad-proyecto',
   templateUrl: './edit-estado-actividad-proyecto.component.html',
   styleUrl: './edit-estado-actividad-proyecto.component.scss'
@@ -8,3 +9,4 @@ import { Component } from '@angular/core';
 export class EditEstadoActividadProyectoComponent {
 
 }
+

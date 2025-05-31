@@ -1,4 +1,4 @@
-// ===== SLAUGHTER RECORD COMPONENT TS =====
+﻿// ===== SLAUGHTER RECORD COMPONENT TS =====
 import {
     Component,
     OnInit,
@@ -26,6 +26,7 @@ interface ProcessingRecord {
 }
 
 @Component({
+    standalone: false,
     selector: 'app-slaughter-record',
     templateUrl: './slaughter-record.component.html',
     styleUrls: ['./slaughter-record.component.scss'],
@@ -485,9 +486,9 @@ export class SlaughterRecordComponent implements OnInit, OnDestroy {
 
     getProcessingStatusSeverity(
         index: number
-    ): 'success' | 'warning' | 'secondary' {
+    ): 'success' | 'warn' | 'secondary' {
         if (this.isProcessingCompleted(index)) return 'success';
-        if (this.isProcessingActive(index)) return 'warning';
+        if (this.isProcessingActive(index)) return 'warn';
         return 'secondary';
     }
 

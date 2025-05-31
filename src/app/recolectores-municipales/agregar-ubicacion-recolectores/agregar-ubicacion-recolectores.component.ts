@@ -1,4 +1,4 @@
-import { Component, OnInit, Optional } from '@angular/core';
+﻿import { Component, OnInit, Optional } from '@angular/core';
 import { Subscription, filter } from 'rxjs';
 import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 import { UbicacionService } from '../service/ubicacion.service';
@@ -51,6 +51,7 @@ export interface MarkerGroup {
 }
 
 @Component({
+    standalone: false,
     selector: 'app-agregar-ubicacion-recolectores',
     templateUrl: './agregar-ubicacion-recolectores.component.html',
     styleUrls: ['./agregar-ubicacion-recolectores.component.scss'],
@@ -1888,3 +1889,4 @@ export class AgregarUbicacionRecolectoresComponent implements OnInit {
         moveMarker(); // Inicia la animación
     }
 }
+

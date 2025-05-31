@@ -41,7 +41,6 @@ import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { StepperModule } from 'primeng/stepper';
 import { EditorModule } from 'primeng/editor';
-import { InputTextareaModule } from 'primeng/inputtextarea';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { FileUploadModule } from 'primeng/fileupload';
 import { GalleriaModule } from 'primeng/galleria';
@@ -75,7 +74,6 @@ interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
         StepperModule,
         EditorModule,
         ReactiveFormsModule,
-        InputTextareaModule,
         FloatLabelModule,
         FileUploadModule,
         GalleriaModule,
@@ -423,12 +421,12 @@ export class MapaTrashComponent implements OnInit, OnDestroy {
 
     getZoneSeverity(
         zone: string
-    ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
+    ): 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast' {
         switch (zone) {
             case 'Center':
                 return 'info';
             case 'Night':
-                return 'warning';
+                return 'warn';
             case 'South':
                 return 'success';
             case 'RiverBank':

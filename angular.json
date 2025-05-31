@@ -7,7 +7,14 @@
             "projectType": "application",
             "schematics": {
                 "@schematics/angular:component": {
-                    "style": "scss"
+                    "style": "scss",
+                    "standalone": false
+                },
+                "@schematics/angular:directive": {
+                    "standalone": false
+                },
+                "@schematics/angular:pipe": {
+                    "standalone": false
                 }
             },
             "root": "",
@@ -30,6 +37,10 @@
                             "src/assets"
                         ],
                         "styles": [
+                            "node_modules/primeicons/primeicons.css",
+                            "node_modules/primeflex/primeflex.css",
+                            "node_modules/quill/dist/quill.core.css",
+                            "node_modules/quill/dist/quill.snow.css",
                             "src/styles.scss"
                         ],
                         "scripts": [],
@@ -115,6 +126,8 @@
                             "src/assets"
                         ],
                         "styles": [
+                            "node_modules/primeicons/primeicons.css",
+                            "node_modules/primeflex/primeflex.css",
                             "src/styles.scss"
                         ],
                         "scripts": []

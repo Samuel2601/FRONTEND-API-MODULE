@@ -1,4 +1,4 @@
-// ===== FORM VALIDATION DIRECTIVE =====
+﻿// ===== FORM VALIDATION DIRECTIVE =====
 import { Directive, Input, OnInit } from '@angular/core';
 import {
     AbstractControl,
@@ -8,6 +8,7 @@ import {
 } from '@angular/forms';
 
 @Directive({
+    standalone: false,
     selector: '[appCustomValidator]',
     providers: [
         {
@@ -143,3 +144,4 @@ export class CustomValidatorDirective implements Validator, OnInit {
         return null;
     }
 }
+

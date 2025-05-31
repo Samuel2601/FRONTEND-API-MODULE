@@ -38,8 +38,8 @@
     </p>
     -->
 
-<p-stepper #stepper class="safe-margin-top" [(activeStep)]="activeIndex">
-    <p-stepperPanel header="Categoría">
+<p-stepper #stepper class="safe-margin-top">
+    <p-steps header="Categoría">
         <ng-template
             pTemplate="content"
             let-nextCallback="nextCallback"
@@ -99,8 +99,8 @@
                 />
             </div>
         </ng-template>
-    </p-stepperPanel>
-    <p-stepperPanel header="Sub-Categoría">
+    </p-steps>
+    <p-steps header="Sub-Categoría">
         <ng-template
             pTemplate="content"
             let-prevCallback="prevCallback"
@@ -158,8 +158,8 @@
                 />
             </div>
         </ng-template>
-    </p-stepperPanel>
-    <p-stepperPanel header="Ubicación">
+    </p-steps>
+    <p-steps header="Ubicación">
         <ng-template
             pTemplate="content"
             let-nextCallback="nextCallback"
@@ -254,9 +254,9 @@
                 />
             </div>
         </ng-template>
-    </p-stepperPanel>
+    </p-steps>
 
-    <p-stepperPanel header="Incidente">
+    <p-steps header="Incidente">
         <ng-template
             pTemplate="content"
             let-prevCallback="prevCallback"
@@ -365,7 +365,7 @@
                                     <div>{{ formatSize(file.size) }}</div>
                                     <p-badge
                                         value="Pending"
-                                        severity="warning"
+                                        severity="danger"
                                     />
                                     <p-button
                                         icon="pi pi-times"
@@ -474,7 +474,7 @@
                     class="m-3"
                     *ngIf="imagenesSeleccionadas.length > 0"
                     label="Borrar Fotos"
-                    severity="warning"
+                    severity="danger"
                     (onClick)="
                         upload = true;
                         imagenesSeleccionadas = [];
@@ -542,5 +542,5 @@
                 />
             </div>
         </ng-template>
-    </p-stepperPanel>
+    </p-steps>
 </p-stepper>

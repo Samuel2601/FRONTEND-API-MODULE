@@ -31,12 +31,7 @@ import {
     Position,
 } from '@capacitor/geolocation';
 import { App } from '@capacitor/app';
-import {
-    ConfirmationService,
-    MenuItem,
-    MessageService,
-    PrimeNGConfig,
-} from 'primeng/api';
+import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 declare global {
     interface JQueryStatic {
         Finger: any;
@@ -74,7 +69,6 @@ import { TableModule } from 'primeng/table';
 import { StepperModule } from 'primeng/stepper';
 import { EditorModule } from 'primeng/editor';
 import { ReactiveFormsModule } from '@angular/forms';
-import { InputTextareaModule } from 'primeng/inputtextarea';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import {
@@ -94,6 +88,7 @@ import { InputSwitchModule } from 'primeng/inputswitch';
 import { InputTextModule } from 'primeng/inputtext';
 import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 import { ImportsModule } from 'src/app/demo/services/import';
+import { PrimeNG } from 'primeng/config';
 interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
     id?: string;
 }
@@ -118,7 +113,6 @@ interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
         StepperModule,
         EditorModule,
         ReactiveFormsModule,
-        InputTextareaModule,
         FloatLabelModule,
         FileUploadModule,
         GalleriaModule,
@@ -244,7 +238,7 @@ export class MapaFichaComponent implements OnInit, OnDestroy {
         private appRef: ApplicationRef,
         private fb: FormBuilder,
         private confirmationService: ConfirmationService,
-        private config: PrimeNGConfig,
+        private config: PrimeNG,
         private adminservice: AdminService,
         private createService: CreateService,
         private auth: AuthService,
@@ -1472,7 +1466,7 @@ export class MapaFichaComponent implements OnInit, OnDestroy {
             }
         } else {
             this.messageService.add({
-                severity: 'warning',
+                severity: 'warn',
                 summary: 'MAX img',
                 detail: 'Solo puede enviar 5 imangenes',
             });

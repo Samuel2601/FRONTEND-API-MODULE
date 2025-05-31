@@ -1,4 +1,4 @@
-// ===== VETERINARY DASHBOARD COMPONENT TS =====
+﻿// ===== VETERINARY DASHBOARD COMPONENT TS =====
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject, forkJoin, interval } from 'rxjs';
@@ -62,7 +62,7 @@ interface RecentActivity {
 
 interface AlertItem {
     id: string;
-    type: 'warning' | 'error' | 'info';
+    type: 'warn' | 'error' | 'info';
     title: string;
     message: string;
     timestamp: Date;
@@ -71,6 +71,7 @@ interface AlertItem {
 }
 
 @Component({
+    standalone: false,
     selector: 'app-veterinary-dashboard',
     templateUrl: './veterinary-dashboard.component.html',
     styleUrls: ['./veterinary-dashboard.component.scss'],
@@ -108,7 +109,7 @@ export class VeterinaryDashboardComponent implements OnInit, OnDestroy {
         {
             label: 'Reportes',
             icon: 'pi-chart-bar',
-            color: 'warning',
+            color: 'warn',
             route: '/veterinary/reports',
         },
     ];
@@ -332,7 +333,7 @@ export class VeterinaryDashboardComponent implements OnInit, OnDestroy {
                 resolve([
                     {
                         id: '1',
-                        type: 'warning',
+                        type: 'warn',
                         title: 'Certificados por Expirar',
                         message:
                             '3 certificados expiran en las próximas 24 horas',
@@ -473,10 +474,10 @@ export class VeterinaryDashboardComponent implements OnInit, OnDestroy {
 
     getAlertSeverity(
         type: string
-    ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
+    ): 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast' {
         const severities = {
             error: 'danger',
-            warning: 'warn',
+            warn: 'warn',
             info: 'info',
         };
         return severities[type] || 'info';

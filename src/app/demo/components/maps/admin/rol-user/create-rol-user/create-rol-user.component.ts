@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -9,6 +9,7 @@ import { HelperService } from 'src/app/demo/services/helper.service';
 import { ListService } from 'src/app/demo/services/list.service';
 
 @Component({
+    standalone: false,
     selector: 'app-create-rol-user',
     templateUrl: './create-rol-user.component.html',
     styleUrl: './create-rol-user.component.scss',
@@ -77,3 +78,4 @@ export class CreateRolUserComponent implements OnInit {
         }
     }
 }
+

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { MessageService } from 'primeng/api';
 import { FilterService } from 'src/app/demo/services/filter.service';
@@ -7,6 +7,7 @@ import { UpdateService } from 'src/app/demo/services/update.service';
 import { DialogService, DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
+    standalone: false,
   selector: 'app-edit-categoria',
   templateUrl: './edit-categoria.component.html',
   styleUrl: './edit-categoria.component.scss',
@@ -54,3 +55,4 @@ export class EditCategoriaComponent implements OnInit {
     });
   }
 }
+

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input, Optional } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy, Input, Optional } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 import { FilterService } from 'src/app/demo/services/filter.service';
@@ -40,6 +40,7 @@ import {
  * ✨ ARREGLADO: Ahora maneja correctamente los datos cuando se usa como dialog
  */
 @Component({
+    standalone: false,
     selector: 'app-detalle-ruta',
     templateUrl: './detalle-ruta.component.html',
     styleUrls: ['./detalle-ruta.component.scss'],
@@ -1066,3 +1067,4 @@ export class DetalleRutaComponent implements OnInit, OnDestroy {
         });
     }
 }
+

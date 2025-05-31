@@ -1,9 +1,10 @@
-// ===== AUTO SAVE DIRECTIVE =====
+﻿// ===== AUTO SAVE DIRECTIVE =====
 import { Directive, Input, OnInit, OnDestroy, ElementRef } from '@angular/core';
 import { NgControl } from '@angular/forms';
 import { Subject, debounceTime, takeUntil } from 'rxjs';
 
 @Directive({
+    standalone: false,
     selector: '[appAutoSave]',
 })
 export class AutoSaveDirective implements OnInit, OnDestroy {
@@ -81,3 +82,4 @@ export class AutoSaveDirective implements OnInit, OnDestroy {
         }
     }
 }
+

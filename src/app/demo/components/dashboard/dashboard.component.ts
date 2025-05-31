@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { Product } from '../../api/product';
 import { Subscription, debounceTime, forkJoin } from 'rxjs';
@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
+    standalone: false,
     templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -187,3 +188,4 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
         );
     }
 }
+

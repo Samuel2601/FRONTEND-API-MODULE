@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
+﻿import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CreateService } from 'src/app/demo/services/create.service';
@@ -10,6 +10,7 @@ import { HelperService } from 'src/app/demo/services/helper.service';
 import { DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
+    standalone: false,
   selector: 'app-create-direccion-geo',
   templateUrl: './create-direccion-geo.component.html',
   styleUrl: './create-direccion-geo.component.scss'
@@ -137,3 +138,4 @@ export class CreateDireccionGeoComponent implements OnInit, AfterViewInit {
     }
   }
 }
+

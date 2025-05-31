@@ -24,13 +24,7 @@ import { TourismService } from '../../service/tourism.service';
 @Component({
     selector: 'app-list',
     standalone: true,
-    imports: [
-        ImportsModule,
-        DataViewModule,
-        ButtonModule,
-        CommonModule,
-        LoginComponent,
-    ],
+    imports: [ImportsModule, DataViewModule, ButtonModule, CommonModule],
     templateUrl: './list.component.html',
     styleUrl: './list.component.scss',
 })

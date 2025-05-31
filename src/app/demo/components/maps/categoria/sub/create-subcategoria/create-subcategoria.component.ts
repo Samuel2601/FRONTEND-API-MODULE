@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ListService } from 'src/app/demo/services/list.service';
 import { CreateService } from 'src/app/demo/services/create.service';
@@ -8,6 +8,7 @@ import { MessageService } from 'primeng/api';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { forkJoin } from 'rxjs';
 @Component({
+    standalone: false,
     selector: 'app-create-subcategoria',
     templateUrl: './create-subcategoria.component.html',
     styleUrl: './create-subcategoria.component.scss',
@@ -99,3 +100,4 @@ export class CreateSubcategoriaComponent implements OnInit {
         }
     }
 }
+

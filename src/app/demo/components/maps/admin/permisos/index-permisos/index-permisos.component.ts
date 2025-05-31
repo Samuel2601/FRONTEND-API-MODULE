@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+﻿import { Component, ViewChild } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ListService } from 'src/app/demo/services/list.service';
 import { CreatePermisosComponent } from '../create-permisos/create-permisos.component';
@@ -11,6 +11,7 @@ import { AuthService } from 'src/app/demo/services/auth.service';
 import { MultiSelect } from 'primeng/multiselect';
 
 @Component({
+    standalone: false,
     selector: 'app-index-permisos',
     templateUrl: './index-permisos.component.html',
     styleUrl: './index-permisos.component.scss',
@@ -184,3 +185,4 @@ export class IndexPermisosComponent {
         //  console.log(dato);
     }
 }
+

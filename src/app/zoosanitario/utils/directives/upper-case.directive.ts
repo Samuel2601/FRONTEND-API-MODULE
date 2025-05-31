@@ -1,8 +1,9 @@
-// ===== UPPER CASE DIRECTIVE =====
+﻿// ===== UPPER CASE DIRECTIVE =====
 import { Directive, ElementRef, HostListener, Input } from '@angular/core';
 import { NgControl } from '@angular/forms';
 
 @Directive({
+    standalone: false,
     selector: '[appUpperCase]',
 })
 export class UpperCaseDirective {
@@ -51,3 +52,4 @@ export class UpperCaseDirective {
         this.onInput(event);
     }
 }
+

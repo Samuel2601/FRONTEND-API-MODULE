@@ -101,14 +101,14 @@ export class ProyectoListComponent implements OnInit {
 
     getSeveridadEstado(
         estado: string
-    ): 'success' | 'info' | 'secondary' | 'contrast' | 'warning' | 'danger' {
+    ): 'success' | 'info' | 'secondary' | 'contrast' | 'warn' | 'danger' {
         switch (estado) {
             case 'activo':
                 return 'success';
             case 'inactivo':
                 return 'danger';
             case 'en_proceso':
-                return 'warning';
+                return 'warn';
             default:
                 return 'info';
         }

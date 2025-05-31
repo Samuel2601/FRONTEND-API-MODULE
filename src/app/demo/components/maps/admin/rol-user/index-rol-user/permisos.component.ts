@@ -106,14 +106,14 @@ export class PermisosDemo implements OnInit {
     ) {}
     getSeverity(
         method: string
-    ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
+    ): 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast' {
         switch (method.toUpperCase()) {
             case 'POST':
                 return 'success';
             case 'GET':
                 return 'info';
             case 'PUT':
-                return 'warning';
+                return 'warn';
             case 'DELETE':
                 return 'danger';
             default:

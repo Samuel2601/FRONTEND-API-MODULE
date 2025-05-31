@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 import { ListService } from 'src/app/demo/services/list.service';
@@ -64,6 +64,7 @@ interface IEstadisticasAsignacion {
  * - Navegación a detalles de ruta
  */
 @Component({
+    standalone: false,
     selector: 'app-lista-asignaciones',
     templateUrl: './lista-asignaciones.component.html',
     styleUrls: ['./lista-asignaciones.component.scss'],
@@ -806,3 +807,4 @@ export class ListaAsignacionesComponent implements OnInit, OnDestroy {
         );
     }
 }
+

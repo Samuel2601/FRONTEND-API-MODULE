@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import {
     FormBuilder,
     FormGroup,
@@ -19,6 +19,7 @@ import { HelperService } from 'src/app/demo/services/helper.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
+    standalone: false,
     selector: 'app-edit-ficha-sectorial',
     templateUrl: './edit-ficha-sectorial.component.html',
     styleUrls: ['./edit-ficha-sectorial.component.scss'],
@@ -264,3 +265,4 @@ export class EditFichaSectorialComponent implements OnInit {
         this.updateSanitizedDescripcion();
     }
 }
+

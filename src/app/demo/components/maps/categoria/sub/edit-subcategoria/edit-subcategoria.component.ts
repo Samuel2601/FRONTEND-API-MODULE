@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { MessageService } from 'primeng/api';
 import { DynamicDialogConfig } from 'primeng/dynamicdialog';
@@ -14,6 +14,7 @@ interface AutoCompleteCompleteEvent {
 }
 
 @Component({
+    standalone: false,
   selector: 'app-edit-subcategoria',
   templateUrl: './edit-subcategoria.component.html',
   styleUrl: './edit-subcategoria.component.scss',
@@ -93,3 +94,4 @@ export class EditSubcategoriaComponent implements OnInit {
     });
   }
 }
+

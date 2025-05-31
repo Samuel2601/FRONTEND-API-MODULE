@@ -1,4 +1,4 @@
-// ===== INTERNAL VERIFICATION COMPONENT TS =====
+﻿// ===== INTERNAL VERIFICATION COMPONENT TS =====
 import {
     Component,
     OnInit,
@@ -47,6 +47,7 @@ interface ProductInspection {
 }
 
 @Component({
+    standalone: false,
     selector: 'app-internal-verification',
     templateUrl: './internal-verification.component.html',
     styleUrls: ['./internal-verification.component.scss'],
@@ -82,7 +83,7 @@ export class InternalVerificationComponent implements OnInit, OnDestroy {
         {
             label: 'Decomiso Parcial',
             value: 'PARTIAL_CONFISCATION',
-            severity: 'warning',
+            severity: 'warn',
         },
     ];
 
@@ -453,7 +454,7 @@ export class InternalVerificationComponent implements OnInit, OnDestroy {
 
     getClassificationSeverity(
         classification: string
-    ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
+    ): 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast' {
         const option = this.classificationOptions.find(
             (opt) => opt.value === classification
         );
@@ -462,7 +463,7 @@ export class InternalVerificationComponent implements OnInit, OnDestroy {
                 | 'success'
                 | 'secondary'
                 | 'info'
-                | 'warning'
+                | 'warn'
                 | 'danger'
                 | 'contrast') || 'info'
         );

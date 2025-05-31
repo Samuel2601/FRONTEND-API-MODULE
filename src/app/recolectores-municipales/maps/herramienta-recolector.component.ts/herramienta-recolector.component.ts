@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy } from '@angular/core';
 import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 import {
     CallbackID,
@@ -40,6 +40,7 @@ import {
  * Ahora con tipado fuerte y utilidades centralizadas para mayor robustez
  */
 @Component({
+    standalone: false,
     selector: 'app-herramienta-recolector',
     templateUrl: './herramienta-recolector.component.html',
     styleUrls: ['./herramienta-recolector.component.scss'],
@@ -1225,3 +1226,4 @@ export class HerramientaRecolectorComponent implements OnInit, OnDestroy {
         return iconMap[capacity];
     }
 }
+

@@ -1,4 +1,4 @@
-import { Component, Optional } from '@angular/core';
+﻿import { Component, Optional } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { UbicacionService } from '../service/ubicacion.service';
@@ -13,6 +13,7 @@ import { FilterService } from '../../demo/services/filter.service';
 import { DeleteService } from 'src/app/demo/services/delete.service';
 
 @Component({
+    standalone: false,
     selector: 'app-agregar-recolector',
     templateUrl: './agregar-recolector.component.html',
     styleUrl: './agregar-recolector.component.scss',
@@ -839,3 +840,4 @@ export class ValidacionCedulaRucService {
         }
     }
 }
+

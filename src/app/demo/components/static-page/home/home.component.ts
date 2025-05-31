@@ -16,6 +16,7 @@ import { MostrarFichasArticulosComponent } from '../mostrar-fichas-articulos/mos
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { SocketService } from 'src/app/demo/services/socket.io.service';
 import { HttpClient } from '@angular/common/http';
+import { ListIncidentesComponent } from '../../dashboard/list-incidentes/list-incidentes.component';
 @Component({
     selector: 'app-home',
     standalone: true,
@@ -27,6 +28,7 @@ import { HttpClient } from '@angular/common/http';
         MapaTrashComponent,
         MapaMostrarFichasComponent,
         MostrarFichasArticulosComponent,
+        ListIncidentesComponent,
     ],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss',
@@ -1016,7 +1018,7 @@ export class HomeComponent implements OnInit {
             case 'Planificada':
                 return 'info';
             case 'Pendiente':
-                return 'warning';
+                return 'warn';
             default:
                 return 'danger';
         }

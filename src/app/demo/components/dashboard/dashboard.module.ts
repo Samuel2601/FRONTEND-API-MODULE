@@ -63,22 +63,22 @@ import { DropdownModule } from 'primeng/dropdown';
         ReactiveFormsModule,
         SelectButtonModule,
         MessagesModule,
-        DropdownModule
+        DropdownModule,
+        ListIncidentesComponent,
     ],
-    declarations: [DashboardComponent,
+    declarations: [
+        DashboardComponent,
         StackBarriosComponent,
         StackFichasComponent,
         StackIncidentesComponent,
         StackbarriofichaComponent,
         ListFichaComponent,
-        ListIncidentesComponent
     ],
     exports: [
         StackFichasComponent,
         StackIncidentesComponent,
-        ListIncidentesComponent,
-        ListFichaComponent
+        ListFichaComponent,
     ],
-    providers: [DialogService,DynamicDialogRef,MessageService],
+    providers: [DialogService, DynamicDialogRef, MessageService],
 })
-export class DashboardModule { }
+export class DashboardModule {}

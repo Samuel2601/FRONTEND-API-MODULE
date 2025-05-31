@@ -21,7 +21,7 @@ export interface NavItem {
     active?: boolean;
     command?: (event: { originalEvent: any; item: any }) => void;
     badge?: string; // Para mostrar notificaciones o contadores
-    badgeType?: string; // Para determinar el estilo del badge (success, warning, etc.)
+    badgeType?: string; // Para determinar el estilo del badge (success, warn, etc.)
 }
 
 @Component({

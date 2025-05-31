@@ -1,4 +1,4 @@
-// ===== QR SCANNER MODAL COMPONENT TS =====
+﻿// ===== QR SCANNER MODAL COMPONENT TS =====
 import {
     Component,
     EventEmitter,
@@ -11,6 +11,7 @@ import { MessageService } from 'primeng/api';
 import { QrScannerService } from '../../services/QrScanner.service';
 
 @Component({
+    standalone: false,
     selector: 'app-qr-scanner-modal',
     templateUrl: './qr-scanner-modal.component.html',
     styleUrls: ['./qr-scanner-modal.component.scss'],
@@ -163,3 +164,4 @@ export class QrScannerModalComponent implements OnInit, OnDestroy {
         this.manualInput = '';
     }
 }
+

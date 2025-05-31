@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CreateService } from 'src/app/demo/services/create.service';
 import { ListService } from 'src/app/demo/services/list.service';
@@ -23,6 +23,7 @@ import { GalleriaModule } from 'primeng/galleria';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
+    standalone: false,
     selector: 'app-create-incidentes-denuncia',
     templateUrl: './create-incidentes-denuncia.component.html',
     styleUrl: './create-incidentes-denuncia.component.scss',
@@ -397,7 +398,7 @@ export class CreateIncidentesDenunciaComponent implements OnInit {
             }
         } else {
             this.messageService.add({
-                severity: 'warning',
+                severity: 'warn',
                 summary: 'MAX img',
                 detail: 'Solo puede enviar 5 imangenes',
             });

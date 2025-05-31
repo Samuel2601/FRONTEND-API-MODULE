@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+﻿import { Component } from '@angular/core';
 import { ListService } from 'src/app/demo/services/list.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UpdateService } from 'src/app/demo/services/update.service';
@@ -6,6 +6,7 @@ import { HelperService } from 'src/app/demo/services/helper.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { forkJoin } from 'rxjs';
 @Component({
+    standalone: false,
     selector: 'app-index-subcategoria',
     templateUrl: './index-subcategoria.component.html',
     styleUrl: './index-subcategoria.component.scss',
@@ -95,3 +96,4 @@ export class IndexSubcategoriaComponent {
         //console.log('Eliminar la categoría:', categoria);
     }
 }
+

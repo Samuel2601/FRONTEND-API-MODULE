@@ -138,7 +138,7 @@
                     class="m-3"
                     *ngIf="imagenesSeleccionadas.length > 0"
                     label="Borrar Fotos"
-                    severity="warning"
+                    severity="warn"
                     (onClick)="
                         upload = true;
                         imagenesSeleccionadas = [];
@@ -173,7 +173,11 @@
                             <ng-template pTemplate="item" let-item>
                                 <img
                                     [src]="item.itemImageSrc"
-                                    style="width: 100%; display: block; max-height: 60vh"
+                                    style="
+                                        width: 100%;
+                                        display: block;
+                                        max-height: 60vh;
+                                    "
                                 />
                             </ng-template>
                         </p-galleria>

@@ -1,4 +1,4 @@
-// ===== LOADING DIRECTIVE =====
+﻿// ===== LOADING DIRECTIVE =====
 import {
     Directive,
     Input,
@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 
 @Directive({
+    standalone: false,
     selector: '[appLoading]',
 })
 export class LoadingDirective implements OnChanges {
@@ -120,3 +121,4 @@ export class LoadingDirective implements OnChanges {
         }
     }
 }
+

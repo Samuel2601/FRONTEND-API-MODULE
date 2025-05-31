@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, OnInit } from '@angular/core';
+﻿import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Message, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { DynamicDialogConfig, DialogService } from 'primeng/dynamicdialog';
 import { NativeBiometric } from 'capacitor-native-biometric';
 import { AuthService } from 'src/app/demo/services/auth.service';
@@ -13,6 +13,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AdminService } from 'src/app/demo/services/admin.service';
 
 @Component({
+    standalone: false,
     selector: 'app-edit-usuario',
     templateUrl: './edit-usuario.component.html',
     styleUrls: ['./edit-usuario.component.scss'],
@@ -25,7 +26,7 @@ export class EditUsuarioComponent implements OnInit {
     url = GLOBAL.url;
     token: any;
     id: any;
-    messages: Message[] = [];
+    messages: any = [];
     archivoSeleccionado: File | null = null;
     load_form: boolean = false;
     nombreArchivo: any;
@@ -127,10 +128,14 @@ export class EditUsuarioComponent implements OnInit {
             this.datauser.password_temp = '';
         }
         this.datauser.role = this.datauser.role._id;
-        if (this.datauser.password === '' || this.datauser.password === undefined || this.datauser.password === null) {
+        if (
+            this.datauser.password === '' ||
+            this.datauser.password === undefined ||
+            this.datauser.password === null
+        ) {
             delete this.datauser.password;
         }
-        
+
         // Realizar la solicitud de actualización utilizando el servicio de actualización
         this.updateservice
             .actualizarUsuario(

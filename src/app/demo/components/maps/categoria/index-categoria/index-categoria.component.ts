@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+﻿import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService, TreeNode } from 'primeng/api';
 import { Table } from 'primeng/table';
@@ -19,6 +19,7 @@ interface Column {
     header: string;
 }
 @Component({
+    standalone: false,
     selector: 'app-index-categoria',
     templateUrl: './index-categoria.component.html',
     styleUrl: './index-categoria.component.scss',
@@ -419,3 +420,4 @@ export class IndexCategoriaComponent implements OnInit {
         return [header, ...rows].join('\r\n');
     }
 }
+

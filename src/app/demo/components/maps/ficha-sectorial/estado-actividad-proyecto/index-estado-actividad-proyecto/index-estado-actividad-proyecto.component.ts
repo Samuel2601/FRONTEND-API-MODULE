@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { CreateEstadoActividadProyectoComponent } from '../create-estado-actividad-proyecto/create-estado-actividad-proyecto.component';
 import { Router } from '@angular/router';
@@ -9,6 +9,7 @@ import { App } from '@capacitor/app';
 import { AuthService } from 'src/app/demo/services/auth.service';
 
 @Component({
+    standalone: false,
   selector: 'app-index-estado-actividad-proyecto',
   templateUrl: './index-estado-actividad-proyecto.component.html',
   styleUrl: './index-estado-actividad-proyecto.component.scss'
@@ -56,3 +57,4 @@ export class IndexEstadoActividadProyectoComponent implements OnInit{
       });
   }
 }
+

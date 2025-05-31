@@ -1,7 +1,8 @@
-// ===== NUMERIC ONLY DIRECTIVE =====
+﻿// ===== NUMERIC ONLY DIRECTIVE =====
 import { Directive, ElementRef, HostListener, Input } from '@angular/core';
 
 @Directive({
+    standalone: false,
     selector: '[appNumericOnly]',
 })
 export class NumericOnlyDirective {
@@ -110,3 +111,4 @@ export class NumericOnlyDirective {
         return beforeSelection + key + afterSelection;
     }
 }
+

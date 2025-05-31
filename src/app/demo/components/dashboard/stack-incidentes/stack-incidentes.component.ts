@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+﻿import { Component, Input, OnInit } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { AuthService } from 'src/app/demo/services/auth.service';
@@ -6,6 +6,7 @@ import { HelperService } from 'src/app/demo/services/helper.service';
 import { ListService } from 'src/app/demo/services/list.service';
 
 @Component({
+    standalone: false,
     selector: 'app-stack-incidentes',
     templateUrl: './stack-incidentes.component.html',
     styleUrl: './stack-incidentes.component.scss',
@@ -18,7 +19,7 @@ export class StackIncidentesComponent implements OnInit {
         private messageService: MessageService,
         private helper: HelperService,
         private listar: ListService,
-        private auth:AuthService
+        private auth: AuthService
     ) {}
     token = this.auth.token();
     constIncidente: any = [];
@@ -201,14 +202,13 @@ export class StackIncidentesComponent implements OnInit {
             return acc;
         }, []);
     }
-    getTotales(arreglo:any){
-        let total=0;
-        arreglo.forEach((element:number) => {
-            total+=element;
+    getTotales(arreglo: any) {
+        let total = 0;
+        arreglo.forEach((element: number) => {
+            total += element;
         });
         return total;
     }
-
 
     @Input() filtro: string | undefined;
     @Input() valor: number | undefined;
@@ -219,14 +219,11 @@ export class StackIncidentesComponent implements OnInit {
         if (this.constIncidente.length === 0) {
             try {
                 const fil = {
-                    [this.filtro]: this.valor
+                    [this.filtro]: this.valor,
                 };
-                
+
                 const response: any = await this.listar
-                    .listarIncidentesDenuncias(
-                        this.token,
-                        fil
-                    )
+                    .listarIncidentesDenuncias(this.token, fil)
                     .toPromise();
                 if (response.data) {
                     this.constIncidente = response.data;
@@ -529,7 +526,7 @@ export class StackIncidentesComponent implements OnInit {
 
     getSeverity(
         status: string
-    ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
+    ): 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast' {
         switch (status.toLowerCase()) {
             case 'suspendido':
                 return 'danger';
@@ -541,7 +538,7 @@ export class StackIncidentesComponent implements OnInit {
                 return 'info';
 
             case 'pendiente':
-                return 'warning';
+                return 'warn';
 
             case 'planificada':
                 return 'info';

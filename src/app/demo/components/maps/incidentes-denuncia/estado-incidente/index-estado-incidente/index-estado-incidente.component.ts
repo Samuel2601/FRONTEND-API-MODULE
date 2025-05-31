@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ListService } from 'src/app/demo/services/list.service';
@@ -10,6 +10,7 @@ import { App } from '@capacitor/app';
 import { AuthService } from 'src/app/demo/services/auth.service';
 
 @Component({
+    standalone: false,
   selector: 'app-index-estado-incidente',
   templateUrl: './index-estado-incidente.component.html',
   styleUrl: './index-estado-incidente.component.scss',
@@ -73,3 +74,4 @@ export class IndexEstadoIncidenteComponent implements OnInit {
     this.model = false; // Cambia model a false cuando se cierra el modal
   }
 }
+

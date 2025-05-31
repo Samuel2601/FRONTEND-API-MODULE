@@ -1002,7 +1002,7 @@
         </div>
     </ng-template>
     <p-stepper [linear]="true">
-        <p-stepperPanel header="Pregunta">
+        <p-steps header="Pregunta">
             <ng-template
                 pTemplate="content"
                 let-nextCallback="nextCallback"
@@ -1019,7 +1019,7 @@
                     </div>
                 </div></ng-template
             >
-        </p-stepperPanel>
+        </p-steps>
     </p-stepper>
     <ng-template pTemplate="footer">
         <p-button severity="danger" (click)="visibledelete = false">

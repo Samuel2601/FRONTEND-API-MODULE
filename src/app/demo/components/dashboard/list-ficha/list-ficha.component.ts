@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+﻿import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HelperService } from 'src/app/demo/services/helper.service';
 import { ListService } from 'src/app/demo/services/list.service';
@@ -11,6 +11,7 @@ import { AuthService } from 'src/app/demo/services/auth.service';
 import { forkJoin } from 'rxjs';
 
 @Component({
+    standalone: false,
     selector: 'app-list-ficha',
     templateUrl: './list-ficha.component.html',
     styleUrl: './list-ficha.component.scss',
@@ -522,7 +523,7 @@ export class ListFichaComponent implements OnInit {
 
     getSeverity(
         status: string
-    ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
+    ): 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast' {
         switch (status.toLowerCase()) {
             case 'suspendido':
                 return 'danger';
@@ -534,7 +535,7 @@ export class ListFichaComponent implements OnInit {
                 return 'info';
 
             case 'pendiente':
-                return 'warning';
+                return 'warn';
 
             case 'planificada':
                 return 'info';

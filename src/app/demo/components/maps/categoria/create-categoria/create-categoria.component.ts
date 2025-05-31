@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -7,6 +7,7 @@ import { AuthService } from 'src/app/demo/services/auth.service';
 import { CreateService } from 'src/app/demo/services/create.service';
 import { HelperService } from 'src/app/demo/services/helper.service';
 @Component({
+    standalone: false,
     selector: 'app-create-categoria',
     templateUrl: './create-categoria.component.html',
     styleUrl: './create-categoria.component.scss',
@@ -79,3 +80,4 @@ export class CreateCategoriaComponent implements OnInit {
         }
     }
 }
+

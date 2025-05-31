@@ -46,9 +46,7 @@
                             ? 'Pausar Seguimiento'
                             : 'Activar Seguimiento'
                     "
-                    [severity]="
-                        backgroundTrackingActive ? 'warning' : 'success'
-                    "
+                    [severity]="backgroundTrackingActive ? 'danger' : 'success'"
                     [style]="{ padding: '15px', width: '100%' }"
                     (click)="toggleBackgroundTracking()"
                     [disabled]="!asignacion"
@@ -163,7 +161,7 @@
     >
         <p-message
             severity="info"
-            text="Para un mejor funcionamiento, considera activar el seguimiento automático. 
+            text="Para un mejor funcionamiento, considera activar el seguimiento automático.
               Esto te permitirá trabajar sin preocuparte por registrar manualmente cada ubicación."
         >
         </p-message>

@@ -1,4 +1,4 @@
-import {
+﻿import {
     Component,
     AfterViewInit,
     OnInit,
@@ -59,6 +59,7 @@ interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
     id?: string;
 }
 @Component({
+    standalone: false,
     selector: 'app-layers',
     templateUrl: './layers.component.html',
     styleUrl: './layers.component.scss',
@@ -1876,3 +1877,4 @@ export class LayersComponent implements OnInit {
         }
     }
 }
+

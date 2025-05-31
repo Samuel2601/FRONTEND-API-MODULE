@@ -1,9 +1,15 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule, Routes } from '@angular/router';
+import { IonicModule } from '@ionic/angular';
+
+// Tu módulo que ya tiene TODOS los módulos de PrimeNG
+import { ImportsModule } from '../demo/services/import';
+
+// Servicios y componentes del módulo
 import { WorkflowMainComponent } from './components/workflow/workflow-main.component';
 import { WorkflowManagerService } from './services/WorkflowManager.service';
 import { QrScannerService } from './services/QrScanner.service';
-import { ImportsModule } from '../demo/services/import';
 import { ReceptionComponent } from './components/reception/reception.component';
 import { ZoosanitaryCertificateService } from './services/ZoosanitaryCertificate.service';
 import { ExternalVerificationComponent } from './components/external/external-verification.component';
@@ -16,8 +22,6 @@ import { ShippingComponent } from './components/shipping/shipping.component';
 import { ShippingSheetService } from './services/ShippingSheet.service';
 import { WorkflowGuard } from './guards/workflow.guard';
 import { WorkflowResolver } from './utils/resolvers/workflow.resolver';
-import { IonicModule } from '@ionic/angular';
-import { RouterModule, Routes } from '@angular/router';
 import { VeterinaryDashboardComponent } from './components/veterinary/dashboard/veterinary-dashboard.component';
 import { TemperaturePipe } from './utils/pipes/temperature.pipe';
 import { WeightPipe } from './utils/pipes/weight.pipe';
@@ -97,7 +101,6 @@ const routes: Routes = [
 
 @NgModule({
     declarations: [
-        // Componentes principales
         WorkflowMainComponent,
         ReceptionComponent,
         ExternalVerificationComponent,
@@ -109,22 +112,27 @@ const routes: Routes = [
         ReportsComponent,
         QrScannerModalComponent,
 
-        // Pipes personalizados
+        // Pipes personalizados NO-standalone
         TemperaturePipe,
         WeightPipe,
         StatusPipe,
         WorkflowStatusPipe,
 
-        // Directivas personalizadas
+        // Directivas personalizadas NO-standalone
         AutoSaveDirective,
         NumericOnlyDirective,
         UpperCaseDirective,
     ],
     imports: [
         CommonModule,
-        ImportsModule,
         RouterModule.forChild(routes),
         IonicModule,
+
+        // Tu módulo que YA contiene todos los módulos de PrimeNG
+        ImportsModule,
+
+        // NO importes componentes aquí si no son standalone
+        // NO importes módulos individuales de PrimeNG aquí porque ya están en ImportsModule
     ],
     providers: [
         // Servicios del módulo

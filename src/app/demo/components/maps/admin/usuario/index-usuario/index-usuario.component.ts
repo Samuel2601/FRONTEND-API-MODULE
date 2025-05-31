@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { HelperService } from 'src/app/demo/services/helper.service';
@@ -9,6 +9,7 @@ import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { App } from '@capacitor/app';
 import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
+    standalone: false,
     selector: 'app-index-usuario',
     templateUrl: './index-usuario.component.html',
     styleUrl: './index-usuario.component.scss',
@@ -154,3 +155,4 @@ export class IndexUsuarioComponent implements OnInit {
         event.stopPropagation();
     }
 }
+

@@ -339,7 +339,7 @@ export class ItemComponent implements OnInit, OnChanges {
         | 'severity-success'
         | 'severity-secondary'
         | 'severity-info'
-        | 'severity-warning'
+        | 'severity-warn'
         | 'severity-danger'
         | 'severity-contrast' {
         if (status) {
@@ -354,7 +354,7 @@ export class ItemComponent implements OnInit, OnChanges {
                     return 'severity-info';
 
                 case 'pendiente':
-                    return 'severity-warning';
+                    return 'severity-warn';
 
                 case 'planificada':
                     return 'severity-info';

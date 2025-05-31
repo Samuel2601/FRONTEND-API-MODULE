@@ -371,7 +371,7 @@ $transition-speed: 0.3s;
     $primary-color: #3b82f6;
     $primary-light: #eff6ff;
     $success-color: #22c55e;
-    $warning-color: #f59e0b;
+    $warn-color: #f59e0b;
     $danger-color: #ef4444;
     $text-color: #1e293b;
     $text-muted: #64748b;
@@ -503,7 +503,7 @@ $transition-speed: 0.3s;
     }
 
     .bg-yellow-50 {
-        background-color: rgba($warning-color, 0.1);
+        background-color: rgba($warn-color, 0.1);
     }
 
     .bg-green-50 {

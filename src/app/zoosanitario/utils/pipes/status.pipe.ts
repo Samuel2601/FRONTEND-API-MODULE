@@ -1,7 +1,8 @@
-// ===== STATUS PIPE =====
+﻿// ===== STATUS PIPE =====
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
+    standalone: false,
     name: 'status',
 })
 export class StatusPipe implements PipeTransform {
@@ -36,3 +37,4 @@ export class StatusPipe implements PipeTransform {
         return statusMap[context]?.[value] || value;
     }
 }
+

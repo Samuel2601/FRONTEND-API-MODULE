@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+﻿import { Component } from '@angular/core';
 
 @Component({
+    standalone: false,
   selector: 'app-edit-permisos',
   templateUrl: './edit-permisos.component.html',
   styleUrl: './edit-permisos.component.scss'
@@ -8,3 +9,4 @@ import { Component } from '@angular/core';
 export class EditPermisosComponent {
 
 }
+

@@ -1,7 +1,8 @@
-// ===== WEIGHT PIPE =====
+﻿// ===== WEIGHT PIPE =====
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
+    standalone: false,
     name: 'weight',
 })
 export class WeightPipe implements PipeTransform {
@@ -24,3 +25,4 @@ export class WeightPipe implements PipeTransform {
         return `${formattedValue} kg`;
     }
 }
+

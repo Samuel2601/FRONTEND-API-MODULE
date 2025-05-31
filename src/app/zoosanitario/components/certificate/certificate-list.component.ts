@@ -1,4 +1,4 @@
-// ===== CERTIFICATE LIST COMPONENT TS =====
+﻿// ===== CERTIFICATE LIST COMPONENT TS =====
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, FormGroup } from '@angular/forms';
@@ -21,6 +21,7 @@ interface CertificateFilter {
 }
 
 @Component({
+    standalone: false,
     selector: 'app-certificate-list',
     templateUrl: './certificate-list.component.html',
     styleUrls: ['./certificate-list.component.scss'],
@@ -466,12 +467,12 @@ export class CertificateListComponent implements OnInit, OnDestroy {
     // Utilidades
     getStatusSeverity(
         status: string
-    ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
+    ): 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast' {
         const severities = {
             ACTIVE: 'success',
             EXPIRED: 'danger',
             PROCESSED: 'info',
-            CANCELLED: 'warning',
+            CANCELLED: 'warn',
         };
         return severities[status] || 'secondary';
     }

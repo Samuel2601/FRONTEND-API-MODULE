@@ -1,4 +1,4 @@
-// ===== EXTERNAL VERIFICATION COMPONENT TS =====
+﻿// ===== EXTERNAL VERIFICATION COMPONENT TS =====
 import {
     Component,
     OnInit,
@@ -44,6 +44,7 @@ interface ProductEvaluation {
 }
 
 @Component({
+    standalone: false,
     selector: 'app-external-verification',
     templateUrl: './external-verification.component.html',
     styleUrls: ['./external-verification.component.scss'],
@@ -86,7 +87,7 @@ export class ExternalVerificationComponent implements OnInit, OnDestroy {
         {
             label: 'No Apto - Retorno',
             value: 'UNFIT_RETURN',
-            severity: 'warning',
+            severity: 'warn',
         },
         { label: 'Cuarentena', value: 'QUARANTINE', severity: 'info' },
     ];
@@ -394,13 +395,13 @@ export class ExternalVerificationComponent implements OnInit, OnDestroy {
 
     getResultSeverity(
         result: string
-    ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
+    ): 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast' {
         const option = this.resultOptions.find((opt) => opt.value === result);
         return (
             (option?.severity as
                 | 'success'
                 | 'danger'
-                | 'warning'
+                | 'warn'
                 | 'info'
                 | 'secondary'
                 | 'contrast') || 'info'

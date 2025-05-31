@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { MessageService } from 'primeng/api';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -8,6 +8,7 @@ import { HelperService } from 'src/app/demo/services/helper.service';
 import { ListService } from 'src/app/demo/services/list.service';
 
 @Component({
+    standalone: false,
     selector: 'app-create-permisos',
     templateUrl: './create-permisos.component.html',
     styleUrl: './create-permisos.component.scss',
@@ -53,3 +54,4 @@ export class CreatePermisosComponent implements OnInit {
             });
     }
 }
+

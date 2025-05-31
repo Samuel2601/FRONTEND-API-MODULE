@@ -1,4 +1,4 @@
-import { OnInit } from '@angular/core';
+﻿import { OnInit } from '@angular/core';
 import { Component } from '@angular/core';
 import { LayoutService } from './service/app.layout.service';
 import { forkJoin, of } from 'rxjs';
@@ -6,6 +6,7 @@ import { AuthService } from '../demo/services/auth.service';
 import { catchError } from 'rxjs/operators';
 
 @Component({
+    standalone: false,
     selector: 'app-menu',
     templateUrl: './app.menu.component.html',
 })
@@ -423,3 +424,4 @@ export class AppMenuComponent implements OnInit {
                 ]
             }
 */
+

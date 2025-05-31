@@ -1,4 +1,4 @@
-// ===== HIGHLIGHT DIRECTIVE =====
+﻿// ===== HIGHLIGHT DIRECTIVE =====
 import {
     Directive,
     ElementRef,
@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 
 @Directive({
+    standalone: false,
     selector: '[appHighlight]',
 })
 export class HighlightDirective implements OnChanges {
@@ -53,3 +54,4 @@ export class HighlightDirective implements OnChanges {
         return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 }
+

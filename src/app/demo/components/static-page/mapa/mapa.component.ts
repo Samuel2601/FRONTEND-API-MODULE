@@ -13,6 +13,7 @@ import {
     ApplicationRef,
     Input,
     OnDestroy,
+    inject,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as L from 'leaflet';
@@ -33,12 +34,11 @@ import {
 } from '@capacitor/geolocation';
 
 import { App } from '@capacitor/app';
-import {
-    ConfirmationService,
-    MenuItem,
-    MessageService,
-    PrimeNGConfig,
-} from 'primeng/api';
+import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
+
+// Importación corregida para PrimeNG 19
+import { PrimeNG } from 'primeng/config';
+
 declare global {
     interface JQueryStatic {
         Finger: any;
@@ -76,7 +76,6 @@ import { TableModule } from 'primeng/table';
 import { Stepper, StepperModule } from 'primeng/stepper';
 import { EditorModule } from 'primeng/editor';
 import { ReactiveFormsModule } from '@angular/forms';
-import { InputTextareaModule } from 'primeng/inputtextarea';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import {
@@ -93,9 +92,11 @@ import { CreateService } from 'src/app/demo/services/create.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { GoogleMapsService } from 'src/app/demo/services/google.maps.service';
 import { ImportsModule } from 'src/app/demo/services/import';
+
 interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
     id?: string;
 }
+
 @Component({
     selector: 'app-mapa',
     standalone: true,
@@ -115,7 +116,6 @@ interface ExtendedPolygonOptions extends google.maps.PolygonOptions {
         StepperModule,
         EditorModule,
         ReactiveFormsModule,
-        InputTextareaModule,
         FloatLabelModule,
         FileUploadModule,
         GalleriaModule,
@@ -138,6 +138,27 @@ export class MapaComponent implements OnInit, OnDestroy {
     @Input() sub: any = '';
     @ViewChildren(SpeedDial) speedDials: QueryList<SpeedDial> | undefined;
     @ViewChild('formulariomap', { static: true }) formularioMapRef!: ElementRef;
+
+    // Inyección de servicios usando inject() - Angular 19
+    private modalService = inject(NgbModal);
+    private elementRef = inject(ElementRef);
+    private helperService = inject(HelperService);
+    private router = inject(Router);
+    private layoutService = inject(LayoutService);
+    private messageService = inject(MessageService);
+    private dialogService = inject(DialogService);
+    private ref = inject(DynamicDialogRef);
+    private admin = inject(AdminService);
+    private list = inject(ListService);
+    private appRef = inject(ApplicationRef);
+    private fb = inject(FormBuilder);
+    private confirmationService = inject(ConfirmationService);
+    private config = inject(PrimeNG); // Corregido: ahora usando inject()
+    private adminservice = inject(AdminService);
+    private createService = inject(CreateService);
+    private auth = inject(AuthService);
+    private googlemaps = inject(GoogleMapsService);
+    private route = inject(ActivatedRoute);
 
     mapOptions = {
         center: {
@@ -229,27 +250,9 @@ export class MapaComponent implements OnInit, OnDestroy {
     query: string;
     predictions: google.maps.places.AutocompletePrediction[];
 
-    constructor(
-        private modalService: NgbModal,
-        private elementRef: ElementRef,
-        private helperService: HelperService,
-        private router: Router,
-        private layoutService: LayoutService,
-        private messageService: MessageService,
-        private dialogService: DialogService,
-        private ref: DynamicDialogRef,
-        private admin: AdminService,
-        private list: ListService,
-        private appRef: ApplicationRef,
-        private fb: FormBuilder,
-        private confirmationService: ConfirmationService,
-        private config: PrimeNGConfig,
-        private adminservice: AdminService,
-        private createService: CreateService,
-        private auth: AuthService,
-        private googlemaps: GoogleMapsService,
-        private route: ActivatedRoute
-    ) {
+    incidencia: FormGroup<any>;
+
+    constructor() {
         this.incidencia = this.fb.group({
             direccion_geo: [{ value: '' }],
             ciudadano: [{ value: '' }, Validators.required],
@@ -258,6 +261,7 @@ export class MapaComponent implements OnInit, OnDestroy {
             descripcion: ['', Validators.required],
             estado: [''],
         });
+
         this.subscription = this.layoutService.configUpdate$
             .pipe(debounceTime(25))
             .subscribe((config) => {
@@ -272,6 +276,7 @@ export class MapaComponent implements OnInit, OnDestroy {
                 this.actualizarpoligono();
             });
     }
+
     search(event: any): void {
         this.helperService
             .searchStreets(event.query)
@@ -287,6 +292,7 @@ export class MapaComponent implements OnInit, OnDestroy {
                 });
             });
     }
+
     imprimir(prediction: any) {
         //console.log(prediction)
         this.helperService
@@ -302,13 +308,18 @@ export class MapaComponent implements OnInit, OnDestroy {
                 console.error('Error getting location:', error);
             });
     }
+
     ngOnDestroy() {
+        if (this.subscription) {
+            this.subscription.unsubscribe();
+        }
         if (this.mapCustom) {
             google.maps.event.clearInstanceListeners(this.mapCustom);
             this.mapCustom = null;
             //  console.log("Mapa liberado");
         }
     }
+
     async ngOnInit() {
         this.route.params.subscribe((params) => {
             this.cate = params['cate'];
@@ -365,6 +376,7 @@ export class MapaComponent implements OnInit, OnDestroy {
             }
         });
     }
+
     addtemplateBG() {
         setTimeout(() => {
             const speedDial = document.createElement('button');
@@ -395,6 +407,7 @@ export class MapaComponent implements OnInit, OnDestroy {
             }
         }, 1000);
     }
+
     isFormularioBG(): boolean {
         // Verificar si el formulario ya está en el mapa
         const mapControls =
@@ -433,6 +446,7 @@ export class MapaComponent implements OnInit, OnDestroy {
             }
         }, 1000);
     }
+
     isFormularioMapAdded(): boolean {
         // Verificar si el formulario ya está en el mapa
         const mapControls =
@@ -447,6 +461,7 @@ export class MapaComponent implements OnInit, OnDestroy {
         }
         return false; // El formulario no está agregado al mapa
     }
+
     categorias: any[] = [];
     categoria: string;
     subcategoria: string;
@@ -480,6 +495,7 @@ export class MapaComponent implements OnInit, OnDestroy {
             this.filter = this.lista_feature;
         }
     }
+
     //INICIALIZADOR DEL MAPA
     initmap() {
         this.googlemaps.getLoader().then(() => {
@@ -508,6 +524,7 @@ export class MapaComponent implements OnInit, OnDestroy {
             });
         });
     }
+
     truk: any = [];
     //ver recolector / Reportar
     cargarRecolectores() {
@@ -550,12 +567,6 @@ export class MapaComponent implements OnInit, OnDestroy {
                     });
 
                     // Animación para eliminar los marcadores antiguos
-                    /* oldMarkers.forEach((marker: google.maps.Marker) => {
-      marker.setAnimation(google.maps.Animation.BOUNCE);
-      setTimeout(() => {
-        marker.setMap(null);
-      }, 1000); // 1000 milisegundos (1 segundo) de retraso antes de quitar el marcador
-    });*/
                     let opacity = 1;
                     const fadeOutInterval = setInterval(() => {
                         opacity -= 0.1;
@@ -574,11 +585,13 @@ export class MapaComponent implements OnInit, OnDestroy {
             }
         );
     }
+
     clearMarkers() {
         this.truk.forEach((element) => {
             element.setMap(null);
         });
     }
+
     initFullscreenControl(): void {
         const elementToSendFullscreen = this.mapCustom.getDiv()
             .firstChild as HTMLElement;
@@ -608,6 +621,7 @@ export class MapaComponent implements OnInit, OnDestroy {
             }
         };
     }
+
     isFullscreen(element: any): boolean {
         return (
             (document.fullscreenElement ||
@@ -616,6 +630,7 @@ export class MapaComponent implements OnInit, OnDestroy {
                 (document as any).msFullscreenElement) == element
         );
     }
+
     requestFullscreen(element: any) {
         if (element.requestFullscreen) {
             element.requestFullscreen();
@@ -627,6 +642,7 @@ export class MapaComponent implements OnInit, OnDestroy {
             element.msRequestFullScreen();
         }
     }
+
     exitFullscreen() {
         if (document.exitFullscreen) {
             document.exitFullscreen();
@@ -638,6 +654,7 @@ export class MapaComponent implements OnInit, OnDestroy {
             (document as any).msExitFullscreen();
         }
     }
+
     onClickHandlerMap = async (e: any) => {
         if (this.mapCustom) {
             this.opcionb = false;
@@ -650,6 +667,7 @@ export class MapaComponent implements OnInit, OnDestroy {
             this.poligonoposition();
         }
     };
+
     popupStates: boolean[] = [];
     // Adds a marker to the map and push to the array.
     addMarker(
@@ -688,20 +706,6 @@ export class MapaComponent implements OnInit, OnDestroy {
             infoWindow.open(this.mapCustom, marker);
         });
         this.mapCustom.setZoom(18);
-        /*marker.addListener('click', () => {
-    const index = this.markers.indexOf(marker);
-    if (this.popupStates[index]) {
-        this.openInfoWindow.close();
-        this.popupStates[index] = false;
-    } else {
-        const infoWindow = new google.maps.InfoWindow({
-            content: 'Contenido del popup'
-        });
-        infoWindow.open(this.mapCustom, marker);
-        this.openInfoWindow = infoWindow;
-        this.popupStates[index] = true;
-    }
-  });*/
     }
 
     // Sets the map on all markers in the array.
@@ -755,6 +759,7 @@ export class MapaComponent implements OnInit, OnDestroy {
             this.centrarMap();
         }
     }
+
     centrarMap() {
         if (this.mapCustom) {
             const bounds = new google.maps.LatLngBounds();
@@ -781,6 +786,7 @@ export class MapaComponent implements OnInit, OnDestroy {
             this.mapCustom.setZoom(zoom);
         }
     }
+
     // Método auxiliar para calcular el nivel de zoom adecuado
     calculateZoomLevel(bounds: google.maps.LatLngBounds): number {
         const GLOBE_WIDTH = 256; // ancho de un tile en el nivel de zoom 0
@@ -898,6 +904,7 @@ export class MapaComponent implements OnInit, OnDestroy {
             }
         }
     }
+
     poligonoposition(nomostrar?: boolean) {
         let buscarbol = false;
         const puntoUsuario = turf.point([this.longitud, this.latitud]);
@@ -942,11 +949,13 @@ export class MapaComponent implements OnInit, OnDestroy {
             }
         }
     }
+
     feature_img: any;
     url_imag: string = '';
     infoWindowActual: google.maps.InfoWindow;
     public features: { [id: string]: any } = {};
     id_feature: any;
+
     levantarpopup(polygon: any, feature: any) {
         if (this.infoWindowActual && !this.capaActiva) {
             this.infoWindowActual.close();
@@ -1003,8 +1012,10 @@ export class MapaComponent implements OnInit, OnDestroy {
             }
         });
     }
+
     @ViewChild('infoWindowTemplate', { static: true })
     infoWindowTemplate: TemplateRef<any>;
+
     createInfoWindowContent(feature: any): HTMLElement {
         const view = this.infoWindowTemplate.createEmbeddedView({ feature });
         const div = document.createElement('div');
@@ -1017,6 +1028,7 @@ export class MapaComponent implements OnInit, OnDestroy {
         let aux = window.innerWidth - 120;
         return (aux + 'px').toString();
     }
+
     isMobil() {
         return this.helperService.isMobil();
     }
@@ -1122,6 +1134,7 @@ export class MapaComponent implements OnInit, OnDestroy {
         });
         this.showOptions = true;
     }
+
     hideOptions() {
         setTimeout(() => {
             this.showOptions = false;
@@ -1137,6 +1150,7 @@ export class MapaComponent implements OnInit, OnDestroy {
             this.exitFullscreen();
         }
     }
+
     modaldireccion: boolean = false;
 
     visiblepath: boolean = false;
@@ -1145,8 +1159,6 @@ export class MapaComponent implements OnInit, OnDestroy {
     pathson: any[] = [];
     selectpath: any;
 
-    incidencia: FormGroup<any>;
-
     visible_categoria: boolean = false;
     visible_subcategoria: boolean = false;
 
@@ -1154,7 +1166,9 @@ export class MapaComponent implements OnInit, OnDestroy {
         this.visible_categoria = true;
         this.listCategoria();
     }
+
     estados_id: string = '';
+
     listEstado() {
         this.list.listarEstadosIncidentes(this.token).subscribe((response) => {
             if (response.data) {
@@ -1168,6 +1182,7 @@ export class MapaComponent implements OnInit, OnDestroy {
             }
         });
     }
+
     listCategoria() {
         this.listEstado();
         this.list.listarCategorias(this.token).subscribe((response) => {
@@ -1188,7 +1203,9 @@ export class MapaComponent implements OnInit, OnDestroy {
             }
         });
     }
+
     subcategorias: any[] = [];
+
     onCategoriaClick(cateogria: any) {
         //console.log(cateogria);
         this.incidencia.get('categoria').setValue(cateogria);
@@ -1213,6 +1230,7 @@ export class MapaComponent implements OnInit, OnDestroy {
                 }
             });
     }
+
     visible_map: boolean = false;
 
     onSubCategoriaClick(subcategoria: any): void {
@@ -1222,6 +1240,7 @@ export class MapaComponent implements OnInit, OnDestroy {
         this.navigateToStep(2);
         this.recargarmapa();
     }
+
     cateactive(cate: any, tipo: string) {
         if (
             this.incidencia.get(tipo).value &&
@@ -1254,6 +1273,7 @@ export class MapaComponent implements OnInit, OnDestroy {
             }
         }, 500);
     }
+
     iconPaths: { [key: string]: string } = {};
 
     getIconPath(categoria: any): string {
@@ -1271,12 +1291,14 @@ export class MapaComponent implements OnInit, OnDestroy {
 
         return this.iconPaths[categoria.nombre];
     }
+
     fileExists(url: string): boolean {
         const http = new XMLHttpRequest();
         http.open('HEAD', url, false);
         http.send();
         return http.status !== 404;
     }
+
     nextDescript(nextCallback) {
         nextCallback.emit();
         this.incidencia.get('direccion_geo').setValue({
@@ -1289,6 +1311,7 @@ export class MapaComponent implements OnInit, OnDestroy {
     }
 
     @ViewChild('fileUpload') fileUpload: FileUpload;
+
     enviar() {
         //console.log(this.incidencia.value);
         //console.log(this.selectedFilesnew);
@@ -1311,7 +1334,9 @@ export class MapaComponent implements OnInit, OnDestroy {
             this.procederSinCargar();
         }
     }
+
     messages: any[] = []; // Declaración de mensajes
+
     cargarImagenes() {
         this.selectedFilesnew = [...this.files, ...this.selectedFilesnew];
         this.files = [];
@@ -1383,15 +1408,18 @@ export class MapaComponent implements OnInit, OnDestroy {
             this.helperService.cerrarspinner('sinardap');
         }
     }
+
     onHide() {
         this.displayCustom = false;
     }
+
     upload: boolean = true;
     imagenesSeleccionadas: any[] = [];
     load_carrusel = false;
     public file: Array<any> = [];
     selectedFiles: File[] = [];
     mostrargale = false;
+
     onFilesSelected(event: any): void {
         //console.log(event);
         this.load_carrusel = false;
@@ -1414,6 +1442,7 @@ export class MapaComponent implements OnInit, OnDestroy {
 
         this.mostrargale = true;
     }
+
     async tomarFotoYEnviar(event: any) {
         this.load_carrusel = false;
         this.upload = true;
@@ -1455,7 +1484,7 @@ export class MapaComponent implements OnInit, OnDestroy {
             }
         } else {
             this.messageService.add({
-                severity: 'warning',
+                severity: 'warn',
                 summary: 'MAX img',
                 detail: 'Solo puede enviar 5 imangenes',
             });
@@ -1463,14 +1492,17 @@ export class MapaComponent implements OnInit, OnDestroy {
             //console.error('Error al obtener la cadena base64 de la imagen.');
         }
     }
+
     displayCustom: boolean | undefined;
 
     images: any[] | undefined;
     activeIndexG: number = 0;
+
     imageClick(index: number) {
         this.activeIndexG = index;
         this.displayCustom = true;
     }
+
     responsiveOptions = [
         {
             breakpoint: '1024px',
@@ -1494,12 +1526,14 @@ export class MapaComponent implements OnInit, OnDestroy {
     choose(event, callback) {
         callback();
     }
+
     clearFiles(clearCallback: Function) {
         clearCallback();
         this.totalSize = 0;
         this.totalSizePercent = 0;
         this.files = [];
     }
+
     onRemoveTemplatingFile(
         event,
         file,
@@ -1564,7 +1598,9 @@ export class MapaComponent implements OnInit, OnDestroy {
 
         this.totalSizePercent = ((this.totalSize / 1024) * 100) / 5;
     }
+
     selectedFilesnew: any[] = [];
+
     uploadEvent(callback) {
         callback();
         this.selectedFilesnew = [...this.files, ...this.selectedFilesnew];
@@ -1584,13 +1620,15 @@ export class MapaComponent implements OnInit, OnDestroy {
         const formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
         return `${formattedSize} ${sizes[i]}`;
     }
+
     @ViewChild('stepper') stepper: Stepper;
     activeIndex: number = 0;
+
     navigateToStep(index: number) {
         this.activeIndex = index;
         // Si necesitas usar el método `goto`, asegúrate de que `stepper` esté disponible
-        if (this.stepper) {
-            this.stepper.activeStep = index;
+        if (this.stepper && this.stepper.value) {
+            this.stepper.value.set(index);
         }
     }
 }

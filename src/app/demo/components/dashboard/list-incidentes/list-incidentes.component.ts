@@ -1,4 +1,4 @@
-import {
+﻿import {
     AfterViewInit,
     Component,
     ElementRef,
@@ -19,8 +19,12 @@ import { AuthService } from 'src/app/demo/services/auth.service';
 import 'chartjs-adapter-date-fns'; // o 'chartjs-adapter-moment' si estás usando moment
 import 'chartjs-plugin-annotation';
 import { map } from 'rxjs/operators';
+import { ImportsModule } from 'src/app/demo/services/import';
+import { MapaMostrarFichasComponent } from '../../static-page/mapa-mostrar-fichas/mapa-mostrar-fichas.component';
 
 @Component({
+    standalone: true,
+    imports: [ImportsModule, MapaMostrarFichasComponent],
     selector: 'app-list-incidentes',
     templateUrl: './list-incidentes.component.html',
     styleUrl: './list-incidentes.component.scss',
@@ -1112,7 +1116,7 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
     getSeverity(
         status: string,
         fecha?: any
-    ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
+    ): 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast' {
         switch (status.toLowerCase()) {
             case 'suspendido':
                 return 'danger';
@@ -1134,7 +1138,7 @@ export class ListIncidentesComponent implements OnInit, AfterViewInit {
                 ) {
                     return 'danger';
                 } else {
-                    return 'warning';
+                    return 'warn';
                 }
 
             case 'planificada':

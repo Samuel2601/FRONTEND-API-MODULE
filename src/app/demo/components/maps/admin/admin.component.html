@@ -1,6 +1,6 @@
 <p-toast></p-toast>
 <p-stepper>
-    <p-stepperPanel header="Usuarios">
+    <p-steps header="Usuarios">
         <ng-template
             pTemplate="content"
             let-nextCallback="nextCallback"
@@ -20,8 +20,8 @@
                 ></app-index-usuario>
             </div>
         </ng-template>
-    </p-stepperPanel>
-    <p-stepperPanel header="Roles">
+    </p-steps>
+    <p-steps header="Roles">
         <ng-template
             pTemplate="content"
             let-prevCallback="prevCallback"
@@ -47,8 +47,8 @@
                 ></app-index-rol-user>
             </div>
         </ng-template>
-    </p-stepperPanel>
-    <p-stepperPanel header="Encargos">
+    </p-steps>
+    <p-steps header="Encargos">
         <ng-template
             pTemplate="content"
             let-prevCallback="prevCallback"
@@ -74,8 +74,8 @@
                 ></app-index-encargado-categoria>
             </div>
         </ng-template>
-    </p-stepperPanel>
-    <p-stepperPanel header="Permisos">
+    </p-steps>
+    <p-steps header="Permisos">
         <ng-template
             pTemplate="content"
             let-prevCallback="prevCallback"
@@ -94,5 +94,5 @@
                 ></app-index-permisos>
             </div>
         </ng-template>
-    </p-stepperPanel>
+    </p-steps>
 </p-stepper>

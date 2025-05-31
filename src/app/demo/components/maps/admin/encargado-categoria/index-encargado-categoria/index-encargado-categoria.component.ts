@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+﻿import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { HelperService } from 'src/app/demo/services/helper.service';
@@ -7,6 +7,7 @@ import { CreateEncargadoCategoriaComponent } from '../create-encargado-categoria
 import { App } from '@capacitor/app';
 import { AuthService } from 'src/app/demo/services/auth.service';
 @Component({
+    standalone: false,
     selector: 'app-index-encargado-categoria',
     templateUrl: './index-encargado-categoria.component.html',
     styleUrl: './index-encargado-categoria.component.scss',
@@ -99,3 +100,4 @@ export class IndexEncargadoCategoriaComponent {
         ////console.log('Eliminar la categoría:', categoria);
     }
 }
+

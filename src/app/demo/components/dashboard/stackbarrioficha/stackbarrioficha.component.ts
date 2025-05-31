@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+﻿import { Component, Input, OnInit } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { AuthService } from 'src/app/demo/services/auth.service';
@@ -6,6 +6,7 @@ import { HelperService } from 'src/app/demo/services/helper.service';
 import { ListService } from 'src/app/demo/services/list.service';
 
 @Component({
+    standalone: false,
     selector: 'app-stackbarrioficha',
     templateUrl: './stackbarrioficha.component.html',
     styleUrl: './stackbarrioficha.component.scss',
@@ -442,7 +443,7 @@ export class StackbarriofichaComponent {
 
     getSeverity(
         status: string
-    ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
+    ): 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast' {
         switch (status.toLowerCase()) {
             case 'suspendido':
                 return 'danger';
@@ -454,7 +455,7 @@ export class StackbarriofichaComponent {
                 return 'info';
 
             case 'pendiente':
-                return 'warning';
+                return 'warn';
 
             case 'planificada':
                 return 'info';

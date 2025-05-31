@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -19,6 +19,7 @@ import { AuthService } from 'src/app/demo/services/auth.service';
 import { forkJoin } from 'rxjs';
 
 @Component({
+    standalone: false,
     selector: 'app-edit-incidentes-denuncia',
     templateUrl: './edit-incidentes-denuncia.component.html',
     styleUrl: './edit-incidentes-denuncia.component.scss',
@@ -345,7 +346,7 @@ export class EditIncidentesDenunciaComponent implements OnInit {
             }
         } else {
             this.messageService.add({
-                severity: 'warning',
+                severity: 'warn',
                 summary: 'MAX img',
                 detail: 'Solo puede enviar 3 imangenes',
             });

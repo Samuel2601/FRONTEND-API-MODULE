@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+﻿import { Component } from '@angular/core';
 
 @Component({
+    standalone: false,
     selector: 'app-notfound',
     templateUrl: './notfound.component.html',
 })

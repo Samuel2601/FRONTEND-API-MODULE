@@ -21,7 +21,7 @@ import { MarkerClusterer } from '@googlemaps/markerclusterer';
 @Component({
     selector: 'app-maps',
     standalone: true,
-    imports: [ImportsModule, ItemComponent, LoginComponent],
+    imports: [ImportsModule, ItemComponent],
     templateUrl: './maps.component.html',
     styleUrl: './maps.component.scss',
 })

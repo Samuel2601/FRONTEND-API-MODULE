@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+﻿import { Component, Input, OnInit } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { Table } from 'primeng/table';
@@ -9,6 +9,7 @@ import { App } from '@capacitor/app';
 import { AuthService } from 'src/app/demo/services/auth.service';
 
 @Component({
+    standalone: false,
     selector: 'app-stack-fichas',
     templateUrl: './stack-fichas.component.html',
     styleUrl: './stack-fichas.component.scss',
@@ -23,7 +24,7 @@ export class StackFichasComponent implements OnInit {
         private listar: ListService,
         private dialogService: DialogService,
         private ref: DynamicDialogRef,
-        private auth:AuthService
+        private auth: AuthService
     ) {}
 
     basicData: any = {};
@@ -495,7 +496,7 @@ export class StackFichasComponent implements OnInit {
 
     getSeverity(
         status: string
-    ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
+    ): 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast' {
         switch (status.toLowerCase()) {
             case 'suspendido':
                 return 'danger';
@@ -507,7 +508,7 @@ export class StackFichasComponent implements OnInit {
                 return 'info';
 
             case 'pendiente':
-                return 'warning';
+                return 'warn';
 
             case 'planificada':
                 return 'info';
