@@ -300,7 +300,9 @@
                             *ngFor="let activity of recentActivity"
                             class="activity-item"
                             (click)="
-                                navigateTo('/veterinary/' + activity.type + 's')
+                                navigateTo(
+                                    '/zoosanitario/' + activity.type + 's'
+                                )
                             "
                         >
                             <div

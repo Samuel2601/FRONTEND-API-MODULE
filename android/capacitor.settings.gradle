@@ -3,10 +3,10 @@ include ':capacitor-android'
 project(':capacitor-android').projectDir = new File('../node_modules/.pnpm/@capacitor+android@6.2.1_@capacitor+core@7.2.0/node_modules/@capacitor/android/capacitor')
 
 include ':capacitor-community-background-geolocation'
-project(':capacitor-community-background-geolocation').projectDir = new File('../node_modules/.pnpm/@capacitor-community+backgr_26d58d07533ef3dee1d838480e554142/node_modules/@capacitor-community/background-geolocation/android')
+project(':capacitor-community-background-geolocation').projectDir = new File('../node_modules/.pnpm/@capacitor-community+background-geolocation@1.2.22_@capacitor+core@7.2.0/node_modules/@capacitor-community/background-geolocation/android')
 
 include ':capacitor-mlkit-barcode-scanning'
-project(':capacitor-mlkit-barcode-scanning').projectDir = new File('../node_modules/.pnpm/@capacitor-mlkit+barcode-sc_3f25247ab85dd44559bde98e91f4ab72/node_modules/@capacitor-mlkit/barcode-scanning/android')
+project(':capacitor-mlkit-barcode-scanning').projectDir = new File('../node_modules/.pnpm/@capacitor-mlkit+barcode-scanning@7.2.1_@capacitor+core@7.2.0/node_modules/@capacitor-mlkit/barcode-scanning/android')
 
 include ':capacitor-app'
 project(':capacitor-app').projectDir = new File('../node_modules/.pnpm/@capacitor+app@6.0.2_@capacitor+core@7.2.0/node_modules/@capacitor/app/android')
@@ -33,7 +33,7 @@ include ':capacitor-preferences'
 project(':capacitor-preferences').projectDir = new File('../node_modules/.pnpm/@capacitor+preferences@6.0.3_@capacitor+core@7.2.0/node_modules/@capacitor/preferences/android')
 
 include ':codetrix-studio-capacitor-google-auth'
-project(':codetrix-studio-capacitor-google-auth').projectDir = new File('../node_modules/.pnpm/@codetrix-studio+capacitor-_0cb6f03e9c2e903ae74efd5d4d9295ea/node_modules/@codetrix-studio/capacitor-google-auth/android')
+project(':codetrix-studio-capacitor-google-auth').projectDir = new File('../node_modules/.pnpm/@codetrix-studio+capacitor-google-auth@3.4.0-rc.4_@capacitor+core@7.2.0/node_modules/@codetrix-studio/capacitor-google-auth/android')
 
 include ':capacitor-native-biometric'
 project(':capacitor-native-biometric').projectDir = new File('../node_modules/.pnpm/capacitor-native-biometric@4.2.2/node_modules/capacitor-native-biometric/android')

@@ -246,7 +246,7 @@ export class CertificateListComponent implements OnInit, OnDestroy {
     // Acciones de certificados
     viewCertificate(certificate: ZoosanitaryCertificate) {
         // Navegar a vista detalle del certificado
-        this.router.navigate(['/veterinary/certificates', certificate._id]);
+        this.router.navigate(['/zoosanitario/certificates', certificate._id]);
     }
 
     startWorkflowWithCertificate(certificate: ZoosanitaryCertificate) {
@@ -278,7 +278,7 @@ export class CertificateListComponent implements OnInit, OnDestroy {
                 this.workflowManager.setCurrentWorkflow(workflowData);
                 this.workflowManager.updateStepStatus('reception', true);
 
-                this.router.navigate(['/veterinary/workflow/external']);
+                this.router.navigate(['/zoosanitario/workflow/external']);
 
                 this.messageService.add({
                     severity: 'success',

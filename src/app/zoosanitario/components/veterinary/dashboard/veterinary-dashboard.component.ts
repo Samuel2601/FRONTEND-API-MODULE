@@ -91,7 +91,7 @@ export class VeterinaryDashboardComponent implements OnInit, OnDestroy {
             label: 'Nuevo Flujo',
             icon: 'pi-plus-circle',
             color: 'primary',
-            route: '/veterinary/workflow/reception',
+            route: '/zoosanitario/workflow/reception',
         },
         {
             label: 'Escanear QR',
@@ -103,13 +103,13 @@ export class VeterinaryDashboardComponent implements OnInit, OnDestroy {
             label: 'Certificados',
             icon: 'pi-file-o',
             color: 'secondary',
-            route: '/veterinary/certificates',
+            route: '/zoosanitario/certificates',
         },
         {
             label: 'Reportes',
             icon: 'pi-chart-bar',
             color: 'warning',
-            route: '/veterinary/reports',
+            route: '/zoosanitario/reports',
         },
     ];
 
@@ -444,7 +444,7 @@ export class VeterinaryDashboardComponent implements OnInit, OnDestroy {
 
     startNewWorkflow() {
         this.workflowManager.setCurrentWorkflow(null);
-        this.router.navigate(['/veterinary/workflow/reception']);
+        this.router.navigate(['/zoosanitario/workflow/reception']);
     }
 
     toggleWidget(widget: string) {
