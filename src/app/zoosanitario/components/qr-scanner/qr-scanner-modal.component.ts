@@ -1,4 +1,3 @@
-// ===== QR SCANNER MODAL COMPONENT TS =====
 import {
     Component,
     EventEmitter,
@@ -9,6 +8,10 @@ import {
 } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { QrScannerService } from '../../services/QrScanner.service';
+import {
+    QrDataParserService,
+    QRCertificateData,
+} from '../../services/QrDataParser.service';
 
 @Component({
     selector: 'app-qr-scanner-modal',
@@ -27,13 +30,16 @@ export class QrScannerModalComponent implements OnInit, OnDestroy {
     error = '';
     manualMode = false;
     manualInput = '';
+    scannerAvailable = true;
 
     constructor(
         private qrService: QrScannerService,
         private messageService: MessageService
     ) {}
 
-    ngOnInit() {}
+    ngOnInit() {
+        this.scannerAvailable = this.qrService.isScannerAvailable();
+    }
 
     ngOnDestroy() {
         if (this.isScanning) {
@@ -42,6 +48,17 @@ export class QrScannerModalComponent implements OnInit, OnDestroy {
     }
 
     async onShow() {
+        // Verificar si el escáner está disponible
+        if (!this.scannerAvailable) {
+            this.manualMode = true;
+            this.messageService.add({
+                severity: 'info',
+                summary: 'Información',
+                detail: 'Escáner requiere HTTPS en web. Use entrada manual.',
+            });
+            return;
+        }
+
         // Modal se ha mostrado, iniciar scanner automáticamente
         await this.startScanning();
     }
@@ -53,17 +70,18 @@ export class QrScannerModalComponent implements OnInit, OnDestroy {
     }
 
     async startScanning() {
-        if (this.isScanning) return;
+        if (this.isScanning || !this.scannerAvailable) return;
 
         try {
             this.isScanning = true;
             this.error = '';
             this.scanResult = '';
 
-            // Verificar permisos primero
-            const hasPermissions = await this.qrService.checkPermissions();
+            // Verificar permisos primero (método actualizado)
+            const hasPermissions =
+                await this.qrService.checkCameraPermissions();
             if (!hasPermissions) {
-                const granted = await this.qrService.requestPermissions();
+                const granted = await this.qrService.requestCameraPermissions();
                 if (!granted) {
                     this.error =
                         'Se requieren permisos de cámara para escanear códigos QR';
@@ -75,12 +93,15 @@ export class QrScannerModalComponent implements OnInit, OnDestroy {
 
             // Iniciar el escaneo
             const result = await this.qrService.scanQR();
+            console.log('QR Result:', result);
 
             if (result) {
                 this.scanResult = result;
                 this.onScanSuccess(result);
             } else {
                 this.isScanning = false;
+                // Si no hay resultado, el usuario canceló o hubo error
+                // No forzar modo manual automáticamente
             }
         } catch (error) {
             console.error('Error starting scanner:', error);
@@ -110,7 +131,7 @@ export class QrScannerModalComponent implements OnInit, OnDestroy {
         this.messageService.add({
             severity: 'success',
             summary: 'QR Escaneado',
-            detail: `Código detectado: ${result}`,
+            detail: `Código detectado exitosamente`,
         });
 
         // Emitir el resultado después de un breve delay para mostrar el mensaje
@@ -138,8 +159,45 @@ export class QrScannerModalComponent implements OnInit, OnDestroy {
 
         if (this.manualMode) {
             this.stopScanning();
-        } else {
+        } else if (this.scannerAvailable) {
             this.startScanning();
+        } else {
+            // Si el escáner no está disponible, forzar modo manual
+            this.manualMode = true;
+            this.messageService.add({
+                severity: 'info',
+                summary: 'Información',
+                detail: 'Escáner no disponible en esta plataforma',
+            });
+        }
+    }
+
+    // Método adicional para escanear desde archivo
+    async scanFromFile() {
+        try {
+            this.isScanning = true;
+            this.error = '';
+
+            const result = await this.qrService.scanQRFromFile();
+
+            if (result) {
+                this.onScanSuccess(result);
+            } else {
+                this.messageService.add({
+                    severity: 'info',
+                    summary: 'Información',
+                    detail: 'No se detectó código QR en la imagen seleccionada',
+                });
+            }
+        } catch (error) {
+            console.error('Error scanning from file:', error);
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Error al procesar la imagen',
+            });
+        } finally {
+            this.isScanning = false;
         }
     }
 

@@ -116,10 +116,13 @@
                     [icon]="manualMode ? 'pi pi-camera' : 'pi pi-pencil'"
                     severity="secondary"
                     size="small"
-                    [disabled]="isScanning"
+                    [disabled]="isScanning || !scannerAvailable"
                     (click)="toggleManualMode()"
                 >
                 </p-button>
+                <small *ngIf="!scannerAvailable" class="block text-600 mt-1">
+                    Requiere HTTPS en web
+                </small>
             </div>
 
             <!-- Action Buttons -->

@@ -11,6 +11,10 @@ import { takeUntil, finalize } from 'rxjs/operators';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { QrScannerService } from '../../services/QrScanner.service';
 import { ZoosanitaryCertificateService } from '../../services/ZoosanitaryCertificate.service';
+import {
+    QrDataParserService,
+    QRCertificateData,
+} from '../../services/QrDataParser.service';
 
 @Component({
     selector: 'app-reception',
@@ -26,12 +30,14 @@ export class ReceptionComponent implements OnInit, OnDestroy {
     isLoading = false;
     isScanning = false;
     certificateData: any = null;
+    qrParsedData: QRCertificateData | null = null;
     showCertificateDetails = false;
     validationStatus: 'pending' | 'valid' | 'invalid' | 'expired' = 'pending';
 
     constructor(
         private fb: FormBuilder,
         private qrService: QrScannerService,
+        private qrParser: QrDataParserService,
         private certificateService: ZoosanitaryCertificateService,
         private messageService: MessageService,
         private confirmationService: ConfirmationService
@@ -80,10 +86,45 @@ export class ReceptionComponent implements OnInit, OnDestroy {
             const qrResult = await this.qrService.scanQR();
 
             if (qrResult) {
-                this.receptionForm.patchValue({
-                    certificateNumber: qrResult,
-                });
-                await this.validateCertificate();
+                console.log('QR Raw Data:', qrResult);
+
+                // Verificar si es un certificado válido
+                if (!this.qrParser.isValidCertificateQR(qrResult)) {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'QR No Válido',
+                        detail: 'El código QR no parece ser un certificado zoosanitario',
+                    });
+                    return;
+                }
+
+                // Parsear los datos del QR
+                this.qrParsedData = this.qrParser.parseQRData(qrResult);
+
+                if (this.qrParsedData) {
+                    console.log('QR Parsed Data:', this.qrParsedData);
+
+                    // Llenar el formulario con el número de certificado
+                    this.receptionForm.patchValue({
+                        certificateNumber: this.qrParsedData.certificateNumber,
+                    });
+
+                    // Mostrar información parseada
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'QR Procesado',
+                        detail: `Certificado: ${this.qrParsedData.certificateNumber}`,
+                    });
+
+                    // Validar automáticamente
+                    await this.validateCertificate();
+                } else {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error de Procesamiento',
+                        detail: 'No se pudo procesar la información del QR',
+                    });
+                }
             }
         } catch (error) {
             console.error('Error during QR scan:', error);
@@ -108,6 +149,67 @@ export class ReceptionComponent implements OnInit, OnDestroy {
             }
         } catch (error) {
             console.error('Error during manual entry:', error);
+        }
+    }
+
+    async scanFromFile() {
+        try {
+            this.messageService.add({
+                severity: 'info',
+                summary: 'Cargar Imagen',
+                detail: 'Seleccione una imagen con código QR',
+            });
+
+            const qrResult = await this.qrService.scanQRFromFile();
+
+            if (qrResult) {
+                console.log('QR Raw Data from file:', qrResult);
+
+                // Verificar si es un certificado válido
+                if (!this.qrParser.isValidCertificateQR(qrResult)) {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'QR No Válido',
+                        detail: 'El código QR no parece ser un certificado zoosanitario',
+                    });
+                    return;
+                }
+
+                // Parsear los datos del QR
+                this.qrParsedData = this.qrParser.parseQRData(qrResult);
+
+                if (this.qrParsedData) {
+                    console.log('QR Parsed Data from file:', this.qrParsedData);
+
+                    // Llenar el formulario con el número de certificado
+                    this.receptionForm.patchValue({
+                        certificateNumber: this.qrParsedData.certificateNumber,
+                    });
+
+                    // Mostrar información parseada
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'QR Procesado',
+                        detail: `Certificado: ${this.qrParsedData.certificateNumber}`,
+                    });
+
+                    // Validar automáticamente
+                    await this.validateCertificate();
+                } else {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error de Procesamiento',
+                        detail: 'No se pudo procesar la información del QR',
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error during file scan:', error);
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Error al procesar la imagen',
+            });
         }
     }
 
@@ -192,6 +294,7 @@ export class ReceptionComponent implements OnInit, OnDestroy {
                     certificateNumber: this.certificateData.certificateNumber,
                     certificateId: this.certificateData._id,
                     certificateData: this.certificateData,
+                    qrData: this.qrParsedData, // Incluir datos parseados del QR
                     receptionDate: new Date(),
                     receptionNotes:
                         this.receptionForm.get('receptionNotes')?.value,
@@ -223,6 +326,7 @@ export class ReceptionComponent implements OnInit, OnDestroy {
     resetForm() {
         this.receptionForm.reset();
         this.certificateData = null;
+        this.qrParsedData = null;
         this.showCertificateDetails = false;
         this.validationStatus = 'pending';
     }
