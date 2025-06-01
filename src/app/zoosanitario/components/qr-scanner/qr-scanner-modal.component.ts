@@ -136,7 +136,7 @@ export class QrScannerModalComponent implements OnInit, OnDestroy {
 
             if (result) {
                 // Procesar resultado
-                this.onScanSuccess(result);
+                this.onScanSuccess(result.data);
             } else {
                 // Usuario canceló
                 this.scanCancelled.emit();

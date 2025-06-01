@@ -91,7 +91,7 @@ export class ReceptionComponent implements OnInit, OnDestroy {
             console.log('QR Raw Data:', JSON.stringify(qrResult, null, 2));
             if (qrResult) {
                 // Verificar si es un certificado válido
-                if (!this.qrParser.isValidCertificateQR(qrResult)) {
+                if (!this.qrParser.isValidCertificateQR(qrResult.data)) {
                     this.messageService.add({
                         severity: 'warn',
                         summary: 'QR No Válido',
@@ -101,7 +101,7 @@ export class ReceptionComponent implements OnInit, OnDestroy {
                 }
 
                 // Parsear los datos del QR
-                this.qrParsedData = this.qrParser.parseQRData(qrResult);
+                this.qrParsedData = this.qrParser.parseQRData(qrResult.data);
 
                 if (this.qrParsedData) {
                     console.log('QR Parsed Data:', this.qrParsedData);
@@ -162,7 +162,7 @@ export class ReceptionComponent implements OnInit, OnDestroy {
                 detail: 'Seleccione una imagen con código QR',
             });
 
-            const qrResult = await this.qrService.scanQRFromFile();
+            const qrResult = await this.qrService.scanFromFileWeb();
 
             if (qrResult) {
                 console.log('QR Raw Data from file:', qrResult);
