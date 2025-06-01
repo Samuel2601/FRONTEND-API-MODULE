@@ -5,8 +5,11 @@ import {
     OnDestroy,
     OnInit,
     Output,
+    ViewChild,
+    ElementRef,
 } from '@angular/core';
 import { MessageService } from 'primeng/api';
+import { DialogService } from 'primeng/dynamicdialog';
 import { QrScannerService } from '../../services/QrScanner.service';
 import {
     QrDataParserService,
@@ -24,200 +27,289 @@ export class QrScannerModalComponent implements OnInit, OnDestroy {
     @Output() visibleChange = new EventEmitter<boolean>();
     @Output() qrScanned = new EventEmitter<string>();
     @Output() scanCancelled = new EventEmitter<void>();
+    @Output() certificateData = new EventEmitter<QRCertificateData>();
 
-    isScanning = false;
+    @ViewChild('manualInputField') manualInputField?: ElementRef;
+
+    // Estados del componente
+    isLoading = false;
     scanResult = '';
     error = '';
     manualMode = false;
     manualInput = '';
     scannerAvailable = true;
+    processingResult = false;
+    showSuccessAnimation = false;
 
     constructor(
         private qrService: QrScannerService,
+        private qrParser: QrDataParserService,
         private messageService: MessageService
     ) {}
 
-    ngOnInit() {
-        this.scannerAvailable = this.qrService.isScannerAvailable();
+    async ngOnInit() {
+        // Verificar disponibilidad del escáner
+        this.scannerAvailable = await this.qrService.isScannerAvailable();
+
+        // Si no está disponible en móvil, activar modo manual por defecto
+        if (!this.scannerAvailable && this.qrService.isNativePlatform()) {
+            this.manualMode = true;
+        }
     }
 
     ngOnDestroy() {
-        if (this.isScanning) {
-            this.stopScanning();
-        }
+        // Limpiar estado
+        this.resetState();
     }
 
+    /**
+     * Se ejecuta cuando el modal se muestra
+     */
     async onShow() {
-        // Verificar si el escáner está disponible
-        if (!this.scannerAvailable) {
-            this.manualMode = true;
+        // Resetear estado
+        this.resetState();
+
+        // En plataforma nativa, iniciar escaneo automáticamente
+        if (
+            this.qrService.isNativePlatform() &&
+            this.scannerAvailable &&
+            !this.manualMode
+        ) {
+            // Dar un pequeño delay para que la animación del modal se complete
+            setTimeout(() => {
+                this.startNativeScanning();
+            }, 300);
+        } else if (!this.scannerAvailable) {
+            // Mostrar mensaje informativo
             this.messageService.add({
                 severity: 'info',
                 summary: 'Información',
-                detail: 'Escáner requiere HTTPS en web. Use entrada manual.',
+                detail: 'El escáner requiere HTTPS en web. Use entrada manual.',
+                life: 5000,
             });
-            return;
+            this.manualMode = true;
         }
 
-        // Modal se ha mostrado, iniciar scanner automáticamente
-        await this.startScanning();
+        // Enfocar el campo de entrada manual si está en modo manual
+        if (this.manualMode) {
+            setTimeout(() => {
+                this.manualInputField?.nativeElement?.focus();
+            }, 100);
+        }
     }
 
+    /**
+     * Se ejecuta cuando el modal se oculta
+     */
     onHide() {
-        this.stopScanning();
         this.resetState();
         this.visibleChange.emit(false);
     }
 
-    async startScanning() {
-        if (this.isScanning || !this.scannerAvailable) return;
-
+    /**
+     * Inicia el escaneo nativo con ML Kit
+     */
+    private async startNativeScanning() {
         try {
-            this.isScanning = true;
+            this.isLoading = true;
             this.error = '';
-            this.scanResult = '';
 
-            // Verificar permisos primero (método actualizado)
-            const hasPermissions =
-                await this.qrService.checkCameraPermissions();
+            // Verificar permisos
+            const hasPermissions = await this.qrService.checkPermissions();
             if (!hasPermissions) {
-                const granted = await this.qrService.requestCameraPermissions();
+                const granted = await this.qrService.scanQR();
                 if (!granted) {
                     this.error =
-                        'Se requieren permisos de cámara para escanear códigos QR';
-                    this.isScanning = false;
+                        'Se requieren permisos de cámara para escanear';
+                    this.isLoading = false;
                     this.manualMode = true;
                     return;
                 }
             }
 
-            // Iniciar el escaneo
+            // Cerrar modal antes de abrir el escáner nativo
+            this.visible = false;
+            this.visibleChange.emit(false);
+
+            // Iniciar escaneo
             const result = await this.qrService.scanQR();
-            console.log('QR Result:', result);
 
             if (result) {
-                this.scanResult = result;
+                // Procesar resultado
                 this.onScanSuccess(result);
             } else {
-                this.isScanning = false;
-                // Si no hay resultado, el usuario canceló o hubo error
-                // No forzar modo manual automáticamente
+                // Usuario canceló
+                this.scanCancelled.emit();
             }
-        } catch (error) {
-            console.error('Error starting scanner:', error);
-            this.error =
-                'Error al inicializar el escáner. Intente con ingreso manual.';
-            this.isScanning = false;
+        } catch (error: any) {
+            console.error('Error en escaneo nativo:', error);
+
+            // Reabrir modal con error
+            this.visible = true;
+            this.visibleChange.emit(true);
+            this.error = 'Error al escanear. Intente con entrada manual.';
             this.manualMode = true;
-        }
-    }
-
-    async stopScanning() {
-        if (!this.isScanning) return;
-
-        try {
-            await this.qrService.stopScan();
-        } catch (error) {
-            console.error('Error stopping scanner:', error);
         } finally {
-            this.isScanning = false;
+            this.isLoading = false;
         }
     }
 
-    onScanSuccess(result: string) {
-        this.scanResult = result;
-        this.isScanning = false;
+    /**
+     * Procesa el resultado exitoso del escaneo
+     */
+    private async onScanSuccess(qrText: string) {
+        this.scanResult = qrText;
+        this.processingResult = true;
 
-        this.messageService.add({
-            severity: 'success',
-            summary: 'QR Escaneado',
-            detail: `Código detectado exitosamente`,
-        });
+        // Verificar si es un certificado zoosanitario válido
+        const isValidCertificate = this.qrParser.isValidCertificateQR(qrText);
 
-        // Emitir el resultado después de un breve delay para mostrar el mensaje
-        setTimeout(() => {
-            this.qrScanned.emit(result);
-            this.closeModal();
-        }, 1500);
+        if (isValidCertificate) {
+            // Parsear datos del certificado
+            const certificateData = this.qrParser.parseQRData(qrText);
+
+            if (certificateData) {
+                // Mostrar mensaje de éxito
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Certificado Escaneado',
+                    detail: `Certificado ${certificateData.certificateNumber} detectado exitosamente`,
+                    life: 3000,
+                });
+
+                // Emitir datos parseados
+                this.certificateData.emit(certificateData);
+
+                // Mostrar animación de éxito
+                this.showSuccessAnimation = true;
+
+                // Cerrar modal después de un delay
+                setTimeout(() => {
+                    this.qrScanned.emit(qrText);
+                    this.closeModal();
+                }, 1500);
+            } else {
+                // QR válido pero no se pudo parsear
+                this.messageService.add({
+                    severity: 'warn',
+                    summary: 'Advertencia',
+                    detail: 'El QR parece ser un certificado pero no se pudo leer correctamente',
+                    life: 5000,
+                });
+
+                // Permitir reintento o entrada manual
+                this.processingResult = false;
+                this.error = 'No se pudo leer el contenido del certificado';
+            }
+        } else {
+            // No es un certificado válido
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'QR No Válido',
+                detail: 'El código QR escaneado no es un certificado zoosanitario',
+                life: 5000,
+            });
+
+            // Permitir reintento
+            this.processingResult = false;
+            this.error =
+                'El QR escaneado no es un certificado zoosanitario válido';
+        }
     }
 
+    /**
+     * Maneja el envío manual del certificado
+     */
     onManualSubmit() {
-        if (!this.manualInput.trim()) {
+        const value = this.manualInput.trim().toUpperCase();
+
+        if (!value) {
             this.messageService.add({
                 severity: 'warn',
                 summary: 'Advertencia',
-                detail: 'Ingrese un código válido',
+                detail: 'Por favor ingrese un número de certificado',
+                life: 3000,
             });
             return;
         }
 
-        this.onScanSuccess(this.manualInput.trim());
+        // Construir un QR sintético con el número ingresado
+        const syntheticQR = `CERTIFICADO ZOOSANITARIO
+CZPM Nº: ${value}
+AUTORIZADO A: MANUAL
+VALIDO HASTA: ${new Date().toISOString().split('T')[0]}`;
+
+        this.onScanSuccess(syntheticQR);
     }
 
-    toggleManualMode() {
+    /**
+     * Alterna entre modo manual y escáner
+     */
+    async toggleManualMode() {
         this.manualMode = !this.manualMode;
+        this.error = '';
 
         if (this.manualMode) {
-            this.stopScanning();
-        } else if (this.scannerAvailable) {
-            this.startScanning();
+            // Enfocar campo de entrada
+            setTimeout(() => {
+                this.manualInputField?.nativeElement?.focus();
+            }, 100);
+        } else if (this.qrService.isNativePlatform() && this.scannerAvailable) {
+            // Iniciar escaneo nativo
+            await this.startNativeScanning();
         } else {
-            // Si el escáner no está disponible, forzar modo manual
+            // En web o si no está disponible, mantener modo manual
             this.manualMode = true;
             this.messageService.add({
                 severity: 'info',
                 summary: 'Información',
                 detail: 'Escáner no disponible en esta plataforma',
+                life: 3000,
             });
         }
     }
 
-    // Método adicional para escanear desde archivo
-    async scanFromFile() {
-        try {
-            this.isScanning = true;
-            this.error = '';
+    /**
+     * Reintentar escaneo
+     */
+    async retry() {
+        this.error = '';
+        this.scanResult = '';
+        this.processingResult = false;
+        this.showSuccessAnimation = false;
 
-            const result = await this.qrService.scanQRFromFile();
-
-            if (result) {
-                this.onScanSuccess(result);
-            } else {
-                this.messageService.add({
-                    severity: 'info',
-                    summary: 'Información',
-                    detail: 'No se detectó código QR en la imagen seleccionada',
-                });
-            }
-        } catch (error) {
-            console.error('Error scanning from file:', error);
-            this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'Error al procesar la imagen',
-            });
-        } finally {
-            this.isScanning = false;
+        if (this.qrService.isNativePlatform() && !this.manualMode) {
+            await this.startNativeScanning();
         }
     }
 
+    /**
+     * Cierra el modal
+     */
     closeModal() {
-        this.stopScanning();
         this.resetState();
+        this.visible = false;
         this.visibleChange.emit(false);
     }
 
+    /**
+     * Cancela el escaneo
+     */
     cancel() {
-        this.stopScanning();
         this.scanCancelled.emit();
         this.closeModal();
     }
 
+    /**
+     * Resetea el estado del componente
+     */
     private resetState() {
-        this.isScanning = false;
+        this.isLoading = false;
         this.scanResult = '';
         this.error = '';
         this.manualMode = false;
         this.manualInput = '';
+        this.processingResult = false;
+        this.showSuccessAnimation = false;
     }
 }

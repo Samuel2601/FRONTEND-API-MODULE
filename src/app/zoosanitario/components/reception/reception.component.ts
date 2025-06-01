@@ -83,11 +83,13 @@ export class ReceptionComponent implements OnInit, OnDestroy {
                 detail: 'Apunte la cámara hacia el código QR',
             });
 
-            const qrResult = await this.qrService.scanQR();
-
+            const qrResult = await this.qrService.scanQR({
+                method: 'native',
+                lensFacing: 'back',
+                resolution: '1920x1080',
+            });
+            console.log('QR Raw Data:', JSON.stringify(qrResult, null, 2));
             if (qrResult) {
-                console.log('QR Raw Data:', qrResult);
-
                 // Verificar si es un certificado válido
                 if (!this.qrParser.isValidCertificateQR(qrResult)) {
                     this.messageService.add({

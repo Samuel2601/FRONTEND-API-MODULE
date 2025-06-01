@@ -1,11 +1,30 @@
 import { Injectable } from '@angular/core';
 import {
-    AlertController,
-    Platform,
-    ActionSheetController,
-} from '@ionic/angular';
+    BarcodeScanner,
+    BarcodeFormat,
+    LensFacing,
+    Resolution,
+    GoogleBarcodeScannerModuleInstallState,
+} from '@capacitor-mlkit/barcode-scanning';
+import { AlertController, Platform } from '@ionic/angular';
 import { Capacitor } from '@capacitor/core';
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Preferences } from '@capacitor/preferences';
+
+export interface QRScanOptions {
+    method?: 'native' | 'custom' | 'image';
+    imagePath?: string;
+    lensFacing?: 'front' | 'back';
+    resolution?: '640x480' | '1280x720' | '1920x1080' | '3840x2160';
+    formats?: BarcodeFormat[];
+}
+
+export interface QRScanResult {
+    success: boolean;
+    data?: string;
+    format?: string;
+    error?: string;
+    barcodes?: any[];
+}
 
 @Injectable({
     providedIn: 'root',
@@ -13,18 +32,24 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 export class QrScannerService {
     private isScanning = false;
     private webScannerInstance: any = null;
+    private moduleInstallAttempted = false;
+    private lastInstallAttempt = 0;
+    private readonly INSTALL_COOLDOWN = 5 * 60 * 1000; // 5 minutos
+    private readonly MODULE_STATUS_KEY = 'barcode_module_status';
+    private readonly LAST_INSTALL_KEY = 'last_install_attempt';
+
+    private listeners: any[] = [];
 
     constructor(
         private alertController: AlertController,
-        private platform: Platform,
-        private actionSheetController: ActionSheetController
+        private platform: Platform
     ) {}
 
     public isNativePlatform(): boolean {
         return Capacitor.isNativePlatform();
     }
 
-    async checkCameraPermissions(): Promise<boolean> {
+    async checkPermissions(): Promise<boolean> {
         if (!this.isNativePlatform()) {
             return !!(
                 navigator.mediaDevices && navigator.mediaDevices.getUserMedia
@@ -32,276 +57,826 @@ export class QrScannerService {
         }
 
         try {
-            console.log('🔍 Verificando permisos de cámara (Capacitor)...');
-            const permissions = await Camera.checkPermissions();
-            console.log('📋 Permisos actuales:', permissions);
-            return permissions.camera === 'granted';
+            const { camera } = await BarcodeScanner.checkPermissions();
+            return camera === 'granted';
         } catch (error) {
-            console.error('❌ Error checking camera permissions:', error);
+            console.error('Error checking camera permissions:', error);
             return false;
         }
     }
 
-    async requestCameraPermissions(): Promise<boolean> {
+    async requestPermissions(): Promise<boolean> {
         if (!this.isNativePlatform()) {
             return true;
         }
 
         try {
-            console.log('🔐 Solicitando permisos de cámara...');
-            const permissions = await Camera.requestPermissions();
-            console.log('✅ Permisos otorgados:', permissions);
-            return permissions.camera === 'granted';
+            const { camera } = await BarcodeScanner.requestPermissions();
+            return camera === 'granted';
         } catch (error) {
-            console.error('❌ Error requesting camera permissions:', error);
+            console.error('Error requesting camera permissions:', error);
             return false;
         }
     }
 
-    async scanQR(): Promise<string | null> {
-        if (this.isScanning) {
-            console.log('⚠️ Ya está escaneando, ignorando solicitud');
-            return null;
+    // Verificar estado persistente del módulo
+    private async getModuleStatus(): Promise<{
+        status: 'unknown' | 'available' | 'failed' | 'installing';
+        lastAttempt: number;
+    }> {
+        try {
+            const statusResult = await Preferences.get({
+                key: this.MODULE_STATUS_KEY,
+            });
+            const attemptResult = await Preferences.get({
+                key: this.LAST_INSTALL_KEY,
+            });
+
+            return {
+                status: (statusResult.value as any) || 'unknown',
+                lastAttempt: parseInt(attemptResult.value || '0'),
+            };
+        } catch {
+            return { status: 'unknown', lastAttempt: 0 };
         }
-
-        console.log('📱 Plataforma nativa:', this.isNativePlatform());
-
-        // En web, usar el escáner web directo
-        if (!this.isNativePlatform()) {
-            return await this.scanQRWeb();
-        }
-
-        // En móvil, mostrar opciones de escaneo
-        return await this.showScanOptions();
     }
 
-    private async showScanOptions(): Promise<string | null> {
-        return new Promise(async (resolve) => {
-            try {
-                console.log('📋 Mostrando opciones de escaneo...');
-
-                const actionSheet = await this.actionSheetController.create({
-                    header: 'Escanear código QR',
-                    cssClass: 'scan-action-sheet',
-                    buttons: [
-                        {
-                            text: 'Usar cámara',
-                            icon: 'camera',
-                            handler: async () => {
-                                console.log(
-                                    '📸 Opción: Usar cámara seleccionada'
-                                );
-                                const result = await this.scanWithCamera();
-                                resolve(result);
-                            },
-                        },
-                        {
-                            text: 'Cargar imagen',
-                            icon: 'image',
-                            handler: async () => {
-                                console.log(
-                                    '🖼️ Opción: Cargar imagen seleccionada'
-                                );
-                                const result = await this.scanFromGallery();
-                                resolve(result);
-                            },
-                        },
-                        {
-                            text: 'Entrada manual',
-                            icon: 'create',
-                            handler: async () => {
-                                console.log(
-                                    '✏️ Opción: Entrada manual seleccionada'
-                                );
-                                const result = await this.manualEntry();
-                                resolve(result);
-                            },
-                        },
-                        {
-                            text: 'Cancelar',
-                            icon: 'close',
-                            role: 'cancel',
-                            handler: () => {
-                                console.log('❌ Escaneo cancelado por usuario');
-                                resolve(null);
-                            },
-                        },
-                    ],
+    private async setModuleStatus(
+        status: 'unknown' | 'available' | 'failed' | 'installing'
+    ): Promise<void> {
+        try {
+            await Preferences.set({
+                key: this.MODULE_STATUS_KEY,
+                value: status,
+            });
+            if (status === 'failed' || status === 'installing') {
+                await Preferences.set({
+                    key: this.LAST_INSTALL_KEY,
+                    value: Date.now().toString(),
                 });
+            }
+        } catch (error) {
+            console.warn('Error saving module status:', error);
+        }
+    }
 
-                await actionSheet.present();
-                console.log('✅ ActionSheet presentado');
+    // Verificación inteligente del módulo con cache
+    private async ensureBarcodeScannerModule(): Promise<boolean> {
+        if (!this.isNativePlatform()) return true;
 
-                // Backup: si el ActionSheet no funciona, ir directo a cámara
-                setTimeout(async () => {
-                    const isStillPresent =
-                        await this.actionSheetController.getTop();
-                    if (!isStillPresent) {
-                        console.log(
-                            '⚠️ ActionSheet no visible, usando cámara directamente'
-                        );
-                        const result = await this.scanWithCamera();
-                        resolve(result);
+        try {
+            // Verificar disponibilidad actual
+            const { available } =
+                await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
+
+            if (available) {
+                console.log('Módulo Google Barcode Scanner ya disponible');
+                await this.setModuleStatus('available');
+                return true;
+            }
+
+            // Verificar estado persistente y cooldown
+            const moduleStatus = await this.getModuleStatus();
+            const now = Date.now();
+            const timeSinceLastAttempt = now - moduleStatus.lastAttempt;
+
+            console.log(
+                `Estado del módulo: ${moduleStatus.status}, última instalación: ${timeSinceLastAttempt}ms atrás`
+            );
+
+            // Si falló recientemente, esperar cooldown antes de reintentar
+            if (
+                moduleStatus.status === 'failed' &&
+                timeSinceLastAttempt < this.INSTALL_COOLDOWN
+            ) {
+                console.log(
+                    `Módulo falló recientemente. Esperando ${Math.round(
+                        (this.INSTALL_COOLDOWN - timeSinceLastAttempt) / 1000
+                    )}s antes de reintentar`
+                );
+                return false;
+            }
+
+            // Si ya se intentó instalar en esta sesión y no está disponible, no reintentar
+            if (
+                this.moduleInstallAttempted &&
+                moduleStatus.status !== 'available'
+            ) {
+                console.log(
+                    'Ya se intentó instalar el módulo en esta sesión sin éxito'
+                );
+                return false;
+            }
+
+            // Intentar instalación solo si es necesario
+            if (moduleStatus.status !== 'installing') {
+                console.log(
+                    'Intentando instalar módulo Google Barcode Scanner...'
+                );
+                return await this.attemptModuleInstallation();
+            }
+
+            return false;
+        } catch (error) {
+            console.error('Error verificando módulo:', error);
+            return false;
+        }
+    }
+
+    private async attemptModuleInstallation(): Promise<boolean> {
+        this.moduleInstallAttempted = true;
+        await this.setModuleStatus('installing');
+
+        return new Promise(async (resolve) => {
+            let installationCompleted = false;
+            let installationFailed = false;
+            const timeout = 30000; // Reducido a 30 segundos
+
+            // Configurar listener con timeout más corto
+            const listener = await BarcodeScanner.addListener(
+                'googleBarcodeScannerModuleInstallProgress',
+                (event) => {
+                    console.log(
+                        `Estado instalación: ${
+                            event.state
+                        } (${this.getInstallStateDescription(
+                            event.state
+                        )}), Progreso: ${event.progress}`
+                    );
+
+                    if (
+                        event.state ===
+                        GoogleBarcodeScannerModuleInstallState.COMPLETED
+                    ) {
+                        installationCompleted = true;
+                    } else if (
+                        event.state ===
+                            GoogleBarcodeScannerModuleInstallState.FAILED ||
+                        event.state ===
+                            GoogleBarcodeScannerModuleInstallState.CANCELED
+                    ) {
+                        installationFailed = true;
                     }
-                }, 1000);
+                }
+            );
+
+            // Timeout de instalación
+            const timeoutId = setTimeout(async () => {
+                if (!installationCompleted && !installationFailed) {
+                    console.log('Timeout de instalación del módulo');
+                    installationFailed = true;
+                }
+            }, timeout);
+
+            try {
+                await BarcodeScanner.installGoogleBarcodeScannerModule();
+                console.log('Solicitud de instalación enviada');
+
+                // Esperar resultado con verificaciones periódicas más frecuentes
+                const checkInterval = 1000; // 1 segundo
+                const maxChecks = timeout / checkInterval;
+                let checks = 0;
+
+                const checkLoop = setInterval(async () => {
+                    checks++;
+
+                    if (installationCompleted) {
+                        clearInterval(checkLoop);
+                        clearTimeout(timeoutId);
+                        await listener.remove();
+                        await this.setModuleStatus('available');
+                        console.log('Módulo instalado exitosamente');
+                        resolve(true);
+                        return;
+                    }
+
+                    if (installationFailed) {
+                        clearInterval(checkLoop);
+                        clearTimeout(timeoutId);
+                        await listener.remove();
+                        await this.setModuleStatus('failed');
+                        console.error('Instalación del módulo falló');
+                        resolve(false);
+                        return;
+                    }
+
+                    // Verificación adicional de disponibilidad
+                    if (checks % 3 === 0) {
+                        // Cada 3 segundos
+                        try {
+                            const { available } =
+                                await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
+                            if (available) {
+                                clearInterval(checkLoop);
+                                clearTimeout(timeoutId);
+                                await listener.remove();
+                                await this.setModuleStatus('available');
+                                console.log(
+                                    'Módulo disponible (verificación directa)'
+                                );
+                                resolve(true);
+                                return;
+                            }
+                        } catch {}
+                    }
+
+                    if (checks >= maxChecks) {
+                        clearInterval(checkLoop);
+                        clearTimeout(timeoutId);
+                        await listener.remove();
+                        await this.setModuleStatus('failed');
+                        console.error('Timeout agotado para instalación');
+                        resolve(false);
+                    }
+                }, checkInterval);
             } catch (error) {
-                console.error('❌ Error showing action sheet:', error);
-                // Fallback: ir directo a cámara
-                const result = await this.scanWithCamera();
-                resolve(result);
+                clearTimeout(timeoutId);
+                await listener.remove();
+                await this.setModuleStatus('failed');
+                console.error('Error al solicitar instalación:', error);
+                resolve(false);
             }
         });
     }
 
-    private async scanWithCamera(): Promise<string | null> {
-        try {
-            console.log('📸 Iniciando escaneo con cámara...');
+    private getInstallStateDescription(
+        state: GoogleBarcodeScannerModuleInstallState
+    ): string {
+        switch (state) {
+            case GoogleBarcodeScannerModuleInstallState.UNKNOWN:
+                return 'Desconocido';
+            case GoogleBarcodeScannerModuleInstallState.PENDING:
+                return 'Pendiente';
+            case GoogleBarcodeScannerModuleInstallState.DOWNLOADING:
+                return 'Descargando';
+            case GoogleBarcodeScannerModuleInstallState.CANCELED:
+                return 'Cancelado';
+            case GoogleBarcodeScannerModuleInstallState.COMPLETED:
+                return 'Completado';
+            case GoogleBarcodeScannerModuleInstallState.FAILED:
+                return 'Fallido';
+            case GoogleBarcodeScannerModuleInstallState.INSTALLING:
+                return 'Instalando';
+            case GoogleBarcodeScannerModuleInstallState.DOWNLOAD_PAUSED:
+                return 'Descarga pausada';
+            default:
+                return 'Estado no reconocido';
+        }
+    }
 
-            // Verificar permisos primero
-            const hasPermission = await this.checkCameraPermissions();
-            if (!hasPermission) {
-                console.log('❌ Sin permisos, solicitando...');
-                const permissionGranted = await this.requestCameraPermissions();
-                if (!permissionGranted) {
-                    console.error('❌ Permisos denegados por usuario');
-                    await this.showPermissionAlert();
-                    return null;
+    async isDeviceSupported(): Promise<boolean> {
+        if (!this.isNativePlatform()) {
+            return true;
+        }
+
+        try {
+            const { supported } = await BarcodeScanner.isSupported();
+            console.log('Hardware compatible con escáner:', supported);
+            return supported;
+        } catch (error) {
+            console.error(
+                'Error al verificar compatibilidad del dispositivo:',
+                error
+            );
+            return false;
+        }
+    }
+
+    async scanQR(options: QRScanOptions = {}): Promise<any | null> {
+        if (this.isScanning) {
+            console.log('Ya hay un escaneo en progreso');
+            return null;
+        }
+
+        if (!this.isNativePlatform()) {
+            return await this.scanQRWeb();
+        }
+
+        try {
+            // 1. Verificar soporte del dispositivo
+            const supported = await this.checkDeviceSupport();
+            if (!supported.success) {
+                return supported;
+            }
+
+            // 2. Determinar método de escaneo
+            const method = await this.determineMethod(options.method);
+
+            // 3. Ejecutar escaneo según método
+            switch (method) {
+                case 'native':
+                    return await this.scanWithNativeInterface(options);
+                case 'custom':
+                    return await this.scanWithCustomView(options);
+                case 'image':
+                    return await this.scanFromImage(options);
+                default:
+                    return {
+                        success: false,
+                        error: 'Método de escaneo no válido',
+                    };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                error: `Error en scanQR: ${error.message}`,
+            };
+        }
+    }
+
+    /**
+     * Verificar soporte del dispositivo
+     */
+    private async checkDeviceSupport(): Promise<QRScanResult> {
+        try {
+            const { supported } = await BarcodeScanner.isSupported();
+
+            if (!supported) {
+                return {
+                    success: false,
+                    error: 'El dispositivo no soporta escaneo de códigos',
+                };
+            }
+
+            return { success: true };
+        } catch (error) {
+            return {
+                success: false,
+                error: `Error verificando soporte: ${error.message}`,
+            };
+        }
+    }
+
+    /**
+     * Determinar el mejor método disponible
+     */
+    private async determineMethod(preferredMethod?: string): Promise<string> {
+        if (preferredMethod === 'image') return 'image';
+
+        try {
+            // Verificar si Google Barcode Scanner está disponible
+            const { available } =
+                await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
+
+            if (
+                available &&
+                (preferredMethod === 'native' || !preferredMethod)
+            ) {
+                return 'native';
+            }
+
+            return 'custom';
+        } catch (error) {
+            console.warn(
+                'Error verificando Google Barcode Scanner, usando vista personalizada'
+            );
+            return 'custom';
+        }
+    }
+
+    /**
+     * Escaneo con interfaz nativa (Google Barcode Scanner)
+     */
+    private async scanWithNativeInterface(
+        options: QRScanOptions
+    ): Promise<QRScanResult> {
+        try {
+            // Verificar disponibilidad del módulo
+            const { available } =
+                await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
+
+            if (!available) {
+                const installed = await this.installGoogleModule();
+                if (!installed) {
+                    return {
+                        success: false,
+                        error: 'No se pudo instalar Google Barcode Scanner',
+                    };
                 }
             }
 
-            console.log('✅ Permisos OK, abriendo cámara...');
-            this.isScanning = true;
-
-            const image = await Camera.getPhoto({
-                quality: 90,
-                allowEditing: false,
-                resultType: CameraResultType.DataUrl,
-                source: CameraSource.Camera,
-                presentationStyle: 'fullscreen', // Añadido para mejor UX
-                promptLabelHeader: 'Escanear QR',
-                promptLabelPhoto: 'Tomar foto',
-                promptLabelCancel: 'Cancelar',
+            // Ejecutar escaneo nativo
+            const result = await BarcodeScanner.scan({
+                formats: options.formats || [BarcodeFormat.QrCode],
             });
 
-            this.isScanning = false;
-            console.log('📷 Imagen capturada:', !!image.dataUrl);
-
-            if (!image.dataUrl) {
-                console.error('❌ No se obtuvo imagen de la cámara');
-                return null;
+            if (result.barcodes && result.barcodes.length > 0) {
+                const barcode = result.barcodes[0];
+                return {
+                    success: true,
+                    data: barcode.rawValue || barcode.displayValue,
+                    format: barcode.format,
+                    barcodes: result.barcodes,
+                };
             }
 
-            console.log('🔍 Procesando imagen para QR...');
-            return await this.processImageForQR(image.dataUrl);
-        } catch (error: any) {
-            this.isScanning = false;
-            console.error('❌ Error tomando foto:', error);
-
-            // Verificar si el usuario canceló
-            if (
-                error.message?.includes('cancelled') ||
-                error.message?.includes('cancel') ||
-                error.message?.includes('User cancelled')
-            ) {
-                console.log('ℹ️ Usuario canceló la captura');
-                return null;
-            }
-
-            await this.showErrorAlert(
-                'Error al acceder a la cámara: ' + error.message
-            );
-            return null;
-        }
-    }
-
-    private async scanFromGallery(): Promise<string | null> {
-        try {
-            console.log('🖼️ Abriendo galería...');
-            this.isScanning = true;
-
-            const image = await Camera.getPhoto({
-                quality: 90,
-                allowEditing: false,
-                resultType: CameraResultType.DataUrl,
-                source: CameraSource.Photos,
-                promptLabelHeader: 'Seleccionar imagen',
-                promptLabelPhoto: 'Elegir imagen',
-                promptLabelCancel: 'Cancelar',
-            });
-
-            this.isScanning = false;
-
-            if (!image.dataUrl) {
-                console.error('❌ No se seleccionó imagen');
-                return null;
-            }
-
-            console.log('🔍 Procesando imagen de galería...');
-            return await this.processImageForQR(image.dataUrl);
-        } catch (error: any) {
-            this.isScanning = false;
-            console.error('❌ Error seleccionando imagen:', error);
-
-            if (
-                error.message?.includes('cancelled') ||
-                error.message?.includes('cancel')
-            ) {
-                console.log('ℹ️ Usuario canceló la selección');
-                return null;
-            }
-
-            await this.showErrorAlert(
-                'Error al acceder a la galería: ' + error.message
-            );
-            return null;
-        }
-    }
-
-    private async processImageForQR(dataUrl: string): Promise<string | null> {
-        try {
-            console.log('📦 Importando qr-scanner...');
-            const QrScanner = (await import('qr-scanner')).default;
-
-            // Convertir dataUrl a File para qr-scanner
-            const response = await fetch(dataUrl);
-            const blob = await response.blob();
-            const file = new File([blob], 'qr-image.jpg', {
-                type: 'image/jpeg',
-            });
-
-            console.log('🔍 Escaneando QR en imagen...');
-            const result = await QrScanner.scanImage(file, {
-                returnDetailedScanResult: true,
-            });
-
-            const qrText = this.extractQRText(result);
-
-            if (qrText) {
-                console.log(
-                    '✅ QR detectado:',
-                    qrText.substring(0, 100) + '...'
-                );
-                return qrText;
-            } else {
-                console.log('❌ No se encontró QR en imagen');
-                await this.showErrorAlert(
-                    'No se encontró código QR en la imagen'
-                );
-                return null;
-            }
+            return { success: false, error: 'No se detectaron códigos QR' };
         } catch (error) {
-            console.error('❌ Error procesando imagen:', error);
-            await this.showErrorAlert(
-                'No se pudo leer el código QR de la imagen'
-            );
-            return null;
+            return {
+                success: false,
+                error: `Error en escaneo nativo: ${error.message}`,
+            };
         }
+    }
+
+    /**
+     * Escaneo con vista personalizada
+     */
+    private async scanWithCustomView(
+        options: QRScanOptions
+    ): Promise<QRScanResult> {
+        try {
+            // Verificar y solicitar permisos
+            const permissionResult = await this.checkAndRequestPermissions();
+            if (!permissionResult.success) {
+                return permissionResult;
+            }
+
+            this.isScanning = true;
+
+            // Configurar opciones de escaneo
+            const scanOptions = {
+                formats: options.formats || [BarcodeFormat.QrCode],
+                lensFacing:
+                    options.lensFacing === 'front'
+                        ? LensFacing.Front
+                        : LensFacing.Back,
+                resolution: this.getResolution(options.resolution),
+            };
+
+            // Iniciar escaneo
+            await BarcodeScanner.startScan(scanOptions);
+
+            // Configurar listeners
+            return new Promise((resolve) => {
+                const successListener = BarcodeScanner.addListener(
+                    'barcodesScanned',
+                    (event) => {
+                        this.stopScan();
+                        if (event.barcodes && event.barcodes.length > 0) {
+                            const barcode = event.barcodes[0];
+                            resolve({
+                                success: true,
+                                data: barcode.rawValue || barcode.displayValue,
+                                format: barcode.format,
+                                barcodes: event.barcodes,
+                            });
+                        } else {
+                            resolve({
+                                success: false,
+                                error: 'No se detectaron códigos QR',
+                            });
+                        }
+                    }
+                );
+
+                const errorListener = BarcodeScanner.addListener(
+                    'scanError',
+                    (event) => {
+                        this.stopScan();
+                        resolve({
+                            success: false,
+                            error: `Error de escaneo: ${event.message}`,
+                        });
+                    }
+                );
+
+                this.listeners.push(successListener, errorListener);
+
+                // Timeout de 30 segundos
+                setTimeout(() => {
+                    if (this.isScanning) {
+                        this.stopScan();
+                        resolve({
+                            success: false,
+                            error: 'Timeout: Escaneo cancelado por tiempo límite',
+                        });
+                    }
+                }, 30000);
+            });
+        } catch (error) {
+            this.isScanning = false;
+            return {
+                success: false,
+                error: `Error en vista personalizada: ${error.message}`,
+            };
+        }
+    }
+
+    /**
+     * Escaneo desde imagen
+     */
+    private async scanFromImage(options: QRScanOptions): Promise<QRScanResult> {
+        try {
+            if (!options.imagePath) {
+                return { success: false, error: 'Ruta de imagen requerida' };
+            }
+
+            const result = await BarcodeScanner.readBarcodesFromImage({
+                path: options.imagePath,
+                formats: options.formats || [BarcodeFormat.QrCode],
+            });
+
+            if (result.barcodes && result.barcodes.length > 0) {
+                const barcode = result.barcodes[0];
+                return {
+                    success: true,
+                    data: barcode.rawValue || barcode.displayValue,
+                    format: barcode.format,
+                    barcodes: result.barcodes,
+                };
+            }
+
+            return {
+                success: false,
+                error: 'No se encontraron códigos QR en la imagen',
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: `Error leyendo imagen: ${error.message}`,
+            };
+        }
+    }
+
+    /**
+     * Verificar y solicitar permisos de cámara
+     */
+    private async checkAndRequestPermissions(): Promise<QRScanResult> {
+        try {
+            // Verificar permisos actuales
+            const status = await BarcodeScanner.checkPermissions();
+
+            if (status.camera === 'granted') {
+                return { success: true };
+            }
+
+            if (status.camera === 'denied') {
+                // Abrir configuración si está denegado permanentemente
+                await BarcodeScanner.openSettings();
+                return {
+                    success: false,
+                    error: 'Permiso de cámara denegado. Abre configuración.',
+                };
+            }
+
+            // Solicitar permisos
+            const requestResult = await BarcodeScanner.requestPermissions();
+
+            if (requestResult.camera === 'granted') {
+                return { success: true };
+            }
+
+            return { success: false, error: 'Permiso de cámara requerido' };
+        } catch (error) {
+            return {
+                success: false,
+                error: `Error de permisos: ${error.message}`,
+            };
+        }
+    }
+
+    /**
+     * Instalar Google Barcode Scanner Module
+     */
+    private async installGoogleModule(): Promise<boolean> {
+        try {
+            await BarcodeScanner.installGoogleBarcodeScannerModule();
+
+            return new Promise((resolve) => {
+                BarcodeScanner.addListener(
+                    'googleBarcodeScannerModuleInstallProgress',
+                    async (event) => {
+                        console.log(
+                            `Instalación: ${event.state}, Progreso: ${event.progress}%`
+                        );
+
+                        // Get the listener handle to remove it
+                        const listenerHandle = await BarcodeScanner.addListener(
+                            'googleBarcodeScannerModuleInstallProgress',
+                            () => {}
+                        );
+
+                        if (event.state === 4) {
+                            // COMPLETED
+                            await listenerHandle.remove();
+                            resolve(true);
+                        } else if (event.state === 5 || event.state === 3) {
+                            // FAILED or CANCELED
+                            await listenerHandle.remove();
+                            resolve(false);
+                        }
+                    }
+                );
+            });
+        } catch (error) {
+            console.error('Error instalando Google Module:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Detener escaneo activo
+     */
+    async stopScan(): Promise<void> {
+        if (!this.isScanning) return;
+
+        try {
+            await BarcodeScanner.stopScan();
+            this.isScanning = false;
+
+            // Limpiar listeners
+            this.listeners.forEach((listener) => listener.remove());
+            this.listeners = [];
+        } catch (error) {
+            console.error('Error deteniendo escaneo:', error);
+        }
+
+        if (!this.isNativePlatform()) {
+            this.cleanupWebScanner();
+            return;
+        }
+
+        try {
+            await BarcodeScanner.stopScan();
+            this.isScanning = false;
+        } catch (error) {
+            console.error('Error stopping scan:', error);
+        }
+    }
+
+    /**
+     * Controles de flash
+     */
+    async toggleTorch(): Promise<boolean> {
+        try {
+            const { available } = await BarcodeScanner.isTorchAvailable();
+            if (!available) return false;
+
+            await BarcodeScanner.toggleTorch();
+            const { enabled } = await BarcodeScanner.isTorchEnabled();
+            return enabled;
+        } catch (error) {
+            console.error('Error con flash:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Configurar zoom
+     */
+    async setZoom(ratio: number): Promise<boolean> {
+        try {
+            const maxZoom = await BarcodeScanner.getMaxZoomRatio();
+            const minZoom = await BarcodeScanner.getMinZoomRatio();
+
+            const clampedRatio = Math.max(
+                minZoom.zoomRatio,
+                Math.min(maxZoom.zoomRatio, ratio)
+            );
+
+            await BarcodeScanner.setZoomRatio({ zoomRatio: clampedRatio });
+            return true;
+        } catch (error) {
+            console.error('Error configurando zoom:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Obtener resolución enum
+     */
+    private getResolution(resolution?: string): Resolution {
+        switch (resolution) {
+            case '640x480':
+                return Resolution['640x480'];
+            case '1920x1080':
+                return Resolution['1920x1080'];
+            case '3840x2160':
+                return Resolution['3840x2160'];
+            default:
+                return Resolution['1280x720'];
+        }
+    }
+
+    /**
+     * Limpiar recursos al destruir el servicio
+     */
+    async ngOnDestroy(): Promise<void> {
+        await this.stopScan();
+        await BarcodeScanner.removeAllListeners();
+    }
+
+    // Método separado para escaneo con startScan() (no requiere módulo Google)
+    private async scanWithStartScan(): Promise<any | null> {
+        return new Promise<any | null>(async (resolve) => {
+            const timeout = setTimeout(() => {
+                console.log('Timeout del escaneo con startScan');
+                BarcodeScanner.removeAllListeners().catch(() => {});
+                BarcodeScanner.stopScan().catch(() => {});
+                resolve(null);
+            }, 20000);
+
+            try {
+                const listener = await BarcodeScanner.addListener(
+                    'barcodesScanned',
+                    async (result) => {
+                        console.log('=== DEBUGGING QR SCAN RESULT ===');
+                        console.log(
+                            'Resultado completo:',
+                            JSON.stringify(result, null, 2)
+                        );
+                        console.log('Tipo de resultado:', typeof result);
+                        console.log('result.barcodes:', result.barcodes);
+                        console.log(
+                            'Tipo de barcodes:',
+                            typeof result.barcodes
+                        );
+                        console.log(
+                            '¿Es array?:',
+                            Array.isArray(result.barcodes)
+                        );
+                        console.log('Longitud:', result.barcodes?.length);
+
+                        if (result.barcodes && result.barcodes.length > 0) {
+                            result.barcodes.forEach((barcode, index) => {
+                                console.log(`--- Barcode ${index} ---`);
+                                console.log(
+                                    'Barcode completo:',
+                                    JSON.stringify(barcode, null, 2)
+                                );
+                                console.log(
+                                    'displayValue:',
+                                    barcode.displayValue
+                                );
+                                console.log('rawValue:', barcode.rawValue);
+                                console.log('format:', barcode.format);
+                                console.log('valueType:', barcode.valueType);
+                                console.log('bytes:', barcode.bytes);
+                            });
+                        }
+                        console.log('=== END DEBUG ===');
+
+                        clearTimeout(timeout);
+                        await listener.remove();
+                        await BarcodeScanner.stopScan().catch(() => {});
+                        resolve(result.barcodes);
+                    }
+                );
+
+                await BarcodeScanner.startScan({
+                    formats: [BarcodeFormat.QrCode],
+                });
+            } catch (startError) {
+                clearTimeout(timeout);
+                console.error('Error iniciando startScan:', startError);
+                resolve(null);
+            }
+        });
+    }
+
+    // Método separado para escaneo con módulo Google
+    private async scanWithGoogleModule(): Promise<any | null> {
+        return new Promise<any | null>(async (resolve) => {
+            const timeout = setTimeout(() => {
+                console.log('Timeout del escaneo con módulo Google');
+                BarcodeScanner.removeAllListeners().catch(() => {});
+                BarcodeScanner.stopScan().catch(() => {});
+                resolve(null);
+            }, 20000); // 20 segundos para Google module
+
+            try {
+                const listener = await BarcodeScanner.addListener(
+                    'barcodesScanned',
+                    async (result) => {
+                        console.log(
+                            'Código detectado (módulo Google):',
+                            JSON.stringify(result)
+                        );
+                        clearTimeout(timeout);
+                        await listener.remove();
+                        await BarcodeScanner.stopScan().catch(() => {});
+                        resolve(result.barcodes);
+                    }
+                );
+
+                await BarcodeScanner.startScan({
+                    formats: [BarcodeFormat.QrCode],
+                });
+            } catch (startError) {
+                clearTimeout(timeout);
+                console.error(
+                    'Error iniciando escaneo con módulo Google:',
+                    startError
+                );
+                resolve(null);
+            }
+        });
     }
 
     private async scanQRWeb(): Promise<string | null> {
         return new Promise(async (resolve) => {
             try {
-                // Verificar HTTPS
                 if (
                     location.protocol !== 'https:' &&
                     location.hostname !== 'localhost'
@@ -325,7 +900,6 @@ export class QrScannerService {
 
                 this.isScanning = true;
 
-                // Crear modal con video para el scanner
                 const modal = this.createScannerModal();
                 const videoElement = modal.querySelector(
                     'video'
@@ -349,7 +923,6 @@ export class QrScannerService {
                 try {
                     await this.webScannerInstance.start();
 
-                    // Timeout de 30 segundos
                     setTimeout(() => {
                         if (this.isScanning) {
                             this.cleanupWebScanner();
@@ -357,14 +930,12 @@ export class QrScannerService {
                         }
                     }, 30000);
 
-                    // Botón cerrar
                     const closeBtn = modal.querySelector('.close-scanner');
                     closeBtn?.addEventListener('click', () => {
                         this.cleanupWebScanner();
                         resolve(null);
                     });
 
-                    // Botón para cargar desde archivo
                     const fileBtn = modal.querySelector('.file-scanner');
                     fileBtn?.addEventListener('click', async () => {
                         const qrResult = await this.scanFromFile();
@@ -390,7 +961,6 @@ export class QrScannerService {
         });
     }
 
-    // Método para escanear desde archivo (web)
     async scanFromFile(): Promise<string | null> {
         return new Promise(async (resolve) => {
             try {
@@ -408,13 +978,9 @@ export class QrScannerService {
 
                     try {
                         const QrScanner = (await import('qr-scanner')).default;
-                        const result = await QrScanner.scanImage(file, {
-                            returnDetailedScanResult: true,
-                        });
+                        const result = await QrScanner.scanImage(file);
                         console.log('QR desde archivo:', result);
-
-                        const qrText = this.extractQRText(result);
-                        resolve(qrText || null);
+                        resolve(result);
                     } catch (error) {
                         console.error('Error scanning from file:', error);
                         await this.showErrorAlert(
@@ -432,17 +998,6 @@ export class QrScannerService {
                 resolve(null);
             }
         });
-    }
-
-    // Método helper para extraer texto del resultado
-    private extractQRText(result: any): string {
-        if (typeof result === 'string') {
-            return result;
-        }
-        if (result && typeof result === 'object') {
-            return result.data || result.text || result.rawValue || '';
-        }
-        return '';
     }
 
     private createScannerModal(): HTMLElement {
@@ -490,56 +1045,48 @@ export class QrScannerService {
             this.webScannerInstance = null;
         }
 
-        // Remover modal
         const modal = document.querySelector('[style*="z-index: 10000"]');
         if (modal) {
             document.body.removeChild(modal);
         }
     }
 
-    async stopScan(): Promise<void> {
-        console.log('🛑 Deteniendo escaneo...');
-        if (!this.isNativePlatform()) {
-            this.cleanupWebScanner();
-            return;
+    // Método para resetear el estado del módulo (útil para debugging o configuración)
+    async resetModuleStatus(): Promise<void> {
+        try {
+            await Preferences.remove({ key: this.MODULE_STATUS_KEY });
+            await Preferences.remove({ key: this.LAST_INSTALL_KEY });
+            this.moduleInstallAttempted = false;
+            console.log('Estado del módulo reseteado');
+        } catch (error) {
+            console.warn('Error resetting module status:', error);
         }
+    }
 
-        this.isScanning = false;
+    // Método para verificar el estado actual del módulo
+    async getModuleStatusInfo(): Promise<any> {
+        const status = await this.getModuleStatus();
+        const isAvailable = this.isNativePlatform()
+            ? (await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable())
+                  .available
+            : true;
+
+        return {
+            ...status,
+            currentlyAvailable: isAvailable,
+            cooldownRemaining: Math.max(
+                0,
+                this.INSTALL_COOLDOWN - (Date.now() - status.lastAttempt)
+            ),
+        };
     }
 
     private async showPermissionAlert(): Promise<void> {
         const alert = await this.alertController.create({
             header: 'Permisos de Cámara',
             message:
-                'Se requieren permisos de cámara para escanear códigos QR. Por favor, otorgue los permisos en la configuración de la aplicación.',
-            buttons: [
-                {
-                    text: 'Cancelar',
-                    role: 'cancel',
-                },
-                {
-                    text: 'Abrir Configuración',
-                    handler: () => {
-                        // Abrir configuración del dispositivo
-                        if (Capacitor.getPlatform() === 'ios') {
-                            window.open('app-settings:', '_system');
-                        } else if (Capacitor.getPlatform() === 'android') {
-                            // En Android, mostrar instrucciones
-                            this.showAndroidPermissionInstructions();
-                        }
-                    },
-                },
-            ],
-        });
-        await alert.present();
-    }
-
-    private async showAndroidPermissionInstructions(): Promise<void> {
-        const alert = await this.alertController.create({
-            header: 'Configurar Permisos',
-            message:
-                'Para habilitar la cámara:\n1. Vaya a Configuración > Aplicaciones\n2. Busque esta app\n3. Toque "Permisos"\n4. Active "Cámara"',
-            buttons: ['Entendido'],
+                'Se requieren permisos de cámara para escanear códigos QR.',
+            buttons: ['OK'],
         });
         await alert.present();
     }
@@ -583,12 +1130,11 @@ export class QrScannerService {
         });
     }
 
-    // Método para escanear desde archivo con recorte
     async scanQRFromFile(): Promise<string | null> {
         return await this.scanFromFileWithCrop();
     }
 
-    private async scanFromFileWithCrop(): Promise<string | null> {
+    async scanFromFileWithCrop(): Promise<string | null> {
         return new Promise(async (resolve) => {
             try {
                 const input = document.createElement('input');
@@ -604,54 +1150,20 @@ export class QrScannerService {
                     }
 
                     try {
-                        // Primero intentar detectar todos los QRs en la imagen
-                        const allQRs = await this.scanAllQRsFromImage(file);
-
-                        if (allQRs.length === 0) {
-                            await this.showErrorAlert(
-                                'No se encontró ningún código QR en la imagen'
-                            );
+                        const croppedImage = await this.showCropTool(file);
+                        if (!croppedImage) {
                             resolve(null);
                             return;
                         }
 
-                        if (allQRs.length === 1) {
-                            // Solo un QR, verificar si es certificado
-                            if (this.isLikelyCertificateQR(allQRs[0])) {
-                                resolve(allQRs[0]);
-                            } else {
-                                // Mostrar herramienta de recorte manual
-                                const croppedResult = await this.showCropTool(
-                                    file
-                                );
-                                resolve(croppedResult);
-                            }
-                            return;
-                        }
-
-                        // Múltiples QRs: buscar el de certificado
-                        const certificateQR = allQRs.find((qr) =>
-                            this.isLikelyCertificateQR(qr)
-                        );
-
-                        if (certificateQR) {
-                            resolve(certificateQR);
-                            return;
-                        }
-
-                        // Ninguno parece certificado, mostrar selector
-                        const selectedQR = await this.showQRSelector(allQRs);
-                        if (selectedQR) {
-                            resolve(selectedQR);
-                        } else {
-                            // Usuario canceló, mostrar herramienta de recorte
-                            const croppedResult = await this.showCropTool(file);
-                            resolve(croppedResult);
-                        }
+                        const QrScanner = (await import('qr-scanner')).default;
+                        const result = await QrScanner.scanImage(croppedImage);
+                        console.log('QR desde área recortada:', result);
+                        resolve(result);
                     } catch (error) {
-                        console.error('Error scanning from file:', error);
+                        console.error('Error scanning cropped area:', error);
                         await this.showErrorAlert(
-                            'Error al procesar la imagen'
+                            'No se pudo leer el código QR del área seleccionada'
                         );
                         resolve(null);
                     }
@@ -667,150 +1179,7 @@ export class QrScannerService {
         });
     }
 
-    private async scanAllQRsFromImage(file: File): Promise<string[]> {
-        try {
-            const QrScanner = (await import('qr-scanner')).default;
-
-            const results = await QrScanner.scanImage(file, {
-                returnDetailedScanResult: true,
-            });
-
-            if (Array.isArray(results)) {
-                return results
-                    .map((r) => this.extractQRText(r))
-                    .filter((text) => text);
-            } else if (results) {
-                const text = this.extractQRText(results);
-                return text ? [text] : [];
-            }
-
-            return [];
-        } catch (error) {
-            console.log('Error scanning all QRs:', error);
-            return [];
-        }
-    }
-
-    private isLikelyCertificateQR(qrText: string): boolean {
-        const upperText = qrText.toUpperCase();
-
-        const hasCertificatePattern =
-            upperText.includes('CZPM') ||
-            upperText.includes('CERTIFICADO') ||
-            upperText.includes('ZOOSANITARIO') ||
-            upperText.includes('AUTORIZADO A:') ||
-            upperText.includes('VALIDO HASTA') ||
-            upperText.includes('VÁLIDO HASTA') ||
-            upperText.includes('TOTAL PRODUCTOS') ||
-            upperText.includes('ORIGEN:') ||
-            upperText.includes('DESTINO:');
-
-        const isNotCertificate =
-            upperText.includes('PLAY.GOOGLE.COM') ||
-            upperText.includes('APPS/DETAILS') ||
-            upperText.includes('HTTP://') ||
-            upperText.includes('HTTPS://') ||
-            upperText.includes('WWW.') ||
-            upperText.includes('.COM') ||
-            upperText.includes('.ORG') ||
-            upperText.includes('.NET');
-
-        return hasCertificatePattern && !isNotCertificate;
-    }
-
-    private async showQRSelector(qrTexts: string[]): Promise<string | null> {
-        return new Promise((resolve) => {
-            const modal = document.createElement('div');
-            modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 10001;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        `;
-
-            const content = document.createElement('div');
-            content.style.cssText = `
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            max-width: 90vw;
-            max-height: 90vh;
-            overflow: auto;
-        `;
-
-            content.innerHTML = `
-            <h3 style="margin: 0 0 15px 0; text-align: center;">Se encontraron múltiples códigos QR</h3>
-            <p style="margin: 0 0 15px 0; color: #666; text-align: center;">Seleccione el código del certificado zoosanitario:</p>
-            <div id="qrList"></div>
-            <div style="text-align: center; margin-top: 15px;">
-                <button id="qrCancel" style="background: #6c757d; color: white; border: none; padding: 10px 20px; margin: 0 10px; border-radius: 5px; cursor: pointer;">Recortar Manualmente</button>
-            </div>
-        `;
-
-            const qrList = content.querySelector('#qrList');
-
-            qrTexts.forEach((qrText, index) => {
-                const item = document.createElement('div');
-                item.style.cssText = `
-                border: 1px solid #ddd;
-                border-radius: 5px;
-                padding: 10px;
-                margin: 10px 0;
-                cursor: pointer;
-                transition: background-color 0.2s;
-            `;
-
-                const preview =
-                    qrText.length > 100
-                        ? qrText.substring(0, 100) + '...'
-                        : qrText;
-                const isCertificate = this.isLikelyCertificateQR(qrText);
-
-                item.innerHTML = `
-                <div style="font-weight: bold; color: ${
-                    isCertificate ? '#28a745' : '#6c757d'
-                };">
-                    ${isCertificate ? '✓ Posible Certificado' : 'Otro QR'} ${
-                    index + 1
-                }
-                </div>
-                <div style="font-size: 12px; color: #666; margin-top: 5px; word-break: break-all;">
-                    ${preview}
-                </div>
-            `;
-
-                if (isCertificate) {
-                    item.style.borderColor = '#28a745';
-                    item.style.backgroundColor = '#f8f9fa';
-                }
-
-                item.addEventListener('click', () => {
-                    document.body.removeChild(modal);
-                    resolve(qrText);
-                });
-
-                qrList!.appendChild(item);
-            });
-
-            const cancelBtn = content.querySelector('#qrCancel');
-            cancelBtn?.addEventListener('click', () => {
-                document.body.removeChild(modal);
-                resolve(null);
-            });
-
-            modal.appendChild(content);
-            document.body.appendChild(modal);
-        });
-    }
-
-    private async showCropTool(file: File): Promise<string | null> {
+    private async showCropTool(file: File): Promise<File | null> {
         return new Promise((resolve) => {
             const modal = document.createElement('div');
             modal.style.cssText = `
@@ -867,29 +1236,15 @@ export class QrScannerService {
                 `;
 
                 document.body.appendChild(modal);
-
                 this.addCropFunctionality(modal);
 
                 const confirmBtn = modal.querySelector('#cropConfirm');
                 const cancelBtn = modal.querySelector('#cropCancel');
 
                 confirmBtn?.addEventListener('click', async () => {
-                    try {
-                        const croppedFile = await this.cropImage(
-                            imageUrl,
-                            modal
-                        );
-                        document.body.removeChild(modal);
-
-                        const QrScanner = (await import('qr-scanner')).default;
-                        const result = await QrScanner.scanImage(croppedFile);
-                        const qrText = this.extractQRText(result);
-                        resolve(qrText || null);
-                    } catch (error) {
-                        document.body.removeChild(modal);
-                        console.error('Error scanning cropped area:', error);
-                        resolve(null);
-                    }
+                    const croppedFile = await this.cropImage(imageUrl, modal);
+                    document.body.removeChild(modal);
+                    resolve(croppedFile);
                 });
 
                 cancelBtn?.addEventListener('click', () => {
@@ -899,62 +1254,6 @@ export class QrScannerService {
             };
 
             reader.readAsDataURL(file);
-        });
-    }
-
-    private async cropImage(
-        imageUrl: string,
-        modal: HTMLElement
-    ): Promise<File> {
-        const img = modal.querySelector('#cropImage') as HTMLImageElement;
-        const cropBox = modal.querySelector('#cropBox') as HTMLElement;
-
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d')!;
-
-        const tempImg = new Image();
-        tempImg.src = imageUrl;
-
-        return new Promise((resolve) => {
-            tempImg.onload = () => {
-                const scaleX = tempImg.naturalWidth / img.offsetWidth;
-                const scaleY = tempImg.naturalHeight / img.offsetHeight;
-
-                const cropX = cropBox.offsetLeft * scaleX;
-                const cropY = cropBox.offsetTop * scaleY;
-                const cropWidth = cropBox.offsetWidth * scaleX;
-                const cropHeight = cropBox.offsetHeight * scaleY;
-
-                canvas.width = cropWidth;
-                canvas.height = cropHeight;
-
-                ctx.filter = 'contrast(150%) brightness(110%)';
-
-                ctx.drawImage(
-                    tempImg,
-                    cropX,
-                    cropY,
-                    cropWidth,
-                    cropHeight,
-                    0,
-                    0,
-                    cropWidth,
-                    cropHeight
-                );
-
-                canvas.toBlob(
-                    (blob) => {
-                        if (blob) {
-                            const file = new File([blob], 'cropped-qr.png', {
-                                type: 'image/png',
-                            });
-                            resolve(file);
-                        }
-                    },
-                    'image/png',
-                    0.95
-                );
-            };
         });
     }
 
@@ -1017,11 +1316,69 @@ export class QrScannerService {
         });
     }
 
+    private async cropImage(
+        imageUrl: string,
+        modal: HTMLElement
+    ): Promise<File> {
+        const img = modal.querySelector('#cropImage') as HTMLImageElement;
+        const cropBox = modal.querySelector('#cropBox') as HTMLElement;
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d')!;
+
+        const tempImg = new Image();
+        tempImg.src = imageUrl;
+
+        return new Promise((resolve) => {
+            tempImg.onload = () => {
+                const scaleX = tempImg.naturalWidth / img.offsetWidth;
+                const scaleY = tempImg.naturalHeight / img.offsetHeight;
+
+                const cropX = cropBox.offsetLeft * scaleX;
+                const cropY = cropBox.offsetTop * scaleY;
+                const cropWidth = cropBox.offsetWidth * scaleX;
+                const cropHeight = cropBox.offsetHeight * scaleY;
+
+                canvas.width = cropWidth;
+                canvas.height = cropHeight;
+
+                ctx.drawImage(
+                    tempImg,
+                    cropX,
+                    cropY,
+                    cropWidth,
+                    cropHeight,
+                    0,
+                    0,
+                    cropWidth,
+                    cropHeight
+                );
+
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        const file = new File([blob], 'cropped-qr.png', {
+                            type: 'image/png',
+                        });
+                        resolve(file);
+                    }
+                }, 'image/png');
+            };
+        });
+    }
+
     isCurrentlyScanning(): boolean {
         return this.isScanning;
     }
 
     isScannerAvailable(): boolean {
-        return true; // Siempre disponible ya que usa Camera API o web scanner
+        if (this.isNativePlatform()) {
+            return true;
+        }
+        return !!(
+            navigator.mediaDevices &&
+            navigator.mediaDevices.getUserMedia &&
+            (location.protocol === 'https:' ||
+                location.hostname === 'localhost')
+        );
     }
 }
