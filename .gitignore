@@ -2,6 +2,7 @@
 /ios/
 /resources/
 yarn.lock
+package-lock.json
 # Compiled output
 /android/
 /dist/

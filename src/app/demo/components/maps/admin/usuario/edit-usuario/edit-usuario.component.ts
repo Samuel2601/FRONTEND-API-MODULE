@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Message, MessageService } from 'primeng/api';
 import { DynamicDialogConfig, DialogService } from 'primeng/dynamicdialog';
-import { NativeBiometric } from 'capacitor-native-biometric';
+import { NativeBiometric } from '@capgo/capacitor-native-biometric';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { UpdateService } from 'src/app/demo/services/update.service';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
@@ -127,10 +127,14 @@ export class EditUsuarioComponent implements OnInit {
             this.datauser.password_temp = '';
         }
         this.datauser.role = this.datauser.role._id;
-        if (this.datauser.password === '' || this.datauser.password === undefined || this.datauser.password === null) {
+        if (
+            this.datauser.password === '' ||
+            this.datauser.password === undefined ||
+            this.datauser.password === null
+        ) {
             delete this.datauser.password;
         }
-        
+
         // Realizar la solicitud de actualización utilizando el servicio de actualización
         this.updateservice
             .actualizarUsuario(

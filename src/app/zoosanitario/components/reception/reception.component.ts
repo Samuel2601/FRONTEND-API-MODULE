@@ -90,6 +90,15 @@ export class ReceptionComponent implements OnInit, OnDestroy {
             });
             console.log('QR Raw Data:', JSON.stringify(qrResult, null, 2));
             if (qrResult) {
+                if (qrResult.error) {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error de Escaneo',
+                        detail: qrResult.error,
+                    });
+                    return;
+                }
+
                 // Verificar si es un certificado válido
                 if (!this.qrParser.isValidCertificateQR(qrResult.data)) {
                     this.messageService.add({

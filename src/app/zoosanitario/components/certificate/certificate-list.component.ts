@@ -42,7 +42,7 @@ export class CertificateListComponent implements OnInit, OnDestroy {
     // Filtros y búsqueda
     filterForm: FormGroup;
     showFilters = false;
-    globalFilter = '';
+    globalFilter: any;
 
     // Opciones para dropdowns
     statusOptions = [

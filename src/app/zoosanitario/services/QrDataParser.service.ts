@@ -28,6 +28,10 @@ export class QrDataParserService {
     // Método para validar si el texto parece ser un certificado zoosanitario
     // Método mejorado para validar certificados
     isValidCertificateQR(qrText: string): boolean {
+        if (!qrText || typeof qrText !== 'string') {
+            return false;
+        }
+
         const upperText = qrText.toUpperCase();
 
         // Patrones positivos más específicos

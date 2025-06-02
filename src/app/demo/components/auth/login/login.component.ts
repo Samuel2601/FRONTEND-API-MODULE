@@ -8,7 +8,7 @@ import { CookieService } from 'ngx-cookie-service';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { Howl } from 'howler';
-import { NativeBiometric } from 'capacitor-native-biometric';
+import { NativeBiometric } from '@capgo/capacitor-native-biometric';
 import { AuthService } from 'src/app/demo/services/auth.service';
 
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
