@@ -19,7 +19,7 @@ export abstract class BaseService<T> {
         protected auth: AuthService,
         protected endpoint: string
     ) {
-        this.url = GLOBAL.url;
+        this.url = GLOBAL.url_zoosanitario;
     }
 
     getHeaders(token: string): HttpHeaders {

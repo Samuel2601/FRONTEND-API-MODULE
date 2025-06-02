@@ -179,8 +179,9 @@ export class CertificateListComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (response: any) => {
-                    this.certificates = response.data || [];
-                    this.totalRecords = response.pagination?.totalItems || 0;
+                    this.certificates = response.data.data || [];
+                    this.totalRecords =
+                        response.data.pagination?.totalItems || 0;
                     this.loading = false;
                 },
                 error: (error) => {

@@ -3,11 +3,11 @@ import {
     BarcodeScanner,
     BarcodeFormat,
     LensFacing,
-    Resolution,
 } from '@capacitor-mlkit/barcode-scanning';
 import { AlertController } from '@ionic/angular';
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
+import { NativeCameraQRService } from './NativeCamara.service';
 
 export interface QRScanOptions {
     method?: 'native' | 'custom' | 'image';
@@ -35,7 +35,10 @@ export class QrScannerService {
     private readonly MODULE_STATUS_KEY = 'barcode_module_status';
     private readonly INSTALL_COOLDOWN = 5 * 60 * 1000; // 5 minutos
 
-    constructor(private alertController: AlertController) {}
+    constructor(
+        private alertController: AlertController,
+        private nativeCameraQRService: NativeCameraQRService
+    ) {}
 
     public isNativePlatform(): boolean {
         return Capacitor.isNativePlatform();
@@ -81,7 +84,9 @@ export class QrScannerService {
 
         try {
             // Verificar soporte del dispositivo
-            const { supported } = await BarcodeScanner.isSupported();
+
+            return this.nativeCameraQRService.scanQRWithNativeCamera();
+            /*const { supported } = await BarcodeScanner.isSupported();
             if (!supported) {
                 return {
                     success: false,
@@ -104,7 +109,7 @@ export class QrScannerService {
                         success: false,
                         error: 'Método de escaneo no válido',
                     };
-            }
+            }*/
         } catch (error) {
             return {
                 success: false,
@@ -188,7 +193,7 @@ export class QrScannerService {
                     options.lensFacing === 'front'
                         ? LensFacing.Front
                         : LensFacing.Back,
-                resolution: this.getResolution(options.resolution),
+                //resolution: this.getResolution(options.resolution),
             };
 
             await BarcodeScanner.startScan(scanOptions);
@@ -399,7 +404,7 @@ export class QrScannerService {
     }
 
     // Obtener resolución enum
-    private getResolution(resolution?: string): Resolution {
+    /*private getResolution(resolution?: string): Resolution {
         switch (resolution) {
             case '640x480':
                 return Resolution['640x480'];
@@ -410,7 +415,7 @@ export class QrScannerService {
             default:
                 return Resolution['1280x720'];
         }
-    }
+    }*/
 
     // Escaneo Web
     private async scanQRWeb(): Promise<QRScanResult> {
