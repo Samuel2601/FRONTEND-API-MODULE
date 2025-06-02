@@ -80,8 +80,8 @@
                     <p-inputNumber
                         id="temperature"
                         formControlName="temperature"
-                        [min]="-10"
-                        [max]="50"
+                        [min]="-100"
+                        [max]="100"
                         suffix=" °C"
                         class="w-full"
                     >
@@ -229,8 +229,9 @@
             </div>
 
             <!-- Formulario del Producto Actual -->
+            <!-- Sección corregida del formulario del producto actual -->
             <div
-                *ngIf="productEvaluations.length > 0"
+                *ngIf="productEvaluations.length > 0 && getCurrentProduct()"
                 [formGroup]="getCurrentProduct()"
                 class="current-product-form"
             >
@@ -239,7 +240,10 @@
                 >
                     <h4 class="text-primary m-0">
                         Evaluación:
-                        {{ getCurrentProduct().get("identification")?.value }}
+                        {{
+                            getCurrentProduct()?.get("identification")?.value ||
+                                "Sin identificación"
+                        }}
                     </h4>
                     <p-button
                         icon="pi pi-trash"
@@ -399,8 +403,8 @@
                                     <p-inputNumber
                                         id="temperature"
                                         formControlName="temperature"
-                                        [min]="35"
-                                        [max]="42"
+                                        [min]="-100"
+                                        [max]="100"
                                         [minFractionDigits]="1"
                                         [maxFractionDigits]="1"
                                         suffix=" °C"
@@ -419,8 +423,8 @@
                                     <p-inputNumber
                                         id="heartRate"
                                         formControlName="heartRate"
-                                        [min]="40"
-                                        [max]="120"
+                                        [min]="0"
+                                        [max]="200"
                                         suffix=" bpm"
                                         class="w-full"
                                     >
@@ -437,8 +441,8 @@
                                     <p-inputNumber
                                         id="respiratoryRate"
                                         formControlName="respiratoryRate"
-                                        [min]="10"
-                                        [max]="40"
+                                        [min]="0"
+                                        [max]="100"
                                         suffix=" rpm"
                                         class="w-full"
                                     >
@@ -497,7 +501,7 @@
 
                                     <textarea
                                         *ngIf="
-                                            getCurrentProduct().get(
+                                            getCurrentProduct()?.get(
                                                 'physicalInspection.visibleLesions'
                                             )?.value
                                         "
@@ -565,8 +569,8 @@
                             <div
                                 class="field col-12"
                                 *ngIf="
-                                    getCurrentProduct().get('result')?.value !==
-                                    'SUITABLE_FOR_SLAUGHTER'
+                                    getCurrentProduct()?.get('result')
+                                        ?.value !== 'SUITABLE_FOR_SLAUGHTER'
                                 "
                             >
                                 <label

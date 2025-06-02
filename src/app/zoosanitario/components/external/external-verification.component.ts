@@ -1,4 +1,3 @@
-// ===== EXTERNAL VERIFICATION COMPONENT TS =====
 import {
     Component,
     OnInit,
@@ -54,7 +53,7 @@ export class ExternalVerificationComponent implements OnInit, OnDestroy {
 
     private destroy$ = new Subject<void>();
 
-    verificationForm: FormGroup;
+    verificationForm!: FormGroup; // Usar definite assignment assertion
     isLoading = false;
     currentProductIndex = 0;
 
@@ -106,10 +105,16 @@ export class ExternalVerificationComponent implements OnInit, OnDestroy {
         private messageService: MessageService,
         private confirmationService: ConfirmationService
     ) {
+        // Inicializar el formulario en el constructor
         this.initForm();
     }
 
     ngOnInit() {
+        // Asegurar que el formulario esté inicializado
+        if (!this.verificationForm) {
+            this.initForm();
+        }
+
         if (this.certificateData) {
             this.generateProductsFromCertificate();
         }
@@ -126,7 +131,10 @@ export class ExternalVerificationComponent implements OnInit, OnDestroy {
             sheetNumber: [this.generateSheetNumber(), Validators.required],
             inspectionDate: [new Date(), Validators.required],
             environmentalConditions: this.fb.group({
-                temperature: [null, [Validators.min(-10), Validators.max(50)]],
+                temperature: [
+                    null,
+                    [Validators.min(-100), Validators.max(100)],
+                ],
                 humidity: [null, [Validators.min(0), Validators.max(100)]],
                 transportConditions: [''],
             }),
@@ -136,7 +144,10 @@ export class ExternalVerificationComponent implements OnInit, OnDestroy {
     }
 
     get productEvaluations(): FormArray {
-        return this.verificationForm.get('productEvaluations') as FormArray;
+        return (
+            (this.verificationForm?.get('productEvaluations') as FormArray) ||
+            this.fb.array([])
+        );
     }
 
     private generateSheetNumber(): string {
@@ -151,13 +162,22 @@ export class ExternalVerificationComponent implements OnInit, OnDestroy {
     }
 
     private generateProductsFromCertificate() {
-        if (!this.certificateData?.certificateData?.products) return;
+        if (
+            !this.certificateData?.certificateData?.products ||
+            !this.verificationForm
+        )
+            return;
 
         this.verificationForm.patchValue({
             certificateId: this.certificateData.certificateId,
         });
 
         const products = this.certificateData.certificateData.products;
+
+        // Limpiar evaluaciones existentes
+        while (this.productEvaluations.length !== 0) {
+            this.productEvaluations.removeAt(0);
+        }
 
         // Generar evaluaciones basadas en la cantidad de productos
         products.forEach((product: any, index: number) => {
@@ -243,11 +263,15 @@ export class ExternalVerificationComponent implements OnInit, OnDestroy {
     }
 
     navigateToProduct(index: number) {
-        this.currentProductIndex = index;
+        if (index >= 0 && index < this.productEvaluations.length) {
+            this.currentProductIndex = index;
+        }
     }
 
     onResultChange(index: number) {
         const evaluation = this.productEvaluations.at(index);
+        if (!evaluation) return;
+
         const result = evaluation.get('result')?.value;
 
         // Si el resultado no es apto, requerir razón
@@ -265,25 +289,33 @@ export class ExternalVerificationComponent implements OnInit, OnDestroy {
     addVeterinaryTreatment(productIndex: number) {
         const treatments = this.productEvaluations
             .at(productIndex)
-            .get('veterinaryTreatments') as FormArray;
-        treatments.push(this.fb.control('', Validators.required));
+            ?.get('veterinaryTreatments') as FormArray;
+
+        if (treatments) {
+            treatments.push(this.fb.control('', Validators.required));
+        }
     }
 
     removeVeterinaryTreatment(productIndex: number, treatmentIndex: number) {
         const treatments = this.productEvaluations
             .at(productIndex)
-            .get('veterinaryTreatments') as FormArray;
-        treatments.removeAt(treatmentIndex);
+            ?.get('veterinaryTreatments') as FormArray;
+
+        if (treatments) {
+            treatments.removeAt(treatmentIndex);
+        }
     }
 
     getVeterinaryTreatments(productIndex: number): FormArray {
-        return this.productEvaluations
-            .at(productIndex)
-            .get('veterinaryTreatments') as FormArray;
+        return (
+            (this.productEvaluations
+                .at(productIndex)
+                ?.get('veterinaryTreatments') as FormArray) || this.fb.array([])
+        );
     }
 
     updateSummary() {
-        const evaluations = this.productEvaluations.value;
+        const evaluations = this.productEvaluations.value || [];
 
         this.evaluationSummary = {
             totalEvaluated: evaluations.length,
@@ -303,7 +335,7 @@ export class ExternalVerificationComponent implements OnInit, OnDestroy {
     }
 
     async saveAndContinue() {
-        if (this.verificationForm.invalid) {
+        if (!this.verificationForm || this.verificationForm.invalid) {
             this.markFormGroupTouched(this.verificationForm);
             this.messageService.add({
                 severity: 'error',
@@ -368,6 +400,8 @@ export class ExternalVerificationComponent implements OnInit, OnDestroy {
     }
 
     private markFormGroupTouched(formGroup: FormGroup) {
+        if (!formGroup) return;
+
         Object.keys(formGroup.controls).forEach((key) => {
             const control = formGroup.get(key);
             control?.markAsTouched();
@@ -387,6 +421,38 @@ export class ExternalVerificationComponent implements OnInit, OnDestroy {
     }
 
     getCurrentProduct(): FormGroup {
+        if (
+            this.productEvaluations.length === 0 ||
+            this.currentProductIndex < 0
+        ) {
+            // Retornar un FormGroup vacío como fallback
+            return this.fb.group({
+                identification: [''],
+                type: [''],
+                species: [''],
+                breed: [''],
+                sex: ['MALE'],
+                age: [null],
+                weight: [null],
+                generalCondition: ['GOOD'],
+                physicalInspection: this.fb.group({
+                    temperature: [null],
+                    heartRate: [null],
+                    respiratoryRate: [null],
+                    hydrationStatus: ['Normal'],
+                    bodyCondition: [3],
+                    visibleLesions: [false],
+                    lesionDescription: [''],
+                }),
+                completeDocumentation: [true],
+                vaccinationsUpToDate: [true],
+                veterinaryTreatments: this.fb.array([]),
+                result: ['SUITABLE_FOR_SLAUGHTER'],
+                reason: [''],
+                observations: [''],
+            });
+        }
+
         return this.productEvaluations.at(
             this.currentProductIndex
         ) as FormGroup;
