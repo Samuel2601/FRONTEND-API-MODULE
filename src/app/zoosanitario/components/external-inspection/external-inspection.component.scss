@@ -1,0 +1,644 @@
+:host {
+    display: block;
+    min-height: 100vh;
+    background: var(--surface-ground);
+}
+
+.external-inspection-container {
+    padding: 1rem;
+
+    @media (min-width: 768px) {
+        padding: 1.5rem;
+    }
+}
+
+// Header de Inspección
+.inspection-header {
+    background: linear-gradient(
+        135deg,
+        var(--primary-500) 0%,
+        var(--primary-600) 100%
+    );
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+
+    .process-info {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+
+        .process-chip,
+        .introducer-chip {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    }
+
+    .inspection-progress {
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .inspection-progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+
+            ::ng-deep .p-progressbar-value {
+                background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+                border-radius: 4px;
+            }
+        }
+    }
+
+    @media (max-width: 768px) {
+        padding: 1.5rem;
+
+        h1 {
+            font-size: 1.75rem !important;
+        }
+    }
+}
+
+// Estado de Inspección
+.inspection-status {
+    ::ng-deep .p-message {
+        border-radius: 8px;
+        border-left-width: 4px;
+
+        .p-message-wrapper {
+            padding: 1rem 1.25rem;
+        }
+    }
+}
+
+// Panel de Animales
+.animals-panel {
+    ::ng-deep .p-card-body {
+        padding: 1.25rem;
+    }
+
+    .animals-summary {
+        .summary-item {
+            text-align: center;
+            padding: 1rem;
+            background: var(--surface-50);
+            border-radius: 8px;
+            border: 1px solid var(--surface-200);
+
+            .summary-number {
+                font-size: 2rem;
+                font-weight: 700;
+                line-height: 1;
+                color: var(--text-color);
+            }
+
+            .summary-label {
+                font-size: 0.875rem;
+                color: var(--text-color-secondary);
+                margin-top: 0.25rem;
+            }
+        }
+    }
+
+    .animals-list {
+        max-height: 500px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: var(--surface-100);
+            border-radius: 3px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: var(--surface-300);
+            border-radius: 3px;
+
+            &:hover {
+                background: var(--surface-400);
+            }
+        }
+    }
+
+    .animal-item {
+        background: var(--surface-0);
+        border: 2px solid var(--surface-200);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            border-color: var(--primary-300);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        &.active {
+            border-color: var(--primary-500);
+            background: var(--primary-50);
+            box-shadow: 0 4px 16px rgba(var(--primary-500), 0.2);
+        }
+
+        &.evaluated {
+            border-color: var(--green-400);
+            background: var(--green-50);
+
+            &.active {
+                border-color: var(--green-500);
+                background: var(--green-100);
+            }
+        }
+
+        .animal-content {
+            .animal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 0.75rem;
+
+                .animal-id {
+                    font-weight: 600;
+                    font-size: 1.1rem;
+                    color: var(--text-color);
+                }
+
+                .animal-status i {
+                    font-size: 1.25rem;
+                }
+            }
+
+            .animal-details {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 0.5rem;
+
+                .animal-weight {
+                    font-size: 0.875rem;
+                    color: var(--text-color-secondary);
+                    font-weight: 500;
+                }
+            }
+
+            .animal-result {
+                margin-top: 0.75rem;
+            }
+        }
+    }
+}
+
+// Formularios
+.field {
+    margin-bottom: 1.5rem;
+
+    label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-color);
+        font-weight: 500;
+
+        &.font-semibold {
+            font-weight: 600;
+        }
+    }
+
+    small {
+        margin-top: 0.25rem;
+        display: block;
+        font-size: 0.8rem;
+
+        &.text-600 {
+            color: var(--text-color-secondary);
+        }
+
+        &.p-error {
+            color: var(--red-500);
+        }
+    }
+
+    ::ng-deep {
+        .p-inputtext,
+        .p-inputnumber-input,
+        .p-dropdown,
+        .p-inputtextarea {
+            width: 100%;
+            border-radius: 6px;
+            border: 1px solid var(--surface-300);
+            background: var(--surface-0);
+            color: var(--text-color);
+            font-size: 0.9rem;
+
+            &:focus {
+                border-color: var(--primary-500);
+                box-shadow: 0 0 0 0.2rem rgba(var(--primary-500), 0.2);
+            }
+
+            &.ng-invalid.ng-touched {
+                border-color: var(--red-500);
+            }
+        }
+
+        .p-inputtextarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+    }
+}
+
+// Indicador de condición
+.condition-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+// Checkbox personalizado
+.lesions-checkbox {
+    ::ng-deep {
+        .p-checkbox-box {
+            border-radius: 4px;
+        }
+
+        .p-checkbox-label {
+            margin-left: 0.5rem;
+            font-weight: 500;
+        }
+    }
+}
+
+// Botones de acción
+.evaluation-actions {
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--surface-200);
+    margin-top: 1.5rem;
+}
+
+// Tab de Fotografías
+.photo-upload {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    ::ng-deep .p-fileupload-choose {
+        background: var(--primary-500);
+        border-color: var(--primary-500);
+        color: white;
+        border-radius: 6px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+
+        &:hover {
+            background: var(--primary-600);
+            border-color: var(--primary-600);
+        }
+    }
+}
+
+.photo-gallery {
+    .photo-item {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+
+            .photo-overlay {
+                opacity: 1;
+            }
+        }
+
+        img {
+            border-radius: 8px;
+            aspect-ratio: 1;
+            object-fit: cover;
+        }
+
+        .photo-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+    }
+}
+
+.empty-photos {
+    background: var(--surface-50);
+    border: 2px dashed var(--surface-300);
+    border-radius: 8px;
+    color: var(--text-color-secondary);
+}
+
+// Resumen de Inspección
+.inspection-summary {
+    .summary-card {
+        background: var(--surface-0);
+        border: 1px solid var(--surface-200);
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.2s ease;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-icon {
+            margin-bottom: 1rem;
+
+            i {
+                font-size: 2rem;
+            }
+        }
+
+        .summary-content {
+            .summary-number {
+                font-size: 2.5rem;
+                font-weight: 700;
+                line-height: 1;
+                margin-bottom: 0.25rem;
+            }
+
+            .summary-label {
+                font-size: 0.875rem;
+                font-weight: 500;
+                color: var(--text-color-secondary);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+        }
+
+        &.total {
+            border-color: var(--blue-300);
+
+            .summary-icon i {
+                color: var(--blue-500);
+            }
+
+            .summary-number {
+                color: var(--blue-600);
+            }
+        }
+
+        &.suitable {
+            border-color: var(--green-300);
+
+            .summary-icon i {
+                color: var(--green-500);
+            }
+
+            .summary-number {
+                color: var(--green-600);
+            }
+        }
+
+        &.confiscation {
+            border-color: var(--red-300);
+
+            .summary-icon i {
+                color: var(--red-500);
+            }
+
+            .summary-number {
+                color: var(--red-600);
+            }
+        }
+
+        &.return {
+            border-color: var(--orange-300);
+
+            .summary-icon i {
+                color: var(--orange-500);
+            }
+
+            .summary-number {
+                color: var(--orange-600);
+            }
+        }
+    }
+}
+
+// Tabla de evaluaciones
+.evaluation-table {
+    ::ng-deep {
+        .p-datatable-thead > tr > th {
+            background: var(--surface-100);
+            color: var(--text-color);
+            font-weight: 600;
+            border-bottom: 2px solid var(--surface-200);
+            padding: 1rem;
+        }
+
+        .p-datatable-tbody > tr > td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--surface-200);
+        }
+
+        .p-datatable-tbody > tr:hover {
+            background: var(--surface-50);
+        }
+    }
+}
+
+// Panel de completar inspección
+.completion-panel {
+    ::ng-deep .p-panel-content {
+        background: linear-gradient(
+            135deg,
+            var(--green-50) 0%,
+            var(--green-100) 100%
+        );
+        border: 1px solid var(--green-200);
+        border-radius: 8px;
+    }
+}
+
+// Estados de carga
+.loading-state,
+.loading-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    background: var(--surface-0);
+    border-radius: 8px;
+    margin: 1rem 0;
+
+    .loading-spinner {
+        ::ng-deep .p-progress-spinner-circle {
+            stroke: var(--primary-500);
+        }
+    }
+}
+
+// Panels personalizados
+::ng-deep {
+    .p-panel {
+        border-radius: 8px;
+        border: 1px solid var(--surface-200);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+        .p-panel-header {
+            background: var(--surface-100);
+            border-radius: 8px 8px 0 0;
+            padding: 1rem 1.25rem;
+            font-weight: 600;
+            color: var(--text-color);
+            border-bottom: 1px solid var(--surface-200);
+        }
+
+        .p-panel-content {
+            padding: 1.25rem;
+            background: var(--surface-0);
+            border-radius: 0 0 8px 8px;
+        }
+
+        &.p-panel-toggleable .p-panel-header {
+            .p-panel-header-icon {
+                color: var(--text-color-secondary);
+
+                &:hover {
+                    color: var(--primary-500);
+                }
+            }
+        }
+    }
+
+    .p-tabview {
+        .p-tabview-nav {
+            background: var(--surface-100);
+            border-radius: 8px 8px 0 0;
+            padding: 0 1rem;
+
+            .p-tabview-nav-link {
+                color: var(--text-color-secondary);
+                border: none;
+                padding: 1rem 1.5rem;
+                font-weight: 500;
+                border-radius: 6px 6px 0 0;
+                margin-right: 0.25rem;
+
+                &:hover {
+                    background: var(--surface-200);
+                    color: var(--text-color);
+                }
+            }
+
+            .p-highlight .p-tabview-nav-link {
+                background: var(--surface-0);
+                color: var(--primary-500);
+                border-bottom: 2px solid var(--primary-500);
+            }
+        }
+
+        .p-tabview-panels {
+            background: var(--surface-0);
+            border-radius: 0 0 8px 8px;
+            border: 1px solid var(--surface-200);
+            border-top: none;
+
+            .p-tabview-panel {
+                padding: 1.5rem;
+            }
+        }
+    }
+
+    .p-card {
+        border-radius: 8px;
+        border: 1px solid var(--surface-200);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+        .p-card-header {
+            background: var(--surface-100);
+            padding: 1rem 1.25rem;
+            font-weight: 600;
+            color: var(--text-color);
+            border-bottom: 1px solid var(--surface-200);
+            border-radius: 8px 8px 0 0;
+        }
+
+        .p-card-body {
+            background: var(--surface-0);
+            border-radius: 0 0 8px 8px;
+        }
+
+        .p-card-content {
+            padding: 1.25rem;
+        }
+    }
+}
+
+// Responsive adjustments
+@media (max-width: 992px) {
+    .external-inspection-container {
+        padding: 1rem;
+    }
+
+    .inspection-header {
+        padding: 1.5rem;
+    }
+
+    .animals-panel {
+        margin-bottom: 1.5rem;
+    }
+
+    .grid .col-12:not(.lg\\:col-4):not(.lg\\:col-8) {
+        padding: 0.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .field {
+        margin-bottom: 1rem;
+    }
+
+    .summary-card {
+        .summary-content .summary-number {
+            font-size: 2rem !important;
+        }
+    }
+
+    .photo-upload {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .evaluation-actions {
+        .flex {
+            flex-direction: column;
+            gap: 0.75rem;
+
+            .p-button {
+                width: 100%;
+            }
+        }
+    }
+}

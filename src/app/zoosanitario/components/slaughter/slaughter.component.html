@@ -1,0 +1,1192 @@
+<div class="slaughter-container" *ngIf="!loading">
+    <!-- Header -->
+    <div class="slaughter-header">
+        <div class="flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-2">
+                    Proceso de Faenamiento
+                </h1>
+                <p class="text-white opacity-90">
+                    Etapa 3: Faenamiento de animales aptos
+                </p>
+                <div class="process-info mt-2" *ngIf="process">
+                    <p-chip
+                        [label]="'Proceso: ' + process.processNumber"
+                        styleClass="process-chip"
+                    />
+                    <p-chip
+                        [label]="
+                            'Introductor: ' +
+                            (process.introducer?.firstName ||
+                                process.introducer?.companyName)
+                        "
+                        styleClass="introducer-chip ml-2"
+                    />
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <p-button
+                    icon="pi pi-arrow-left"
+                    label="Volver"
+                    severity="secondary"
+                    [outlined]="true"
+                    (onClick)="goBack()"
+                />
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="slaughter-progress">
+            <div class="progress-info mb-2">
+                <span class="text-white">Progreso de Faenamiento</span>
+                <span class="text-white ml-auto">
+                    {{ processedAnimals.length }} /
+                    {{ animals.length }} animales
+                </span>
+            </div>
+            <p-progressBar
+                [value]="getSlaughterProgress()"
+                [showValue]="false"
+                styleClass="slaughter-progress-bar"
+            />
+        </div>
+    </div>
+
+    <!-- Estado del Faenamiento -->
+    <div class="slaughter-status mb-4" *ngIf="process">
+        <!-- No se puede iniciar -->
+        <p-message
+            *ngIf="!canStartSlaughter && !slaughterStarted"
+            severity="warn"
+            styleClass="w-full"
+        >
+            <ng-template pTemplate>
+                <div class="flex align-items-center">
+                    <i class="pi pi-exclamation-triangle mr-2"></i>
+                    <div>
+                        <div class="font-semibold">
+                            No se puede iniciar el faenamiento
+                        </div>
+                        <div class="text-sm">
+                            Debe completar la inspección externa primero
+                        </div>
+                    </div>
+                </div>
+            </ng-template>
+        </p-message>
+
+        <!-- Puede iniciar -->
+        <p-message
+            *ngIf="canStartSlaughter && !slaughterStarted"
+            severity="info"
+            styleClass="w-full"
+        >
+            <ng-template pTemplate>
+                <div
+                    class="flex justify-content-between align-items-center w-full"
+                >
+                    <div class="flex align-items-center">
+                        <i class="pi pi-info-circle mr-2"></i>
+                        <div>
+                            <div class="font-semibold">
+                                Listo para Faenamiento
+                            </div>
+                            <div class="text-sm">
+                                Puede iniciar el proceso de faenamiento
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </ng-template>
+        </p-message>
+
+        <!-- Faenamiento completado -->
+        <p-message
+            *ngIf="slaughterCompleted"
+            severity="success"
+            styleClass="w-full"
+        >
+            <ng-template pTemplate>
+                <div class="flex align-items-center">
+                    <i class="pi pi-check-circle mr-2"></i>
+                    <div>
+                        <div class="font-semibold">Faenamiento Completado</div>
+                        <div class="text-sm">
+                            Todos los animales han sido procesados
+                        </div>
+                    </div>
+                </div>
+            </ng-template>
+        </p-message>
+    </div>
+
+    <!-- Formulario de Inicio -->
+    <div
+        class="slaughter-start mb-4"
+        *ngIf="canStartSlaughter && !slaughterStarted"
+    >
+        <p-card header="Iniciar Proceso de Faenamiento">
+            <form [formGroup]="slaughterForm" (ngSubmit)="startSlaughter()">
+                <div class="grid">
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="operator" class="font-semibold">
+                                Operador Responsable *
+                            </label>
+                            <input
+                                pInputText
+                                id="operator"
+                                formControlName="operator"
+                                placeholder="Nombre del operador"
+                                class="w-full"
+                                [class.ng-invalid]="
+                                    slaughterForm.get('operator')?.invalid &&
+                                    slaughterForm.get('operator')?.touched
+                                "
+                            />
+                            <small
+                                class="p-error"
+                                *ngIf="
+                                    slaughterForm.get('operator')?.invalid &&
+                                    slaughterForm.get('operator')?.touched
+                                "
+                            >
+                                El operador es requerido
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label
+                                for="responsibleVeterinarian"
+                                class="font-semibold"
+                            >
+                                Veterinario Responsable *
+                            </label>
+                            <input
+                                pInputText
+                                id="responsibleVeterinarian"
+                                formControlName="responsibleVeterinarian"
+                                placeholder="Nombre del veterinario"
+                                class="w-full"
+                                [class.ng-invalid]="
+                                    slaughterForm.get('responsibleVeterinarian')
+                                        ?.invalid &&
+                                    slaughterForm.get('responsibleVeterinarian')
+                                        ?.touched
+                                "
+                            />
+                            <small
+                                class="p-error"
+                                *ngIf="
+                                    slaughterForm.get('responsibleVeterinarian')
+                                        ?.invalid &&
+                                    slaughterForm.get('responsibleVeterinarian')
+                                        ?.touched
+                                "
+                            >
+                                El veterinario responsable es requerido
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="startDate" class="font-semibold">
+                                Fecha y Hora de Inicio *
+                            </label>
+                            <p-calendar
+                                id="startDate"
+                                formControlName="startDate"
+                                [showTime]="true"
+                                [showSeconds]="false"
+                                placeholder="Seleccionar fecha y hora"
+                                styleClass="w-full"
+                                [class.ng-invalid]="
+                                    slaughterForm.get('startDate')?.invalid &&
+                                    slaughterForm.get('startDate')?.touched
+                                "
+                            />
+                            <small
+                                class="p-error"
+                                *ngIf="
+                                    slaughterForm.get('startDate')?.invalid &&
+                                    slaughterForm.get('startDate')?.touched
+                                "
+                            >
+                                La fecha de inicio es requerida
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-content-end mt-4">
+                    <p-button
+                        label="Iniciar Faenamiento"
+                        icon="pi pi-play"
+                        type="submit"
+                        [loading]="startingSlaughter"
+                        [disabled]="slaughterForm.invalid"
+                    />
+                </div>
+            </form>
+        </p-card>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="grid" *ngIf="slaughterStarted">
+        <!-- Panel de Animales -->
+        <div class="col-12 lg:col-4">
+            <p-card
+                header="Animales para Faenamiento"
+                styleClass="animals-panel h-full"
+            >
+                <!-- Resumen -->
+                <div class="animals-summary mb-4">
+                    <div class="grid">
+                        <div class="col-6">
+                            <div class="summary-item">
+                                <div class="summary-number">
+                                    {{ animals.length }}
+                                </div>
+                                <div class="summary-label">Total</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="summary-item">
+                                <div class="summary-number text-green-600">
+                                    {{ processedAnimals.length }}
+                                </div>
+                                <div class="summary-label">Procesados</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de Animales -->
+                <div class="animals-list">
+                    <div
+                        class="animal-item"
+                        *ngFor="let animal of animals; let i = index"
+                        [class.active]="i === currentAnimalIndex"
+                        [ngClass]="getAnimalStatusClass(animal)"
+                        (click)="selectAnimal(i)"
+                    >
+                        <div class="animal-content">
+                            <div class="animal-header">
+                                <div class="animal-id">
+                                    {{ animal.animalId }}
+                                </div>
+                                <div class="animal-status">
+                                    <i
+                                        class="pi"
+                                        [ngClass]="getAnimalStatusIcon(animal)"
+                                        [class.text-green-500]="
+                                            animal.status === 'COMPLETED'
+                                        "
+                                        [class.text-blue-500]="
+                                            animal.status === 'IN_PROGRESS'
+                                        "
+                                        [class.text-gray-400]="
+                                            animal.status === 'PENDING'
+                                        "
+                                    ></i>
+                                </div>
+                            </div>
+                            <div class="animal-details">
+                                <div class="animal-species">
+                                    <p-tag
+                                        [value]="
+                                            animal.species === 'BOVINE'
+                                                ? 'Bovino'
+                                                : 'Porcino'
+                                        "
+                                        [severity]="
+                                            animal.species === 'BOVINE'
+                                                ? 'info'
+                                                : 'warning'
+                                        "
+                                        styleClass="species-tag"
+                                    />
+                                </div>
+                                <div
+                                    class="animal-weight"
+                                    *ngIf="animal.weight"
+                                >
+                                    {{ animal.weight }} kg
+                                </div>
+                            </div>
+                            <div
+                                class="animal-progress"
+                                *ngIf="animal.status === 'COMPLETED'"
+                            >
+                                <div class="processing-time">
+                                    {{ getProcessingTime(animal) }}
+                                </div>
+                                <div class="yield" *ngIf="animal.yield">
+                                    Rendimiento: {{ animal.yield }}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </p-card>
+        </div>
+
+        <!-- Panel de Procesamiento -->
+        <div class="col-12 lg:col-8">
+            <p-tabView>
+                <!-- Tab de Procesamiento Individual -->
+                <p-tabPanel header="Procesamiento" leftIcon="pi pi-cog">
+                    <form
+                        [formGroup]="currentAnimalForm"
+                        (ngSubmit)="recordAnimalSlaughter()"
+                    >
+                        <!-- Información Básica -->
+                        <p-panel
+                            header="Información del Procesamiento"
+                            [toggleable]="true"
+                            styleClass="mb-4"
+                        >
+                            <div class="grid">
+                                <div class="col-12 md:col-6">
+                                    <div class="field">
+                                        <label
+                                            for="animalId"
+                                            class="font-semibold"
+                                        >
+                                            ID del Animal
+                                        </label>
+                                        <input
+                                            pInputText
+                                            type="text"
+                                            id="animalId"
+                                            formControlName="animalId"
+                                            class="w-full"
+                                            [readonly]="true"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-6">
+                                    <div class="field">
+                                        <label
+                                            for="processingMethod"
+                                            class="font-semibold"
+                                        >
+                                            Método de Procesamiento *
+                                        </label>
+                                        <p-dropdown
+                                            id="processingMethod"
+                                            formControlName="processingMethod"
+                                            [options]="processingMethodOptions"
+                                            optionLabel="label"
+                                            optionValue="value"
+                                            placeholder="Seleccionar método"
+                                            styleClass="w-full"
+                                            [class.ng-invalid]="
+                                                currentAnimalForm.get(
+                                                    'processingMethod'
+                                                )?.invalid &&
+                                                currentAnimalForm.get(
+                                                    'processingMethod'
+                                                )?.touched
+                                            "
+                                        />
+                                        <small
+                                            class="p-error"
+                                            *ngIf="
+                                                currentAnimalForm.get(
+                                                    'processingMethod'
+                                                )?.invalid &&
+                                                currentAnimalForm.get(
+                                                    'processingMethod'
+                                                )?.touched
+                                            "
+                                        >
+                                            El método de procesamiento es
+                                            requerido
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-4">
+                                    <div class="field">
+                                        <label
+                                            for="startTime"
+                                            class="font-semibold"
+                                        >
+                                            Hora de Inicio *
+                                        </label>
+                                        <p-calendar
+                                            id="startTime"
+                                            formControlName="startTime"
+                                            [showTime]="true"
+                                            [showSeconds]="false"
+                                            [timeOnly]="true"
+                                            placeholder="00:00"
+                                            styleClass="w-full"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-4">
+                                    <div class="field">
+                                        <label
+                                            for="endTime"
+                                            class="font-semibold"
+                                        >
+                                            Hora de Fin
+                                        </label>
+                                        <p-calendar
+                                            id="endTime"
+                                            formControlName="endTime"
+                                            [showTime]="true"
+                                            [showSeconds]="false"
+                                            [timeOnly]="true"
+                                            placeholder="00:00"
+                                            styleClass="w-full"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-4">
+                                    <div class="field">
+                                        <label
+                                            for="processTemperature"
+                                            class="font-semibold"
+                                        >
+                                            Temperatura del Proceso (°C)
+                                        </label>
+                                        <p-inputNumber
+                                            id="processTemperature"
+                                            formControlName="processTemperature"
+                                            placeholder="4.0"
+                                            mode="decimal"
+                                            [minFractionDigits]="1"
+                                            [maxFractionDigits]="1"
+                                            [min]="-10"
+                                            [max]="50"
+                                            styleClass="w-full"
+                                        />
+                                        <small class="text-600">
+                                            Temperatura recomendada: 0°C - 4°C
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </p-panel>
+
+                        <!-- Productos Obtenidos -->
+                        <p-panel
+                            header="Productos Obtenidos"
+                            [toggleable]="true"
+                            styleClass="mb-4"
+                        >
+                            <!-- Lista de Productos -->
+                            <div
+                                class="products-list mb-4"
+                                *ngIf="productsFormArray.length > 0"
+                            >
+                                <div
+                                    class="product-item"
+                                    *ngFor="
+                                        let productControl of productsFormArray.controls;
+                                        let i = index
+                                    "
+                                    [formGroup]="
+                                        getAnimalFormGroup(i, productsFormArray)
+                                    "
+                                >
+                                    <p-panel
+                                        [header]="'Producto #' + (i + 1)"
+                                        [toggleable]="true"
+                                    >
+                                        <div class="grid">
+                                            <div class="col-12 md:col-6">
+                                                <div class="field">
+                                                    <label
+                                                        [for]="
+                                                            'productType_' + i
+                                                        "
+                                                        class="font-semibold"
+                                                    >
+                                                        Tipo de Producto *
+                                                    </label>
+                                                    <p-dropdown
+                                                        [id]="
+                                                            'productType_' + i
+                                                        "
+                                                        formControlName="type"
+                                                        [options]="
+                                                            productTypeOptions
+                                                        "
+                                                        optionLabel="label"
+                                                        optionValue="value"
+                                                        placeholder="Seleccionar tipo"
+                                                        styleClass="w-full"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 md:col-6">
+                                                <div class="field">
+                                                    <label
+                                                        [for]="
+                                                            'productWeight_' + i
+                                                        "
+                                                        class="font-semibold"
+                                                    >
+                                                        Peso (kg) *
+                                                    </label>
+                                                    <p-inputNumber
+                                                        [id]="
+                                                            'productWeight_' + i
+                                                        "
+                                                        formControlName="weight"
+                                                        placeholder="0.00"
+                                                        mode="decimal"
+                                                        [minFractionDigits]="2"
+                                                        [maxFractionDigits]="2"
+                                                        [min]="0"
+                                                        styleClass="w-full"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 md:col-4">
+                                                <div class="field">
+                                                    <label
+                                                        [for]="
+                                                            'productQuality_' +
+                                                            i
+                                                        "
+                                                        class="font-semibold"
+                                                    >
+                                                        Calidad
+                                                    </label>
+                                                    <p-dropdown
+                                                        [id]="
+                                                            'productQuality_' +
+                                                            i
+                                                        "
+                                                        formControlName="quality"
+                                                        [options]="
+                                                            qualityOptions
+                                                        "
+                                                        optionLabel="label"
+                                                        optionValue="value"
+                                                        placeholder="Seleccionar calidad"
+                                                        styleClass="w-full"
+                                                    >
+                                                        <ng-template
+                                                            let-quality
+                                                            pTemplate="selectedItem"
+                                                        >
+                                                            <div
+                                                                class="flex align-items-center gap-2"
+                                                            >
+                                                                <div
+                                                                    class="quality-indicator"
+                                                                    [style.background-color]="
+                                                                        quality.color
+                                                                    "
+                                                                ></div>
+                                                                <span>{{
+                                                                    quality.label
+                                                                }}</span>
+                                                            </div>
+                                                        </ng-template>
+
+                                                        <ng-template
+                                                            let-quality
+                                                            pTemplate="item"
+                                                        >
+                                                            <div
+                                                                class="flex align-items-center gap-2"
+                                                            >
+                                                                <div
+                                                                    class="quality-indicator"
+                                                                    [style.background-color]="
+                                                                        quality.color
+                                                                    "
+                                                                ></div>
+                                                                <span>{{
+                                                                    quality.label
+                                                                }}</span>
+                                                            </div>
+                                                        </ng-template>
+                                                    </p-dropdown>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 md:col-4">
+                                                <div class="field">
+                                                    <label
+                                                        [for]="
+                                                            'productBatch_' + i
+                                                        "
+                                                        class="font-semibold"
+                                                    >
+                                                        Lote
+                                                    </label>
+                                                    <input
+                                                        pInputText
+                                                        [id]="
+                                                            'productBatch_' + i
+                                                        "
+                                                        formControlName="batch"
+                                                        placeholder="Número de lote"
+                                                        class="w-full"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 md:col-4">
+                                                <div class="field">
+                                                    <div
+                                                        class="flex justify-content-end align-items-end h-full"
+                                                    >
+                                                        <p-button
+                                                            icon="pi pi-trash"
+                                                            severity="danger"
+                                                            size="small"
+                                                            [text]="true"
+                                                            (onClick)="
+                                                                removeProduct(i)
+                                                            "
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12">
+                                                <div class="field">
+                                                    <label
+                                                        [for]="
+                                                            'productObservations_' +
+                                                            i
+                                                        "
+                                                        class="font-semibold"
+                                                    >
+                                                        Observaciones
+                                                    </label>
+                                                    <textarea
+                                                        pInputTextarea
+                                                        [id]="
+                                                            'productObservations_' +
+                                                            i
+                                                        "
+                                                        formControlName="observations"
+                                                        placeholder="Observaciones sobre el producto..."
+                                                        rows="2"
+                                                        class="w-full"
+                                                    ></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </p-panel>
+                                </div>
+                            </div>
+
+                            <!-- Botón Agregar Producto -->
+                            <div class="text-center">
+                                <p-button
+                                    icon="pi pi-plus"
+                                    label="Agregar Producto"
+                                    severity="success"
+                                    [outlined]="true"
+                                    (onClick)="addProduct()"
+                                />
+                            </div>
+                        </p-panel>
+
+                        <!-- Decomisos -->
+                        <p-panel
+                            header="Decomisos"
+                            [toggleable]="true"
+                            styleClass="mb-4"
+                        >
+                            <!-- Lista de Decomisos -->
+                            <div
+                                class="confiscations-list mb-4"
+                                *ngIf="confiscationsFormArray.length > 0"
+                            >
+                                <div
+                                    class="confiscation-item"
+                                    *ngFor="
+                                        let confiscationControl of confiscationsFormArray.controls;
+                                        let i = index
+                                    "
+                                    [formGroup]="
+                                        getAnimalFormGroup(
+                                            i,
+                                            confiscationsFormArray
+                                        )
+                                    "
+                                >
+                                    <p-panel
+                                        [header]="'Decomiso #' + (i + 1)"
+                                        [toggleable]="true"
+                                        styleClass="confiscation-panel"
+                                    >
+                                        <div class="grid">
+                                            <div class="col-12 md:col-6">
+                                                <div class="field">
+                                                    <label
+                                                        [for]="
+                                                            'confiscationPart_' +
+                                                            i
+                                                        "
+                                                        class="font-semibold"
+                                                    >
+                                                        Parte Decomisada *
+                                                    </label>
+                                                    <input
+                                                        pInputText
+                                                        [id]="
+                                                            'confiscationPart_' +
+                                                            i
+                                                        "
+                                                        formControlName="part"
+                                                        placeholder="Ej: Hígado, Pulmón, etc."
+                                                        class="w-full"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 md:col-6">
+                                                <div class="field">
+                                                    <label
+                                                        [for]="
+                                                            'confiscationReason_' +
+                                                            i
+                                                        "
+                                                        class="font-semibold"
+                                                    >
+                                                        Razón del Decomiso *
+                                                    </label>
+                                                    <p-dropdown
+                                                        [id]="
+                                                            'confiscationReason_' +
+                                                            i
+                                                        "
+                                                        formControlName="reason"
+                                                        [options]="
+                                                            confiscationReasons
+                                                        "
+                                                        optionLabel="label"
+                                                        optionValue="value"
+                                                        placeholder="Seleccionar razón"
+                                                        styleClass="w-full"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 md:col-4">
+                                                <div class="field">
+                                                    <label
+                                                        [for]="
+                                                            'confiscationWeight_' +
+                                                            i
+                                                        "
+                                                        class="font-semibold"
+                                                    >
+                                                        Peso (kg) *
+                                                    </label>
+                                                    <p-inputNumber
+                                                        [id]="
+                                                            'confiscationWeight_' +
+                                                            i
+                                                        "
+                                                        formControlName="weight"
+                                                        placeholder="0.00"
+                                                        mode="decimal"
+                                                        [minFractionDigits]="2"
+                                                        [maxFractionDigits]="2"
+                                                        [min]="0"
+                                                        styleClass="w-full"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 md:col-4">
+                                                <div class="field">
+                                                    <label
+                                                        [for]="
+                                                            'confiscationDisposition_' +
+                                                            i
+                                                        "
+                                                        class="font-semibold"
+                                                    >
+                                                        Disposición Final *
+                                                    </label>
+                                                    <p-dropdown
+                                                        [id]="
+                                                            'confiscationDisposition_' +
+                                                            i
+                                                        "
+                                                        formControlName="finalDisposition"
+                                                        [options]="
+                                                            dispositionOptions
+                                                        "
+                                                        optionLabel="label"
+                                                        optionValue="value"
+                                                        placeholder="Seleccionar disposición"
+                                                        styleClass="w-full"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 md:col-4">
+                                                <div class="field">
+                                                    <div
+                                                        class="flex justify-content-end align-items-end h-full"
+                                                    >
+                                                        <p-button
+                                                            icon="pi pi-trash"
+                                                            severity="danger"
+                                                            size="small"
+                                                            [text]="true"
+                                                            (onClick)="
+                                                                removeConfiscation(
+                                                                    i
+                                                                )
+                                                            "
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </p-panel>
+                                </div>
+                            </div>
+
+                            <!-- Botón Agregar Decomiso -->
+                            <div class="text-center">
+                                <p-button
+                                    icon="pi pi-plus"
+                                    label="Agregar Decomiso"
+                                    severity="danger"
+                                    [outlined]="true"
+                                    (onClick)="addConfiscation()"
+                                />
+                            </div>
+                        </p-panel>
+
+                        <!-- Rendimiento y Observaciones -->
+                        <p-panel
+                            header="Rendimiento y Observaciones"
+                            [toggleable]="true"
+                            styleClass="mb-4"
+                        >
+                            <div class="grid">
+                                <div class="col-12 md:col-6">
+                                    <div class="field">
+                                        <label
+                                            for="yield"
+                                            class="font-semibold"
+                                        >
+                                            Rendimiento (%)
+                                        </label>
+                                        <p-inputNumber
+                                            id="yield"
+                                            formControlName="yield"
+                                            placeholder="75.5"
+                                            mode="decimal"
+                                            [minFractionDigits]="1"
+                                            [maxFractionDigits]="1"
+                                            [min]="0"
+                                            [max]="100"
+                                            suffix="%"
+                                            styleClass="w-full"
+                                        />
+                                        <small class="text-600">
+                                            Rendimiento típico: 65-80%
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="field">
+                                        <label
+                                            for="observations"
+                                            class="font-semibold"
+                                        >
+                                            Observaciones
+                                        </label>
+                                        <textarea
+                                            pInputTextarea
+                                            id="observations"
+                                            formControlName="observations"
+                                            placeholder="Observaciones sobre el procesamiento..."
+                                            rows="4"
+                                            class="w-full"
+                                        ></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </p-panel>
+
+                        <!-- Botones de Acción -->
+                        <div class="processing-actions">
+                            <div class="flex justify-content-end gap-2">
+                                <p-button
+                                    label="Limpiar Formulario"
+                                    icon="pi pi-refresh"
+                                    severity="secondary"
+                                    [outlined]="true"
+                                    type="button"
+                                    (onClick)="resetCurrentAnimalForm()"
+                                />
+                                <p-button
+                                    label="Registrar Procesamiento"
+                                    icon="pi pi-check"
+                                    type="submit"
+                                    [loading]="saving"
+                                    [disabled]="currentAnimalForm.invalid"
+                                />
+                            </div>
+                        </div>
+                    </form>
+                </p-tabPanel>
+
+                <!-- Tab de Resumen -->
+                <p-tabPanel header="Resumen" leftIcon="pi pi-chart-bar">
+                    <div class="slaughter-summary">
+                        <!-- Estadísticas Generales -->
+                        <p-panel
+                            header="Estadísticas del Faenamiento"
+                            styleClass="mb-4"
+                        >
+                            <div class="grid">
+                                <div class="col-6 md:col-3">
+                                    <div class="summary-card total">
+                                        <div class="summary-icon">
+                                            <i class="pi pi-list"></i>
+                                        </div>
+                                        <div class="summary-content">
+                                            <div class="summary-number">
+                                                {{
+                                                    slaughterSummary.totalAnimals
+                                                }}
+                                            </div>
+                                            <div class="summary-label">
+                                                Total Animales
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-6 md:col-3">
+                                    <div class="summary-card processed">
+                                        <div class="summary-icon">
+                                            <i class="pi pi-check-circle"></i>
+                                        </div>
+                                        <div class="summary-content">
+                                            <div class="summary-number">
+                                                {{
+                                                    slaughterSummary.processedAnimals
+                                                }}
+                                            </div>
+                                            <div class="summary-label">
+                                                Procesados
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-6 md:col-3">
+                                    <div class="summary-card weight">
+                                        <div class="summary-icon">
+                                            <i class="pi pi-database"></i>
+                                        </div>
+                                        <div class="summary-content">
+                                            <div class="summary-number">
+                                                {{
+                                                    slaughterSummary.totalCarcassWeight
+                                                        | number : "1.1-1"
+                                                }}
+                                            </div>
+                                            <div class="summary-label">
+                                                Peso Canal (kg)
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-6 md:col-3">
+                                    <div class="summary-card yield">
+                                        <div class="summary-icon">
+                                            <i class="pi pi-percentage"></i>
+                                        </div>
+                                        <div class="summary-content">
+                                            <div class="summary-number">
+                                                {{
+                                                    slaughterSummary.averageYield
+                                                        | number : "1.1-1"
+                                                }}%
+                                            </div>
+                                            <div class="summary-label">
+                                                Rendimiento Promedio
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </p-panel>
+
+                        <!-- Lista de Animales Procesados -->
+                        <p-panel
+                            header="Animales Procesados"
+                            styleClass="mb-4"
+                            *ngIf="processedAnimals.length > 0"
+                        >
+                            <p-table
+                                [value]="processedAnimals"
+                                styleClass="processing-table"
+                            >
+                                <ng-template pTemplate="header">
+                                    <tr>
+                                        <th>ID Animal</th>
+                                        <th>Especie</th>
+                                        <th>Método</th>
+                                        <th>Tiempo</th>
+                                        <th>Peso Canal</th>
+                                        <th>Rendimiento</th>
+                                        <th>Decomisos</th>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-animal>
+                                    <tr>
+                                        <td>{{ animal.animalId }}</td>
+                                        <td>
+                                            <p-tag
+                                                [value]="
+                                                    animal.species === 'BOVINE'
+                                                        ? 'Bovino'
+                                                        : 'Porcino'
+                                                "
+                                                [severity]="
+                                                    animal.species === 'BOVINE'
+                                                        ? 'info'
+                                                        : 'warning'
+                                                "
+                                            />
+                                        </td>
+                                        <td>{{ animal.processingMethod }}</td>
+                                        <td>{{ getProcessingTime(animal) }}</td>
+                                        <td>
+                                            {{
+                                                formatWeight(
+                                                    getTotalCarcassWeight(
+                                                        animal
+                                                    )
+                                                )
+                                            }}
+                                        </td>
+                                        <td>
+                                            <span
+                                                *ngIf="animal.yield"
+                                                [style.color]="
+                                                    getQualityColor(
+                                                        animal.yield > 70
+                                                            ? 'GOOD'
+                                                            : 'FAIR'
+                                                    )
+                                                "
+                                            >
+                                                {{
+                                                    animal.yield
+                                                        | number : "1.1-1"
+                                                }}%
+                                            </span>
+                                            <span *ngIf="!animal.yield"
+                                                >N/A</span
+                                            >
+                                        </td>
+                                        <td>
+                                            <p-tag
+                                                [value]="
+                                                    animal.confiscations.length.toString()
+                                                "
+                                                [severity]="
+                                                    getConfiscationSeverity(
+                                                        animal.confiscations
+                                                            .length
+                                                    )
+                                                "
+                                            />
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
+                        </p-panel>
+
+                        <!-- Completar Faenamiento -->
+                        <div
+                            class="complete-slaughter"
+                            *ngIf="allAnimalsProcessed() && !slaughterCompleted"
+                        >
+                            <p-panel
+                                header="Finalizar Faenamiento"
+                                styleClass="completion-panel"
+                            >
+                                <div
+                                    class="flex justify-content-between align-items-center"
+                                >
+                                    <div>
+                                        <h4 class="text-900 mb-2">
+                                            Todos los animales han sido
+                                            procesados
+                                        </h4>
+                                        <p class="text-600 mb-0">
+                                            ¿Desea completar el proceso de
+                                            faenamiento?
+                                        </p>
+                                    </div>
+                                    <p-button
+                                        label="Completar Faenamiento"
+                                        icon="pi pi-check"
+                                        severity="success"
+                                        [loading]="completingSlaughter"
+                                        (onClick)="completeSlaughter()"
+                                    />
+                                </div>
+                            </p-panel>
+                        </div>
+                    </div>
+                </p-tabPanel>
+            </p-tabView>
+        </div>
+    </div>
+
+    <!-- Estado de Espera -->
+    <div
+        class="waiting-state"
+        *ngIf="!slaughterStarted && !slaughterCompleted && canStartSlaughter"
+    >
+        <div class="text-center p-5">
+            <i class="pi pi-clock text-5xl text-400 mb-3"></i>
+            <h4 class="text-900 mb-2">Esperando Inicio de Faenamiento</h4>
+            <p class="text-600">
+                Complete el formulario de inicio para comenzar el proceso
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Loading inicial -->
+<div class="loading-container" *ngIf="loading">
+    <div class="text-center">
+        <p-progressSpinner styleClass="loading-spinner"></p-progressSpinner>
+        <h4 class="text-900 mt-3">Cargando información del proceso...</h4>
+    </div>
+</div>
+
+<!-- Diálogos de Confirmación -->
+<p-confirmDialog></p-confirmDialog>
+
+<!-- Toast para notificaciones -->
+<p-toast></p-toast>

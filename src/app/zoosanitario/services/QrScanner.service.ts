@@ -19,7 +19,7 @@ export interface QRScanOptions {
 
 export interface QRScanResult {
     success: boolean;
-    data?: string;
+    data?: any;
     format?: string;
     error?: string;
     barcodes?: any[];

@@ -1,378 +1,647 @@
-import {
-    Component,
-    OnInit,
-    Output,
-    EventEmitter,
-    OnDestroy,
-} from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { MessageService, ConfirmationService } from 'primeng/api';
-import { QrScannerService } from '../../services/QrScanner.service';
-import { ZoosanitaryCertificateService } from '../../services/ZoosanitaryCertificate.service';
+import { ImportsModule } from 'src/app/demo/services/import';
 import {
-    QrDataParserService,
-    QRCertificateData,
-} from '../../services/QrDataParser.service';
+    ReceptionParams,
+    SlaughterProcessService,
+} from '../../services/slaughter-process.service';
+import {
+    Introducer,
+    IntroducerService,
+} from '../../services/introducer.service';
+import {
+    QrScannerService,
+    QRScanResult,
+} from '../../services/QrScanner.service';
+
+interface AnimalData {
+    animalId: string;
+    species: 'BOVINE' | 'PORCINE';
+    weight?: number;
+    condition: string;
+    observations?: string;
+}
+
+interface CertificateValidationResult {
+    isValid: boolean;
+    errors: string[];
+    warnings: string[];
+}
 
 @Component({
     selector: 'app-reception',
+    standalone: true,
+    imports: [ImportsModule],
     templateUrl: './reception.component.html',
     styleUrls: ['./reception.component.scss'],
+    providers: [ConfirmationService],
 })
 export class ReceptionComponent implements OnInit, OnDestroy {
-    @Output() stepCompleted = new EventEmitter<any>();
-
     private destroy$ = new Subject<void>();
 
-    receptionForm: FormGroup;
-    isLoading = false;
-    isScanning = false;
-    certificateData: any = null;
-    qrParsedData: QRCertificateData | null = null;
-    showCertificateDetails = false;
-    validationStatus: 'pending' | 'valid' | 'invalid' | 'expired' = 'pending';
+    // Estados de carga
+    loading = false;
+    scanning = false;
+    validatingCertificate = false;
+    validatingPayments = false;
+    submitting = false;
+
+    // Formularios
+    receptionForm!: FormGroup;
+
+    // Datos
+    introducers: Introducer[] = [];
+    selectedIntroducer: Introducer | null = null;
+    certificateData: QRScanResult['data'] | null = null;
+
+    // Estados del proceso
+    currentStep = 1;
+    totalSteps = 4;
+
+    // Validaciones
+    certificateValidation: CertificateValidationResult | null = null;
+    paymentValidation: {
+        canProceed: boolean;
+        inscriptionStatus: string;
+        finesStatus: string;
+        pendingAmount: number;
+        reason?: string;
+    } | null = null;
+
+    // Opciones para dropdowns
+    speciesOptions = [
+        { label: 'Bovino', value: 'BOVINE' },
+        { label: 'Porcino', value: 'PORCINE' },
+    ];
+
+    conditionOptions = [
+        { label: 'Excelente', value: 'EXCELLENT' },
+        { label: 'Bueno', value: 'GOOD' },
+        { label: 'Regular', value: 'FAIR' },
+        { label: 'Deficiente', value: 'POOR' },
+    ];
+
+    receptionMethodOptions = [
+        { label: 'Escaneo QR', value: 'QR_SCAN' },
+        { label: 'Entrada Manual', value: 'MANUAL_ENTRY' },
+    ];
+
+    // Control de pasos
+    steps = [
+        {
+            label: 'Certificado',
+            icon: 'pi pi-qrcode',
+            description: 'Escanear o ingresar certificado zoosanitario',
+        },
+        {
+            label: 'Introductor',
+            icon: 'pi pi-user',
+            description: 'Seleccionar y validar introductor',
+        },
+        {
+            label: 'Animales',
+            icon: 'pi pi-list',
+            description: 'Registrar animales recibidos',
+        },
+        {
+            label: 'Confirmación',
+            icon: 'pi pi-check',
+            description: 'Revisar y confirmar recepción',
+        },
+    ];
 
     constructor(
         private fb: FormBuilder,
+        private slaughterService: SlaughterProcessService,
+        private introducerService: IntroducerService,
         private qrService: QrScannerService,
-        private qrParser: QrDataParserService,
-        private certificateService: ZoosanitaryCertificateService,
         private messageService: MessageService,
-        private confirmationService: ConfirmationService
+        private confirmationService: ConfirmationService,
+        private router: Router
     ) {
-        this.initForm();
+        this.initializeForm();
     }
 
-    ngOnInit() {
-        // Auto-focus en el campo de certificado cuando se carga el componente
-        setTimeout(() => {
-            const input = document.getElementById('certificateNumber');
-            if (input) input.focus();
-        }, 500);
+    ngOnInit(): void {
+        this.loadIntroducers();
     }
 
-    ngOnDestroy() {
+    ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
-
-        // Detener scanner si está activo
-        if (this.isScanning) {
-            this.qrService.stopScan();
-        }
     }
 
-    private initForm() {
+    /**
+     * Inicializar formulario
+     */
+    private initializeForm(): void {
         this.receptionForm = this.fb.group({
-            certificateNumber: [
-                '',
-                [Validators.required, Validators.minLength(5)],
-            ],
-            manualValidation: [false],
+            // Datos del certificado
+            certificateNumber: ['', Validators.required],
+            receptionMethod: ['QR_SCAN', Validators.required],
+
+            // Datos del introductor
+            introducerId: ['', Validators.required],
+
+            // Datos de recepción
+            receptionDate: [new Date(), Validators.required],
             receptionNotes: [''],
+
+            // Animales
+            animals: this.fb.array([]),
         });
     }
 
-    async scanQRCode() {
-        try {
-            this.isScanning = true;
-            this.messageService.add({
-                severity: 'info',
-                summary: 'Escaneando',
-                detail: 'Apunte la cámara hacia el código QR',
-            });
-
-            const qrResult = await this.qrService.scanQR({
-                method: 'native',
-                lensFacing: 'back',
-                resolution: '1920x1080',
-            });
-            console.log('QR Raw Data:', JSON.stringify(qrResult, null, 2));
-            if (qrResult) {
-                if (qrResult.error) {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error de Escaneo',
-                        detail: qrResult.error,
-                    });
-                    return;
-                }
-
-                // Verificar si es un certificado válido
-                if (!this.qrParser.isValidCertificateQR(qrResult.data)) {
-                    this.messageService.add({
-                        severity: 'warn',
-                        summary: 'QR No Válido',
-                        detail: 'El código QR no parece ser un certificado zoosanitario',
-                    });
-                    return;
-                }
-
-                // Parsear los datos del QR
-                this.qrParsedData = this.qrParser.parseQRData(qrResult.data);
-
-                if (this.qrParsedData) {
-                    console.log('QR Parsed Data:', this.qrParsedData);
-
-                    // Llenar el formulario con el número de certificado
-                    this.receptionForm.patchValue({
-                        certificateNumber: this.qrParsedData.certificateNumber,
-                    });
-
-                    // Mostrar información parseada
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'QR Procesado',
-                        detail: `Certificado: ${this.qrParsedData.certificateNumber}`,
-                    });
-
-                    // Validar automáticamente
-                    await this.validateCertificate();
-                } else {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error de Procesamiento',
-                        detail: 'No se pudo procesar la información del QR',
-                    });
-                }
-            }
-        } catch (error) {
-            console.error('Error during QR scan:', error);
-            this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'Error al escanear el código QR',
-            });
-        } finally {
-            this.isScanning = false;
-        }
+    /**
+     * Getter para el FormArray de animales
+     */
+    get animalsFormArray(): FormArray {
+        return this.receptionForm.get('animals') as FormArray;
     }
 
-    async manualEntry() {
+    /**
+     * Método auxiliar para obtener un FormGroup desde el FormArray
+     * Esto resuelve el problema de tipos en el template
+     */
+    getAnimalFormGroup(index: number): FormGroup {
+        return this.animalsFormArray.at(index) as FormGroup;
+    }
+
+    /**
+     * Cargar lista de introductores
+     */
+    private loadIntroducers(): void {
+        this.loading = true;
+        this.introducerService
+            .getAllIntroducers()
+            .pipe(
+                takeUntil(this.destroy$),
+                finalize(() => (this.loading = false))
+            )
+            .subscribe({
+                next: (introducers: any) => {
+                    this.introducers = introducers.data.filter(
+                        (i) => i.registrationStatus === 'ACTIVE'
+                    );
+                },
+                error: (error) => {
+                    console.error('Error cargando introductores:', error);
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'No se pudieron cargar los introductores',
+                    });
+                },
+            });
+    }
+
+    /**
+     * Escanear código QR
+     */
+    async scanQRCode(): Promise<void> {
         try {
-            const certificateNumber = await this.qrService.manualEntry();
-            if (certificateNumber) {
+            this.scanning = true;
+
+            // Solicitar permisos
+            const permissionsGranted =
+                await this.qrService.requestPermissions();
+            if (!permissionsGranted) {
+                throw new Error('Permisos de cámara denegados');
+            }
+
+            // Escanear QR
+            const result = await this.qrService.scanQR();
+
+            if (result.success && result.data) {
+                this.certificateData = result.data;
                 this.receptionForm.patchValue({
-                    certificateNumber: certificateNumber,
+                    certificateNumber: result.data,
                 });
-                await this.validateCertificate();
-            }
-        } catch (error) {
-            console.error('Error during manual entry:', error);
-        }
-    }
 
-    async scanFromFile() {
-        try {
-            this.messageService.add({
-                severity: 'info',
-                summary: 'Cargar Imagen',
-                detail: 'Seleccione una imagen con código QR',
-            });
-
-            const qrResult = await this.qrService.scanFromFileWeb();
-
-            if (qrResult) {
-                console.log('QR Raw Data from file:', qrResult);
-
-                // Verificar si es un certificado válido
-                if (!this.qrParser.isValidCertificateQR(qrResult)) {
-                    this.messageService.add({
-                        severity: 'warn',
-                        summary: 'QR No Válido',
-                        detail: 'El código QR no parece ser un certificado zoosanitario',
-                    });
-                    return;
-                }
-
-                // Parsear los datos del QR
-                this.qrParsedData = this.qrParser.parseQRData(qrResult);
-
-                if (this.qrParsedData) {
-                    console.log('QR Parsed Data from file:', this.qrParsedData);
-
-                    // Llenar el formulario con el número de certificado
-                    this.receptionForm.patchValue({
-                        certificateNumber: this.qrParsedData.certificateNumber,
-                    });
-
-                    // Mostrar información parseada
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'QR Procesado',
-                        detail: `Certificado: ${this.qrParsedData.certificateNumber}`,
-                    });
-
-                    // Validar automáticamente
-                    await this.validateCertificate();
-                } else {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error de Procesamiento',
-                        detail: 'No se pudo procesar la información del QR',
-                    });
-                }
-            }
-        } catch (error) {
-            console.error('Error during file scan:', error);
-            this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'Error al procesar la imagen',
-            });
-        }
-    }
-
-    async validateCertificate() {
-        const certificateNumber =
-            this.receptionForm.get('certificateNumber')?.value;
-
-        if (!certificateNumber) {
-            this.messageService.add({
-                severity: 'warn',
-                summary: 'Advertencia',
-                detail: 'Ingrese un número de certificado válido',
-            });
-            return;
-        }
-
-        this.isLoading = true;
-        this.validationStatus = 'pending';
-
-        try {
-            // Validar certificado por número
-            const result = await this.certificateService
-                .validateByQR(certificateNumber)
-                .toPromise();
-
-            if (result && result.certificate) {
-                this.certificateData = result.certificate;
-
-                // Verificar vigencia
-                const validUntil = new Date(this.certificateData.validUntil);
-                const now = new Date();
-
-                if (validUntil <= now) {
-                    this.validationStatus = 'expired';
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Certificado Expirado',
-                        detail: `El certificado expiró el ${validUntil.toLocaleDateString()}`,
-                    });
-                } else {
-                    this.validationStatus = 'valid';
-                    this.showCertificateDetails = true;
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Certificado Válido',
-                        detail: 'El certificado ha sido validado correctamente',
-                    });
-                }
-            } else {
-                this.validationStatus = 'invalid';
                 this.messageService.add({
-                    severity: 'error',
-                    summary: 'Certificado No Encontrado',
-                    detail: 'No se encontró un certificado con este número',
+                    severity: 'success',
+                    summary: 'QR Escaneado',
+                    detail: `Certificado ${result.data['certificateNumber']} leído correctamente`,
                 });
+
+                // Auto-seleccionar introductor si existe
+                this.autoSelectIntroducer(result.data['introducerId']);
+
+                // Validar certificado
+                await this.validateCertificate();
+            } else {
+                throw new Error(
+                    result.error || 'Error desconocido al escanear QR'
+                );
             }
-        } catch (error) {
-            console.error('Error validating certificate:', error);
-            this.validationStatus = 'invalid';
+        } catch (error: any) {
+            console.error('Error en escaneo QR:', error);
             this.messageService.add({
                 severity: 'error',
-                summary: 'Error de Validación',
-                detail: 'Error al validar el certificado. Verifique la conexión.',
+                summary: 'Error de Escaneo',
+                detail: error.message || 'No se pudo escanear el código QR',
             });
         } finally {
-            this.isLoading = false;
+            this.scanning = false;
         }
     }
 
-    acceptCertificate() {
-        if (this.validationStatus !== 'valid' || !this.certificateData) {
+    /**
+     * Auto-seleccionar introductor desde QR
+     */
+    private autoSelectIntroducer(introducerId: string): void {
+        const introducer = this.introducers.find((i) => i._id === introducerId);
+        if (introducer) {
+            this.selectedIntroducer = introducer;
+            this.receptionForm.patchValue({ introducerId: introducer._id });
+            this.validatePayments();
+        }
+    }
+
+    /**
+     * Validar certificado zoosanitario
+     */
+    async validateCertificate(): Promise<void> {
+        if (!this.certificateData) return;
+
+        this.validatingCertificate = true;
+
+        try {
+            const errors: string[] = [];
+            const warnings: string[] = [];
+
+            // Validar fecha de expiración
+            if (this.certificateData.expirationDate) {
+                const expiration = new Date(
+                    this.certificateData.expirationDate
+                );
+                const today = new Date();
+
+                if (expiration < today) {
+                    errors.push('El certificado zoosanitario ha expirado');
+                } else if (this.daysBetween(today, expiration) < 3) {
+                    warnings.push('El certificado expira en menos de 3 días');
+                }
+            }
+
+            // Validar número de certificado
+            if (!this.certificateData.certificateNumber) {
+                errors.push('Número de certificado no válido');
+            }
+
+            this.certificateValidation = {
+                isValid: errors.length === 0,
+                errors,
+                warnings,
+            };
+
+            // Mostrar mensajes...
+        } catch (error) {
+            // Manejo de errores...
+        } finally {
+            this.validatingCertificate = false;
+        }
+    }
+
+    private daysBetween(date1: Date, date2: Date): number {
+        const diff = date2.getTime() - date1.getTime();
+        return Math.ceil(diff / (1000 * 3600 * 24));
+    }
+    /**
+     * Manejar selección de introductor
+     */
+    onIntroducerSelect(): void {
+        const introducerId = this.receptionForm.get('introducerId')?.value;
+        this.selectedIntroducer =
+            this.introducers.find((i) => i._id === introducerId) || null;
+
+        if (this.selectedIntroducer) {
+            this.validatePayments();
+        }
+    }
+
+    /**
+     * Validar estado de pagos del introductor
+     */
+    private validatePayments(): void {
+        if (!this.selectedIntroducer) return;
+
+        this.validatingPayments = true;
+
+        this.introducerService
+            .validateSlaughter(this.selectedIntroducer._id!)
+            .pipe(
+                takeUntil(this.destroy$),
+                finalize(() => (this.validatingPayments = false))
+            )
+            .subscribe({
+                next: (validation) => {
+                    this.paymentValidation = {
+                        canProceed: validation.canSlaughter,
+                        inscriptionStatus: validation.canSlaughter
+                            ? 'PAID'
+                            : 'PENDING',
+                        finesStatus:
+                            validation.pendingAmount &&
+                            validation.pendingAmount > 0
+                                ? 'PENDING'
+                                : 'NONE',
+                        pendingAmount: validation.pendingAmount || 0,
+                        reason: validation.reason,
+                    };
+
+                    if (!validation.canSlaughter) {
+                        this.messageService.add({
+                            severity: 'warn',
+                            summary: 'Pagos Pendientes',
+                            detail:
+                                validation.reason ||
+                                'El introductor tiene pagos pendientes',
+                        });
+                    }
+                },
+                error: (error) => {
+                    console.error('Error validando pagos:', error);
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'No se pudo validar el estado de pagos',
+                    });
+                },
+            });
+    }
+
+    /**
+     * Agregar animal al formulario
+     */
+    addAnimal(): void {
+        const animalForm = this.fb.group({
+            animalId: ['', Validators.required],
+            species: ['', Validators.required],
+            weight: [null, [Validators.min(1)]],
+            condition: ['GOOD', Validators.required],
+            observations: [''],
+        });
+
+        this.animalsFormArray.push(animalForm);
+    }
+
+    /**
+     * Remover animal del formulario
+     */
+    removeAnimal(index: number): void {
+        this.confirmationService.confirm({
+            message: '¿Está seguro de que desea eliminar este animal?',
+            header: 'Confirmar Eliminación',
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {
+                this.animalsFormArray.removeAt(index);
+                this.messageService.add({
+                    severity: 'info',
+                    summary: 'Animal Eliminado',
+                    detail: 'El animal ha sido removido de la lista',
+                });
+            },
+        });
+    }
+
+    /**
+     * Auto-llenar animales desde certificado QR
+     */
+    autoFillAnimalsFromCertificate(): void {
+        if (!this.certificateData) return;
+
+        this.confirmationService.confirm({
+            message: `¿Desea auto-llenar ${this.certificateData.animalCount} animales según el certificado?`,
+            header: 'Auto-llenar Animales',
+            icon: 'pi pi-question-circle',
+            accept: () => {
+                // Limpiar animales existentes
+                while (this.animalsFormArray.length > 0) {
+                    this.animalsFormArray.removeAt(0);
+                }
+
+                // Agregar animales según certificado
+                for (let i = 1; i <= this.certificateData!.animalCount; i++) {
+                    const animalForm = this.fb.group({
+                        animalId: [
+                            `${this.certificateData!.species}-${String(
+                                i
+                            ).padStart(3, '0')}`,
+                            Validators.required,
+                        ],
+                        species: [
+                            this.certificateData!.species === 'MIXED'
+                                ? 'BOVINE'
+                                : this.certificateData!.species,
+                            Validators.required,
+                        ],
+                        weight: [null, [Validators.min(1)]],
+                        condition: ['GOOD', Validators.required],
+                        observations: [''],
+                    });
+                    this.animalsFormArray.push(animalForm);
+                }
+
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Animales Auto-llenados',
+                    detail: `Se agregaron ${
+                        this.certificateData!.animalCount
+                    } animales`,
+                });
+            },
+        });
+    }
+
+    /**
+     * Navegar entre pasos
+     */
+    nextStep(): void {
+        if (this.currentStep < this.totalSteps && this.canProceedToNextStep()) {
+            this.currentStep++;
+        }
+    }
+
+    previousStep(): void {
+        if (this.currentStep > 1) {
+            this.currentStep--;
+        }
+    }
+
+    goToStep(step: number): void {
+        if (step >= 1 && step <= this.totalSteps) {
+            this.currentStep = step;
+        }
+    }
+
+    /**
+     * Verificar si se puede proceder al siguiente paso
+     */
+    canProceedToNextStep(): boolean {
+        switch (this.currentStep) {
+            case 1: // Certificado
+                return this.certificateValidation?.isValid || false;
+            case 2: // Introductor
+                return this.paymentValidation?.canProceed || false;
+            case 3: // Animales
+                return (
+                    this.animalsFormArray.length > 0 &&
+                    this.animalsFormArray.valid
+                );
+            default:
+                return true;
+        }
+    }
+
+    /**
+     * Enviar formulario de recepción
+     */
+    onSubmit(): void {
+        if (this.receptionForm.invalid) {
+            this.markFormGroupTouched();
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Formulario Inválido',
+                detail: 'Por favor complete todos los campos requeridos',
+            });
             return;
         }
 
         this.confirmationService.confirm({
             message:
-                '¿Confirma que desea procesar este certificado zoosanitario?',
+                '¿Está seguro de que desea iniciar el proceso de recepción?',
             header: 'Confirmar Recepción',
-            icon: 'pi pi-check-circle',
+            icon: 'pi pi-question-circle',
             accept: () => {
-                const receptionData = {
-                    certificateNumber: this.certificateData.certificateNumber,
-                    certificateId: this.certificateData._id,
-                    certificateData: this.certificateData,
-                    qrData: this.qrParsedData, // Incluir datos parseados del QR
-                    receptionDate: new Date(),
-                    receptionNotes:
-                        this.receptionForm.get('receptionNotes')?.value,
-                    validationStatus: this.validationStatus,
-                };
-
-                this.stepCompleted.emit(receptionData);
+                this.submitReception();
             },
         });
     }
 
-    rejectCertificate() {
+    /**
+     * Enviar datos de recepción
+     */
+    private submitReception(): void {
+        this.submitting = true;
+
+        const formValue = this.receptionForm.value;
+
+        const receptionParams: ReceptionParams = {
+            zoosanitaryCertificateId:
+                this.certificateData?._id || 'simulated-cert-id',
+            introducerId: formValue.introducerId,
+            receptionMethod: formValue.receptionMethod,
+            receivedAnimals: formValue.animals.map((animal: any) => ({
+                animalId: animal.animalId,
+                species: animal.species,
+                weight: animal.weight,
+                condition: animal.condition,
+                observations: animal.observations,
+            })),
+            receptionNotes: formValue.receptionNotes,
+        };
+
+        this.slaughterService
+            .startReception(receptionParams)
+            .pipe(
+                takeUntil(this.destroy$),
+                finalize(() => (this.submitting = false))
+            )
+            .subscribe({
+                next: (process) => {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Recepción Exitosa',
+                        detail: `Proceso ${process.processNumber} iniciado correctamente`,
+                    });
+
+                    // Navegar al proceso creado
+                    this.router.navigate([
+                        '/faenamiento/procesos',
+                        process._id,
+                    ]);
+                },
+                error: (error) => {
+                    console.error('Error en recepción:', error);
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error en Recepción',
+                        detail:
+                            error.message ||
+                            'No se pudo completar la recepción',
+                    });
+                },
+            });
+    }
+
+    /**
+     * Marcar todos los campos como tocados
+     */
+    private markFormGroupTouched(): void {
+        Object.keys(this.receptionForm.controls).forEach((key) => {
+            const control = this.receptionForm.get(key);
+            control?.markAsTouched();
+        });
+
+        this.animalsFormArray.controls.forEach((control) => {
+            Object.keys((control as FormGroup).controls).forEach((key) => {
+                control.get(key)?.markAsTouched();
+            });
+        });
+    }
+
+    /**
+     * Cancelar proceso
+     */
+    cancelReception(): void {
         this.confirmationService.confirm({
-            message: '¿Está seguro que desea rechazar este certificado?',
-            header: 'Rechazar Certificado',
-            icon: 'pi pi-times-circle',
-            acceptButtonStyleClass: 'p-button-danger',
+            message:
+                '¿Está seguro de que desea cancelar la recepción? Se perderán todos los datos ingresados.',
+            header: 'Cancelar Recepción',
+            icon: 'pi pi-exclamation-triangle',
             accept: () => {
-                this.resetForm();
-                this.messageService.add({
-                    severity: 'info',
-                    summary: 'Certificado Rechazado',
-                    detail: 'El certificado ha sido rechazado',
-                });
+                this.router.navigate(['/faenamiento/dashboard']);
             },
         });
     }
 
-    resetForm() {
-        this.receptionForm.reset();
-        this.certificateData = null;
-        this.qrParsedData = null;
-        this.showCertificateDetails = false;
-        this.validationStatus = 'pending';
-    }
-
-    formatDate(date: string | Date): string {
-        return new Date(date).toLocaleDateString('es-ES', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-        });
-    }
-
-    getValidationIcon(): string {
-        switch (this.validationStatus) {
-            case 'valid':
-                return 'pi-check-circle text-green-500';
-            case 'invalid':
-                return 'pi-times-circle text-red-500';
-            case 'expired':
-                return 'pi-clock text-orange-500';
-            default:
-                return 'pi-question-circle text-gray-500';
+    /**
+     * Obtener nombre del introductor para mostrar
+     */
+    getIntroducerDisplayName(introducer: Introducer): string {
+        if (introducer.type === 'NATURAL') {
+            return `${introducer.firstName} ${introducer.lastName}`;
+        } else {
+            return introducer.companyName || 'Sin nombre';
         }
     }
 
-    getValidationMessage(): string {
-        switch (this.validationStatus) {
-            case 'valid':
-                return 'Certificado válido y vigente';
-            case 'invalid':
-                return 'Certificado no válido o no encontrado';
-            case 'expired':
-                return 'Certificado expirado';
-            default:
-                return 'Pendiente de validación';
+    /**
+     * Obtener clase CSS para el paso actual
+     */
+    getStepClass(stepIndex: number): string {
+        if (stepIndex + 1 < this.currentStep) {
+            return 'completed';
+        } else if (stepIndex + 1 === this.currentStep) {
+            return 'active';
+        } else {
+            return 'pending';
         }
+    }
+
+    // Agregar este método al final de la clase ReceptionComponent
+
+    /**
+     * Contar animales por especie
+     */
+    getAnimalCountBySpecies(species: string): number {
+        return this.animalsFormArray.value.filter(
+            (animal: any) => animal.species === species
+        ).length;
     }
 }

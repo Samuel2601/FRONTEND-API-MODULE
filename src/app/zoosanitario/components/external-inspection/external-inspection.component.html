@@ -1,0 +1,1198 @@
+<div class="external-inspection-container" *ngIf="!loading">
+    <!-- Header -->
+    <div class="inspection-header">
+        <div class="flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-2">
+                    Inspección Externa
+                </h1>
+                <p class="text-white opacity-90">
+                    Etapa 2: Evaluación física de animales
+                </p>
+                <div class="process-info mt-2" *ngIf="process">
+                    <p-chip
+                        [label]="'Proceso: ' + process.processNumber"
+                        styleClass="process-chip"
+                    >
+                    </p-chip>
+                    <p-chip
+                        [label]="
+                            'Introductor: ' +
+                            (process.introducer?.firstName ||
+                                process.introducer?.companyName)
+                        "
+                        styleClass="introducer-chip ml-2"
+                    >
+                    </p-chip>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <p-button
+                    icon="pi pi-arrow-left"
+                    label="Volver"
+                    severity="secondary"
+                    [outlined]="true"
+                    (onClick)="goBack()"
+                >
+                </p-button>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="inspection-progress">
+            <div class="progress-info mb-2">
+                <span class="text-white">Progreso de Evaluación</span>
+                <span class="text-white ml-auto">
+                    {{ evaluatedAnimals.length }} /
+                    {{ animals.length }} animales
+                </span>
+            </div>
+            <p-progressBar
+                [value]="getEvaluationProgress()"
+                [showValue]="false"
+                styleClass="inspection-progress-bar"
+            >
+            </p-progressBar>
+        </div>
+    </div>
+
+    <!-- Estado de la Inspección -->
+    <div class="inspection-status mb-4" *ngIf="process">
+        <!-- No se puede iniciar -->
+        <p-message
+            *ngIf="!canStartInspection && !inspectionStarted"
+            severity="warning"
+            styleClass="w-full"
+        >
+            <ng-template pTemplate>
+                <div class="flex align-items-center">
+                    <i class="pi pi-exclamation-triangle mr-2"></i>
+                    <div>
+                        <div class="font-semibold">
+                            No se puede iniciar la inspección
+                        </div>
+                        <div class="text-sm">
+                            Debe completar la verificación de pagos primero
+                        </div>
+                    </div>
+                </div>
+            </ng-template>
+        </p-message>
+
+        <!-- Puede iniciar -->
+        <p-message
+            *ngIf="canStartInspection && !inspectionStarted"
+            severity="info"
+            styleClass="w-full"
+        >
+            <ng-template pTemplate>
+                <div
+                    class="flex justify-content-between align-items-center w-full"
+                >
+                    <div class="flex align-items-center">
+                        <i class="pi pi-info-circle mr-2"></i>
+                        <div>
+                            <div class="font-semibold">
+                                Listo para Inspección Externa
+                            </div>
+                            <div class="text-sm">
+                                Puede iniciar la evaluación de los animales
+                            </div>
+                        </div>
+                    </div>
+                    <p-button
+                        label="Iniciar Inspección"
+                        icon="pi pi-play"
+                        [loading]="startingInspection"
+                        (onClick)="startInspection()"
+                    >
+                    </p-button>
+                </div>
+            </ng-template>
+        </p-message>
+
+        <!-- Inspección completada -->
+        <p-message
+            *ngIf="inspectionCompleted"
+            severity="success"
+            styleClass="w-full"
+        >
+            <ng-template pTemplate>
+                <div class="flex align-items-center">
+                    <i class="pi pi-check-circle mr-2"></i>
+                    <div>
+                        <div class="font-semibold">
+                            Inspección Externa Completada
+                        </div>
+                        <div class="text-sm">
+                            Todos los animales han sido evaluados
+                        </div>
+                    </div>
+                </div>
+            </ng-template>
+        </p-message>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="grid" *ngIf="inspectionStarted">
+        <!-- Panel de Animales -->
+        <div class="col-12 lg:col-4">
+            <p-card
+                header="Animales a Evaluar"
+                styleClass="animals-panel h-full"
+            >
+                <!-- Resumen -->
+                <div class="animals-summary mb-4">
+                    <div class="grid">
+                        <div class="col-6">
+                            <div class="summary-item">
+                                <div class="summary-number">
+                                    {{ animals.length }}
+                                </div>
+                                <div class="summary-label">Total</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="summary-item">
+                                <div class="summary-number text-green-600">
+                                    {{ evaluatedAnimals.length }}
+                                </div>
+                                <div class="summary-label">Evaluados</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de Animales -->
+                <div class="animals-list">
+                    <div
+                        class="animal-item"
+                        *ngFor="let animal of animals; let i = index"
+                        [class.active]="i === currentAnimalIndex"
+                        [class.evaluated]="animal.evaluated"
+                        (click)="selectAnimal(i)"
+                    >
+                        <div class="animal-content">
+                            <div class="animal-header">
+                                <div class="animal-id">
+                                    {{ animal.animalId }}
+                                </div>
+                                <div class="animal-status">
+                                    <i
+                                        class="pi"
+                                        [class.pi-check-circle]="
+                                            animal.evaluated
+                                        "
+                                        [class.pi-circle]="!animal.evaluated"
+                                        [class.text-green-500]="
+                                            animal.evaluated
+                                        "
+                                        [class.text-gray-400]="
+                                            !animal.evaluated
+                                        "
+                                    >
+                                    </i>
+                                </div>
+                            </div>
+                            <div class="animal-details">
+                                <div class="animal-species">
+                                    <p-tag
+                                        [value]="
+                                            animal.species === 'BOVINE'
+                                                ? 'Bovino'
+                                                : 'Porcino'
+                                        "
+                                        [severity]="
+                                            animal.species === 'BOVINE'
+                                                ? 'info'
+                                                : 'warning'
+                                        "
+                                        styleClass="species-tag"
+                                    >
+                                    </p-tag>
+                                </div>
+                                <div
+                                    class="animal-weight"
+                                    *ngIf="animal.weight"
+                                >
+                                    {{ animal.weight }} kg
+                                </div>
+                            </div>
+                            <div class="animal-result" *ngIf="animal.evaluated">
+                                <p-tag
+                                    [value]="
+                                        getResultLabel(
+                                            animal.animalId,
+                                            evaluatedAnimals,
+                                            'evaluationResult'
+                                        )
+                                    "
+                                    [severity]="
+                                        getResultSeverity(
+                                            getAnimalEvaluationResult(animal)
+                                        )
+                                    "
+                                    styleClass="result-tag"
+                                >
+                                </p-tag>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </p-card>
+        </div>
+
+        <!-- Panel de Evaluación -->
+        <div class="col-12 lg:col-8">
+            <p-tabView>
+                <!-- Tab de Evaluación Individual -->
+                <p-tabPanel
+                    header="Evaluación de Animal"
+                    leftIcon="pi pi-search"
+                >
+                    <form
+                        [formGroup]="inspectionForm"
+                        (ngSubmit)="evaluateAnimal()"
+                    >
+                        <!-- Información Básica del Animal -->
+                        <p-panel
+                            header="Información Básica"
+                            [toggleable]="true"
+                            styleClass="mb-4"
+                        >
+                            <div class="grid">
+                                <div class="col-12 md:col-6">
+                                    <div class="field">
+                                        <label
+                                            for="animalId"
+                                            class="font-semibold"
+                                            >ID del Animal *</label
+                                        >
+                                        <input
+                                            type="text"
+                                            pInputText
+                                            id="animalId"
+                                            formControlName="animalId"
+                                            placeholder="ID del animal"
+                                            class="w-full"
+                                            [readonly]="true"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-6">
+                                    <div class="field">
+                                        <label
+                                            for="species"
+                                            class="font-semibold"
+                                            >Especie *</label
+                                        >
+                                        <input
+                                            type="text"
+                                            pInputText
+                                            id="species"
+                                            [value]="
+                                                inspectionForm.get('species')
+                                                    ?.value === 'BOVINE'
+                                                    ? 'Bovino'
+                                                    : 'Porcino'
+                                            "
+                                            class="w-full"
+                                            [readonly]="true"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-6">
+                                    <div class="field">
+                                        <label
+                                            for="identification"
+                                            class="font-semibold"
+                                            >Identificación *</label
+                                        >
+                                        <input
+                                            type="text"
+                                            pInputText
+                                            id="identification"
+                                            formControlName="identification"
+                                            placeholder="Número de identificación"
+                                            class="w-full"
+                                            [class.ng-invalid]="
+                                                inspectionForm.get(
+                                                    'identification'
+                                                )?.invalid &&
+                                                inspectionForm.get(
+                                                    'identification'
+                                                )?.touched
+                                            "
+                                        />
+                                        <small
+                                            class="p-error"
+                                            *ngIf="
+                                                inspectionForm.get(
+                                                    'identification'
+                                                )?.invalid &&
+                                                inspectionForm.get(
+                                                    'identification'
+                                                )?.touched
+                                            "
+                                        >
+                                            La identificación es requerida
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-6">
+                                    <div class="field">
+                                        <label for="breed" class="font-semibold"
+                                            >Raza</label
+                                        >
+                                        <input
+                                            type="text"
+                                            pInputText
+                                            id="breed"
+                                            formControlName="breed"
+                                            placeholder="Raza del animal"
+                                            class="w-full"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-4">
+                                    <div class="field">
+                                        <label for="sex" class="font-semibold"
+                                            >Sexo *</label
+                                        >
+                                        <p-dropdown
+                                            id="sex"
+                                            formControlName="sex"
+                                            [options]="sexOptions"
+                                            optionLabel="label"
+                                            optionValue="value"
+                                            placeholder="Seleccionar sexo"
+                                            class="w-full"
+                                            [class.ng-invalid]="
+                                                inspectionForm.get('sex')
+                                                    ?.invalid &&
+                                                inspectionForm.get('sex')
+                                                    ?.touched
+                                            "
+                                        >
+                                        </p-dropdown>
+                                        <small
+                                            class="p-error"
+                                            *ngIf="
+                                                inspectionForm.get('sex')
+                                                    ?.invalid &&
+                                                inspectionForm.get('sex')
+                                                    ?.touched
+                                            "
+                                        >
+                                            El sexo es requerido
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-4">
+                                    <div class="field">
+                                        <label for="age" class="font-semibold"
+                                            >Edad (meses)</label
+                                        >
+                                        <p-inputNumber
+                                            id="age"
+                                            formControlName="age"
+                                            placeholder="0"
+                                            [min]="0"
+                                            [max]="300"
+                                            class="w-full"
+                                        >
+                                        </p-inputNumber>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-4">
+                                    <div class="field">
+                                        <label
+                                            for="weight"
+                                            class="font-semibold"
+                                            >Peso (kg)</label
+                                        >
+                                        <p-inputNumber
+                                            id="weight"
+                                            formControlName="weight"
+                                            placeholder="0.00"
+                                            mode="decimal"
+                                            [minFractionDigits]="2"
+                                            [maxFractionDigits]="2"
+                                            [min]="0"
+                                            class="w-full"
+                                        >
+                                        </p-inputNumber>
+                                    </div>
+                                </div>
+                            </div>
+                        </p-panel>
+
+                        <!-- Inspección Física -->
+                        <p-panel
+                            header="Inspección Física"
+                            [toggleable]="true"
+                            styleClass="mb-4"
+                        >
+                            <div class="grid">
+                                <div class="col-12 md:col-4">
+                                    <div class="field">
+                                        <label
+                                            for="temperature"
+                                            class="font-semibold"
+                                            >Temperatura (°C)</label
+                                        >
+                                        <p-inputNumber
+                                            id="temperature"
+                                            formControlName="temperature"
+                                            placeholder="37.5"
+                                            mode="decimal"
+                                            [minFractionDigits]="1"
+                                            [maxFractionDigits]="1"
+                                            [min]="35"
+                                            [max]="42"
+                                            class="w-full"
+                                        >
+                                        </p-inputNumber>
+                                        <small class="text-600"
+                                            >Rango normal: 37.5°C -
+                                            39.5°C</small
+                                        >
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-4">
+                                    <div class="field">
+                                        <label
+                                            for="heartRate"
+                                            class="font-semibold"
+                                            >Frecuencia Cardíaca (lpm)</label
+                                        >
+                                        <p-inputNumber
+                                            id="heartRate"
+                                            formControlName="heartRate"
+                                            placeholder="70"
+                                            [min]="40"
+                                            [max]="120"
+                                            class="w-full"
+                                        >
+                                        </p-inputNumber>
+                                        <small class="text-600"
+                                            >Rango normal: 60-80 lpm</small
+                                        >
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-4">
+                                    <div class="field">
+                                        <label
+                                            for="respiratoryRate"
+                                            class="font-semibold"
+                                            >Frecuencia Respiratoria
+                                            (rpm)</label
+                                        >
+                                        <p-inputNumber
+                                            id="respiratoryRate"
+                                            formControlName="respiratoryRate"
+                                            placeholder="20"
+                                            [min]="10"
+                                            [max]="40"
+                                            class="w-full"
+                                        >
+                                        </p-inputNumber>
+                                        <small class="text-600"
+                                            >Rango normal: 15-25 rpm</small
+                                        >
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-6">
+                                    <div class="field">
+                                        <label
+                                            for="generalCondition"
+                                            class="font-semibold"
+                                            >Condición General *</label
+                                        >
+                                        <p-dropdown
+                                            id="generalCondition"
+                                            formControlName="generalCondition"
+                                            [options]="conditionOptions"
+                                            optionLabel="label"
+                                            optionValue="value"
+                                            placeholder="Seleccionar condición"
+                                            class="w-full"
+                                            [class.ng-invalid]="
+                                                inspectionForm.get(
+                                                    'generalCondition'
+                                                )?.invalid &&
+                                                inspectionForm.get(
+                                                    'generalCondition'
+                                                )?.touched
+                                            "
+                                        >
+                                            <ng-template
+                                                let-condition
+                                                pTemplate="selectedItem"
+                                            >
+                                                <div
+                                                    class="flex align-items-center gap-2"
+                                                >
+                                                    <div
+                                                        class="condition-indicator"
+                                                        [style.background-color]="
+                                                            condition.color
+                                                        "
+                                                    ></div>
+                                                    <span>{{
+                                                        condition.label
+                                                    }}</span>
+                                                </div>
+                                            </ng-template>
+                                            <ng-template
+                                                let-condition
+                                                pTemplate="item"
+                                            >
+                                                <div
+                                                    class="flex align-items-center gap-2"
+                                                >
+                                                    <div
+                                                        class="condition-indicator"
+                                                        [style.background-color]="
+                                                            condition.color
+                                                        "
+                                                    ></div>
+                                                    <span>{{
+                                                        condition.label
+                                                    }}</span>
+                                                </div>
+                                            </ng-template>
+                                        </p-dropdown>
+                                        <small
+                                            class="p-error"
+                                            *ngIf="
+                                                inspectionForm.get(
+                                                    'generalCondition'
+                                                )?.invalid &&
+                                                inspectionForm.get(
+                                                    'generalCondition'
+                                                )?.touched
+                                            "
+                                        >
+                                            La condición general es requerida
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-6">
+                                    <div class="field">
+                                        <label class="font-semibold"
+                                            >Lesiones Visibles</label
+                                        >
+                                        <div class="mt-2">
+                                            <p-checkbox
+                                                formControlName="visibleLesions"
+                                                [binary]="true"
+                                                label="Presenta lesiones visibles"
+                                                styleClass="lesions-checkbox"
+                                            >
+                                            </p-checkbox>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="col-12"
+                                    *ngIf="
+                                        inspectionForm.get('visibleLesions')
+                                            ?.value
+                                    "
+                                >
+                                    <div class="field">
+                                        <label
+                                            for="lesionDescription"
+                                            class="font-semibold"
+                                            >Descripción de Lesiones</label
+                                        >
+                                        <textarea
+                                            pInputTextarea
+                                            id="lesionDescription"
+                                            formControlName="lesionDescription"
+                                            placeholder="Describir las lesiones encontradas..."
+                                            rows="3"
+                                            class="w-full"
+                                        >
+                                        </textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </p-panel>
+
+                        <!-- Resultado de la Evaluación -->
+                        <p-panel
+                            header="Resultado de la Evaluación"
+                            [toggleable]="true"
+                            styleClass="mb-4"
+                        >
+                            <div class="grid">
+                                <div class="col-12 md:col-6">
+                                    <div class="field">
+                                        <label
+                                            for="evaluationResult"
+                                            class="font-semibold"
+                                            >Resultado *</label
+                                        >
+                                        <p-dropdown
+                                            id="evaluationResult"
+                                            formControlName="evaluationResult"
+                                            [options]="evaluationResultOptions"
+                                            optionLabel="label"
+                                            optionValue="value"
+                                            placeholder="Seleccionar resultado"
+                                            class="w-full"
+                                            [class.ng-invalid]="
+                                                inspectionForm.get(
+                                                    'evaluationResult'
+                                                )?.invalid &&
+                                                inspectionForm.get(
+                                                    'evaluationResult'
+                                                )?.touched
+                                            "
+                                        >
+                                            <ng-template
+                                                let-result
+                                                pTemplate="selectedItem"
+                                            >
+                                                <div
+                                                    class="flex align-items-center gap-2"
+                                                >
+                                                    <i
+                                                        [class]="result.icon"
+                                                        [class]="
+                                                            'text-' +
+                                                            result.severity +
+                                                            '-500'
+                                                        "
+                                                    ></i>
+                                                    <span>{{
+                                                        result.label
+                                                    }}</span>
+                                                </div>
+                                            </ng-template>
+                                            <ng-template
+                                                let-result
+                                                pTemplate="item"
+                                            >
+                                                <div
+                                                    class="flex align-items-center gap-2"
+                                                >
+                                                    <i
+                                                        [class]="result.icon"
+                                                        [class]="
+                                                            'text-' +
+                                                            result.severity +
+                                                            '-500'
+                                                        "
+                                                    ></i>
+                                                    <span>{{
+                                                        result.label
+                                                    }}</span>
+                                                </div>
+                                            </ng-template>
+                                        </p-dropdown>
+                                        <small
+                                            class="p-error"
+                                            *ngIf="
+                                                inspectionForm.get(
+                                                    'evaluationResult'
+                                                )?.invalid &&
+                                                inspectionForm.get(
+                                                    'evaluationResult'
+                                                )?.touched
+                                            "
+                                        >
+                                            El resultado de la evaluación es
+                                            requerido
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-6">
+                                    <div class="field">
+                                        <label
+                                            for="reason"
+                                            class="font-semibold"
+                                            >Razón/Motivo</label
+                                        >
+                                        <input
+                                            type="text"
+                                            pInputText
+                                            id="reason"
+                                            formControlName="reason"
+                                            placeholder="Motivo del resultado"
+                                            class="w-full"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="field">
+                                        <label
+                                            for="observations"
+                                            class="font-semibold"
+                                            >Observaciones</label
+                                        >
+                                        <textarea
+                                            pInputTextarea
+                                            id="observations"
+                                            formControlName="observations"
+                                            placeholder="Observaciones adicionales sobre la evaluación..."
+                                            rows="3"
+                                            class="w-full"
+                                        >
+                                        </textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </p-panel>
+
+                        <!-- Botones de Acción -->
+                        <div class="evaluation-actions">
+                            <div class="flex justify-content-end gap-2">
+                                <p-button
+                                    label="Limpiar Formulario"
+                                    icon="pi pi-refresh"
+                                    severity="secondary"
+                                    [outlined]="true"
+                                    type="button"
+                                    (onClick)="resetForm()"
+                                >
+                                </p-button>
+                                <p-button
+                                    label="Evaluar Animal"
+                                    icon="pi pi-check"
+                                    type="submit"
+                                    [loading]="saving"
+                                    [disabled]="inspectionForm.invalid"
+                                >
+                                </p-button>
+                            </div>
+                        </div>
+                    </form>
+                </p-tabPanel>
+
+                <!-- Tab de Condiciones Ambientales -->
+                <p-tabPanel
+                    header="Condiciones Ambientales"
+                    leftIcon="pi pi-sun"
+                >
+                    <form [formGroup]="environmentalForm">
+                        <p-panel
+                            header="Condiciones del Entorno"
+                            styleClass="mb-4"
+                        >
+                            <div class="grid">
+                                <div class="col-12 md:col-6">
+                                    <div class="field">
+                                        <label
+                                            for="envTemperature"
+                                            class="font-semibold"
+                                            >Temperatura Ambiental (°C)</label
+                                        >
+                                        <p-inputNumber
+                                            id="envTemperature"
+                                            formControlName="temperature"
+                                            placeholder="25.0"
+                                            mode="decimal"
+                                            [minFractionDigits]="1"
+                                            [maxFractionDigits]="1"
+                                            [min]="-10"
+                                            [max]="50"
+                                            class="w-full"
+                                        >
+                                        </p-inputNumber>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-6">
+                                    <div class="field">
+                                        <label
+                                            for="humidity"
+                                            class="font-semibold"
+                                            >Humedad Relativa (%)</label
+                                        >
+                                        <p-inputNumber
+                                            id="humidity"
+                                            formControlName="humidity"
+                                            placeholder="60"
+                                            [min]="0"
+                                            [max]="100"
+                                            class="w-full"
+                                        >
+                                        </p-inputNumber>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="field">
+                                        <label
+                                            for="transportConditions"
+                                            class="font-semibold"
+                                            >Condiciones de Transporte</label
+                                        >
+                                        <textarea
+                                            pInputTextarea
+                                            id="transportConditions"
+                                            formControlName="transportConditions"
+                                            placeholder="Describir las condiciones en las que llegaron los animales..."
+                                            rows="3"
+                                            class="w-full"
+                                        >
+                                        </textarea>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="field">
+                                        <label
+                                            for="generalObservations"
+                                            class="font-semibold"
+                                            >Observaciones Generales</label
+                                        >
+                                        <textarea
+                                            pInputTextarea
+                                            id="generalObservations"
+                                            formControlName="generalObservations"
+                                            placeholder="Observaciones generales sobre la inspección..."
+                                            rows="4"
+                                            class="w-full"
+                                        >
+                                        </textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </p-panel>
+                    </form>
+                </p-tabPanel>
+
+                <!-- Tab de Fotografías -->
+                <p-tabPanel header="Fotografías" leftIcon="pi pi-camera">
+                    <p-panel
+                        header="Documentación Fotográfica"
+                        styleClass="mb-4"
+                    >
+                        <!-- Upload de Fotografías -->
+                        <div class="photo-upload mb-4">
+                            <p-fileUpload
+                                mode="basic"
+                                name="photographs"
+                                accept="image/*"
+                                [maxFileSize]="5000000"
+                                [auto]="true"
+                                chooseLabel="Agregar Fotografía"
+                                (onUpload)="addPhotograph($event)"
+                                styleClass="upload-btn"
+                            >
+                            </p-fileUpload>
+                            <small class="text-600 ml-2"
+                                >Formatos: JPG, PNG. Tamaño máximo: 5MB</small
+                            >
+                        </div>
+
+                        <!-- Galería de Fotografías -->
+                        <div
+                            class="photo-gallery"
+                            *ngIf="photographs.length > 0"
+                        >
+                            <div class="grid">
+                                <div
+                                    class="col-12 md:col-6 lg:col-4"
+                                    *ngFor="
+                                        let photo of photographs;
+                                        let i = index
+                                    "
+                                >
+                                    <div class="photo-item">
+                                        <img
+                                            [src]="photo"
+                                            alt="Fotografía de inspección"
+                                            class="w-full h-auto"
+                                        />
+                                        <div class="photo-overlay">
+                                            <p-button
+                                                icon="pi pi-trash"
+                                                severity="danger"
+                                                size="small"
+                                                [rounded]="true"
+                                                (onClick)="removePhotograph(i)"
+                                            >
+                                            </p-button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estado vacío -->
+                        <div
+                            class="empty-photos"
+                            *ngIf="photographs.length === 0"
+                        >
+                            <div class="text-center p-4">
+                                <i
+                                    class="pi pi-camera text-4xl text-400 mb-3"
+                                ></i>
+                                <h4 class="text-900 mb-2">Sin fotografías</h4>
+                                <p class="text-600">
+                                    Agregue fotografías para documentar la
+                                    inspección
+                                </p>
+                            </div>
+                        </div>
+                    </p-panel>
+                </p-tabPanel>
+
+                <!-- Tab de Resumen -->
+                <p-tabPanel header="Resumen" leftIcon="pi pi-chart-bar">
+                    <div class="inspection-summary">
+                        <!-- Resumen de Evaluaciones -->
+                        <p-panel
+                            header="Resumen de Evaluaciones"
+                            styleClass="mb-4"
+                        >
+                            <div class="grid">
+                                <div class="col-6 md:col-3">
+                                    <div class="summary-card total">
+                                        <div class="summary-icon">
+                                            <i class="pi pi-list"></i>
+                                        </div>
+                                        <div class="summary-content">
+                                            <div class="summary-number">
+                                                {{
+                                                    inspectionSummary.totalAnimals
+                                                }}
+                                            </div>
+                                            <div class="summary-label">
+                                                Total
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-6 md:col-3">
+                                    <div class="summary-card suitable">
+                                        <div class="summary-icon">
+                                            <i class="pi pi-check-circle"></i>
+                                        </div>
+                                        <div class="summary-content">
+                                            <div class="summary-number">
+                                                {{
+                                                    inspectionSummary.suitableForSlaughter
+                                                }}
+                                            </div>
+                                            <div class="summary-label">
+                                                Aptos
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-6 md:col-3">
+                                    <div class="summary-card confiscation">
+                                        <div class="summary-icon">
+                                            <i class="pi pi-times-circle"></i>
+                                        </div>
+                                        <div class="summary-content">
+                                            <div class="summary-number">
+                                                {{
+                                                    inspectionSummary.unfitConfiscation
+                                                }}
+                                            </div>
+                                            <div class="summary-label">
+                                                Decomiso
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-6 md:col-3">
+                                    <div class="summary-card return">
+                                        <div class="summary-icon">
+                                            <i
+                                                class="pi pi-arrow-circle-left"
+                                            ></i>
+                                        </div>
+                                        <div class="summary-content">
+                                            <div class="summary-number">
+                                                {{
+                                                    inspectionSummary.unfitReturn
+                                                }}
+                                            </div>
+                                            <div class="summary-label">
+                                                Devolución
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </p-panel>
+
+                        <!-- Lista de Animales Evaluados -->
+                        <p-panel
+                            header="Animales Evaluados"
+                            styleClass="mb-4"
+                            *ngIf="evaluatedAnimals.length > 0"
+                        >
+                            <p-table
+                                [value]="evaluatedAnimals"
+                                styleClass="evaluation-table"
+                            >
+                                <ng-template pTemplate="header">
+                                    <tr>
+                                        <th>ID Animal</th>
+                                        <th>Identificación</th>
+                                        <th>Especie</th>
+                                        <th>Condición</th>
+                                        <th>Resultado</th>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-evaluation>
+                                    <tr>
+                                        <td>{{ evaluation.animalId }}</td>
+                                        <td>{{ evaluation.identification }}</td>
+                                        <td>
+                                            <p-tag
+                                                [value]="
+                                                    evaluation.species ===
+                                                    'BOVINE'
+                                                        ? 'Bovino'
+                                                        : 'Porcino'
+                                                "
+                                                [severity]="
+                                                    evaluation.species ===
+                                                    'BOVINE'
+                                                        ? 'info'
+                                                        : 'warning'
+                                                "
+                                            >
+                                            </p-tag>
+                                        </td>
+                                        <td>
+                                            <div
+                                                class="flex align-items-center gap-2"
+                                            >
+                                                <div
+                                                    class="condition-indicator"
+                                                    [style.background-color]="
+                                                        getConditionColor(
+                                                            evaluation
+                                                                .physicalInspection
+                                                                .generalCondition
+                                                        )
+                                                    "
+                                                ></div>
+                                                <span>{{
+                                                    evaluation
+                                                        .physicalInspection
+                                                        .generalCondition
+                                                }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <p-tag
+                                                [value]="
+                                                    getResultLabel(
+                                                        evaluation.evaluationResult
+                                                    )
+                                                "
+                                                [severity]="
+                                                    getResultSeverity(
+                                                        evaluation.evaluationResult
+                                                    )
+                                                "
+                                                [icon]="
+                                                    getResultIcon(
+                                                        evaluation.evaluationResult
+                                                    )
+                                                "
+                                            >
+                                            </p-tag>
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
+                        </p-panel>
+
+                        <!-- Completar Inspección -->
+                        <div
+                            class="complete-inspection"
+                            *ngIf="
+                                allAnimalsEvaluated() && !inspectionCompleted
+                            "
+                        >
+                            <p-panel
+                                header="Finalizar Inspección"
+                                styleClass="completion-panel"
+                            >
+                                <div
+                                    class="flex justify-content-between align-items-center"
+                                >
+                                    <div>
+                                        <h4 class="text-900 mb-2">
+                                            Todos los animales han sido
+                                            evaluados
+                                        </h4>
+                                        <p class="text-600 mb-0">
+                                            ¿Desea completar la inspección
+                                            externa?
+                                        </p>
+                                    </div>
+                                    <p-button
+                                        label="Completar Inspección"
+                                        icon="pi pi-check"
+                                        severity="success"
+                                        [loading]="completingInspection"
+                                        (onClick)="completeInspection()"
+                                    >
+                                    </p-button>
+                                </div>
+                            </p-panel>
+                        </div>
+                    </div>
+                </p-tabPanel>
+            </p-tabView>
+        </div>
+    </div>
+
+    <!-- Estado de Carga -->
+    <div
+        class="loading-state"
+        *ngIf="!inspectionStarted && !inspectionCompleted && canStartInspection"
+    >
+        <div class="text-center p-5">
+            <i class="pi pi-clock text-5xl text-400 mb-3"></i>
+            <h4 class="text-900 mb-2">Esperando Inicio de Inspección</h4>
+            <p class="text-600">
+                Inicie la inspección externa para evaluar los animales
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Loading inicial -->
+<div class="loading-container" *ngIf="loading">
+    <div class="text-center">
+        <p-progressSpinner styleClass="loading-spinner"></p-progressSpinner>
+        <h4 class="text-900 mt-3">Cargando información del proceso...</h4>
+    </div>
+</div>
+
+<!-- Diálogos de Confirmación -->
+<p-confirmDialog></p-confirmDialog>
+
+<!-- Toast para notificaciones -->
+<p-toast></p-toast>

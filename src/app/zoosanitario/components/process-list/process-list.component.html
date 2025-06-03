@@ -1,0 +1,781 @@
+<div class="process-list-container">
+    <!-- Header -->
+    <div class="process-header">
+        <div class="flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-2">
+                    Procesos de Faenamiento
+                </h1>
+                <p class="text-white opacity-90">
+                    Gestión y seguimiento de todos los procesos
+                </p>
+            </div>
+            <div class="flex gap-2">
+                <p-button
+                    icon="pi pi-refresh"
+                    label="Actualizar"
+                    [loading]="refreshing"
+                    severity="secondary"
+                    [outlined]="true"
+                    (onClick)="refresh()"
+                >
+                </p-button>
+                <p-button
+                    icon="pi pi-plus"
+                    label="Nuevo Proceso"
+                    severity="success"
+                    (onClick)="newProcess()"
+                >
+                </p-button>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid" *ngIf="dashboardData">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="pi pi-list"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-number">
+                        {{ dashboardData.totalProcesses }}
+                    </div>
+                    <div class="stat-label">Total Procesos</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon active">
+                    <i class="pi pi-cog"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-number">
+                        {{
+                            dashboardData.processesByStatus.reception +
+                                dashboardData.processesByStatus
+                                    .paymentVerification +
+                                dashboardData.processesByStatus
+                                    .externalInspection +
+                                dashboardData.processesByStatus.slaughter +
+                                dashboardData.processesByStatus
+                                    .internalInspection +
+                                dashboardData.processesByStatus.dispatch
+                        }}
+                    </div>
+                    <div class="stat-label">En Proceso</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon completed">
+                    <i class="pi pi-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-number">
+                        {{ dashboardData.processesByStatus.completed }}
+                    </div>
+                    <div class="stat-label">Completados</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon today">
+                    <i class="pi pi-calendar"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-number">
+                        {{ dashboardData.todayProcesses }}
+                    </div>
+                    <div class="stat-label">Hoy</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Card -->
+    <p-card styleClass="process-content-card">
+        <!-- Toolbar -->
+        <div class="table-toolbar mb-4">
+            <div
+                class="flex flex-wrap justify-content-between align-items-center gap-3"
+            >
+                <!-- Búsqueda Global -->
+                <div class="flex align-items-center gap-2">
+                    <span class="p-input-icon-left">
+                        <i class="pi pi-search"></i>
+                        <input
+                            type="text"
+                            pInputText
+                            placeholder="Buscar procesos..."
+                            [value]="globalFilterValue"
+                            (input)="onGlobalFilter($event)"
+                            class="search-input"
+                        />
+                    </span>
+
+                    <p-button
+                        icon="pi pi-filter-slash"
+                        severity="secondary"
+                        [text]="true"
+                        pTooltip="Limpiar filtros"
+                        (onClick)="clearFilters()"
+                    >
+                    </p-button>
+                </div>
+
+                <!-- Acciones -->
+                <div class="flex align-items-center gap-2">
+                    <!-- Selector de Columnas -->
+                    <p-multiSelect
+                        [options]="columns"
+                        [(ngModel)]="selectedColumns"
+                        optionLabel="header"
+                        placeholder="Columnas"
+                        display="chip"
+                        styleClass="column-selector"
+                    >
+                    </p-multiSelect>
+
+                    <!-- Exportar -->
+                    <p-splitButton
+                        label="Exportar"
+                        icon="pi pi-download"
+                        (onClick)="exportData('excel')"
+                        [model]="exportOptions"
+                    >
+                    </p-splitButton>
+                </div>
+            </div>
+
+            <!-- Filtros Avanzados -->
+            <div class="advanced-filters mt-3">
+                <p-panel
+                    header="Filtros Avanzados"
+                    [toggleable]="true"
+                    [collapsed]="true"
+                >
+                    <div class="grid">
+                        <div class="col-12 md:col-6 lg:col-3">
+                            <div class="field">
+                                <label for="statusFilter" class="font-semibold"
+                                    >Estado</label
+                                >
+                                <p-dropdown
+                                    id="statusFilter"
+                                    [(ngModel)]="filters.status"
+                                    [options]="statusOptions"
+                                    optionLabel="label"
+                                    optionValue="value"
+                                    placeholder="Todos los estados"
+                                    styleClass="w-full"
+                                    (onChange)="applyFilters()"
+                                >
+                                    <ng-template
+                                        let-status
+                                        pTemplate="selectedItem"
+                                    >
+                                        <div
+                                            class="flex align-items-center gap-2"
+                                        >
+                                            <i [class]="status.icon"></i>
+                                            <span>{{ status.label }}</span>
+                                        </div>
+                                    </ng-template>
+
+                                    <ng-template let-status pTemplate="item">
+                                        <div
+                                            class="flex align-items-center gap-2"
+                                        >
+                                            <i [class]="status.icon"></i>
+                                            <span>{{ status.label }}</span>
+                                        </div>
+                                    </ng-template>
+                                </p-dropdown>
+                            </div>
+                        </div>
+
+                        <div class="col-12 md:col-6 lg:col-3">
+                            <div class="field">
+                                <label for="speciesFilter" class="font-semibold"
+                                    >Especie</label
+                                >
+                                <p-dropdown
+                                    id="speciesFilter"
+                                    [(ngModel)]="filters.species"
+                                    [options]="speciesOptions"
+                                    optionLabel="label"
+                                    optionValue="value"
+                                    placeholder="Todas las especies"
+                                    styleClass="w-full"
+                                    (onChange)="applyFilters()"
+                                >
+                                </p-dropdown>
+                            </div>
+                        </div>
+
+                        <div class="col-12 md:col-6 lg:col-3">
+                            <div class="field">
+                                <label for="dateFrom" class="font-semibold"
+                                    >Desde</label
+                                >
+                                <p-calendar
+                                    id="dateFrom"
+                                    [(ngModel)]="filters.dateFrom"
+                                    placeholder="Fecha inicio"
+                                    styleClass="w-full"
+                                    (onSelect)="applyFilters()"
+                                >
+                                </p-calendar>
+                            </div>
+                        </div>
+
+                        <div class="col-12 md:col-6 lg:col-3">
+                            <div class="field">
+                                <label for="dateTo" class="font-semibold"
+                                    >Hasta</label
+                                >
+                                <p-calendar
+                                    id="dateTo"
+                                    [(ngModel)]="filters.dateTo"
+                                    placeholder="Fecha fin"
+                                    styleClass="w-full"
+                                    (onSelect)="applyFilters()"
+                                >
+                                </p-calendar>
+                            </div>
+                        </div>
+                    </div>
+                </p-panel>
+            </div>
+        </div>
+
+        <!-- Tabla de Procesos -->
+        <p-table
+            #dt
+            [value]="processes"
+            [lazy]="true"
+            (onLazyLoad)="loadData($event)"
+            [paginator]="true"
+            [rows]="rows"
+            [totalRecords]="totalRecords"
+            [rowsPerPageOptions]="rowsPerPageOptions"
+            [loading]="loading"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} procesos"
+            [scrollable]="true"
+            scrollHeight="600px"
+            styleClass="process-table"
+            [rowTrackBy]="rowTrackBy"
+        >
+            <ng-template pTemplate="header">
+                <tr>
+                    <th
+                        *ngIf="someSelectedColumns('processNumber')"
+                        pSortableColumn="processNumber"
+                    >
+                        Número de Proceso
+                        <p-sortIcon field="processNumber"></p-sortIcon>
+                    </th>
+                    <th *ngIf="someSelectedColumns('introducer')">
+                        Introductor
+                    </th>
+                    <th
+                        *ngIf="someSelectedColumns('overallStatus')"
+                        pSortableColumn="overallStatus"
+                    >
+                        Estado <p-sortIcon field="overallStatus"></p-sortIcon>
+                    </th>
+                    <th
+                        *ngIf="someSelectedColumns('reception.receivedAnimals')"
+                    >
+                        Animales
+                    </th>
+                    <th
+                        *ngIf="someSelectedColumns('createdAt')"
+                        pSortableColumn="createdAt"
+                    >
+                        Fecha de Inicio
+                        <p-sortIcon field="createdAt"></p-sortIcon>
+                    </th>
+                    <th
+                        *ngIf="
+                            someSelectedColumns(
+                                'financialData.totalCosts.totalAmount'
+                            )
+                        "
+                        pSortableColumn="financialData.totalCosts.totalAmount"
+                    >
+                        Costo Total
+                        <p-sortIcon
+                            field="financialData.totalCosts.totalAmount"
+                        ></p-sortIcon>
+                    </th>
+                    <th *ngIf="someSelectedColumns('actions')">Acciones</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-process>
+                <tr>
+                    <!-- Número de Proceso -->
+                    <td
+                        *ngIf="someSelectedColumns('processNumber')"
+                        class="process-number-col"
+                    >
+                        <div class="process-number-cell">
+                            <div class="process-number">
+                                {{ process.processNumber }}
+                            </div>
+                            <div class="process-date">
+                                {{
+                                    process.createdAt
+                                        | date : "dd/MM/yyyy HH:mm"
+                                }}
+                            </div>
+                            <div class="process-progress">
+                                <p-progressBar
+                                    [value]="
+                                        getProcessProgress(
+                                            process.overallStatus
+                                        )
+                                    "
+                                    [showValue]="false"
+                                    styleClass="progress-sm"
+                                >
+                                </p-progressBar>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Introductor -->
+                    <td
+                        *ngIf="someSelectedColumns('introducer')"
+                        class="introducer-col"
+                    >
+                        <div class="introducer-cell">
+                            <div class="introducer-avatar">
+                                <i
+                                    class="pi"
+                                    [class.pi-user]="
+                                        process.introducer?.type === 'NATURAL'
+                                    "
+                                    [class.pi-building]="
+                                        process.introducer?.type === 'JURIDICAL'
+                                    "
+                                >
+                                </i>
+                            </div>
+                            <div class="introducer-info">
+                                <div class="introducer-name">
+                                    {{ getIntroducerName(process) }}
+                                </div>
+                                <div class="introducer-id">
+                                    {{ process.introducer?.idNumber }}
+                                </div>
+                                <p-tag
+                                    [value]="process.introducer?.introducerType"
+                                    severity="info"
+                                    styleClass="introducer-type"
+                                >
+                                </p-tag>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Estado -->
+                    <td
+                        *ngIf="someSelectedColumns('overallStatus')"
+                        class="status-col"
+                    >
+                        <div class="status-cell">
+                            <p-tag
+                                [value]="getStatusLabel(process.overallStatus)"
+                                [severity]="
+                                    getStatusSeverity(process.overallStatus)
+                                "
+                                [icon]="getStatusIcon(process.overallStatus)"
+                            >
+                            </p-tag>
+                            <div class="next-action">
+                                {{ getNextAction(process) }}
+                            </div>
+                            <div
+                                class="elapsed-time"
+                                *ngIf="isProcessDelayed(process)"
+                            >
+                                <i
+                                    class="pi pi-exclamation-triangle text-orange-500"
+                                ></i>
+                                <span class="text-orange-500">
+                                    {{ getDaysElapsed(process.createdAt!) }}
+                                    días
+                                </span>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Animales -->
+                    <td
+                        *ngIf="someSelectedColumns('reception.receivedAnimals')"
+                        class="animals-col"
+                    >
+                        <div class="animals-cell">
+                            <div class="animals-count">
+                                <i class="pi pi-list mr-1"></i>
+                                {{ getTotalAnimals(process) }} animales
+                            </div>
+                            <div class="animals-species">
+                                {{ getSpeciesSummary(process) }}
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Fecha de Inicio -->
+                    <td
+                        *ngIf="someSelectedColumns('createdAt')"
+                        class="date-col"
+                    >
+                        <div class="date-cell">
+                            <div class="date-primary">
+                                {{ process.createdAt | date : "dd/MM/yyyy" }}
+                            </div>
+                            <div class="date-time">
+                                {{ process.createdAt | date : "HH:mm" }}
+                            </div>
+                            <div class="elapsed-days">
+                                Hace
+                                {{ getDaysElapsed(process.createdAt!) }} día{{
+                                    getDaysElapsed(process.createdAt!) !== 1
+                                        ? "s"
+                                        : ""
+                                }}
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Costo Total -->
+                    <td
+                        *ngIf="
+                            someSelectedColumns(
+                                'financialData.totalCosts.totalAmount'
+                            )
+                        "
+                        class="cost-col"
+                    >
+                        <div class="cost-cell">
+                            <div class="cost-amount">
+                                {{
+                                    formatCurrency(
+                                        process.financialData?.totalCosts
+                                            ?.totalAmount || 0
+                                    )
+                                }}
+                            </div>
+                            <div class="cost-status">
+                                <p-tag
+                                    *ngIf="process.financialData?.paymentStatus"
+                                    [value]="
+                                        process.financialData.paymentStatus
+                                    "
+                                    [severity]="
+                                        process.financialData.paymentStatus ===
+                                        'PAID'
+                                            ? 'success'
+                                            : process.financialData
+                                                  .paymentStatus === 'PENDING'
+                                            ? 'warning'
+                                            : 'danger'
+                                    "
+                                    styleClass="payment-status"
+                                >
+                                </p-tag>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Acciones -->
+                    <td
+                        *ngIf="someSelectedColumns('actions')"
+                        class="actions-col"
+                    >
+                        <div class="action-buttons">
+                            <p-button
+                                icon="pi pi-eye"
+                                severity="info"
+                                size="small"
+                                [text]="true"
+                                pTooltip="Ver detalles"
+                                (onClick)="viewProcess(process)"
+                            >
+                            </p-button>
+
+                            <p-button
+                                icon="pi pi-pencil"
+                                severity="success"
+                                size="small"
+                                [text]="true"
+                                [disabled]="!canEditProcess(process)"
+                                pTooltip="Editar proceso"
+                                (onClick)="editProcess(process)"
+                            >
+                            </p-button>
+
+                            <p-button
+                                icon="pi pi-times"
+                                severity="danger"
+                                size="small"
+                                [text]="true"
+                                [disabled]="!canCancelProcess(process)"
+                                pTooltip="Cancelar proceso"
+                                (onClick)="cancelProcess(process)"
+                            >
+                            </p-button>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <!-- Plantilla de Fila Vacía -->
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td [attr.colspan]="columnsCount" class="text-center p-4">
+                        <div class="empty-state">
+                            <i class="pi pi-inbox text-5xl text-400 mb-3"></i>
+                            <h4 class="text-900 mb-2">No hay procesos</h4>
+                            <p class="text-600 mb-4">
+                                No se encontraron procesos que coincidan con los
+                                filtros aplicados
+                            </p>
+                            <p-button
+                                icon="pi pi-plus"
+                                label="Crear Primer Proceso"
+                                (onClick)="newProcess()"
+                            >
+                            </p-button>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <!-- Plantilla de Carga -->
+            <ng-template pTemplate="loadingbody">
+                <tr>
+                    <td [attr.colspan]="columnsCount">
+                        <div
+                            class="flex align-items-center justify-content-center p-4"
+                        >
+                            <p-progressSpinner
+                                [style]="{ width: '30px', height: '30px' }"
+                                styleClass="mr-2"
+                            >
+                            </p-progressSpinner>
+                            <span>Cargando procesos...</span>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </p-card>
+
+    <!-- Resumen de Procesos por Estado -->
+    <div class="status-summary mt-4" *ngIf="dashboardData">
+        <p-card header="Resumen por Estado" styleClass="summary-card">
+            <div class="grid">
+                <div
+                    class="col-6 md:col-4 lg:col-2"
+                    *ngFor="let status of statusOptions.slice(1)"
+                >
+                    <div
+                        class="status-summary-item"
+                        [class]="'status-' + status.value.toLowerCase()"
+                        (click)="filters.status = status.value; applyFilters()"
+                    >
+                        <div class="status-summary-icon">
+                            <i [class]="status.icon"></i>
+                        </div>
+                        <div class="status-summary-content">
+                            <div class="status-summary-count">
+                                {{ getStatusCount(status.value) }}
+                            </div>
+                            <div class="status-summary-label">
+                                {{ status.label }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </p-card>
+    </div>
+
+    <!-- Procesos Que Requieren Atención -->
+    <div
+        class="attention-required mt-4"
+        *ngIf="dashboardData && dashboardData.alertsAndNotifications"
+    >
+        <p-card
+            header="Requieren Atención"
+            styleClass="alert-card"
+            *ngIf="
+                dashboardData.alertsAndNotifications.overdueProcesses > 0 ||
+                dashboardData.alertsAndNotifications.suspendedProcesses > 0 ||
+                dashboardData.alertsAndNotifications.pendingPayments > 0
+            "
+        >
+            <div class="grid">
+                <div
+                    class="col-12 md:col-4"
+                    *ngIf="
+                        dashboardData.alertsAndNotifications.overdueProcesses >
+                        0
+                    "
+                >
+                    <p-message severity="error" styleClass="w-full">
+                        <div
+                            class="flex justify-content-between align-items-center"
+                        >
+                            <div>
+                                <div class="font-semibold">
+                                    Procesos Vencidos
+                                </div>
+                                <div class="text-sm">
+                                    Procesos que exceden el tiempo esperado
+                                </div>
+                            </div>
+                            <p-chip
+                                [label]="
+                                    dashboardData.alertsAndNotifications.overdueProcesses.toString()
+                                "
+                                styleClass="ml-2"
+                            >
+                            </p-chip>
+                        </div>
+                    </p-message>
+                </div>
+
+                <div
+                    class="col-12 md:col-4"
+                    *ngIf="
+                        dashboardData.alertsAndNotifications
+                            .suspendedProcesses > 0
+                    "
+                >
+                    <p-message severity="error" styleClass="w-full">
+                        <div
+                            class="flex justify-content-between align-items-center"
+                        >
+                            <div>
+                                <div class="font-semibold">
+                                    Procesos Suspendidos
+                                </div>
+                                <div class="text-sm">
+                                    Procesos que requieren revisión
+                                </div>
+                            </div>
+                            <p-chip
+                                [label]="
+                                    dashboardData.alertsAndNotifications.suspendedProcesses.toString()
+                                "
+                                styleClass="ml-2"
+                            >
+                            </p-chip>
+                        </div>
+                    </p-message>
+                </div>
+
+                <div
+                    class="col-12 md:col-4"
+                    *ngIf="
+                        dashboardData.alertsAndNotifications.pendingPayments > 0
+                    "
+                >
+                    <p-message severity="warn" styleClass="w-full">
+                        <div
+                            class="flex justify-content-between align-items-center"
+                        >
+                            <div>
+                                <div class="font-semibold">
+                                    Pagos Pendientes
+                                </div>
+                                <div class="text-sm">
+                                    Procesos con verificaciones pendientes
+                                </div>
+                            </div>
+                            <p-chip
+                                [label]="
+                                    dashboardData.alertsAndNotifications.pendingPayments.toString()
+                                "
+                                styleClass="ml-2"
+                            >
+                            </p-chip>
+                        </div>
+                    </p-message>
+                </div>
+            </div>
+        </p-card>
+    </div>
+
+    <!-- Acciones Rápidas -->
+    <div class="quick-actions mt-4">
+        <p-card header="Acciones Rápidas">
+            <div class="grid">
+                <div class="col-12 md:col-6 lg:col-3">
+                    <p-button
+                        icon="pi pi-plus"
+                        label="Nuevo Proceso"
+                        styleClass="w-full"
+                        severity="success"
+                        (onClick)="newProcess()"
+                    >
+                    </p-button>
+                </div>
+
+                <div class="col-12 md:col-6 lg:col-3">
+                    <p-button
+                        icon="pi pi-credit-card"
+                        label="Verificar Pagos"
+                        styleClass="w-full"
+                        severity="warning"
+                        [outlined]="true"
+                        (onClick)="
+                            filters.status = 'PAYMENT_VERIFICATION';
+                            applyFilters()
+                        "
+                    >
+                    </p-button>
+                </div>
+
+                <div class="col-12 md:col-6 lg:col-3">
+                    <p-button
+                        icon="pi pi-search"
+                        label="Inspecciones Pendientes"
+                        styleClass="w-full"
+                        severity="info"
+                        [outlined]="true"
+                        (onClick)="
+                            filters.status = 'EXTERNAL_INSPECTION';
+                            applyFilters()
+                        "
+                    >
+                    </p-button>
+                </div>
+
+                <div class="col-12 md:col-6 lg:col-3">
+                    <p-button
+                        icon="pi pi-send"
+                        label="Listos para Despacho"
+                        styleClass="w-full"
+                        severity="success"
+                        [outlined]="true"
+                        (onClick)="filters.status = 'DISPATCH'; applyFilters()"
+                    >
+                    </p-button>
+                </div>
+            </div>
+        </p-card>
+    </div>
+</div>
+
+<!-- Diálogos de Confirmación -->
+<p-confirmDialog></p-confirmDialog>
+
+<!-- Toast para notificaciones -->
+<p-toast></p-toast>
