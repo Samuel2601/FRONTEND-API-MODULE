@@ -464,7 +464,7 @@ export interface ShipmentParams {
     providedIn: 'root',
 })
 export class SlaughterProcessService {
-    private apiUrl = `${GLOBAL.url_zoosanitario}/slaughter-process`;
+    private apiUrl = `${GLOBAL.url_zoosanitario}slaughter-process`;
 
     constructor(private http: HttpClient, private auth: AuthService) {}
 

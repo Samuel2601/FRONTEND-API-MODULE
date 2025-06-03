@@ -125,7 +125,7 @@ export interface PaymentData {
     providedIn: 'root',
 })
 export class InvoiceService {
-    private apiUrl = `${GLOBAL.url_zoosanitario}/invoice`;
+    private apiUrl = `${GLOBAL.url_zoosanitario}invoice`;
 
     constructor(private http: HttpClient, private auth: AuthService) {}
 

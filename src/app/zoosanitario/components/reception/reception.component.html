@@ -58,6 +58,7 @@
                         optionLabel="label"
                         optionValue="value"
                         styleClass="w-full"
+                        (onChange)="onReceptionMethodChange()"
                     >
                     </p-selectButton>
                 </div>
@@ -100,43 +101,263 @@
                         'MANUAL_ENTRY'
                     "
                 >
-                    <div class="field">
-                        <label for="certificateNumber" class="font-semibold"
-                            >Número de Certificado *</label
-                        >
-                        <input
-                            type="text"
-                            pInputText
-                            id="certificateNumber"
-                            formControlName="certificateNumber"
-                            placeholder="Ej: ZOO-202412-0001"
-                            styleClass="w-full"
-                            [class.ng-invalid]="
-                                receptionForm.get('certificateNumber')
-                                    ?.invalid &&
-                                receptionForm.get('certificateNumber')?.touched
+                    <h5 class="text-900 mb-3">
+                        Datos del Certificado Zoosanitario
+                    </h5>
+
+                    <div class="grid">
+                        <!-- CZPM Number -->
+                        <div class="col-12 md:col-6">
+                            <div class="field">
+                                <label for="czpmNumber" class="font-semibold"
+                                    >CZPM No</label
+                                >
+                                <input
+                                    type="text"
+                                    pInputText
+                                    id="czpmNumber"
+                                    formControlName="czpmNumber"
+                                    placeholder="Ej: 2023-05-9765837433"
+                                    styleClass="w-full"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Autorizado A -->
+                        <div class="col-12 md:col-6">
+                            <div class="field">
+                                <label for="authorizedTo" class="font-semibold"
+                                    >Autorizado A *</label
+                                >
+                                <input
+                                    type="text"
+                                    pInputText
+                                    id="authorizedTo"
+                                    formControlName="authorizedTo"
+                                    placeholder="Ej: 0801921727"
+                                    styleClass="w-full"
+                                    [class.ng-invalid]="
+                                        receptionForm.get('authorizedTo')
+                                            ?.invalid &&
+                                        receptionForm.get('authorizedTo')
+                                            ?.touched
+                                    "
+                                />
+                                <small
+                                    class="p-error"
+                                    *ngIf="
+                                        receptionForm.get('authorizedTo')
+                                            ?.invalid &&
+                                        receptionForm.get('authorizedTo')
+                                            ?.touched
+                                    "
+                                >
+                                    Este campo es requerido
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Código Área Origen -->
+                        <div class="col-12 md:col-6">
+                            <div class="field">
+                                <label
+                                    for="originAreaCode"
+                                    class="font-semibold"
+                                    >Código Área Origen *</label
+                                >
+                                <input
+                                    type="text"
+                                    pInputText
+                                    id="originAreaCode"
+                                    formControlName="originAreaCode"
+                                    placeholder="Ej: 03-0062-00436-00374833"
+                                    styleClass="w-full"
+                                    [class.ng-invalid]="
+                                        receptionForm.get('originAreaCode')
+                                            ?.invalid &&
+                                        receptionForm.get('originAreaCode')
+                                            ?.touched
+                                    "
+                                />
+                                <small
+                                    class="p-error"
+                                    *ngIf="
+                                        receptionForm.get('originAreaCode')
+                                            ?.invalid &&
+                                        receptionForm.get('originAreaCode')
+                                            ?.touched
+                                    "
+                                >
+                                    Este campo es requerido
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Código Área Destino -->
+                        <div class="col-12 md:col-6">
+                            <div class="field">
+                                <label
+                                    for="destinationAreaCode"
+                                    class="font-semibold"
+                                    >Código Área Destino *</label
+                                >
+                                <input
+                                    type="text"
+                                    pInputText
+                                    id="destinationAreaCode"
+                                    formControlName="destinationAreaCode"
+                                    placeholder="Ej: 03-0062-00438-00160206"
+                                    styleClass="w-full"
+                                    [class.ng-invalid]="
+                                        receptionForm.get('destinationAreaCode')
+                                            ?.invalid &&
+                                        receptionForm.get('destinationAreaCode')
+                                            ?.touched
+                                    "
+                                />
+                                <small
+                                    class="p-error"
+                                    *ngIf="
+                                        receptionForm.get('destinationAreaCode')
+                                            ?.invalid &&
+                                        receptionForm.get('destinationAreaCode')
+                                            ?.touched
+                                    "
+                                >
+                                    Este campo es requerido
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Vehículo -->
+                        <div class="col-12 md:col-6">
+                            <div class="field">
+                                <label for="vehiclePlate" class="font-semibold"
+                                    >Vehículo *</label
+                                >
+                                <input
+                                    type="text"
+                                    pInputText
+                                    id="vehiclePlate"
+                                    formControlName="vehiclePlate"
+                                    placeholder="Ej: JBE0076"
+                                    styleClass="w-full"
+                                    [class.ng-invalid]="
+                                        receptionForm.get('vehiclePlate')
+                                            ?.invalid &&
+                                        receptionForm.get('vehiclePlate')
+                                            ?.touched
+                                    "
+                                />
+                                <small
+                                    class="p-error"
+                                    *ngIf="
+                                        receptionForm.get('vehiclePlate')
+                                            ?.invalid &&
+                                        receptionForm.get('vehiclePlate')
+                                            ?.touched
+                                    "
+                                >
+                                    Este campo es requerido
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Total Productos -->
+                        <div class="col-12 md:col-6">
+                            <div class="field">
+                                <label for="totalProducts" class="font-semibold"
+                                    >Total Productos *</label
+                                >
+                                <p-inputNumber
+                                    id="totalProducts"
+                                    formControlName="totalProducts"
+                                    placeholder="1"
+                                    [min]="1"
+                                    [max]="1000"
+                                    styleClass="w-full"
+                                    [class.ng-invalid]="
+                                        receptionForm.get('totalProducts')
+                                            ?.invalid &&
+                                        receptionForm.get('totalProducts')
+                                            ?.touched
+                                    "
+                                >
+                                </p-inputNumber>
+                                <small
+                                    class="p-error"
+                                    *ngIf="
+                                        receptionForm.get('totalProducts')
+                                            ?.invalid &&
+                                        receptionForm.get('totalProducts')
+                                            ?.touched
+                                    "
+                                >
+                                    Debe ser un número mayor a 0
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Válido Hasta -->
+                        <div class="col-12">
+                            <div class="field">
+                                <label for="validTo" class="font-semibold"
+                                    >Válido Hasta *</label
+                                >
+                                <p-calendar
+                                    id="validTo"
+                                    formControlName="validTo"
+                                    placeholder="Seleccione fecha y hora"
+                                    [showTime]="true"
+                                    [showIcon]="true"
+                                    [dateFormat]="'dd/mm/yy'"
+                                    styleClass="w-full"
+                                    [class.ng-invalid]="
+                                        receptionForm.get('validTo')?.invalid &&
+                                        receptionForm.get('validTo')?.touched
+                                    "
+                                >
+                                </p-calendar>
+                                <small
+                                    class="p-error"
+                                    *ngIf="
+                                        receptionForm.get('validTo')?.invalid &&
+                                        receptionForm.get('validTo')?.touched
+                                    "
+                                >
+                                    Fecha de validez es requerida
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botón para procesar entrada manual -->
+                    <div class="flex justify-content-end gap-2 mb-4">
+                        <p-button
+                            label="Validar Certificado"
+                            icon="pi pi-check"
+                            severity="success"
+                            [outlined]="true"
+                            [loading]="validatingCertificate"
+                            (onClick)="processManualEntry()"
+                            [disabled]="
+                                !receptionForm.get('authorizedTo')?.value
                             "
-                        />
-                        <small
-                            class="p-error"
-                            *ngIf="
-                                receptionForm.get('certificateNumber')
-                                    ?.invalid &&
-                                receptionForm.get('certificateNumber')?.touched
-                            "
                         >
-                            El número de certificado es requerido
-                        </small>
+                        </p-button>
                     </div>
                 </div>
 
-                <!-- Información del Certificado (después del escaneo) -->
-                <div class="certificate-info" *ngIf="certificateData">
+                <!-- Información del Certificado (después del procesamiento) -->
+                <div
+                    class="certificate-info"
+                    *ngIf="certificateData || certificateValidation"
+                >
                     <p-panel
                         header="Información del Certificado"
                         [toggleable]="false"
                     >
-                        <div class="grid">
+                        <div class="grid" *ngIf="certificateData">
                             <div class="col-12 md:col-6">
                                 <div class="info-item">
                                     <label class="font-semibold text-600"
@@ -150,42 +371,100 @@
                             <div class="col-12 md:col-6">
                                 <div class="info-item">
                                     <label class="font-semibold text-600"
-                                        >Fecha de Emisión:</label
+                                        >CZPM No:</label
                                     >
                                     <span class="ml-2">{{
-                                        certificateData.issueDate
-                                            | date : "dd/MM/yyyy"
+                                        certificateData.czpmNumber
                                     }}</span>
                                 </div>
                             </div>
                             <div class="col-12 md:col-6">
                                 <div class="info-item">
                                     <label class="font-semibold text-600"
-                                        >Fecha de Vencimiento:</label
+                                        >Autorizado A:</label
                                     >
                                     <span class="ml-2">{{
-                                        certificateData.expirationDate
-                                            | date : "dd/MM/yyyy"
+                                        certificateData.authorizedTo
                                     }}</span>
                                 </div>
                             </div>
                             <div class="col-12 md:col-6">
                                 <div class="info-item">
                                     <label class="font-semibold text-600"
-                                        >Cantidad de Animales:</label
+                                        >Vehículo:</label
                                     >
                                     <span class="ml-2">{{
-                                        certificateData.animalCount
+                                        certificateData.vehiclePlate
                                     }}</span>
                                 </div>
                             </div>
-                            <div class="col-12">
+                            <div class="col-12 md:col-6">
                                 <div class="info-item">
                                     <label class="font-semibold text-600"
-                                        >Introductor:</label
+                                        >Total Productos:</label
                                     >
                                     <span class="ml-2">{{
-                                        certificateData.introducerName
+                                        certificateData.totalProducts
+                                    }}</span>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-6">
+                                <div class="info-item">
+                                    <label class="font-semibold text-600"
+                                        >Válido Hasta:</label
+                                    >
+                                    <span class="ml-2">{{
+                                        certificateData.validTo
+                                            | date : "dd/MM/yyyy HH:mm"
+                                    }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mostrar info del formulario si no hay certificateData -->
+                        <div
+                            class="grid"
+                            *ngIf="!certificateData && certificateValidation"
+                        >
+                            <div class="col-12 md:col-6">
+                                <div class="info-item">
+                                    <label class="font-semibold text-600"
+                                        >Autorizado A:</label
+                                    >
+                                    <span class="ml-2">{{
+                                        receptionForm.get("authorizedTo")?.value
+                                    }}</span>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-6">
+                                <div class="info-item">
+                                    <label class="font-semibold text-600"
+                                        >Vehículo:</label
+                                    >
+                                    <span class="ml-2">{{
+                                        receptionForm.get("vehiclePlate")?.value
+                                    }}</span>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-6">
+                                <div class="info-item">
+                                    <label class="font-semibold text-600"
+                                        >Total Productos:</label
+                                    >
+                                    <span class="ml-2">{{
+                                        receptionForm.get("totalProducts")
+                                            ?.value
+                                    }}</span>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-6">
+                                <div class="info-item">
+                                    <label class="font-semibold text-600"
+                                        >Válido Hasta:</label
+                                    >
+                                    <span class="ml-2">{{
+                                        receptionForm.get("validTo")?.value
+                                            | date : "dd/MM/yyyy HH:mm"
                                     }}</span>
                                 </div>
                             </div>
@@ -520,7 +799,9 @@
                                 label="Auto-llenar desde Certificado"
                                 severity="info"
                                 [outlined]="true"
-                                [disabled]="!certificateData"
+                                [disabled]="
+                                    !receptionForm.get('totalProducts')?.value
+                                "
                                 (onClick)="autoFillAnimalsFromCertificate()"
                             >
                             </p-button>
@@ -794,8 +1075,11 @@
                                         >Número:</label
                                     >
                                     <span class="ml-2">{{
-                                        receptionForm.get("certificateNumber")
-                                            ?.value
+                                        certificateData?.certificateNumber ||
+                                            receptionForm.get(
+                                                "certificateNumber"
+                                            )?.value ||
+                                            "Por generar"
                                     }}</span>
                                 </div>
                                 <div class="info-item mb-2">
@@ -809,18 +1093,46 @@
                                             : "Entrada Manual"
                                     }}</span>
                                 </div>
+                                <div class="info-item mb-2">
+                                    <label class="font-semibold text-600"
+                                        >Autorizado A:</label
+                                    >
+                                    <span class="ml-2">{{
+                                        certificateData?.authorizedTo ||
+                                            receptionForm.get("authorizedTo")
+                                                ?.value
+                                    }}</span>
+                                </div>
                             </div>
                             <div class="col-12 md:col-6">
-                                <div
-                                    class="info-item mb-2"
-                                    *ngIf="certificateData"
-                                >
+                                <div class="info-item mb-2">
+                                    <label class="font-semibold text-600"
+                                        >Vehículo:</label
+                                    >
+                                    <span class="ml-2">{{
+                                        certificateData?.vehiclePlate ||
+                                            receptionForm.get("vehiclePlate")
+                                                ?.value
+                                    }}</span>
+                                </div>
+                                <div class="info-item mb-2">
+                                    <label class="font-semibold text-600"
+                                        >Total Productos:</label
+                                    >
+                                    <span class="ml-2">{{
+                                        certificateData?.totalProducts ||
+                                            receptionForm.get("totalProducts")
+                                                ?.value
+                                    }}</span>
+                                </div>
+                                <div class="info-item mb-2">
                                     <label class="font-semibold text-600"
                                         >Vencimiento:</label
                                     >
                                     <span class="ml-2">{{
-                                        certificateData.expirationDate
-                                            | date : "dd/MM/yyyy"
+                                        certificateData?.validTo ||
+                                            receptionForm.get("validTo")?.value
+                                            | date : "dd/MM/yyyy HH:mm"
                                     }}</span>
                                 </div>
                             </div>
@@ -951,6 +1263,7 @@
                             placeholder="Observaciones adicionales sobre la recepción..."
                             rows="3"
                             styleClass="w-full"
+                            style="width: 100%; height: 100px"
                         >
                         </textarea>
                     </div>
@@ -970,7 +1283,7 @@
                         label="Iniciar Proceso de Recepción"
                         icon="pi pi-check"
                         iconPos="right"
-                        [loading]="submitting"
+                        [loading]="submitting || creatingCertificate"
                         type="submit"
                     >
                     </p-button>

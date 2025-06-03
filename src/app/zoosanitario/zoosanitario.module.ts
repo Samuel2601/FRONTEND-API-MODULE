@@ -18,6 +18,11 @@ import { SlaughterDashboardComponent } from './components/dashboard/dashboard.co
 import { ReceptionComponent } from './components/reception/reception.component';
 import { ExternalInspectionComponent } from './components/external-inspection/external-inspection.component';
 import { SlaughterComponent } from './components/slaughter/slaughter.component';
+import { TariffModuleSimple } from './components/tariff-config/tariff.module';
+import { InvoiceListComponent } from './components/invoice/list/invoice-list.component';
+import { InvoiceFormComponent } from './components/invoice/form/invoice-form.component';
+import { IntroducerListComponent } from './components/introducer/list/introducer-list.component';
+import { IntroducerFormComponent } from './components/introducer/form/introducer-form.component';
 
 // Rutas del módulo
 const routes: Routes = [
@@ -52,6 +57,40 @@ const routes: Routes = [
         path: 'slaughter',
         component: SlaughterComponent,
     },
+    {
+        path: 'tariffs',
+        loadChildren: () =>
+            import('./components/tariff-config/tariff.module').then(
+                (m) => m.TariffModuleSimple
+            ),
+    },
+    //introducer
+    {
+        path: 'introducers',
+        component: IntroducerListComponent,
+    },
+    {
+        path: 'introducers/create',
+        component: IntroducerFormComponent,
+    },
+
+    //invoices
+    {
+        path: 'invoices',
+        component: InvoiceListComponent,
+    },
+    {
+        path: 'invoices/create',
+        component: InvoiceFormComponent,
+    },
+    {
+        path: 'invoices/edit/:id',
+        component: InvoiceFormComponent,
+    },
+    {
+        path: 'invoices/payment/:id',
+        component: InvoiceFormComponent,
+    },
 ];
 
 @NgModule({
@@ -75,6 +114,7 @@ const routes: Routes = [
         ImportsModule,
         RouterModule.forChild(routes),
         IonicModule,
+        //TariffModuleSimple,
     ],
     providers: [QrScannerService, WorkflowGuard, ConfirmationService],
     exports: [

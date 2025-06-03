@@ -1,0 +1,341 @@
+.tariff-config-container {
+    padding: var(--content-padding);
+    height: 100%;
+
+    .card {
+        background: var(--surface-card);
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--surface-border);
+            background: var(--surface-ground);
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+
+            .card-title {
+                color: var(--text-color);
+                margin: 0;
+                font-size: 1.5rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+
+                i {
+                    color: var(--primary-color);
+                }
+            }
+
+            .header-actions {
+                display: flex;
+                gap: 0.5rem;
+            }
+
+            .rbu-info {
+                .rbu-chip {
+                    background: var(--primary-color-text);
+                    color: var(--primary-color);
+                    border: 1px solid var(--primary-color);
+
+                    ::ng-deep {
+                        .p-chip-text {
+                            color: var(--primary-color);
+                            font-weight: 600;
+                        }
+
+                        .p-chip-icon {
+                            color: var(--primary-color);
+                        }
+                    }
+                }
+            }
+        }
+
+        .card-content {
+            flex: 1;
+            padding: 0;
+            overflow: hidden;
+
+            ::ng-deep {
+                .p-datatable {
+                    .p-datatable-wrapper {
+                        border-radius: 0;
+                    }
+
+                    .p-datatable-header {
+                        background: var(--surface-section);
+                        border: none;
+                        padding: 1rem 1.5rem;
+
+                        .table-header {
+                            .text-xl {
+                                color: var(--text-color);
+                            }
+
+                            .table-actions {
+                                display: flex;
+                                align-items: center;
+                                gap: 0.5rem;
+
+                                .p-input-icon-left {
+                                    input {
+                                        background: var(--surface-card);
+                                        border: 1px solid var(--surface-border);
+                                        color: var(--text-color);
+
+                                        &:focus {
+                                            border-color: var(--primary-color);
+                                            box-shadow: 0 0 0 0.2rem
+                                                var(--primary-color-text);
+                                        }
+                                    }
+
+                                    i {
+                                        color: var(--text-color-secondary);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    .p-datatable-thead > tr > th {
+                        background: var(--surface-section);
+                        border: 1px solid var(--surface-border);
+                        color: var(--text-color);
+                        font-weight: 600;
+                        padding: 1rem;
+
+                        .p-sortable-column-icon {
+                            color: var(--text-color-secondary);
+                        }
+
+                        .p-column-filter-menu-button {
+                            background: transparent;
+                            border: none;
+                            color: var(--text-color-secondary);
+
+                            &:hover {
+                                background: var(--surface-hover);
+                                color: var(--primary-color);
+                            }
+                        }
+                    }
+
+                    .p-datatable-tbody > tr {
+                        background: var(--surface-card);
+                        border: 1px solid var(--surface-border);
+
+                        &:hover {
+                            background: var(--surface-hover);
+                        }
+
+                        > td {
+                            padding: 1rem;
+                            border: 1px solid var(--surface-border);
+                            color: var(--text-color);
+
+                            .calculation-display {
+                                .font-semibold {
+                                    color: var(--primary-color);
+                                }
+                            }
+
+                            .action-buttons {
+                                display: flex;
+                                gap: 0.25rem;
+                                justify-content: center;
+                            }
+                        }
+                    }
+
+                    .p-paginator {
+                        background: var(--surface-section);
+                        border: 1px solid var(--surface-border);
+                        border-top: none;
+                        color: var(--text-color);
+
+                        .p-paginator-pages .p-paginator-page {
+                            color: var(--text-color);
+
+                            &.p-highlight {
+                                background: var(--primary-color);
+                                color: var(--primary-color-text);
+                            }
+                        }
+                    }
+                }
+
+                .p-tag {
+                    font-size: 0.75rem;
+                    padding: 0.25rem 0.5rem;
+                    border-radius: var(--border-radius-sm);
+                }
+
+                .p-inputswitch {
+                    .p-inputswitch-slider {
+                        background: var(--surface-300);
+
+                        &:before {
+                            background: var(--surface-0);
+                        }
+                    }
+
+                    &.p-inputswitch-checked .p-inputswitch-slider {
+                        background: var(--primary-color);
+                    }
+                }
+
+                .p-button {
+                    &.p-button-text {
+                        color: var(--text-color-secondary);
+
+                        &:hover {
+                            background: var(--surface-hover);
+                            color: var(--primary-color);
+                        }
+
+                        &.p-button-danger:hover {
+                            color: var(--red-500);
+                        }
+
+                        &.p-button-info:hover {
+                            color: var(--blue-500);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+
+        .empty-icon {
+            font-size: 4rem;
+            color: var(--text-color-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .empty-text {
+            color: var(--text-color-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+    }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+    .tariff-config-container {
+        padding: 1rem;
+
+        .card {
+            .card-header {
+                padding: 1rem;
+
+                .card-title {
+                    font-size: 1.25rem;
+                }
+
+                .header-actions {
+                    flex-direction: column;
+                    gap: 0.5rem;
+                    align-items: stretch;
+
+                    ::ng-deep .p-button {
+                        justify-content: center;
+                    }
+                }
+            }
+
+            .card-content {
+                ::ng-deep {
+                    .p-datatable {
+                        .p-datatable-header {
+                            padding: 1rem;
+
+                            .table-header {
+                                flex-direction: column;
+                                gap: 1rem;
+                                align-items: stretch;
+
+                                .table-actions {
+                                    justify-content: stretch;
+
+                                    .p-input-icon-left {
+                                        flex: 1;
+                                    }
+                                }
+                            }
+                        }
+
+                        .p-datatable-thead > tr > th,
+                        .p-datatable-tbody > tr > td {
+                            padding: 0.75rem 0.5rem;
+                            font-size: 0.875rem;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Dark theme adjustments
+@media (prefers-color-scheme: dark) {
+    .tariff-config-container {
+        ::ng-deep {
+            .p-tag {
+                &.p-tag-success {
+                    background: rgba(34, 197, 94, 0.1);
+                    color: rgb(34, 197, 94);
+                }
+
+                &.p-tag-info {
+                    background: rgba(59, 130, 246, 0.1);
+                    color: rgb(59, 130, 246);
+                }
+
+                &.p-tag-danger {
+                    background: rgba(239, 68, 68, 0.1);
+                    color: rgb(239, 68, 68);
+                }
+
+                &.p-tag-secondary {
+                    background: rgba(156, 163, 175, 0.1);
+                    color: rgb(156, 163, 175);
+                }
+            }
+        }
+    }
+}
+
+// High contrast mode
+@media (prefers-contrast: high) {
+    .tariff-config-container {
+        .card {
+            border: 2px solid var(--surface-border);
+
+            .card-header {
+                border-bottom: 2px solid var(--surface-border);
+            }
+        }
+
+        ::ng-deep {
+            .p-datatable {
+                .p-datatable-thead > tr > th,
+                .p-datatable-tbody > tr > td {
+                    border: 1px solid var(--surface-border);
+                }
+            }
+
+            .p-button {
+                border: 2px solid currentColor;
+            }
+        }
+    }
+}

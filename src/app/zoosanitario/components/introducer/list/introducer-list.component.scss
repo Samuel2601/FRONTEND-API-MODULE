@@ -1,0 +1,201 @@
+.introducer-list-container {
+    .card {
+        background: var(--surface-card);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-1);
+        padding: 0;
+        margin-bottom: 1rem;
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--surface-border);
+            background: var(--surface-section);
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+
+            h3 {
+                color: var(--text-color);
+                font-weight: 600;
+            }
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+    }
+
+    .filter-section {
+        background: var(--surface-50);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--surface-border);
+
+        label {
+            color: var(--text-color-secondary);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .p-inputtext {
+            background: var(--surface-card);
+            color: var(--text-color);
+            border: 1px solid var(--surface-border);
+
+            &:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 0.2rem var(--primary-color-text);
+            }
+        }
+
+        .p-dropdown {
+            background: var(--surface-card);
+            border: 1px solid var(--surface-border);
+
+            .p-dropdown-label {
+                color: var(--text-color);
+            }
+
+            &:not(.p-disabled):hover {
+                border-color: var(--primary-color);
+            }
+
+            &:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 0.2rem var(--primary-color-text);
+            }
+        }
+    }
+
+    .table-section {
+        .p-datatable {
+            .p-datatable-header {
+                background: var(--surface-section);
+                color: var(--text-color);
+                border: 1px solid var(--surface-border);
+            }
+
+            .p-datatable-thead > tr > th {
+                background: var(--surface-section);
+                color: var(--text-color);
+                border-color: var(--surface-border);
+                font-weight: 600;
+                padding: 1rem;
+            }
+
+            .p-datatable-tbody > tr {
+                background: var(--surface-card);
+                color: var(--text-color);
+
+                &:nth-child(even) {
+                    background: var(--surface-ground);
+                }
+
+                &:hover {
+                    background: var(--surface-hover);
+                }
+
+                > td {
+                    border-color: var(--surface-border);
+                    padding: 1rem;
+                }
+            }
+
+            .p-datatable-footer {
+                background: var(--surface-section);
+                color: var(--text-color);
+                border: 1px solid var(--surface-border);
+            }
+        }
+
+        .p-tag {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .font-medium {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .text-500 {
+            color: var(--text-color-secondary);
+        }
+
+        .text-green-500 {
+            color: var(--green-500);
+        }
+
+        .text-red-500 {
+            color: var(--red-500);
+        }
+
+        .text-4xl {
+            font-size: 2.25rem;
+        }
+
+        .text-300 {
+            color: var(--surface-400);
+        }
+    }
+
+    // Responsive adjustments
+    @media (max-width: 768px) {
+        .card {
+            .card-header {
+                padding: 1rem;
+
+                .flex {
+                    flex-direction: column;
+                    gap: 1rem;
+                    align-items: stretch !important;
+                }
+            }
+
+            .card-content {
+                padding: 1rem;
+            }
+        }
+
+        .filter-section {
+            padding: 1rem;
+
+            .formgrid .field {
+                margin-bottom: 1rem;
+            }
+
+            .col-12.md\\:col-2,
+            .col-12.md\\:col-3 {
+                width: 100%;
+            }
+        }
+
+        .table-section {
+            overflow-x: auto;
+
+            .p-datatable {
+                min-width: 800px;
+            }
+        }
+    }
+
+    // Loading state
+    .p-datatable-loading {
+        .p-datatable-loading-overlay {
+            background: rgba(255, 255, 255, 0.8);
+        }
+    }
+
+    // Dark theme adjustments
+    [data-theme="dark"] & {
+        .filter-section {
+            background: var(--surface-100);
+        }
+
+        .p-datatable-loading {
+            .p-datatable-loading-overlay {
+                background: rgba(0, 0, 0, 0.8);
+            }
+        }
+    }
+}

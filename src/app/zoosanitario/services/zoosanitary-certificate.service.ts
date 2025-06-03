@@ -77,7 +77,7 @@ export interface BatchCertificateResponse {
     providedIn: 'root',
 })
 export class ZoosanitaryCertificateService {
-    private apiUrl = `${GLOBAL.url_zoosanitario}/zoosanitary-certificate`;
+    private apiUrl = `${GLOBAL.url_zoosanitario}zoosanitary-certificate`;
 
     constructor(private http: HttpClient, private auth: AuthService) {}
 

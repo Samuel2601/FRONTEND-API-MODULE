@@ -1,0 +1,320 @@
+<div class="tariff-dashboard-container">
+    <!-- Header Principal -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="title-section">
+                <h1 class="dashboard-title">
+                    <i class="pi pi-chart-line mr-2"></i>
+                    Sistema de Gestión de Tarifas
+                </h1>
+                <p class="dashboard-subtitle">
+                    Centro de administración para configuración y cálculo de
+                    tarifas zoosanitarias
+                </p>
+            </div>
+            <div class="header-actions">
+                <p-button
+                    icon="pi pi-refresh"
+                    severity="secondary"
+                    [text]="true"
+                    [rounded]="true"
+                    (onClick)="refreshDashboard()"
+                    [loading]="loading"
+                    pTooltip="Actualizar datos"
+                >
+                </p-button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navegación por Pestañas -->
+    <div class="navigation-tabs">
+        <p-tabView
+            [activeIndex]="activeTabIndex"
+            (onChange)="onTabChange($event)"
+            styleClass="dashboard-tabview"
+        >
+            <!-- Tab: Dashboard Overview -->
+            <p-tabPanel>
+                <ng-template pTemplate="header">
+                    <div class="tab-header">
+                        <i class="pi pi-chart-line"></i>
+                        <span>Dashboard</span>
+                    </div>
+                </ng-template>
+
+                <div class="dashboard-overview">
+                    <!-- Estadísticas Principales -->
+                    <div class="stats-grid">
+                        <div class="stat-card primary">
+                            <div class="stat-icon">
+                                <i class="pi pi-list"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>{{ stats.totalTariffs }}</h3>
+                                <p>Total de Tarifas</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card success">
+                            <div class="stat-icon">
+                                <i class="pi pi-check-circle"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>{{ stats.activeTariffs }}</h3>
+                                <p>Tarifas Activas</p>
+                                <small
+                                    >{{ getActivePercentage() }}% del
+                                    total</small
+                                >
+                            </div>
+                        </div>
+
+                        <div class="stat-card info">
+                            <div class="stat-icon">
+                                <i class="pi pi-dollar"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>${{ currentRBU }}</h3>
+                                <p>RBU Actual</p>
+                                <small>Remuneración Básica Unificada</small>
+                            </div>
+                        </div>
+
+                        <div class="stat-card warning">
+                            <div class="stat-icon">
+                                <i class="pi pi-pause"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>{{ stats.inactiveTariffs }}</h3>
+                                <p>Tarifas Inactivas</p>
+                                <small>Requieren revisión</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contenido Principal del Dashboard -->
+                    <div class="dashboard-content">
+                        <!-- Gráfico de Distribución -->
+                        <div class="chart-section">
+                            <p-card header="Distribución de Tarifas por Tipo">
+                                <div
+                                    class="chart-container"
+                                    *ngIf="stats.totalTariffs > 0"
+                                >
+                                    <p-chart
+                                        type="doughnut"
+                                        [data]="getChartData()"
+                                        [options]="getChartOptions()"
+                                        width="300"
+                                        height="300"
+                                    >
+                                    </p-chart>
+                                </div>
+                                <div
+                                    *ngIf="stats.totalTariffs === 0"
+                                    class="empty-chart"
+                                >
+                                    <i class="pi pi-chart-pie"></i>
+                                    <p>No hay datos para mostrar</p>
+                                    <small
+                                        >Configure algunas tarifas para ver la
+                                        distribución</small
+                                    >
+                                </div>
+                            </p-card>
+                        </div>
+
+                        <!-- Resumen por Tipo -->
+                        <div class="types-summary">
+                            <p-card header="Resumen por Tipo de Tarifa">
+                                <div class="types-grid">
+                                    <div
+                                        *ngFor="let type of tariffTypes"
+                                        class="type-card"
+                                        [class]="'type-' + type.color"
+                                    >
+                                        <div class="type-header">
+                                            <i [class]="type.icon"></i>
+                                            <span class="type-count">{{
+                                                tariffsByType[type.key]
+                                            }}</span>
+                                        </div>
+                                        <div class="type-content">
+                                            <h4>{{ type.label }}</h4>
+                                            <p>{{ type.description }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </p-card>
+                        </div>
+
+                        <!-- Tarifas Recientes -->
+                        <div class="recent-tariffs">
+                            <p-card header="Tarifas Modificadas Recientemente">
+                                <div
+                                    *ngIf="recentTariffs.length === 0"
+                                    class="empty-recent"
+                                >
+                                    <i class="pi pi-clock"></i>
+                                    <p>No hay modificaciones recientes</p>
+                                </div>
+
+                                <div
+                                    *ngIf="recentTariffs.length > 0"
+                                    class="recent-list"
+                                >
+                                    <div
+                                        *ngFor="let tariff of recentTariffs"
+                                        class="recent-item"
+                                    >
+                                        <div class="recent-info">
+                                            <div class="recent-header">
+                                                <h5>{{ tariff.name }}</h5>
+                                                <p-tag
+                                                    [value]="
+                                                        getTariffTypeInfo(
+                                                            tariff.type
+                                                        ).label
+                                                    "
+                                                    [severity]="
+                                                        tariff.isActive
+                                                            ? 'success'
+                                                            : 'secondary'
+                                                    "
+                                                >
+                                                </p-tag>
+                                            </div>
+                                            <div class="recent-details">
+                                                <small class="recent-category">
+                                                    <i
+                                                        class="pi pi-tag mr-1"
+                                                    ></i>
+                                                    {{
+                                                        getTariffTypeInfo(
+                                                            tariff.category
+                                                        ).label
+                                                    }}
+                                                </small>
+                                                <small class="recent-date">
+                                                    <i
+                                                        class="pi pi-calendar mr-1"
+                                                    ></i>
+                                                    {{
+                                                        tariff.updatedAt ||
+                                                            tariff.createdAt
+                                                            | date
+                                                                : "dd/MM/yyyy HH:mm"
+                                                    }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="recent-status">
+                                            <p-tag
+                                                [value]="
+                                                    tariff.isActive
+                                                        ? 'Activa'
+                                                        : 'Inactiva'
+                                                "
+                                                [severity]="
+                                                    tariff.isActive
+                                                        ? 'success'
+                                                        : 'secondary'
+                                                "
+                                                [rounded]="true"
+                                            >
+                                            </p-tag>
+                                        </div>
+                                    </div>
+                                </div>
+                            </p-card>
+                        </div>
+
+                        <!-- Información del Sistema -->
+                        <div class="system-info">
+                            <p-card header="Información del Sistema">
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <i class="pi pi-calendar"></i>
+                                        <div class="info-content">
+                                            <span class="info-label"
+                                                >Última Actualización</span
+                                            >
+                                            <span class="info-value">{{
+                                                stats.lastUpdated
+                                                    | date : "dd/MM/yyyy HH:mm"
+                                            }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="pi pi-star"></i>
+                                        <div class="info-content">
+                                            <span class="info-label"
+                                                >Tipo Más Usado</span
+                                            >
+                                            <span class="info-value">{{
+                                                getMostUsedTariffType()
+                                            }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="pi pi-percentage"></i>
+                                        <div class="info-content">
+                                            <span class="info-label"
+                                                >Tarifas Activas</span
+                                            >
+                                            <span class="info-value"
+                                                >{{
+                                                    getActivePercentage()
+                                                }}%</span
+                                            >
+                                        </div>
+                                    </div>
+                                </div>
+                            </p-card>
+                        </div>
+                    </div>
+                </div>
+            </p-tabPanel>
+
+            <!-- Tab: Configuración de Tarifas -->
+            <p-tabPanel>
+                <ng-template pTemplate="header">
+                    <div class="tab-header">
+                        <i class="pi pi-cog"></i>
+                        <span>Configuración</span>
+                    </div>
+                </ng-template>
+
+                <app-tariff-config-list></app-tariff-config-list>
+            </p-tabPanel>
+
+            <!-- Tab: Calculadora -->
+            <p-tabPanel style="overflow: overlay">
+                <ng-template pTemplate="header">
+                    <div class="tab-header">
+                        <i class="pi pi-calculator"></i>
+                        <span>Calculadora</span>
+                    </div>
+                </ng-template>
+
+                <app-tariff-calculator></app-tariff-calculator>
+            </p-tabPanel>
+
+            <!-- Tab: Gestión RBU -->
+            <p-tabPanel>
+                <ng-template pTemplate="header">
+                    <div class="tab-header">
+                        <i class="pi pi-dollar"></i>
+                        <span>RBU</span>
+                    </div>
+                </ng-template>
+
+                <app-rbu-management></app-rbu-management>
+            </p-tabPanel>
+        </p-tabView>
+    </div>
+
+    <!-- Toast Messages -->
+    <p-toast position="top-right"></p-toast>
+</div>

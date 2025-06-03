@@ -1,0 +1,246 @@
+<div class="introducer-form-container">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="m-0">
+                {{ isEditMode ? "Editar Introductor" : "Nuevo Introductor" }}
+            </h3>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="card-content">
+            <!-- Tipo de Persona -->
+            <div class="formgrid grid">
+                <div class="field col-12">
+                    <label for="type" class="required">Tipo de Persona</label>
+                    <p-selectButton
+                        id="type"
+                        formControlName="type"
+                        [options]="typeOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                    >
+                    </p-selectButton>
+                    <small class="p-error" *ngIf="isFieldInvalid('type')">
+                        {{ getFieldError("type") }}
+                    </small>
+                </div>
+            </div>
+
+            <!-- Información para Persona Natural -->
+            <div class="formgrid grid" *ngIf="isNaturalPerson">
+                <div class="field col-12 md:col-6">
+                    <label for="firstName" class="required">Nombres</label>
+                    <input
+                        type="text"
+                        pInputText
+                        id="firstName"
+                        formControlName="firstName"
+                        [class.ng-invalid]="isFieldInvalid('firstName')"
+                        placeholder="Ingrese los nombres"
+                    />
+                    <small class="p-error" *ngIf="isFieldInvalid('firstName')">
+                        {{ getFieldError("firstName") }}
+                    </small>
+                </div>
+
+                <div class="field col-12 md:col-6">
+                    <label for="lastName" class="required">Apellidos</label>
+                    <input
+                        type="text"
+                        pInputText
+                        id="lastName"
+                        formControlName="lastName"
+                        [class.ng-invalid]="isFieldInvalid('lastName')"
+                        placeholder="Ingrese los apellidos"
+                    />
+                    <small class="p-error" *ngIf="isFieldInvalid('lastName')">
+                        {{ getFieldError("lastName") }}
+                    </small>
+                </div>
+            </div>
+
+            <!-- Información para Persona Jurídica -->
+            <div class="formgrid grid" *ngIf="isJuridicalPerson">
+                <div class="field col-12 md:col-6">
+                    <label for="companyName" class="required"
+                        >Nombre de la Empresa</label
+                    >
+                    <input
+                        type="text"
+                        pInputText
+                        id="companyName"
+                        formControlName="companyName"
+                        [class.ng-invalid]="isFieldInvalid('companyName')"
+                        placeholder="Ingrese el nombre de la empresa"
+                    />
+                    <small
+                        class="p-error"
+                        *ngIf="isFieldInvalid('companyName')"
+                    >
+                        {{ getFieldError("companyName") }}
+                    </small>
+                </div>
+
+                <div class="field col-12 md:col-6">
+                    <label for="legalRepresentative" class="required"
+                        >Representante Legal</label
+                    >
+                    <input
+                        type="text"
+                        pInputText
+                        id="legalRepresentative"
+                        formControlName="legalRepresentative"
+                        [class.ng-invalid]="
+                            isFieldInvalid('legalRepresentative')
+                        "
+                        placeholder="Ingrese el representante legal"
+                    />
+                    <small
+                        class="p-error"
+                        *ngIf="isFieldInvalid('legalRepresentative')"
+                    >
+                        {{ getFieldError("legalRepresentative") }}
+                    </small>
+                </div>
+            </div>
+
+            <!-- Documentos -->
+            <div class="formgrid grid">
+                <div class="field col-12 md:col-6">
+                    <label for="idNumber" class="required">{{
+                        isNaturalPerson ? "Cédula" : "RUC/Documento"
+                    }}</label>
+                    <input
+                        type="text"
+                        pInputText
+                        id="idNumber"
+                        formControlName="idNumber"
+                        [class.ng-invalid]="isFieldInvalid('idNumber')"
+                        placeholder="Ingrese el número de documento"
+                    />
+                    <small class="p-error" *ngIf="isFieldInvalid('idNumber')">
+                        {{ getFieldError("idNumber") }}
+                    </small>
+                </div>
+
+                <div class="field col-12 md:col-6" *ngIf="isJuridicalPerson">
+                    <label for="ruc">RUC (Opcional)</label>
+                    <input
+                        type="text"
+                        pInputText
+                        id="ruc"
+                        formControlName="ruc"
+                        placeholder="Ingrese el RUC"
+                    />
+                </div>
+            </div>
+
+            <!-- Información de Contacto -->
+            <div class="formgrid grid">
+                <div class="field col-12 md:col-6">
+                    <label for="phone">Teléfono</label>
+                    <input
+                        type="tel"
+                        pInputText
+                        id="phone"
+                        formControlName="phone"
+                        placeholder="Ingrese el teléfono"
+                    />
+                </div>
+
+                <div class="field col-12 md:col-6">
+                    <label for="email">Email</label>
+                    <input
+                        type="email"
+                        pInputText
+                        id="email"
+                        formControlName="email"
+                        [class.ng-invalid]="isFieldInvalid('email')"
+                        placeholder="Ingrese el email"
+                    />
+                    <small class="p-error" *ngIf="isFieldInvalid('email')">
+                        {{ getFieldError("email") }}
+                    </small>
+                </div>
+            </div>
+
+            <!-- Dirección -->
+            <div class="formgrid grid">
+                <div class="field col-12">
+                    <label for="address">Dirección</label>
+                    <textarea
+                        pInputTextarea
+                        id="address"
+                        formControlName="address"
+                        rows="2"
+                        placeholder="Ingrese la dirección completa"
+                    >
+                    </textarea>
+                </div>
+            </div>
+
+            <!-- Tipo de Introductor -->
+            <div class="formgrid grid">
+                <div class="field col-12 md:col-6">
+                    <label for="introducerType" class="required"
+                        >Tipo de Introductor</label
+                    >
+                    <p-dropdown
+                        id="introducerType"
+                        formControlName="introducerType"
+                        [options]="introducerTypeOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Seleccione el tipo"
+                        [class.ng-invalid]="isFieldInvalid('introducerType')"
+                    >
+                    </p-dropdown>
+                    <small
+                        class="p-error"
+                        *ngIf="isFieldInvalid('introducerType')"
+                    >
+                        {{ getFieldError("introducerType") }}
+                    </small>
+                </div>
+            </div>
+
+            <!-- Notas -->
+            <div class="formgrid grid">
+                <div class="field col-12">
+                    <label for="notes">Notas</label>
+                    <textarea
+                        pInputTextarea
+                        id="notes"
+                        formControlName="notes"
+                        rows="3"
+                        placeholder="Notas adicionales (opcional)"
+                    >
+                    </textarea>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="form-actions">
+                <p-button
+                    type="button"
+                    label="Cancelar"
+                    icon="pi pi-times"
+                    severity="secondary"
+                    (click)="onCancel()"
+                    [disabled]="loading"
+                >
+                </p-button>
+
+                <p-button
+                    type="submit"
+                    [label]="isEditMode ? 'Actualizar' : 'Crear'"
+                    icon="pi pi-check"
+                    [loading]="loading"
+                    [disabled]="form.invalid && !loading"
+                >
+                </p-button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<p-toast></p-toast>

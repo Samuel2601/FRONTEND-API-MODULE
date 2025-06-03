@@ -1,0 +1,44 @@
+
+.invoice-form-container {
+    .card {
+        background: var(--surface-card);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-1);
+        padding: 0;
+        margin-bottom: 1rem;
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--surface-border);
+            background: var(--surface-section);
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+
+            h3 {
+                color: var(--text-color);
+                font-weight: 600;
+            }
+        }
+
+        .card-content {
+            padding: 2rem;
+        }
+    }
+
+
+}
+
+::ng-deep .p-inputnumber-input {
+    background: var(--surface-card);
+    color: var(--text-color);
+    border: 1px solid var(--surface-border);
+}
+
+::ng-deep .p-calendar .p-inputtext {
+    background: var(--surface-card);
+    color: var(--text-color);
+    border: 1px solid var(--surface-border);
+    &:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem var(--primary-color-text);
+    }
+}

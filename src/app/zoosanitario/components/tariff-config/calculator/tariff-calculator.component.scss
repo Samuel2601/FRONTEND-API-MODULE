@@ -1,0 +1,737 @@
+.calculator-container {
+    padding: var(--content-padding);
+    height: 100%;
+    background: var(--surface-ground);
+
+    .calculator-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: var(--surface-card);
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+
+        .calculator-title {
+            color: var(--text-color);
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+
+            i {
+                color: var(--primary-color);
+            }
+        }
+
+        .header-info {
+            .rbu-chip {
+                background: var(--primary-color-text);
+                color: var(--primary-color);
+                border: 1px solid var(--primary-color);
+
+                ::ng-deep {
+                    .p-chip-text {
+                        color: var(--primary-color);
+                        font-weight: 600;
+                    }
+
+                    .p-chip-icon {
+                        color: var(--primary-color);
+                    }
+                }
+            }
+        }
+    }
+
+    .calculator-grid {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 1.5rem;
+        height: calc(100% - 100px);
+    }
+
+    .calculator-inputs {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+
+        ::ng-deep {
+            .calculation-card {
+                .p-card {
+                    background: var(--surface-card);
+                    border: 1px solid var(--surface-border);
+                    border-radius: var(--border-radius);
+                    box-shadow: var(--card-shadow);
+
+                    .p-card-header {
+                        background: var(--surface-section);
+                        border-bottom: 1px solid var(--surface-border);
+                        padding: 1rem 1.5rem;
+                        font-weight: 600;
+                        color: var(--text-color);
+                    }
+
+                    .p-card-body {
+                        padding: 0;
+
+                        .p-card-content {
+                            padding: 1.5rem;
+                        }
+                    }
+                }
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+
+            .input-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }
+
+            .input-field {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+
+                label {
+                    color: var(--text-color);
+                    font-weight: 500;
+                    font-size: 0.875rem;
+                }
+
+                ::ng-deep {
+
+                    .p-inputtext,
+                    .p-dropdown,
+                    .p-inputnumber-input,
+                    .p-calendar input {
+                        background: var(--surface-card);
+                        border: 1px solid var(--surface-border);
+                        color: var(--text-color);
+                        border-radius: var(--border-radius);
+
+                        &:focus {
+                            border-color: var(--primary-color);
+                            box-shadow: 0 0 0 0.2rem var(--primary-color-text);
+                        }
+                    }
+
+                    .p-dropdown {
+                        .p-dropdown-label {
+                            color: var(--text-color);
+
+                            &.p-placeholder {
+                                color: var(--text-color-secondary);
+                            }
+                        }
+
+                        .p-dropdown-trigger {
+                            color: var(--text-color-secondary);
+                        }
+                    }
+
+                    .p-inputnumber {
+                        .p-inputnumber-buttons {
+                            .p-button {
+                                background: var(--surface-100);
+                                border: 1px solid var(--surface-border);
+                                color: var(--text-color-secondary);
+
+                                &:hover {
+                                    background: var(--surface-200);
+                                    color: var(--text-color);
+                                }
+                            }
+                        }
+                    }
+
+                    .p-calendar {
+                        .p-datepicker {
+                            background: var(--surface-overlay);
+                            border: 1px solid var(--surface-border);
+                            color: var(--text-color);
+                        }
+                    }
+                }
+            }
+
+            .checkbox-field {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                margin-bottom: 1rem;
+
+                label {
+                    color: var(--text-color);
+                    font-weight: 500;
+                    cursor: pointer;
+                    margin: 0;
+                }
+
+                ::ng-deep .p-checkbox {
+                    .p-checkbox-box {
+                        background: var(--surface-card);
+                        border: 1px solid var(--surface-border);
+
+                        &:focus {
+                            box-shadow: 0 0 0 0.2rem var(--primary-color-text);
+                        }
+
+                        &.p-highlight {
+                            background: var(--primary-color);
+                            border-color: var(--primary-color);
+
+                            .p-checkbox-icon {
+                                color: var(--primary-color-text);
+                            }
+                        }
+                    }
+                }
+            }
+
+            .services-selection {
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+                padding: 1rem;
+                background: var(--surface-section);
+                border-radius: var(--border-radius);
+
+                label {
+                    color: var(--text-color);
+                    font-weight: 500;
+                    font-size: 0.875rem;
+                }
+
+                .services-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+
+                    .service-item {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+
+                        .service-label {
+                            color: var(--text-color);
+                            font-size: 0.875rem;
+                        }
+                    }
+                }
+            }
+
+            .time-info {
+                display: flex;
+                justify-content: center;
+                margin: 0.5rem 0;
+
+                .info-chip {
+                    background: var(--blue-50);
+                    color: var(--blue-600);
+                    border: 1px solid var(--blue-200);
+                }
+
+                .warning-chip {
+                    background: var(--orange-50);
+                    color: var(--orange-600);
+                    border: 1px solid var(--orange-200);
+                }
+            }
+
+            .card-actions {
+                display: flex;
+                justify-content: center;
+                padding-top: 1rem;
+                border-top: 1px solid var(--surface-border);
+
+                ::ng-deep .p-button {
+                    .p-button-label {
+                        font-weight: 500;
+                    }
+                }
+            }
+        }
+
+        .global-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--surface-card);
+            border: 1px solid var(--surface-border);
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+        }
+    }
+
+    .calculator-results {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+
+        ::ng-deep {
+            .results-card {
+                height: 100%;
+
+                .p-card {
+                    background: var(--surface-card);
+                    border: 1px solid var(--surface-border);
+                    border-radius: var(--border-radius);
+                    box-shadow: var(--card-shadow);
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+
+                    .p-card-header {
+                        background: var(--surface-section);
+                        border-bottom: 1px solid var(--surface-border);
+                        padding: 1rem 1.5rem;
+                        font-weight: 600;
+                        color: var(--text-color);
+                    }
+
+                    .p-card-body {
+                        flex: 1;
+                        display: flex;
+                        flex-direction: column;
+                        padding: 0;
+
+                        .p-card-content {
+                            flex: 1;
+                            padding: 1.5rem;
+                            display: flex;
+                            flex-direction: column;
+                        }
+                    }
+                }
+            }
+        }
+
+        .total-summary {
+            margin-bottom: 1rem;
+
+            .total-amount {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1rem;
+                background: var(--primary-color-text);
+                border: 2px solid var(--primary-color);
+                border-radius: var(--border-radius);
+
+                .total-label {
+                    color: var(--primary-color);
+                    font-weight: 600;
+                    font-size: 1.125rem;
+                }
+
+                .total-value {
+                    color: var(--primary-color);
+                    font-weight: 700;
+                    font-size: 1.5rem;
+                }
+            }
+        }
+
+        .results-list {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            overflow-y: auto;
+
+            .result-item {
+                padding: 1rem;
+                background: var(--surface-section);
+                border: 1px solid var(--surface-border);
+                border-radius: var(--border-radius);
+                transition: all 0.2s ease;
+
+                &:hover {
+                    background: var(--surface-hover);
+                }
+
+                &.warning {
+                    background: var(--orange-50);
+                    border-color: var(--orange-200);
+
+                    .result-header h4 {
+                        color: var(--orange-600);
+                    }
+
+                    .result-amount {
+                        color: var(--orange-600);
+                    }
+                }
+
+                .result-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 0.5rem;
+
+                    h4 {
+                        margin: 0;
+                        color: var(--text-color);
+                        font-size: 1rem;
+                        font-weight: 600;
+                    }
+
+                    .result-amount {
+                        color: var(--primary-color);
+                        font-weight: 700;
+                        font-size: 1.125rem;
+                    }
+                }
+
+                .result-details {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.25rem;
+
+                    small {
+                        color: var(--text-color-secondary);
+                        font-size: 0.75rem;
+                    }
+                }
+            }
+
+            .empty-results {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                padding: 2rem;
+                color: var(--text-color-secondary);
+
+                i {
+                    font-size: 3rem;
+                    margin-bottom: 1rem;
+                    color: var(--text-color-secondary);
+                }
+
+                p {
+                    font-size: 1.125rem;
+                    margin-bottom: 0.5rem;
+                    color: var(--text-color);
+                }
+
+                small {
+                    font-size: 0.875rem;
+                    max-width: 250px;
+                    line-height: 1.4;
+                }
+            }
+        }
+    }
+}
+
+// Responsive Design
+@media (max-width: 1200px) {
+    .calculator-container {
+        .calculator-grid {
+            grid-template-columns: 1fr 350px;
+        }
+    }
+}
+
+@media (max-width: 968px) {
+    .calculator-container {
+        padding: 1rem;
+
+        .calculator-header {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+
+            .calculator-title {
+                font-size: 1.25rem;
+            }
+        }
+
+        .calculator-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            height: auto;
+        }
+
+        .calculator-inputs {
+            order: 2;
+            overflow-y: visible;
+            padding-right: 0;
+
+            .form-group {
+                .input-row {
+                    grid-template-columns: 1fr;
+                    gap: 0.75rem;
+                }
+            }
+        }
+
+        .calculator-results {
+            order: 1;
+            height: auto;
+            min-height: 300px;
+        }
+    }
+}
+
+@media (max-width: 576px) {
+    .calculator-container {
+        padding: 0.75rem;
+
+        .calculator-header {
+            padding: 0.75rem;
+
+            .calculator-title {
+                font-size: 1.125rem;
+            }
+        }
+
+        .calculator-inputs {
+            ::ng-deep .calculation-card .p-card {
+                .p-card-header {
+                    padding: 0.75rem 1rem;
+                    font-size: 0.875rem;
+                }
+
+                .p-card-content {
+                    padding: 1rem;
+                }
+            }
+
+            .form-group {
+                gap: 0.75rem;
+
+                .input-field {
+                    label {
+                        font-size: 0.8125rem;
+                    }
+                }
+
+                .services-selection {
+                    padding: 0.75rem;
+                }
+
+                .card-actions {
+                    padding-top: 0.75rem;
+
+                    ::ng-deep .p-button {
+                        font-size: 0.875rem;
+                    }
+                }
+            }
+
+            .global-actions {
+                padding: 0.75rem;
+            }
+        }
+
+        .calculator-results {
+            ::ng-deep .results-card .p-card {
+                .p-card-header {
+                    padding: 0.75rem 1rem;
+                }
+
+                .p-card-content {
+                    padding: 1rem;
+                }
+            }
+
+            .total-summary .total-amount {
+                padding: 0.75rem;
+                flex-direction: column;
+                gap: 0.5rem;
+                text-align: center;
+
+                .total-label {
+                    font-size: 1rem;
+                }
+
+                .total-value {
+                    font-size: 1.25rem;
+                }
+            }
+
+            .results-list {
+                .result-item {
+                    padding: 0.75rem;
+
+                    .result-header {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 0.25rem;
+
+                        h4 {
+                            font-size: 0.875rem;
+                        }
+
+                        .result-amount {
+                            font-size: 1rem;
+                        }
+                    }
+                }
+
+                .empty-results {
+                    padding: 1.5rem;
+
+                    i {
+                        font-size: 2rem;
+                    }
+
+                    p {
+                        font-size: 1rem;
+                    }
+
+                    small {
+                        font-size: 0.8125rem;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Dark theme adjustments
+@media (prefers-color-scheme: dark) {
+    .calculator-container {
+        .calculator-results {
+            .total-summary .total-amount {
+                background: rgba(var(--primary-color-rgb), 0.1);
+            }
+
+            .results-list {
+                .result-item {
+                    &.warning {
+                        background: rgba(251, 146, 60, 0.1);
+                        border-color: rgba(251, 146, 60, 0.3);
+                    }
+                }
+            }
+        }
+
+        .calculator-inputs {
+            .form-group {
+                .time-info {
+                    .info-chip {
+                        background: rgba(59, 130, 246, 0.1);
+                        color: rgb(59, 130, 246);
+                        border-color: rgba(59, 130, 246, 0.3);
+                    }
+
+                    .warning-chip {
+                        background: rgba(251, 146, 60, 0.1);
+                        color: rgb(251, 146, 60);
+                        border-color: rgba(251, 146, 60, 0.3);
+                    }
+                }
+
+                .services-selection {
+                    background: rgba(255, 255, 255, 0.05);
+                }
+            }
+        }
+    }
+}
+
+// High contrast mode
+@media (prefers-contrast: high) {
+    .calculator-container {
+
+        ::ng-deep .calculation-card .p-card,
+        ::ng-deep .results-card .p-card,
+        .global-actions {
+            border: 2px solid var(--surface-border);
+        }
+
+        .calculator-inputs {
+            .form-group {
+                .input-field {
+                    ::ng-deep {
+
+                        .p-inputtext,
+                        .p-dropdown,
+                        .p-inputnumber-input,
+                        .p-calendar input {
+                            border: 2px solid var(--surface-border);
+
+                            &:focus {
+                                border: 2px solid var(--primary-color);
+                            }
+                        }
+                    }
+                }
+
+                .checkbox-field {
+                    ::ng-deep .p-checkbox .p-checkbox-box {
+                        border: 2px solid var(--surface-border);
+
+                        &.p-highlight {
+                            border: 2px solid var(--primary-color);
+                        }
+                    }
+                }
+
+                .services-selection {
+                    border: 2px solid var(--surface-border);
+                }
+
+                .card-actions {
+                    border-top: 2px solid var(--surface-border);
+                }
+            }
+        }
+
+        .calculator-results {
+            .total-summary .total-amount {
+                border: 3px solid var(--primary-color);
+            }
+
+            .results-list .result-item {
+                border: 2px solid var(--surface-border);
+
+                &.warning {
+                    border: 2px solid var(--orange-600);
+                }
+            }
+        }
+    }
+}
+
+// Print styles
+@media print {
+    .calculator-container {
+
+        .calculator-header,
+        .global-actions {
+            display: none;
+        }
+
+        .calculator-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .calculator-inputs {
+            .form-group .card-actions {
+                display: none;
+            }
+        }
+
+        .calculator-results {
+            page-break-inside: avoid;
+        }
+    } }

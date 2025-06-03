@@ -90,7 +90,7 @@ export interface PendingPayments {
     providedIn: 'root',
 })
 export class IntroducerService {
-    private apiUrl = `${GLOBAL.url_zoosanitario}/introducer`;
+    private apiUrl = `${GLOBAL.url_zoosanitario}introducer`;
 
     constructor(private http: HttpClient, private auth: AuthService) {}
 

@@ -100,7 +100,7 @@ export interface FineCalculationParams {
     providedIn: 'root',
 })
 export class TariffConfigService {
-    private apiUrl = `${GLOBAL.url_zoosanitario}/tariff-config`;
+    private apiUrl = `${GLOBAL.url_zoosanitario}tariff-config`;
 
     constructor(private http: HttpClient, private auth: AuthService) {}
 
@@ -328,8 +328,9 @@ export class TariffConfigService {
      */
     getCurrentRBU(): Observable<{ currentRBU: number }> {
         return this.getActiveTariffs().pipe(
-            map((tariffs) => {
-                const tariff = tariffs.find((t) => t.currentRBU > 0);
+            map((tariffs: any) => {
+                console.log('Tariffs:', tariffs);
+                const tariff = tariffs.data.find((t: any) => t.currentRBU > 0);
                 return { currentRBU: tariff?.currentRBU || 470 };
             }),
             catchError(this.handleError)

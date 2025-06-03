@@ -1,0 +1,295 @@
+<div class="invoice-list-container">
+    <div class="card">
+        <div class="card-header">
+            <div class="flex justify-content-between align-items-center">
+                <h3 class="m-0">Gestión de Facturas</h3>
+                <div class="flex gap-2">
+                    <p-button
+                        icon="pi pi-file-excel"
+                        severity="success"
+                        [text]="true"
+                        pTooltip="Exportar a Excel"
+                        (click)="exportToExcel()"
+                    >
+                    </p-button>
+                    <p-button
+                        label="Nueva Factura"
+                        icon="pi pi-plus"
+                        (click)="createInvoice()"
+                    >
+                    </p-button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-content">
+            <!-- Filtros -->
+            <div class="filter-section">
+                <div class="p-fluid formgrid grid">
+                    <div class="field col-12 md:col-3">
+                        <label for="invoiceNumber">Número de Factura</label>
+                        <input
+                            type="text"
+                            pInputText
+                            id="invoiceNumber"
+                            [(ngModel)]="invoiceNumber"
+                            placeholder="Buscar por número..."
+                            (keyup.enter)="searchInvoices()"
+                        />
+                    </div>
+
+                    <div class="field col-12 md:col-2">
+                        <label for="status">Estado</label>
+                        <p-dropdown
+                            id="status"
+                            [(ngModel)]="selectedStatus"
+                            [options]="statusOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Todos"
+                        >
+                        </p-dropdown>
+                    </div>
+
+                    <div class="field col-12 md:col-3">
+                        <label for="type">Tipo</label>
+                        <p-dropdown
+                            id="type"
+                            [(ngModel)]="selectedType"
+                            [options]="typeOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Todos"
+                        >
+                        </p-dropdown>
+                    </div>
+
+                    <div class="field col-12 md:col-2">
+                        <label for="dateFrom">Fecha Desde</label>
+                        <p-calendar
+                            id="dateFrom"
+                            [(ngModel)]="dateFrom"
+                            dateFormat="dd/mm/yy"
+                            [showIcon]="true"
+                        >
+                        </p-calendar>
+                    </div>
+
+                    <div class="field col-12 md:col-2">
+                        <label for="dateTo">Fecha Hasta</label>
+                        <p-calendar
+                            id="dateTo"
+                            [(ngModel)]="dateTo"
+                            dateFormat="dd/mm/yy"
+                            [showIcon]="true"
+                        >
+                        </p-calendar>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 mt-2">
+                    <p-button
+                        icon="pi pi-search"
+                        label="Buscar"
+                        (click)="searchInvoices()"
+                        [disabled]="loading"
+                    >
+                    </p-button>
+                    <p-button
+                        icon="pi pi-times"
+                        severity="secondary"
+                        (click)="clearFilters()"
+                        [disabled]="loading"
+                    >
+                    </p-button>
+                </div>
+            </div>
+
+            <!-- Tabla -->
+            <div class="table-section">
+                <p-table
+                    [value]="invoices"
+                    [loading]="loading"
+                    [paginator]="true"
+                    [rows]="limit"
+                    [totalRecords]="totalRecords"
+                    [lazy]="true"
+                    (onLazyLoad)="onPageChange($event)"
+                    [showCurrentPageReport]="true"
+                    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+                    [rowsPerPageOptions]="[10, 25, 50]"
+                    styleClass="p-datatable-striped"
+                >
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>Número</th>
+                            <th>Tipo</th>
+                            <th>Introductor</th>
+                            <th>Monto Total</th>
+                            <th>Estado</th>
+                            <th>Pendiente</th>
+                            <th>Fecha</th>
+                            <th style="width: 12rem">Acciones</th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="body" let-invoice>
+                        <tr>
+                            <td>
+                                <span class="font-medium">{{
+                                    invoice.invoiceNumber
+                                }}</span>
+                            </td>
+                            <td>
+                                <p-tag
+                                    [value]="
+                                        invoiceService.getInvoiceTypeLabel(
+                                            invoice.type
+                                        )
+                                    "
+                                    [severity]="getTypeSeverity(invoice.type)"
+                                >
+                                </p-tag>
+                            </td>
+                            <td>
+                                <div class="flex flex-column">
+                                    <span class="font-medium">{{
+                                        getIntroducerName(invoice)
+                                    }}</span>
+                                    <small
+                                        class="text-500"
+                                        *ngIf="invoice.introducer?.idNumber"
+                                    >
+                                        {{ invoice.introducer.idNumber }}
+                                    </small>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="font-semibold">{{
+                                    formatCurrency(invoice.totalAmount)
+                                }}</span>
+                            </td>
+                            <td>
+                                <p-tag
+                                    [value]="
+                                        invoiceService.getPaymentStatusLabel(
+                                            invoice.paymentStatus
+                                        )
+                                    "
+                                    [severity]="
+                                        getStatusSeverity(invoice.paymentStatus)
+                                    "
+                                >
+                                </p-tag>
+                            </td>
+                            <td>
+                                <span
+                                    class="font-medium"
+                                    [ngClass]="{
+                                        'text-red-500':
+                                            getRemainingAmount(invoice) > 0,
+                                        'text-green-500':
+                                            getRemainingAmount(invoice) === 0
+                                    }"
+                                >
+                                    {{
+                                        formatCurrency(
+                                            getRemainingAmount(invoice)
+                                        )
+                                    }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="flex flex-column">
+                                    <span>{{
+                                        formatDate(invoice.createdAt!)
+                                    }}</span>
+                                    <small
+                                        class="text-500"
+                                        *ngIf="invoice.dueDate"
+                                    >
+                                        Vence: {{ formatDate(invoice.dueDate) }}
+                                    </small>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="flex gap-1">
+                                    <p-button
+                                        icon="pi pi-eye"
+                                        size="small"
+                                        severity="info"
+                                        [text]="true"
+                                        pTooltip="Ver detalles"
+                                        (click)="viewInvoice(invoice)"
+                                    >
+                                    </p-button>
+
+                                    <p-button
+                                        icon="pi pi-pencil"
+                                        size="small"
+                                        severity="warning"
+                                        [text]="true"
+                                        pTooltip="Editar"
+                                        [disabled]="
+                                            invoice.paymentStatus === 'PAID' ||
+                                            invoice.paymentStatus ===
+                                                'CANCELLED'
+                                        "
+                                        (click)="editInvoice(invoice)"
+                                    >
+                                    </p-button>
+
+                                    <p-button
+                                        icon="pi pi-credit-card"
+                                        size="small"
+                                        severity="success"
+                                        [text]="true"
+                                        pTooltip="Procesar pago"
+                                        [disabled]="
+                                            invoice.paymentStatus === 'PAID'
+                                        "
+                                        (click)="processPayment(invoice)"
+                                    >
+                                    </p-button>
+
+                                    <p-button
+                                        icon="pi pi-ban"
+                                        size="small"
+                                        severity="danger"
+                                        [text]="true"
+                                        pTooltip="Cancelar"
+                                        [disabled]="
+                                            invoice.paymentStatus === 'PAID' ||
+                                            invoice.paymentStatus ===
+                                                'CANCELLED'
+                                        "
+                                        (click)="cancelInvoice(invoice)"
+                                    >
+                                    </p-button>
+                                </div>
+                            </td>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="8" class="text-center p-4">
+                                <div
+                                    class="flex flex-column align-items-center gap-3"
+                                >
+                                    <i class="pi pi-file text-4xl text-300"></i>
+                                    <span class="text-500"
+                                        >No se encontraron facturas</span
+                                    >
+                                </div>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>

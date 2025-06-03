@@ -752,3 +752,297 @@
         }
     }
 }
+
+// Certificado Zoosanitario Styles
+.manual-entry-section {
+    padding: 1.5rem;
+    background: var(--surface-card);
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1rem;
+
+    @media (max-width: 768px) {
+        padding: 1rem;
+        margin: 0 -0.5rem 1rem;
+        border-radius: 8px;
+    }
+
+    h5 {
+        color: var(--text-color);
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--surface-border);
+
+        @media (max-width: 768px) {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+        }
+    }
+
+    .grid {
+        gap: 0rem;
+
+        @media (max-width: 768px) {
+            gap: 0.75rem;
+        }
+    }
+
+    .field {
+        margin-bottom: 0;
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+
+            @media (max-width: 768px) {
+                font-size: 0.9rem;
+                margin-bottom: 0.4rem;
+            }
+
+            &:after {
+                content: "";
+                color: var(--red-500);
+            }
+        }
+
+        // Input styles
+        input[pInputText] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--surface-border);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            background: var(--surface-ground);
+
+            @media (max-width: 768px) {
+                padding: 0.65rem;
+                font-size: 16px; // Prevents zoom on iOS
+            }
+
+            &:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.2);
+                outline: none;
+                background: var(--surface-card);
+            }
+
+            &::placeholder {
+                color: var(--text-color-secondary);
+                opacity: 0.7;
+            }
+
+            &.ng-invalid.ng-touched {
+                border-color: var(--red-500);
+                background: rgba(var(--red-500-rgb), 0.05);
+            }
+        }
+
+        // PrimeNG InputNumber styles
+        ::ng-deep p-inputnumber {
+            width: 100%;
+
+            .p-inputnumber-input {
+                width: 100% !important;
+                padding: 0.75rem;
+                border: 1px solid var(--surface-border);
+                border-radius: 6px;
+                transition: all 0.3s ease;
+                font-size: 0.95rem;
+                background: var(--surface-ground);
+
+                @media (max-width: 768px) {
+                    padding: 0.65rem;
+                    font-size: 16px;
+                }
+
+                &:focus {
+                    border-color: var(--primary-color);
+                    box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.2);
+                    outline: none;
+                    background: var(--surface-card);
+                }
+            }
+
+            &.ng-invalid .p-inputnumber-input {
+                border-color: var(--red-500);
+                background: rgba(var(--red-500-rgb), 0.05);
+            }
+        }
+
+        // PrimeNG Calendar styles
+        ::ng-deep p-calendar {
+            width: 100%;
+
+            .p-calendar {
+                width: 100%;
+
+                .p-inputtext {
+                    width: 100% !important;
+                    padding: 0.75rem 2.5rem 0.75rem 0.75rem;
+                    border: 1px solid var(--surface-border);
+                    border-radius: 6px;
+                    transition: all 0.3s ease;
+                    font-size: 0.95rem;
+                    background: var(--surface-ground);
+
+                    @media (max-width: 768px) {
+                        padding: 0.65rem 2.5rem 0.65rem 0.65rem;
+                        font-size: 16px;
+                    }
+
+                    &:focus {
+                        border-color: var(--primary-color);
+                        box-shadow: 0 0 0 0.2rem
+                            rgba(var(--primary-color-rgb), 0.2);
+                        outline: none;
+                        background: var(--surface-card);
+                    }
+                }
+
+                .p-datepicker-trigger {
+                    right: 0.75rem;
+                    color: var(--text-color-secondary);
+
+                    @media (max-width: 768px) {
+                        right: 0.65rem;
+                    }
+                }
+            }
+
+            &.ng-invalid .p-calendar .p-inputtext {
+                border-color: var(--red-500);
+                background: rgba(var(--red-500-rgb), 0.05);
+            }
+        }
+
+        // Error message styles
+        .p-error {
+            color: var(--red-500);
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+            display: block;
+            line-height: 1.4;
+
+            @media (max-width: 768px) {
+                font-size: 0.8rem;
+            }
+        }
+    }
+
+    // Button container
+    .flex.justify-content-end {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--surface-border);
+
+        @media (max-width: 768px) {
+            margin-top: 1.5rem;
+            justify-content: center !important;
+        }
+
+        ::ng-deep p-button {
+            .p-button {
+                padding: 0.75rem 1.5rem;
+                font-weight: 600;
+                border-radius: 6px;
+                transition: all 0.3s ease;
+
+                @media (max-width: 768px) {
+                    padding: 0.8rem 2rem;
+                    width: 100%;
+                    max-width: 280px;
+                }
+
+                &:not(:disabled):hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                }
+
+                &:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                }
+
+                .p-button-icon {
+                    margin-right: 0.5rem;
+                }
+            }
+        }
+    }
+}
+
+// Responsive grid adjustments
+@media (max-width: 768px) {
+    .col-12.md\\:col-6 {
+        width: 100% !important;
+        padding: 0 0.5rem;
+    }
+
+    .col-12 {
+        padding: 0 0.5rem;
+    }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+    .manual-entry-section {
+        background: var(--surface-card);
+
+        input[pInputText],
+        ::ng-deep .p-inputnumber-input,
+        ::ng-deep .p-calendar .p-inputtext {
+            background: var(--surface-ground);
+            color: var(--text-color);
+
+            &::placeholder {
+                color: var(--text-color-secondary);
+            }
+        }
+    }
+}
+
+// Loading state for button
+::ng-deep p-button .p-button.p-button-loading {
+    .p-button-icon {
+        animation: spin 1s linear infinite;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// Focus management for better accessibility
+.manual-entry-section {
+    *:focus {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 2px;
+    }
+}
+
+// Capacitor specific adjustments
+@supports (-webkit-touch-callout: none) {
+    // iOS Safari specific styles
+    .manual-entry-section {
+        .field input[pInputText],
+        ::ng-deep .p-inputnumber-input,
+        ::ng-deep .p-calendar .p-inputtext {
+            font-size: 16px; // Prevents zoom
+            -webkit-appearance: none;
+            border-radius: 6px;
+        }
+    }
+}
