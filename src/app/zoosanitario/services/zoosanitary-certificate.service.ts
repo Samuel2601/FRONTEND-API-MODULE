@@ -21,7 +21,7 @@ export interface ZoosanitaryCertificate {
 }
 
 export interface ZoosanitaryCertificateSearchResponse {
-    certificates: ZoosanitaryCertificate[];
+    data: ZoosanitaryCertificate[];
     total: number;
     page: number;
     limit: number;

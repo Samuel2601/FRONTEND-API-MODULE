@@ -1,281 +1,264 @@
 <div class="introducer-list-container">
-    <div class="card">
-        <div class="card-header">
-            <div class="flex justify-content-between align-items-center">
-                <h3 class="m-0">Gestión de Introductores</h3>
-                <p-button
-                    label="Nuevo Introductor"
-                    icon="pi pi-plus"
-                    (click)="createIntroducer()"
-                >
-                </p-button>
-            </div>
-        </div>
-
-        <!-- Filtros -->
-        <div class="card-content">
-            <div class="filter-section">
-                <div class="p-fluid formgrid grid">
-                    <div class="field col-12 md:col-3">
-                        <label for="search">Buscar</label>
-                        <span class="p-input-icon-left">
-                            <i class="pi pi-search"></i>
-                            <input
-                                type="text"
-                                pInputText
-                                id="search"
-                                [(ngModel)]="searchQuery"
-                                placeholder="Buscar por nombre, cédula..."
-                                (keyup.enter)="applyFilters()"
-                            />
-                        </span>
-                    </div>
-
-                    <div class="field col-12 md:col-2">
-                        <label for="type">Tipo</label>
-                        <p-dropdown
-                            id="type"
-                            [(ngModel)]="selectedType"
-                            [options]="typeOptions"
-                            optionLabel="label"
-                            optionValue="value"
-                            placeholder="Seleccionar"
-                        >
-                        </p-dropdown>
-                    </div>
-
-                    <div class="field col-12 md:col-3">
-                        <label for="introducerType">Tipo de Introductor</label>
-                        <p-dropdown
-                            id="introducerType"
-                            [(ngModel)]="selectedIntroducerType"
-                            [options]="introducerTypeOptions"
-                            optionLabel="label"
-                            optionValue="value"
-                            placeholder="Seleccionar"
-                        >
-                        </p-dropdown>
-                    </div>
-
-                    <div class="field col-12 md:col-2">
-                        <label for="status">Estado</label>
-                        <p-dropdown
-                            id="status"
-                            [(ngModel)]="selectedStatus"
-                            [options]="statusOptions"
-                            optionLabel="label"
-                            optionValue="value"
-                            placeholder="Seleccionar"
-                        >
-                        </p-dropdown>
-                    </div>
-
-                    <div class="field col-12 md:col-2">
-                        <label>&nbsp;</label>
-                        <div class="flex gap-2">
-                            <p-button
-                                icon="pi pi-search"
-                                label="Filtrar"
-                                (click)="applyFilters()"
-                                [disabled]="loading"
-                            >
-                            </p-button>
-                            <p-button
-                                icon="pi pi-times"
-                                severity="secondary"
-                                (click)="clearFilters()"
-                                [disabled]="loading"
-                            >
-                            </p-button>
-                        </div>
-                    </div>
+    <!-- Estadísticas -->
+    <div class="grid mb-4" *ngIf="statistics">
+        <div class="col-12 md:col-6 lg:col-3">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <i class="pi pi-users"></i>
+                    <span>Total Introductores</span>
                 </div>
-            </div>
-
-            <!-- Tabla -->
-            <div class="table-section">
-                <p-table
-                    [value]="introducers"
-                    [loading]="loading"
-                    [paginator]="true"
-                    [rows]="limit"
-                    [totalRecords]="totalRecords"
-                    [lazy]="true"
-                    (onLazyLoad)="onPageChange($event)"
-                    [showCurrentPageReport]="true"
-                    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
-                    [rowsPerPageOptions]="[10, 25, 50]"
-                    styleClass="p-datatable-striped"
-                >
-                    <ng-template pTemplate="header">
-                        <tr>
-                            <th>Tipo</th>
-                            <th>Nombre/Empresa</th>
-                            <th>Documento</th>
-                            <th>Tipo Introductor</th>
-                            <th>Estado</th>
-                            <th>Teléfono</th>
-                            <th>Carnet</th>
-                            <th style="width: 12rem">Acciones</th>
-                        </tr>
-                    </ng-template>
-
-                    <ng-template pTemplate="body" let-introducer>
-                        <tr>
-                            <td>
-                                <p-tag
-                                    [value]="getTypeLabel(introducer.type)"
-                                    [severity]="
-                                        introducer.type === 'NATURAL'
-                                            ? 'info'
-                                            : 'warning'
-                                    "
-                                >
-                                </p-tag>
-                            </td>
-                            <td>
-                                <div class="flex flex-column">
-                                    <span class="font-medium">{{
-                                        getIntroducerName(introducer)
-                                    }}</span>
-                                    <small
-                                        class="text-500"
-                                        *ngIf="
-                                            introducer.type === 'JURIDICAL' &&
-                                            introducer.legalRepresentative
-                                        "
-                                    >
-                                        Rep. Legal:
-                                        {{ introducer.legalRepresentative }}
-                                    </small>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="flex flex-column">
-                                    <span>{{ introducer.idNumber }}</span>
-                                    <small
-                                        class="text-500"
-                                        *ngIf="introducer.ruc"
-                                    >
-                                        RUC: {{ introducer.ruc }}
-                                    </small>
-                                </div>
-                            </td>
-                            <td>
-                                <p-tag
-                                    [value]="
-                                        getIntroducerTypeLabel(
-                                            introducer.introducerType
-                                        )
-                                    "
-                                >
-                                </p-tag>
-                            </td>
-                            <td>
-                                <p-tag
-                                    [value]="
-                                        getStatusLabel(
-                                            introducer.registrationStatus
-                                        )
-                                    "
-                                    [severity]="
-                                        getStatusSeverity(
-                                            introducer.registrationStatus
-                                        )
-                                    "
-                                >
-                                </p-tag>
-                            </td>
-                            <td>{{ introducer.phone || "-" }}</td>
-                            <td>
-                                <div class="flex align-items-center gap-2">
-                                    <i
-                                        class="pi"
-                                        [ngClass]="{
-                                            'pi-check-circle text-green-500':
-                                                introducer.identificationCard
-                                                    ?.isActive,
-                                            'pi-times-circle text-red-500':
-                                                !introducer.identificationCard
-                                                    ?.isActive
-                                        }"
-                                    >
-                                    </i>
-                                    <span class="text-sm">
-                                        {{
-                                            introducer.identificationCard
-                                                ?.isActive
-                                                ? "Activo"
-                                                : "Inactivo"
-                                        }}
-                                    </span>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="flex gap-1">
-                                    <p-button
-                                        icon="pi pi-eye"
-                                        size="small"
-                                        severity="info"
-                                        [text]="true"
-                                        pTooltip="Ver detalles"
-                                        (click)="viewIntroducer(introducer)"
-                                    >
-                                    </p-button>
-
-                                    <p-button
-                                        icon="pi pi-pencil"
-                                        size="small"
-                                        severity="warning"
-                                        [text]="true"
-                                        pTooltip="Editar"
-                                        (click)="editIntroducer(introducer)"
-                                    >
-                                    </p-button>
-
-                                    <p-button
-                                        icon="pi pi-shield"
-                                        size="small"
-                                        severity="success"
-                                        [text]="true"
-                                        pTooltip="Validar faenamiento"
-                                        (click)="validateSlaughter(introducer)"
-                                    >
-                                    </p-button>
-
-                                    <p-button
-                                        icon="pi pi-trash"
-                                        size="small"
-                                        severity="danger"
-                                        [text]="true"
-                                        pTooltip="Eliminar"
-                                        (click)="deleteIntroducer(introducer)"
-                                    >
-                                    </p-button>
-                                </div>
-                            </td>
-                        </tr>
-                    </ng-template>
-
-                    <ng-template pTemplate="emptymessage">
-                        <tr>
-                            <td colspan="8" class="text-center p-4">
-                                <div
-                                    class="flex flex-column align-items-center gap-3"
-                                >
-                                    <i
-                                        class="pi pi-users text-4xl text-300"
-                                    ></i>
-                                    <span class="text-500"
-                                        >No se encontraron introductores</span
-                                    >
-                                </div>
-                            </td>
-                        </tr>
-                    </ng-template>
-                </p-table>
+                <div class="stat-value">{{ statistics.total }}</div>
             </div>
         </div>
+        <div class="col-12 md:col-6 lg:col-3">
+            <div class="stat-card success">
+                <div class="stat-header">
+                    <i class="pi pi-check-circle"></i>
+                    <span>Activos</span>
+                </div>
+                <div class="stat-value">{{ statistics.active }}</div>
+            </div>
+        </div>
+        <div class="col-12 md:col-6 lg:col-3">
+            <div class="stat-card warning">
+                <div class="stat-header">
+                    <i class="pi pi-clock"></i>
+                    <span>Pendientes</span>
+                </div>
+                <div class="stat-value">{{ statistics.pending }}</div>
+            </div>
+        </div>
+        <div class="col-12 md:col-6 lg:col-3">
+            <div class="stat-card danger">
+                <div class="stat-header">
+                    <i class="pi pi-ban"></i>
+                    <span>Suspendidos</span>
+                </div>
+                <div class="stat-value">{{ statistics.suspended }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de herramientas -->
+    <div class="card">
+        <div class="toolbar mb-4">
+            <div class="flex flex-column md:flex-row gap-3">
+                <div class="flex-1">
+                    <span class="p-input-icon-left w-full">
+                        <i class="pi pi-search"></i>
+                        <input
+                            pInputText
+                            type="text"
+                            [(ngModel)]="searchText"
+                            (keyup.enter)="onSearch()"
+                            placeholder="Buscar por nombre, cédula o RUC..."
+                            class="w-full"
+                        />
+                    </span>
+                </div>
+                <p-dropdown
+                    [options]="typeOptions"
+                    [(ngModel)]="selectedType"
+                    placeholder="Tipo de persona"
+                    [showClear]="true"
+                    (onChange)="onSearch()"
+                >
+                </p-dropdown>
+                <p-dropdown
+                    [options]="introducerTypeOptions"
+                    [(ngModel)]="selectedIntroducerType"
+                    placeholder="Tipo de introductor"
+                    [showClear]="true"
+                    (onChange)="onSearch()"
+                >
+                </p-dropdown>
+                <p-dropdown
+                    [options]="statusOptions"
+                    [(ngModel)]="selectedStatus"
+                    placeholder="Estado"
+                    [showClear]="true"
+                    (onChange)="onSearch()"
+                >
+                </p-dropdown>
+                <button
+                    pButton
+                    type="button"
+                    icon="pi pi-filter-slash"
+                    label="Limpiar"
+                    class="p-button-outlined"
+                    (click)="clearFilters()"
+                ></button>
+                <button
+                    pButton
+                    type="button"
+                    icon="pi pi-plus"
+                    label="Nuevo"
+                    class="p-button-success"
+                    (click)="newIntroducer()"
+                ></button>
+            </div>
+        </div>
+
+        <!-- Tabla -->
+        <p-table
+            #dt
+            [value]="introducers"
+            [lazy]="true"
+            [paginator]="true"
+            [rows]="10"
+            [totalRecords]="totalRecords"
+            [showCurrentPageReport]="true"
+            [loading]="loading"
+            (onLazyLoad)="loadIntroducers($event)"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} introductores"
+            [rowsPerPageOptions]="[10, 25, 50]"
+            [tableStyle]="{ 'min-width': '75rem' }"
+            styleClass="p-datatable-gridlines"
+        >
+            <ng-template pTemplate="header">
+                <tr>
+                    <th style="width: 20%">Nombre/Razón Social</th>
+                    <th style="width: 15%">Documento</th>
+                    <th style="width: 10%">Tipo</th>
+                    <th style="width: 15%">Tipo Introductor</th>
+                    <th style="width: 10%">Estado</th>
+                    <th style="width: 10%">Carnet</th>
+                    <th style="width: 10%">Teléfono</th>
+                    <th style="width: 10%">Acciones</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-introducer>
+                <tr>
+                    <td>
+                        <div class="introducer-name">
+                            <i
+                                class="pi"
+                                [ngClass]="
+                                    introducer.type === 'NATURAL'
+                                        ? 'pi-user'
+                                        : 'pi-building'
+                                "
+                            ></i>
+                            <span>{{ getIntroducerName(introducer) }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="document-info">
+                            <span class="doc-type">{{
+                                introducer.type === "NATURAL" ? "CI:" : "RUC:"
+                            }}</span>
+                            <span>{{
+                                introducer.type === "NATURAL"
+                                    ? introducer.idNumber
+                                    : introducer.ruc
+                            }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <p-tag
+                            [value]="
+                                introducer.type === 'NATURAL'
+                                    ? 'Natural'
+                                    : 'Jurídica'
+                            "
+                            [severity]="
+                                introducer.type === 'NATURAL'
+                                    ? 'info'
+                                    : 'warning'
+                            "
+                        >
+                        </p-tag>
+                    </td>
+                    <td>
+                        {{ getIntroducerTypeLabel(introducer.introducerType) }}
+                    </td>
+                    <td>
+                        <p-tag
+                            [value]="introducer.registrationStatus"
+                            [severity]="
+                                getStatusSeverity(introducer.registrationStatus)
+                            "
+                        >
+                        </p-tag>
+                    </td>
+                    <td>
+                        <div class="card-status">
+                            <i
+                                class="pi"
+                                [ngClass]="
+                                    introducer.identificationCard?.isActive
+                                        ? 'pi-check-circle'
+                                        : 'pi-times-circle'
+                                "
+                                [style.color]="
+                                    introducer.identificationCard?.isActive
+                                        ? 'var(--green-500)'
+                                        : 'var(--red-500)'
+                                "
+                            >
+                            </i>
+                            <span
+                                *ngIf="
+                                    introducer.identificationCard?.cardNumber
+                                "
+                            >
+                                {{ introducer.identificationCard.cardNumber }}
+                            </span>
+                        </div>
+                    </td>
+                    <td>{{ introducer.phone || "-" }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button
+                                pButton
+                                type="button"
+                                icon="pi pi-eye"
+                                class="p-button-rounded p-button-text p-button-info"
+                                pTooltip="Ver detalles"
+                                (click)="viewIntroducer(introducer)"
+                            ></button>
+                            <button
+                                pButton
+                                type="button"
+                                icon="pi pi-pencil"
+                                class="p-button-rounded p-button-text p-button-warning"
+                                pTooltip="Editar"
+                                (click)="editIntroducer(introducer)"
+                            ></button>
+                            <button
+                                pButton
+                                type="button"
+                                icon="pi pi-trash"
+                                class="p-button-rounded p-button-text p-button-danger"
+                                pTooltip="Eliminar"
+                                (click)="deleteIntroducer(introducer)"
+                            ></button>
+                            <button
+                                pButton
+                                type="button"
+                                icon="pi pi-credit-card"
+                                class="p-button-rounded p-button-text p-button-success"
+                                pTooltip="Procesar pago"
+                                (click)="processInscriptionPayment(introducer)"
+                            ></button>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="8" class="text-center">
+                        <i
+                            class="pi pi-info-circle"
+                            style="font-size: 2rem"
+                        ></i>
+                        <p>No se encontraron introductores</p>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
     </div>
 </div>
 

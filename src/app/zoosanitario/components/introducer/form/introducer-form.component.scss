@@ -1,25 +1,24 @@
 .introducer-form-container {
+    max-width: 1200px;
+    margin: 0 auto;
+
     .card {
         background: var(--surface-card);
+        border: 1px solid var(--surface-border);
         border-radius: var(--border-radius);
-        box-shadow: var(--shadow-1);
-        padding: 0;
-        margin-bottom: 1rem;
+        padding: 2rem;
 
-        .card-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--surface-border);
-            background: var(--surface-section);
-            border-radius: var(--border-radius) var(--border-radius) 0 0;
-
-            h3 {
-                color: var(--text-color);
-                font-weight: 600;
-            }
+        h2 {
+            color: var(--text-color);
+            margin-bottom: 2rem;
+            font-size: 1.75rem;
         }
 
-        .card-content {
-            padding: 2rem;
+        h3 {
+            color: var(--text-color-secondary);
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            font-weight: 600;
         }
     }
 
@@ -28,72 +27,20 @@
 
         label {
             display: block;
+            font-weight: 600;
+            color: var(--text-color);
             margin-bottom: 0.5rem;
-            color: var(--text-color-secondary);
-            font-weight: 500;
 
-            &.required:after {
+            &.required::after {
                 content: " *";
                 color: var(--red-500);
             }
         }
 
-        .p-inputtext,
-        .p-inputtextarea {
-            width: 100%;
-            background: var(--surface-card);
-            color: var(--text-color);
-            border: 1px solid var(--surface-border);
-
-            &:focus {
-                border-color: var(--primary-color);
-                box-shadow: 0 0 0 0.2rem var(--primary-color-text);
-            }
-
-            &.ng-invalid.ng-touched {
+        input,
+        textarea {
+            &.p-invalid {
                 border-color: var(--red-500);
-            }
-        }
-
-        .p-dropdown {
-            width: 100%;
-            background: var(--surface-card);
-            border: 1px solid var(--surface-border);
-
-            .p-dropdown-label {
-                color: var(--text-color);
-            }
-
-            &:not(.p-disabled):hover {
-                border-color: var(--primary-color);
-            }
-
-            &:focus {
-                border-color: var(--primary-color);
-                box-shadow: 0 0 0 0.2rem var(--primary-color-text);
-            }
-
-            &.ng-invalid.ng-touched {
-                border-color: var(--red-500);
-            }
-        }
-
-        .p-selectbutton {
-            .p-button {
-                background: var(--surface-card);
-                border: 1px solid var(--surface-border);
-                color: var(--text-color);
-
-                &:not(.p-highlight):hover {
-                    background: var(--surface-hover);
-                    border-color: var(--primary-color);
-                }
-
-                &.p-highlight {
-                    background: var(--primary-color);
-                    border-color: var(--primary-color);
-                    color: var(--primary-color-text);
-                }
             }
         }
 
@@ -110,50 +57,37 @@
         justify-content: flex-end;
         gap: 1rem;
         margin-top: 2rem;
-        padding-top: 1.5rem;
+        padding-top: 2rem;
         border-top: 1px solid var(--surface-border);
-
-        .p-button {
-            min-width: 120px;
-        }
     }
 
-    // Responsive adjustments
-    @media (max-width: 768px) {
-        .card {
-            .card-header,
-            .card-content {
-                padding: 1rem;
-            }
-        }
-
-        .formgrid .field {
-            &.col-12.md\\:col-6 {
-                width: 100%;
-                margin-bottom: 1rem;
-            }
-        }
-
-        .form-actions {
-            flex-direction: column-reverse;
-            gap: 0.5rem;
-
+    // Select Button personalizado
+    :host ::ng-deep {
+        .p-selectbutton {
             .p-button {
-                width: 100%;
+                background: var(--surface-100);
+                border: 1px solid var(--surface-border);
+                color: var(--text-color);
+
+                &:hover {
+                    background: var(--surface-200);
+                }
+
+                &.p-highlight {
+                    background: var(--primary-color);
+                    border-color: var(--primary-color);
+                    color: var(--primary-color-text);
+                }
             }
         }
-    }
 
-    // Animation for type switching
-    .formgrid {
-        transition: opacity 0.2s ease;
-
-        &.ng-enter {
-            opacity: 0;
-        }
-
-        &.ng-enter-active {
-            opacity: 1;
+        // Dropdown
+        .p-dropdown {
+            &.p-invalid {
+                .p-dropdown-trigger {
+                    border-color: var(--red-500);
+                }
+            }
         }
     }
 }

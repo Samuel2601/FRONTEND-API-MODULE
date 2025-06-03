@@ -1,12 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { Table } from 'primeng/table';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
-
-import { MessageService, ConfirmationService } from 'primeng/api';
 import { ImportsModule } from 'src/app/demo/services/import';
 import {
     Introducer,
-    IntroducerSearchResponse,
     IntroducerService,
+    IntroducerStatistics,
 } from 'src/app/zoosanitario/services/introducer.service';
 
 @Component({
@@ -15,37 +15,35 @@ import {
     imports: [ImportsModule],
     templateUrl: './introducer-list.component.html',
     styleUrls: ['./introducer-list.component.scss'],
-    providers: [MessageService, ConfirmationService],
+    providers: [ConfirmationService, MessageService],
 })
 export class IntroducerListComponent implements OnInit {
+    @ViewChild('dt') table!: Table;
+
     introducers: Introducer[] = [];
     loading = false;
     totalRecords = 0;
-    page = 1;
-    limit = 10;
+    statistics!: IntroducerStatistics;
 
     // Filtros
-    searchQuery = '';
-    selectedType = '';
-    selectedIntroducerType = '';
-    selectedStatus = '';
+    searchText = '';
+    selectedType: any = null;
+    selectedIntroducerType: any = null;
+    selectedStatus: any = null;
 
-    // Opciones para dropdowns
+    // Opciones de filtros
     typeOptions = [
-        { label: 'Todos', value: '' },
         { label: 'Natural', value: 'NATURAL' },
         { label: 'Jurídica', value: 'JURIDICAL' },
     ];
 
     introducerTypeOptions = [
-        { label: 'Todos', value: '' },
         { label: 'Bovino Mayor', value: 'BOVINE_MAJOR' },
         { label: 'Porcino Menor', value: 'PORCINE_MINOR' },
         { label: 'Mixto', value: 'MIXED' },
     ];
 
     statusOptions = [
-        { label: 'Todos', value: '' },
         { label: 'Pendiente', value: 'PENDING' },
         { label: 'Activo', value: 'ACTIVE' },
         { label: 'Suspendido', value: 'SUSPENDED' },
@@ -54,30 +52,32 @@ export class IntroducerListComponent implements OnInit {
 
     constructor(
         private introducerService: IntroducerService,
-        private router: Router,
         private messageService: MessageService,
-        private confirmationService: ConfirmationService
+        private confirmationService: ConfirmationService,
+        private router: Router
     ) {}
 
-    ngOnInit() {
+    ngOnInit(): void {
         this.loadIntroducers();
+        this.loadStatistics();
     }
 
-    loadIntroducers() {
+    loadIntroducers(event?: any): void {
         this.loading = true;
 
-        const searchParams = {
-            query: this.searchQuery || undefined,
-            type: this.selectedType || undefined,
-            introducerType: this.selectedIntroducerType || undefined,
-            status: this.selectedStatus || undefined,
-            page: this.page,
-            limit: this.limit,
+        const params = {
+            query: this.searchText,
+            type: this.selectedType,
+            introducerType: this.selectedIntroducerType,
+            registrationStatus: this.selectedStatus,
+            page: event ? event.first / event.rows + 1 : 1,
+            limit: event?.rows || 10,
         };
 
-        this.introducerService.searchIntroducers(searchParams).subscribe({
-            next: (response: IntroducerSearchResponse) => {
-                this.introducers = response.introducers;
+        this.introducerService.searchIntroducers(params).subscribe({
+            next: (response) => {
+                console.log('Response:', response);
+                this.introducers = response.data;
                 this.totalRecords = response.total;
                 this.loading = false;
             },
@@ -92,50 +92,55 @@ export class IntroducerListComponent implements OnInit {
         });
     }
 
-    onPageChange(event: any) {
-        this.page = event.page + 1;
-        this.limit = event.rows;
+    loadStatistics(): void {
+        this.introducerService.getStatistics().subscribe({
+            next: (stats) => {
+                console.log('Statistics:', stats);
+                this.statistics = stats;
+            },
+            error: (error) => {
+                console.error('Error cargando estadísticas:', error);
+            },
+        });
+    }
+
+    onSearch(): void {
         this.loadIntroducers();
     }
 
-    applyFilters() {
-        this.page = 1;
+    clearFilters(): void {
+        this.searchText = '';
+        this.selectedType = null;
+        this.selectedIntroducerType = null;
+        this.selectedStatus = null;
         this.loadIntroducers();
     }
 
-    clearFilters() {
-        this.searchQuery = '';
-        this.selectedType = '';
-        this.selectedIntroducerType = '';
-        this.selectedStatus = '';
-        this.page = 1;
-        this.loadIntroducers();
+    newIntroducer(): void {
+        this.router.navigate(['/zoosanitario/introducers/new']);
     }
 
-    createIntroducer() {
-        this.router.navigate(['/introducers/create']);
+    editIntroducer(introducer: Introducer): void {
+        this.router.navigate([
+            '/zoosanitario/introducers/edit',
+            introducer._id,
+        ]);
     }
 
-    editIntroducer(introducer: Introducer) {
-        this.router.navigate(['/introducers/edit', introducer._id]);
+    viewIntroducer(introducer: Introducer): void {
+        this.router.navigate([
+            '/zoosanitario/introducers/view',
+            introducer._id,
+        ]);
     }
 
-    viewIntroducer(introducer: Introducer) {
-        this.router.navigate(['/introducers/view', introducer._id]);
-    }
-
-    validateSlaughter(introducer: Introducer) {
-        this.router.navigate(['/introducers/validate', introducer._id]);
-    }
-
-    deleteIntroducer(introducer: Introducer) {
+    deleteIntroducer(introducer: Introducer): void {
         this.confirmationService.confirm({
-            message: `¿Está seguro de eliminar el introductor ${this.getIntroducerName(
+            message: `¿Está seguro de eliminar al introductor ${this.getIntroducerName(
                 introducer
             )}?`,
             header: 'Confirmar Eliminación',
             icon: 'pi pi-exclamation-triangle',
-            acceptButtonStyleClass: 'p-button-danger',
             accept: () => {
                 this.introducerService
                     .deleteIntroducer(introducer._id!)
@@ -165,9 +170,8 @@ export class IntroducerListComponent implements OnInit {
     getIntroducerName(introducer: Introducer): string {
         if (introducer.type === 'NATURAL') {
             return `${introducer.firstName} ${introducer.lastName}`;
-        } else {
-            return introducer.companyName || 'Sin nombre';
         }
+        return introducer.companyName || '';
     }
 
     getStatusSeverity(
@@ -181,36 +185,23 @@ export class IntroducerListComponent implements OnInit {
             case 'SUSPENDED':
                 return 'danger';
             case 'EXPIRED':
-                return 'info';
-            default:
                 return 'secondary';
+            default:
+                return 'info';
         }
     }
 
-    getStatusLabel(status: string): string {
-        const labels: { [key: string]: string } = {
-            PENDING: 'Pendiente',
-            ACTIVE: 'Activo',
-            SUSPENDED: 'Suspendido',
-            EXPIRED: 'Expirado',
-        };
-        return labels[status] || status;
-    }
-
-    getTypeLabel(type: string): string {
-        const labels: { [key: string]: string } = {
-            NATURAL: 'Natural',
-            JURIDICAL: 'Jurídica',
-        };
-        return labels[type] || type;
-    }
-
     getIntroducerTypeLabel(type: string): string {
-        const labels: { [key: string]: string } = {
-            BOVINE_MAJOR: 'Bovino Mayor',
-            PORCINE_MINOR: 'Porcino Menor',
-            MIXED: 'Mixto',
-        };
-        return labels[type] || type;
+        const option = this.introducerTypeOptions.find(
+            (opt) => opt.value === type
+        );
+        return option?.label || type;
+    }
+
+    processInscriptionPayment(introducer: Introducer): void {
+        this.router.navigate([
+            '/zoosanitario/introducers/payment',
+            introducer._id,
+        ]);
     }
 }

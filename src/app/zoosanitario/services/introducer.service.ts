@@ -46,7 +46,7 @@ export interface Introducer {
 }
 
 export interface IntroducerSearchResponse {
-    introducers: Introducer[];
+    data: Introducer[];
     total: number;
     page: number;
     limit: number;
@@ -121,10 +121,16 @@ export class IntroducerService {
      */
     getIntroducerById(id: string): Observable<Introducer> {
         return this.http
-            .get<Introducer>(`${this.apiUrl}/${id}`, {
-                headers: this.getHeaders(this.token()),
-            })
-            .pipe(catchError(this.handleError));
+            .get<{ success: boolean; data: Introducer }>(
+                `${this.apiUrl}/${id}`,
+                {
+                    headers: this.getHeaders(this.token()),
+                }
+            )
+            .pipe(
+                map((response) => response.data),
+                catchError(this.handleError)
+            );
     }
 
     /**
@@ -164,7 +170,7 @@ export class IntroducerService {
         query?: string;
         type?: string;
         introducerType?: string;
-        status?: string;
+        registrationStatus?: string;
         page?: number;
         limit?: number;
     }): Observable<IntroducerSearchResponse> {
@@ -177,7 +183,11 @@ export class IntroducerService {
                 'introducerType',
                 params.introducerType
             );
-        if (params.status) httpParams = httpParams.set('status', params.status);
+        if (params.registrationStatus)
+            httpParams = httpParams.set(
+                'registrationStatus',
+                params.registrationStatus
+            );
         if (params.page)
             httpParams = httpParams.set('page', params.page.toString());
         if (params.limit)
@@ -196,16 +206,23 @@ export class IntroducerService {
      */
     getStatistics(): Observable<IntroducerStatistics> {
         return this.http
-            .get<IntroducerStatistics>(`${this.apiUrl}/statistics`, {
-                headers: this.getHeaders(this.token()),
-            })
-            .pipe(catchError(this.handleError));
+            .get<{ success: boolean; data: IntroducerStatistics }>(
+                `${this.apiUrl}/statistics`,
+                {
+                    headers: this.getHeaders(this.token()),
+                }
+            )
+            .pipe(
+                map((response) => response.data),
+                catchError(this.handleError)
+            );
     }
 
     /**
      * Crear nuevo introductor
      */
     createIntroducer(introducer: Partial<Introducer>): Observable<Introducer> {
+        console.log('IntroducerService.createIntroducer:', introducer);
         return this.http
             .post<Introducer>(this.apiUrl, introducer, {
                 headers: this.getHeaders(this.token()),

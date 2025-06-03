@@ -1,243 +1,321 @@
 <div class="introducer-form-container">
     <div class="card">
-        <div class="card-header">
-            <h3 class="m-0">
-                {{ isEditMode ? "Editar Introductor" : "Nuevo Introductor" }}
-            </h3>
-        </div>
+        <h2>{{ isEditMode ? "Editar" : "Nuevo" }} Introductor</h2>
 
-        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="card-content">
+        <p-progressBar
+            *ngIf="loading"
+            mode="indeterminate"
+            [style]="{ height: '6px' }"
+        ></p-progressBar>
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" *ngIf="!loading">
             <!-- Tipo de Persona -->
-            <div class="formgrid grid">
-                <div class="field col-12">
-                    <label for="type" class="required">Tipo de Persona</label>
-                    <p-selectButton
-                        id="type"
-                        formControlName="type"
-                        [options]="typeOptions"
-                        optionLabel="label"
-                        optionValue="value"
-                    >
-                    </p-selectButton>
-                    <small class="p-error" *ngIf="isFieldInvalid('type')">
-                        {{ getFieldError("type") }}
-                    </small>
+            <div class="field">
+                <label for="type" class="required">Tipo de Persona</label>
+                <p-selectButton
+                    formControlName="type"
+                    [options]="typeOptions"
+                    [disabled]="isEditMode"
+                >
+                </p-selectButton>
+            </div>
+
+            <div class="grid">
+                <!-- Campos para Persona Natural -->
+                <ng-container *ngIf="isNaturalPerson">
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="firstName" class="required"
+                                >Nombres</label
+                            >
+                            <input
+                                pInputText
+                                id="firstName"
+                                formControlName="firstName"
+                                class="w-full"
+                                [class.p-invalid]="
+                                    form.get('firstName')?.invalid &&
+                                    form.get('firstName')?.touched
+                                "
+                            />
+                            <small
+                                class="p-error"
+                                *ngIf="getFieldError('firstName')"
+                            >
+                                {{ getFieldError("firstName") }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="lastName" class="required"
+                                >Apellidos</label
+                            >
+                            <input
+                                pInputText
+                                id="lastName"
+                                formControlName="lastName"
+                                class="w-full"
+                                [class.p-invalid]="
+                                    form.get('lastName')?.invalid &&
+                                    form.get('lastName')?.touched
+                                "
+                            />
+                            <small
+                                class="p-error"
+                                *ngIf="getFieldError('lastName')"
+                            >
+                                {{ getFieldError("lastName") }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="idNumber" class="required"
+                                >Cédula</label
+                            >
+                            <input
+                                pInputText
+                                id="idNumber"
+                                formControlName="idNumber"
+                                class="w-full"
+                                placeholder="Ej: 1712345678"
+                                [class.p-invalid]="
+                                    form.get('idNumber')?.invalid &&
+                                    form.get('idNumber')?.touched
+                                "
+                            />
+                            <small
+                                class="p-error"
+                                *ngIf="getFieldError('idNumber')"
+                            >
+                                {{ getFieldError("idNumber") }}
+                            </small>
+                        </div>
+                    </div>
+                </ng-container>
+
+                <!-- Campos para Persona Jurídica -->
+                <ng-container *ngIf="!isNaturalPerson">
+                    <div class="col-12">
+                        <div class="field">
+                            <label for="companyName" class="required"
+                                >Razón Social</label
+                            >
+                            <input
+                                pInputText
+                                id="companyName"
+                                formControlName="companyName"
+                                class="w-full"
+                                [class.p-invalid]="
+                                    form.get('companyName')?.invalid &&
+                                    form.get('companyName')?.touched
+                                "
+                            />
+                            <small
+                                class="p-error"
+                                *ngIf="getFieldError('companyName')"
+                            >
+                                {{ getFieldError("companyName") }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="ruc" class="required">RUC</label>
+                            <input
+                                pInputText
+                                id="ruc"
+                                formControlName="ruc"
+                                class="w-full"
+                                placeholder="Ej: 1712345678001"
+                                [class.p-invalid]="
+                                    form.get('ruc')?.invalid &&
+                                    form.get('ruc')?.touched
+                                "
+                            />
+                            <small class="p-error" *ngIf="getFieldError('ruc')">
+                                {{ getFieldError("ruc") }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="idNumber" class="required"
+                                >Cédula Representante</label
+                            >
+                            <input
+                                pInputText
+                                id="idNumber"
+                                formControlName="idNumber"
+                                class="w-full"
+                                placeholder="Ej: 1712345678"
+                                [class.p-invalid]="
+                                    form.get('idNumber')?.invalid &&
+                                    form.get('idNumber')?.touched
+                                "
+                            />
+                            <small
+                                class="p-error"
+                                *ngIf="getFieldError('idNumber')"
+                            >
+                                {{ getFieldError("idNumber") }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="field">
+                            <label for="legalRepresentative" class="required"
+                                >Representante Legal</label
+                            >
+                            <input
+                                pInputText
+                                id="legalRepresentative"
+                                formControlName="legalRepresentative"
+                                class="w-full"
+                                [class.p-invalid]="
+                                    form.get('legalRepresentative')?.invalid &&
+                                    form.get('legalRepresentative')?.touched
+                                "
+                            />
+                            <small
+                                class="p-error"
+                                *ngIf="getFieldError('legalRepresentative')"
+                            >
+                                {{ getFieldError("legalRepresentative") }}
+                            </small>
+                        </div>
+                    </div>
+                </ng-container>
+
+                <!-- Tipo de Introductor -->
+                <div class="col-12">
+                    <div class="field">
+                        <label for="introducerType" class="required"
+                            >Tipo de Introductor</label
+                        >
+                        <p-dropdown
+                            id="introducerType"
+                            formControlName="introducerType"
+                            [options]="introducerTypeOptions"
+                            placeholder="Seleccione un tipo"
+                            class="w-full"
+                            [showClear]="true"
+                        >
+                        </p-dropdown>
+                        <small
+                            class="p-error"
+                            *ngIf="getFieldError('introducerType')"
+                        >
+                            {{ getFieldError("introducerType") }}
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Información de Contacto -->
+                <div class="col-12">
+                    <h3>Información de Contacto</h3>
+                </div>
+
+                <div class="col-12 md:col-6">
+                    <div class="field">
+                        <label for="phone">Teléfono</label>
+                        <span class="p-input-icon-left w-full">
+                            <i class="pi pi-phone"></i>
+                            <input
+                                pInputText
+                                id="phone"
+                                formControlName="phone"
+                                class="w-full"
+                                placeholder="Ej: 0991234567"
+                                [class.p-invalid]="
+                                    form.get('phone')?.invalid &&
+                                    form.get('phone')?.touched
+                                "
+                            />
+                        </span>
+                        <small class="p-error" *ngIf="getFieldError('phone')">
+                            {{ getFieldError("phone") }}
+                        </small>
+                    </div>
+                </div>
+
+                <div class="col-12 md:col-6">
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <span class="p-input-icon-left w-full">
+                            <i class="pi pi-envelope"></i>
+                            <input
+                                pInputText
+                                id="email"
+                                formControlName="email"
+                                class="w-full"
+                                placeholder="correo@ejemplo.com"
+                                [class.p-invalid]="
+                                    form.get('email')?.invalid &&
+                                    form.get('email')?.touched
+                                "
+                            />
+                        </span>
+                        <small class="p-error" *ngIf="getFieldError('email')">
+                            {{ getFieldError("email") }}
+                        </small>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="field">
+                        <label for="address">Dirección</label>
+                        <span class="p-input-icon-left w-full">
+                            <i class="pi pi-map-marker"></i>
+                            <input
+                                pInputText
+                                id="address"
+                                formControlName="address"
+                                class="w-full"
+                            />
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Notas -->
+                <div class="col-12">
+                    <div class="field">
+                        <label for="notes">Notas</label>
+                        <textarea
+                            pInputTextarea
+                            id="notes"
+                            formControlName="notes"
+                            rows="3"
+                            class="w-full"
+                        >
+                        </textarea>
+                    </div>
                 </div>
             </div>
 
-            <!-- Información para Persona Natural -->
-            <div class="formgrid grid" *ngIf="isNaturalPerson">
-                <div class="field col-12 md:col-6">
-                    <label for="firstName" class="required">Nombres</label>
-                    <input
-                        type="text"
-                        pInputText
-                        id="firstName"
-                        formControlName="firstName"
-                        [class.ng-invalid]="isFieldInvalid('firstName')"
-                        placeholder="Ingrese los nombres"
-                    />
-                    <small class="p-error" *ngIf="isFieldInvalid('firstName')">
-                        {{ getFieldError("firstName") }}
-                    </small>
-                </div>
-
-                <div class="field col-12 md:col-6">
-                    <label for="lastName" class="required">Apellidos</label>
-                    <input
-                        type="text"
-                        pInputText
-                        id="lastName"
-                        formControlName="lastName"
-                        [class.ng-invalid]="isFieldInvalid('lastName')"
-                        placeholder="Ingrese los apellidos"
-                    />
-                    <small class="p-error" *ngIf="isFieldInvalid('lastName')">
-                        {{ getFieldError("lastName") }}
-                    </small>
-                </div>
-            </div>
-
-            <!-- Información para Persona Jurídica -->
-            <div class="formgrid grid" *ngIf="isJuridicalPerson">
-                <div class="field col-12 md:col-6">
-                    <label for="companyName" class="required"
-                        >Nombre de la Empresa</label
-                    >
-                    <input
-                        type="text"
-                        pInputText
-                        id="companyName"
-                        formControlName="companyName"
-                        [class.ng-invalid]="isFieldInvalid('companyName')"
-                        placeholder="Ingrese el nombre de la empresa"
-                    />
-                    <small
-                        class="p-error"
-                        *ngIf="isFieldInvalid('companyName')"
-                    >
-                        {{ getFieldError("companyName") }}
-                    </small>
-                </div>
-
-                <div class="field col-12 md:col-6">
-                    <label for="legalRepresentative" class="required"
-                        >Representante Legal</label
-                    >
-                    <input
-                        type="text"
-                        pInputText
-                        id="legalRepresentative"
-                        formControlName="legalRepresentative"
-                        [class.ng-invalid]="
-                            isFieldInvalid('legalRepresentative')
-                        "
-                        placeholder="Ingrese el representante legal"
-                    />
-                    <small
-                        class="p-error"
-                        *ngIf="isFieldInvalid('legalRepresentative')"
-                    >
-                        {{ getFieldError("legalRepresentative") }}
-                    </small>
-                </div>
-            </div>
-
-            <!-- Documentos -->
-            <div class="formgrid grid">
-                <div class="field col-12 md:col-6">
-                    <label for="idNumber" class="required">{{
-                        isNaturalPerson ? "Cédula" : "RUC/Documento"
-                    }}</label>
-                    <input
-                        type="text"
-                        pInputText
-                        id="idNumber"
-                        formControlName="idNumber"
-                        [class.ng-invalid]="isFieldInvalid('idNumber')"
-                        placeholder="Ingrese el número de documento"
-                    />
-                    <small class="p-error" *ngIf="isFieldInvalid('idNumber')">
-                        {{ getFieldError("idNumber") }}
-                    </small>
-                </div>
-
-                <div class="field col-12 md:col-6" *ngIf="isJuridicalPerson">
-                    <label for="ruc">RUC (Opcional)</label>
-                    <input
-                        type="text"
-                        pInputText
-                        id="ruc"
-                        formControlName="ruc"
-                        placeholder="Ingrese el RUC"
-                    />
-                </div>
-            </div>
-
-            <!-- Información de Contacto -->
-            <div class="formgrid grid">
-                <div class="field col-12 md:col-6">
-                    <label for="phone">Teléfono</label>
-                    <input
-                        type="tel"
-                        pInputText
-                        id="phone"
-                        formControlName="phone"
-                        placeholder="Ingrese el teléfono"
-                    />
-                </div>
-
-                <div class="field col-12 md:col-6">
-                    <label for="email">Email</label>
-                    <input
-                        type="email"
-                        pInputText
-                        id="email"
-                        formControlName="email"
-                        [class.ng-invalid]="isFieldInvalid('email')"
-                        placeholder="Ingrese el email"
-                    />
-                    <small class="p-error" *ngIf="isFieldInvalid('email')">
-                        {{ getFieldError("email") }}
-                    </small>
-                </div>
-            </div>
-
-            <!-- Dirección -->
-            <div class="formgrid grid">
-                <div class="field col-12">
-                    <label for="address">Dirección</label>
-                    <textarea
-                        pInputTextarea
-                        id="address"
-                        formControlName="address"
-                        rows="2"
-                        placeholder="Ingrese la dirección completa"
-                    >
-                    </textarea>
-                </div>
-            </div>
-
-            <!-- Tipo de Introductor -->
-            <div class="formgrid grid">
-                <div class="field col-12 md:col-6">
-                    <label for="introducerType" class="required"
-                        >Tipo de Introductor</label
-                    >
-                    <p-dropdown
-                        id="introducerType"
-                        formControlName="introducerType"
-                        [options]="introducerTypeOptions"
-                        optionLabel="label"
-                        optionValue="value"
-                        placeholder="Seleccione el tipo"
-                        [class.ng-invalid]="isFieldInvalid('introducerType')"
-                    >
-                    </p-dropdown>
-                    <small
-                        class="p-error"
-                        *ngIf="isFieldInvalid('introducerType')"
-                    >
-                        {{ getFieldError("introducerType") }}
-                    </small>
-                </div>
-            </div>
-
-            <!-- Notas -->
-            <div class="formgrid grid">
-                <div class="field col-12">
-                    <label for="notes">Notas</label>
-                    <textarea
-                        pInputTextarea
-                        id="notes"
-                        formControlName="notes"
-                        rows="3"
-                        placeholder="Notas adicionales (opcional)"
-                    >
-                    </textarea>
-                </div>
-            </div>
-
-            <!-- Botones -->
+            <!-- Botones de acción -->
             <div class="form-actions">
-                <p-button
+                <button
+                    pButton
                     type="button"
                     label="Cancelar"
-                    icon="pi pi-times"
-                    severity="secondary"
-                    (click)="onCancel()"
-                    [disabled]="loading"
-                >
-                </p-button>
-
-                <p-button
+                    class="p-button-text"
+                    (click)="cancel()"
+                ></button>
+                <button
+                    pButton
                     type="submit"
-                    [label]="isEditMode ? 'Actualizar' : 'Crear'"
-                    icon="pi pi-check"
-                    [loading]="loading"
-                    [disabled]="form.invalid && !loading"
-                >
-                </p-button>
+                    [label]="isEditMode ? 'Actualizar' : 'Guardar'"
+                    class="p-button-success"
+                    [loading]="submitting"
+                    [disabled]="form.invalid || submitting"
+                ></button>
             </div>
         </form>
     </div>

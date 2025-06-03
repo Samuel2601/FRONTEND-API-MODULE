@@ -1,0 +1,495 @@
+<div class="introducer-detail-container">
+    <p-progressBar
+        *ngIf="loading"
+        mode="indeterminate"
+        [style]="{ height: '6px' }"
+    ></p-progressBar>
+
+    <div *ngIf="!loading">
+        <!-- Header -->
+        <div class="detail-header card">
+            <div class="header-content">
+                <div class="introducer-info">
+                    <h1>{{ getIntroducerName() }}</h1>
+                    <div class="meta-info">
+                        <p-tag
+                            [value]="
+                                introducer.type === 'NATURAL'
+                                    ? 'Natural'
+                                    : 'Jurídica'
+                            "
+                            [severity]="
+                                introducer.type === 'NATURAL'
+                                    ? 'info'
+                                    : 'warning'
+                            "
+                        >
+                        </p-tag>
+                        <p-tag
+                            [value]="
+                                getIntroducerTypeLabel(
+                                    introducer.introducerType
+                                )
+                            "
+                        ></p-tag>
+                        <p-tag
+                            [value]="introducer.registrationStatus"
+                            [severity]="
+                                getStatusSeverity(introducer.registrationStatus)
+                            "
+                        >
+                        </p-tag>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button
+                        pButton
+                        type="button"
+                        icon="pi pi-arrow-left"
+                        label="Volver"
+                        class="p-button-text"
+                        (click)="goBack()"
+                    ></button>
+                    <button
+                        pButton
+                        type="button"
+                        icon="pi pi-pencil"
+                        label="Editar"
+                        class="p-button-warning"
+                        (click)="editIntroducer()"
+                    ></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Validación de Faenamiento -->
+        <div class="card" *ngIf="introducer.registrationStatus === 'ACTIVE'">
+            <h3>Estado de Faenamiento</h3>
+            <div
+                class="slaughter-status"
+                [class.allowed]="canSlaughter"
+                [class.denied]="!canSlaughter"
+            >
+                <i
+                    class="pi"
+                    [ngClass]="
+                        canSlaughter ? 'pi-check-circle' : 'pi-times-circle'
+                    "
+                ></i>
+                <div class="status-info">
+                    <h4>{{ canSlaughter ? "Permitido" : "No Permitido" }}</h4>
+                    <p>{{ slaughterValidationMessage }}</p>
+                    <p *ngIf="pendingAmount > 0" class="pending-amount">
+                        Monto pendiente:
+                        <strong>${{ pendingAmount | number : "1.2-2" }}</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- Información Básica -->
+            <div class="col-12 md:col-6">
+                <div class="card">
+                    <h3>Información Básica</h3>
+                    <div class="info-grid">
+                        <div
+                            class="info-item"
+                            *ngIf="introducer.type === 'NATURAL'"
+                        >
+                            <label>Nombres:</label>
+                            <span>{{ introducer.firstName }}</span>
+                        </div>
+                        <div
+                            class="info-item"
+                            *ngIf="introducer.type === 'NATURAL'"
+                        >
+                            <label>Apellidos:</label>
+                            <span>{{ introducer.lastName }}</span>
+                        </div>
+                        <div
+                            class="info-item"
+                            *ngIf="introducer.type === 'JURIDICAL'"
+                        >
+                            <label>Razón Social:</label>
+                            <span>{{ introducer.companyName }}</span>
+                        </div>
+                        <div
+                            class="info-item"
+                            *ngIf="introducer.type === 'JURIDICAL'"
+                        >
+                            <label>Representante Legal:</label>
+                            <span>{{ introducer.legalRepresentative }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>{{
+                                introducer.type === "NATURAL"
+                                    ? "Cédula:"
+                                    : "RUC:"
+                            }}</label>
+                            <span>{{
+                                introducer.type === "NATURAL"
+                                    ? introducer.idNumber
+                                    : introducer.ruc
+                            }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Contacto -->
+            <div class="col-12 md:col-6">
+                <div class="card">
+                    <h3>Información de Contacto</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Teléfono:</label>
+                            <span>{{ introducer.phone || "-" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Email:</label>
+                            <span>{{ introducer.email || "-" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Dirección:</label>
+                            <span>{{ introducer.address || "-" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carnet de Identificación -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Carnet de Identificación</h3>
+                        <button
+                            pButton
+                            type="button"
+                            icon="pi pi-refresh"
+                            label="Renovar"
+                            class="p-button-sm p-button-success"
+                            [disabled]="
+                                !introducer.identificationCard?.isActive
+                            "
+                            (click)="renewCard()"
+                        ></button>
+                    </div>
+
+                    <div
+                        class="card-info"
+                        *ngIf="introducer.identificationCard; else noCard"
+                    >
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>Número:</label>
+                                <span>{{
+                                    introducer.identificationCard.cardNumber ||
+                                        "-"
+                                }}</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Estado:</label>
+                                <p-tag
+                                    [value]="
+                                        introducer.identificationCard.isActive
+                                            ? 'Activo'
+                                            : 'Inactivo'
+                                    "
+                                    [severity]="
+                                        introducer.identificationCard.isActive
+                                            ? 'success'
+                                            : 'danger'
+                                    "
+                                >
+                                </p-tag>
+                            </div>
+                            <div class="info-item">
+                                <label>Fecha de Emisión:</label>
+                                <span>{{
+                                    introducer.identificationCard.issueDate
+                                        | date : "dd/MM/yyyy"
+                                }}</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Fecha de Expiración:</label>
+                                <span>{{
+                                    introducer.identificationCard.expirationDate
+                                        | date : "dd/MM/yyyy"
+                                }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <ng-template #noCard>
+                        <p class="no-data">No tiene carnet de identificación</p>
+                    </ng-template>
+                </div>
+            </div>
+
+            <!-- Pagos de Inscripción -->
+            <div class="col-12 lg:col-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Pagos de Inscripción</h3>
+                        <button
+                            pButton
+                            type="button"
+                            icon="pi pi-plus"
+                            label="Registrar Pago"
+                            class="p-button-sm p-button-success"
+                            (click)="openPaymentDialog()"
+                        ></button>
+                    </div>
+
+                    <p-table
+                        [value]="introducer.inscriptionPayments || []"
+                        [scrollable]="true"
+                        scrollHeight="300px"
+                    >
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th>Año</th>
+                                <th>Monto</th>
+                                <th>Estado</th>
+                                <th>Fecha Pago</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-payment>
+                            <tr>
+                                <td>{{ payment.year }}</td>
+                                <td>
+                                    ${{ payment.amount | number : "1.2-2" }}
+                                </td>
+                                <td>
+                                    <p-tag
+                                        [value]="payment.status"
+                                        [severity]="
+                                            getStatusSeverity(payment.status)
+                                        "
+                                    >
+                                    </p-tag>
+                                </td>
+                                <td>
+                                    {{
+                                        payment.paymentDate
+                                            ? (payment.paymentDate
+                                              | date : "dd/MM/yyyy")
+                                            : "-"
+                                    }}
+                                </td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage">
+                            <tr>
+                                <td colspan="4" class="text-center">
+                                    No hay pagos registrados
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </div>
+
+            <!-- Multas -->
+            <div class="col-12 lg:col-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Multas</h3>
+                        <button
+                            pButton
+                            type="button"
+                            icon="pi pi-plus"
+                            label="Aplicar Multa"
+                            class="p-button-sm p-button-danger"
+                            (click)="openFineDialog()"
+                        ></button>
+                    </div>
+
+                    <p-table
+                        [value]="introducer.pendingFines || []"
+                        [scrollable]="true"
+                        scrollHeight="300px"
+                    >
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Monto</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-fine>
+                            <tr>
+                                <td>
+                                    <span pTooltip="{{ fine.reason }}">{{
+                                        fine.type
+                                    }}</span>
+                                </td>
+                                <td>${{ fine.amount | number : "1.2-2" }}</td>
+                                <td>
+                                    <p-tag
+                                        [value]="fine.status"
+                                        [severity]="
+                                            getStatusSeverity(fine.status)
+                                        "
+                                    >
+                                    </p-tag>
+                                </td>
+                                <td>
+                                    <button
+                                        pButton
+                                        type="button"
+                                        icon="pi pi-dollar"
+                                        class="p-button-rounded p-button-text p-button-success"
+                                        pTooltip="Pagar multa"
+                                        [disabled]="fine.status !== 'PENDING'"
+                                        (click)="payFine(fine)"
+                                    ></button>
+                                </td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage">
+                            <tr>
+                                <td colspan="4" class="text-center">
+                                    No hay multas registradas
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dialog Aplicar Multa -->
+<p-dialog
+    header="Aplicar Multa"
+    [(visible)]="showFineDialog"
+    [style]="{ width: '450px' }"
+    [modal]="true"
+>
+    <div class="field">
+        <label for="fineType" class="required">Tipo de Multa</label>
+        <input
+            pInputText
+            id="fineType"
+            [(ngModel)]="newFine.type"
+            class="w-full"
+        />
+    </div>
+
+    <div class="field">
+        <label for="fineAmount" class="required">Monto</label>
+        <p-inputNumber
+            id="fineAmount"
+            [(ngModel)]="newFine.amount"
+            mode="currency"
+            currency="USD"
+            locale="en-US"
+            class="w-full"
+        ></p-inputNumber>
+    </div>
+
+    <div class="field">
+        <label for="fineReason" class="required">Razón</label>
+        <textarea
+            pInputTextarea
+            id="fineReason"
+            [(ngModel)]="newFine.reason"
+            rows="3"
+            class="w-full"
+        ></textarea>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <button
+            pButton
+            type="button"
+            label="Cancelar"
+            icon="pi pi-times"
+            class="p-button-text"
+            (click)="showFineDialog = false"
+        ></button>
+        <button
+            pButton
+            type="button"
+            label="Aplicar"
+            icon="pi pi-check"
+            class="p-button-danger"
+            (click)="applyFine()"
+        ></button>
+    </ng-template>
+</p-dialog>
+
+<!-- Dialog Registrar Pago -->
+<p-dialog
+    header="Registrar Pago de Inscripción"
+    [(visible)]="showPaymentDialog"
+    [style]="{ width: '450px' }"
+    [modal]="true"
+>
+    <div class="field">
+        <label for="paymentYear" class="required">Año</label>
+        <p-inputNumber
+            id="paymentYear"
+            [(ngModel)]="newPayment.year"
+            [useGrouping]="false"
+            class="w-full"
+        ></p-inputNumber>
+    </div>
+
+    <div class="field">
+        <label for="paymentAmount" class="required">Monto</label>
+        <p-inputNumber
+            id="paymentAmount"
+            [(ngModel)]="newPayment.amount"
+            mode="currency"
+            currency="USD"
+            locale="en-US"
+            class="w-full"
+        ></p-inputNumber>
+    </div>
+
+    <div class="field">
+        <label for="paymentMethod" class="required">Método de Pago</label>
+        <p-dropdown
+            id="paymentMethod"
+            [(ngModel)]="newPayment.paymentMethod"
+            [options]="paymentMethods"
+            class="w-full"
+        ></p-dropdown>
+    </div>
+
+    <div class="field">
+        <label for="receiptNumber">Número de Recibo</label>
+        <input
+            pInputText
+            id="receiptNumber"
+            [(ngModel)]="newPayment.receiptNumber"
+            class="w-full"
+        />
+    </div>
+
+    <ng-template pTemplate="footer">
+        <button
+            pButton
+            type="button"
+            label="Cancelar"
+            icon="pi pi-times"
+            class="p-button-text"
+            (click)="showPaymentDialog = false"
+        ></button>
+        <button
+            pButton
+            type="button"
+            label="Procesar"
+            icon="pi pi-check"
+            class="p-button-success"
+            (click)="processPayment()"
+        ></button>
+    </ng-template>
+</p-dialog>
+
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>

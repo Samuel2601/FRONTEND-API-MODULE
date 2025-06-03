@@ -23,6 +23,7 @@ import { InvoiceListComponent } from './components/invoice/list/invoice-list.com
 import { InvoiceFormComponent } from './components/invoice/form/invoice-form.component';
 import { IntroducerListComponent } from './components/introducer/list/introducer-list.component';
 import { IntroducerFormComponent } from './components/introducer/form/introducer-form.component';
+import { IntroducerDetailComponent } from './components/introducer/detail/introducer-detail.component';
 
 // Rutas del módulo
 const routes: Routes = [
@@ -64,16 +65,28 @@ const routes: Routes = [
                 (m) => m.TariffModuleSimple
             ),
     },
-    //introducer
+    // introducer routes
     {
         path: 'introducers',
-        component: IntroducerListComponent,
+        children: [
+            {
+                path: '',
+                component: IntroducerListComponent,
+            },
+            {
+                path: 'new',
+                component: IntroducerFormComponent,
+            },
+            {
+                path: 'edit/:id',
+                component: IntroducerFormComponent,
+            },
+            {
+                path: 'view/:id',
+                component: IntroducerDetailComponent,
+            },
+        ],
     },
-    {
-        path: 'introducers/create',
-        component: IntroducerFormComponent,
-    },
-
     //invoices
     {
         path: 'invoices',

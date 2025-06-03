@@ -17,6 +17,25 @@ export interface Invoice {
     introducerId: string;
     slaughterProcessId?: string;
 
+    // Integración Oracle
+    oracleIntegration?: {
+        camal01Codi?: number;
+        syncStatus: 'PENDING' | 'SYNCED' | 'ERROR' | 'UPDATED' | 'ABANDONED';
+        syncDate?: Date;
+        syncAttempts: number;
+        lastSyncError?: string;
+        needsUpdate: boolean;
+        oracleData?: {
+            cedula: string;
+            rubro: string;
+            descripcion: string;
+            valor: number;
+            tipo: number;
+            fechaInscripcion: Date;
+            numeroEmision: number;
+        };
+    };
+
     items: Array<{
         description: string;
         quantity: number;
@@ -39,6 +58,11 @@ export interface Invoice {
         reference?: string;
         receivedBy?: string;
         _id?: string;
+        oracleSync?: {
+            synced: boolean;
+            syncDate?: Date;
+            syncError?: string;
+        };
     }>;
 
     notes?: string;
@@ -121,6 +145,70 @@ export interface PaymentData {
     paymentDate?: Date;
 }
 
+// ===== INTERFACES ORACLE =====
+export interface OracleSyncDashboard {
+    summary: {
+        total: number;
+        synced: number;
+        pending: number;
+        errors: number;
+        syncPercentage: string;
+    };
+    recentErrors: Array<{
+        invoiceNumber: string;
+        error: string;
+        attempts: number;
+    }>;
+}
+
+export interface OraclePaymentStatistic {
+    tipo: string;
+    totalFacturas: number;
+    totalValor: number;
+    valorPagado: number;
+    valorPendiente: number;
+    facturasPagadas: number;
+    facturasPendientes: number;
+    porcentajePago: string;
+}
+
+export interface OracleInvoice {
+    CAMAL01CODI: number;
+    CEDULA: string;
+    RUBRO: string;
+    DESCRIPCION: string;
+    VALOR: number;
+    FECHA_INGRESO: Date;
+    TIPO: number;
+    FECHA_INSCRIPCION: Date;
+    NUMERO_EMISION: number;
+}
+
+export interface InvoiceSyncStatus {
+    invoiceNumber: string;
+    mongoId: string;
+    oracleId: number | null;
+    syncStatus: string;
+    syncDate: Date | null;
+    syncAttempts: number;
+    lastError: string | null;
+    needsUpdate: boolean;
+    oracleData?: OracleInvoice;
+    oracleError?: string;
+}
+
+export interface SyncResult {
+    success: number;
+    errors: number;
+    details: Array<{
+        invoiceId: string;
+        invoiceNumber: string;
+        camal01Codi?: number;
+        status: 'success' | 'error';
+        error?: string;
+    }>;
+}
+
 @Injectable({
     providedIn: 'root',
 })
@@ -139,6 +227,230 @@ export class InvoiceService {
             Authorization: token,
         });
     }
+
+    // ===== MÉTODOS ORACLE =====
+
+    /**
+     * Probar conexión Oracle
+     */
+    testOracleConnection(): Observable<{
+        success: boolean;
+        message: string;
+        serverDate?: Date;
+    }> {
+        return this.http
+            .get<any>(`${this.apiUrl}/oracle/test-connection`, {
+                headers: this.getHeaders(this.token()),
+            })
+            .pipe(
+                map((response) => response.data || response),
+                catchError(this.handleError)
+            );
+    }
+
+    /**
+     * Obtener dashboard de sincronización Oracle
+     */
+    getOracleSyncDashboard(): Observable<OracleSyncDashboard> {
+        return this.http
+            .get<{ success: boolean; data: OracleSyncDashboard }>(
+                `${this.apiUrl}/oracle/sync-dashboard`,
+                {
+                    headers: this.getHeaders(this.token()),
+                }
+            )
+            .pipe(
+                map((response) => response.data),
+                catchError(this.handleError)
+            );
+    }
+
+    /**
+     * Sincronizar facturas pendientes con Oracle
+     */
+    syncPendingWithOracle(): Observable<SyncResult> {
+        return this.http
+            .post<{ success: boolean; data: SyncResult }>(
+                `${this.apiUrl}/oracle/sync-pending`,
+                {},
+                {
+                    headers: this.getHeaders(this.token()),
+                }
+            )
+            .pipe(
+                map((response) => response.data),
+                catchError(this.handleError)
+            );
+    }
+
+    /**
+     * Reintentar sincronizaciones fallidas
+     */
+    retryFailedSyncs(): Observable<{
+        results: any[];
+        successCount: number;
+        errorCount: number;
+    }> {
+        return this.http
+            .post<{ success: boolean; data: any }>(
+                `${this.apiUrl}/oracle/retry-failed`,
+                {},
+                {
+                    headers: this.getHeaders(this.token()),
+                }
+            )
+            .pipe(
+                map((response) => response.data),
+                catchError(this.handleError)
+            );
+    }
+
+    /**
+     * Obtener estadísticas de pagos desde Oracle
+     */
+    getOraclePaymentStatistics(params: {
+        startDate: Date;
+        endDate: Date;
+    }): Observable<{
+        data: OraclePaymentStatistic[];
+        period: { startDate: Date; endDate: Date };
+    }> {
+        let httpParams = new HttpParams()
+            .set('startDate', params.startDate.toISOString())
+            .set('endDate', params.endDate.toISOString());
+
+        return this.http
+            .get<{
+                success: boolean;
+                data: OraclePaymentStatistic[];
+                period: any;
+            }>(`${this.apiUrl}/oracle/payment-statistics`, {
+                params: httpParams,
+                headers: this.getHeaders(this.token()),
+            })
+            .pipe(
+                map((response) => ({
+                    data: response.data,
+                    period: response.period,
+                })),
+                catchError(this.handleError)
+            );
+    }
+
+    /**
+     * Obtener facturas Oracle por cédula
+     */
+    getOracleInvoicesByCedula(cedula: string): Observable<{
+        data: OracleInvoice[];
+        total: number;
+    }> {
+        return this.http
+            .get<{ success: boolean; data: OracleInvoice[]; total: number }>(
+                `${this.apiUrl}/oracle/by-cedula/${cedula}`,
+                {
+                    headers: this.getHeaders(this.token()),
+                }
+            )
+            .pipe(
+                map((response) => ({
+                    data: response.data,
+                    total: response.total,
+                })),
+                catchError(this.handleError)
+            );
+    }
+
+    /**
+     * Sincronizar factura individual con Oracle
+     */
+    syncInvoiceWithOracle(invoiceId: string): Observable<any> {
+        return this.http
+            .post<{ success: boolean; data: any }>(
+                `${this.apiUrl}/${invoiceId}/oracle/sync`,
+                {},
+                {
+                    headers: this.getHeaders(this.token()),
+                }
+            )
+            .pipe(
+                map((response) => response.data),
+                catchError(this.handleError)
+            );
+    }
+
+    /**
+     * Obtener estado de sincronización de factura
+     */
+    getInvoiceSyncStatus(invoiceId: string): Observable<InvoiceSyncStatus> {
+        return this.http
+            .get<{ success: boolean; data: InvoiceSyncStatus }>(
+                `${this.apiUrl}/${invoiceId}/oracle/status`,
+                {
+                    headers: this.getHeaders(this.token()),
+                }
+            )
+            .pipe(
+                map((response) => response.data),
+                catchError(this.handleError)
+            );
+    }
+
+    // ===== MÉTODOS HELPER ORACLE =====
+
+    /**
+     * Obtener descripción del estado de sincronización
+     */
+    getSyncStatusLabel(status: string): string {
+        const labels: { [key: string]: string } = {
+            PENDING: 'Pendiente',
+            SYNCED: 'Sincronizado',
+            ERROR: 'Error',
+            UPDATED: 'Actualizado',
+            ABANDONED: 'Abandonado',
+        };
+        return labels[status] || status;
+    }
+
+    /**
+     * Obtener descripción del tipo Oracle
+     */
+    getOracleTypeLabel(tipo: number): string {
+        const labels: { [key: number]: string } = {
+            1: 'Tarifa',
+            2: 'Tasa',
+            3: 'Multa',
+        };
+        return labels[tipo] || `Tipo ${tipo}`;
+    }
+
+    /**
+     * Verificar si factura necesita sincronización
+     */
+    needsOracleSync(invoice: Invoice): boolean {
+        if (!invoice.oracleIntegration) return true;
+
+        return (
+            invoice.oracleIntegration.syncStatus === 'PENDING' ||
+            invoice.oracleIntegration.syncStatus === 'ERROR' ||
+            invoice.oracleIntegration.needsUpdate
+        );
+    }
+
+    /**
+     * Obtener color del estado de sincronización
+     */
+    getSyncStatusColor(status: string): string {
+        const colors: { [key: string]: string } = {
+            PENDING: 'warning',
+            SYNCED: 'success',
+            ERROR: 'danger',
+            UPDATED: 'info',
+            ABANDONED: 'secondary',
+        };
+        return colors[status] || 'secondary';
+    }
+
+    // ===== MÉTODOS EXISTENTES =====
 
     /**
      * Obtener todas las facturas

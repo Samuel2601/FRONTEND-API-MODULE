@@ -130,6 +130,7 @@ export class InvoiceListComponent implements OnInit {
 
         this.invoiceService.searchInvoices(filters).subscribe({
             next: (response) => {
+                console.log('Response:', response);
                 this.invoices = response.invoices;
                 this.totalRecords = response.total;
                 this.loading = false;
