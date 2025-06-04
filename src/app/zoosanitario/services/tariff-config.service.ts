@@ -1,13 +1,22 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { AuthService } from 'src/app/demo/services/auth.service';
 
+//TariffConfig interface Actualización aplicada
 export interface TariffConfig {
     _id?: string;
     name: string;
+    // Nuevos campos de versionado
+    validFrom?: Date;
+    validTo?: Date;
+    version?: number;
+    tariffGroup?: string;
+    supersedes?: string;
+    changeReason?: string;
+
     type:
         | 'INSCRIPTION'
         | 'SLAUGHTER_FEE'
@@ -45,8 +54,23 @@ export interface TariffConfig {
         timeLimitHours: number;
         appliesAfterHours: boolean;
     };
+    createdBy?: string;
+    approvedBy?: string;
     createdAt?: Date;
     updatedAt?: Date;
+}
+
+//ApiResponse interface nueva
+export interface ApiResponse<T> {
+    success: boolean;
+    data: T;
+    message?: string;
+    pagination?: {
+        current: number;
+        pages: number;
+        total: number;
+        limit: number;
+    };
 }
 
 export interface TariffCalculation {
@@ -118,12 +142,35 @@ export class TariffConfigService {
     /**
      * Obtener todas las configuraciones de tarifas
      */
-    getAllTariffs(): Observable<TariffConfig[]> {
+    getAllTariffs(
+        page: number = 1,
+        limit: number = 10,
+        filters?: any
+    ): Observable<{ data: TariffConfig[]; pagination: any }> {
+        let params = new HttpParams()
+            .set('page', page.toString())
+            .set('limit', limit.toString());
+
+        if (filters) {
+            Object.keys(filters).forEach((key) => {
+                if (filters[key] !== null && filters[key] !== undefined) {
+                    params = params.set(key, filters[key]);
+                }
+            });
+        }
+
         return this.http
-            .get<TariffConfig[]>(this.apiUrl, {
+            .get<ApiResponse<TariffConfig[]>>(this.apiUrl, {
                 headers: this.getHeaders(this.token()),
+                params,
             })
-            .pipe(catchError(this.handleError));
+            .pipe(
+                map((response) => ({
+                    data: response.data,
+                    pagination: response.pagination,
+                })),
+                catchError(this.handleError)
+            );
     }
 
     /**
@@ -131,21 +178,26 @@ export class TariffConfigService {
      */
     getTariffById(id: string): Observable<TariffConfig> {
         return this.http
-            .get<TariffConfig>(`${this.apiUrl}/${id}`, {
+            .get<ApiResponse<TariffConfig>>(`${this.apiUrl}/${id}`, {
                 headers: this.getHeaders(this.token()),
             })
-            .pipe(catchError(this.handleError));
+            .pipe(
+                map((response) => response.data),
+                catchError(this.handleError)
+            );
     }
-
     /**
      * Obtener tarifas activas
      */
     getActiveTariffs(): Observable<TariffConfig[]> {
         return this.http
-            .get<TariffConfig[]>(`${this.apiUrl}/active`, {
+            .get<ApiResponse<TariffConfig[]>>(`${this.apiUrl}/active`, {
                 headers: this.getHeaders(this.token()),
             })
-            .pipe(catchError(this.handleError));
+            .pipe(
+                map((response) => response.data),
+                catchError(this.handleError)
+            );
     }
 
     /**
@@ -153,17 +205,27 @@ export class TariffConfigService {
      */
     getTariffsByType(
         type: string,
-        category?: string
-    ): Observable<TariffConfig[]> {
+        category?: string,
+        targetDate?: Date
+    ): Observable<TariffConfig> {
         const url = category
             ? `${this.apiUrl}/type/${type}/${category}`
             : `${this.apiUrl}/type/${type}`;
 
+        let params = new HttpParams();
+        if (targetDate) {
+            params = params.set('targetDate', targetDate.toISOString());
+        }
+
         return this.http
-            .get<TariffConfig[]>(url, {
+            .get<ApiResponse<TariffConfig>>(url, {
                 headers: this.getHeaders(this.token()),
+                params,
             })
-            .pipe(catchError(this.handleError));
+            .pipe(
+                map((response) => response.data),
+                catchError(this.handleError)
+            );
     }
 
     /**
@@ -171,10 +233,13 @@ export class TariffConfigService {
      */
     createTariff(tariff: Partial<TariffConfig>): Observable<TariffConfig> {
         return this.http
-            .post<TariffConfig>(this.apiUrl, tariff, {
+            .post<ApiResponse<TariffConfig>>(this.apiUrl, tariff, {
                 headers: this.getHeaders(this.token()),
             })
-            .pipe(catchError(this.handleError));
+            .pipe(
+                map((response) => response.data),
+                catchError(this.handleError)
+            );
     }
 
     /**
@@ -182,14 +247,20 @@ export class TariffConfigService {
      */
     initializeDefaults(): Observable<{ message: string; created: number }> {
         return this.http
-            .post<{ message: string; created: number }>(
+            .post<ApiResponse<TariffConfig[]>>(
                 `${this.apiUrl}/admin/initialize-defaults`,
                 {},
                 {
                     headers: this.getHeaders(this.token()),
                 }
             )
-            .pipe(catchError(this.handleError));
+            .pipe(
+                map((response) => ({
+                    message: response.message || 'Tarifas inicializadas',
+                    created: response.data?.length || 0,
+                })),
+                catchError(this.handleError)
+            );
     }
 
     /**
@@ -199,14 +270,24 @@ export class TariffConfigService {
         params: SlaughterCalculationParams
     ): Observable<TariffCalculation> {
         return this.http
-            .post<TariffCalculation>(
+            .post<ApiResponse<any>>(
                 `${this.apiUrl}/calculate/slaughter`,
-                params,
+                { animals: [params] },
                 {
                     headers: this.getHeaders(this.token()),
                 }
             )
-            .pipe(catchError(this.handleError));
+            .pipe(
+                map((response) => ({
+                    amount: response.data.totalAmount,
+                    details: {
+                        quantity: params.quantity,
+                        weight: params.weight,
+                    },
+                    tariffConfig: response.data.details[0]?.tariffConfig,
+                })),
+                catchError(this.handleError)
+            );
     }
 
     /**
@@ -250,14 +331,21 @@ export class TariffConfigService {
         params: InscriptionCalculationParams
     ): Observable<TariffCalculation> {
         return this.http
-            .post<TariffCalculation>(
+            .post<ApiResponse<any>>(
                 `${this.apiUrl}/calculate/inscription`,
-                params,
+                { introducerType: params.introducerType },
                 {
                     headers: this.getHeaders(this.token()),
                 }
             )
-            .pipe(catchError(this.handleError));
+            .pipe(
+                map((response) => ({
+                    amount: response.data.amount,
+                    details: {},
+                    tariffConfig: response.data.tariffConfig,
+                })),
+                catchError(this.handleError)
+            );
     }
 
     /**
@@ -281,10 +369,13 @@ export class TariffConfigService {
         tariff: Partial<TariffConfig>
     ): Observable<TariffConfig> {
         return this.http
-            .put<TariffConfig>(`${this.apiUrl}/${id}`, tariff, {
+            .put<ApiResponse<TariffConfig>>(`${this.apiUrl}/${id}`, tariff, {
                 headers: this.getHeaders(this.token()),
             })
-            .pipe(catchError(this.handleError));
+            .pipe(
+                map((response) => response.data),
+                catchError(this.handleError)
+            );
     }
 
     /**
@@ -297,30 +388,39 @@ export class TariffConfigService {
         updatedConfigs: number;
     }> {
         return this.http
-            .put<{
-                message: string;
-                oldRBU: number;
-                newRBU: number;
-                updatedConfigs: number;
-            }>(
+            .put<ApiResponse<any>>(
                 `${this.apiUrl}/admin/update-rbu`,
-                { currentRBU: newRBU },
+                { newRBU },
                 {
                     headers: this.getHeaders(this.token()),
                 }
             )
-            .pipe(catchError(this.handleError));
+            .pipe(
+                map((response) => ({
+                    message: response.message || 'RBU actualizado',
+                    oldRBU: 0,
+                    newRBU: newRBU,
+                    updatedConfigs: response.data?.modifiedCount || 0,
+                })),
+                catchError(this.handleError)
+            );
     }
 
     /**
      * Eliminar configuración de tarifa
      */
-    deleteTariff(id: string): Observable<void> {
+    deleteTariff(id: string): Observable<string> {
         return this.http
-            .delete<void>(`${this.apiUrl}/${id}`, {
+            .delete<ApiResponse<void>>(`${this.apiUrl}/${id}`, {
                 headers: this.getHeaders(this.token()),
             })
-            .pipe(catchError(this.handleError));
+            .pipe(
+                map(
+                    (response) =>
+                        response.message || 'Tarifa eliminada exitosamente'
+                ),
+                catchError(this.handleError)
+            );
     }
 
     /**
@@ -328,46 +428,56 @@ export class TariffConfigService {
      */
     getCurrentRBU(): Observable<{ currentRBU: number }> {
         return this.getActiveTariffs().pipe(
-            map((tariffs: any) => {
-                console.log('Tariffs:', tariffs);
-                const tariff = tariffs.data.find((t: any) => t.currentRBU > 0);
+            map((tariffs: TariffConfig[]) => {
+                const tariff = tariffs.find((t) => t.currentRBU > 0);
                 return { currentRBU: tariff?.currentRBU || 470 };
             }),
             catchError(this.handleError)
         );
     }
 
-    /**
-     * Obtener tarifas de inscripción disponibles
-     */
-    getInscriptionTariffs(): Observable<TariffConfig[]> {
-        return this.getTariffsByType('INSCRIPTION').pipe(
-            catchError(this.handleError)
-        );
+    //getTariffHistory nuevo
+    getTariffHistory(tariffGroup: string): Observable<TariffConfig[]> {
+        return this.http
+            .get<ApiResponse<TariffConfig[]>>(
+                `${this.apiUrl}/history/${tariffGroup}`,
+                {
+                    headers: this.getHeaders(this.token()),
+                }
+            )
+            .pipe(
+                map((response) => response.data),
+                catchError(this.handleError)
+            );
     }
 
-    /**
-     * Obtener tarifas de faenamiento disponibles
-     */
-    getSlaughterTariffs(): Observable<TariffConfig[]> {
-        return this.getTariffsByType('SLAUGHTER_FEE').pipe(
-            catchError(this.handleError)
-        );
+    //createNewVersion nuevo
+    createNewVersion(
+        id: string,
+        newData: Partial<TariffConfig>
+    ): Observable<TariffConfig> {
+        return this.http
+            .post<ApiResponse<TariffConfig>>(
+                `${this.apiUrl}/${id}/new-version`,
+                newData,
+                {
+                    headers: this.getHeaders(this.token()),
+                }
+            )
+            .pipe(
+                map((response) => response.data),
+                catchError(this.handleError)
+            );
     }
 
-    /**
-     * Obtener configuración de multas
-     */
-    getFineTariffs(): Observable<TariffConfig[]> {
-        return this.getAllTariffs().pipe(
-            map((tariffs) =>
-                tariffs.filter(
-                    (t) =>
-                        t.type === 'FINE_CLANDESTINE' ||
-                        t.type === 'FINE_UNAUTHORIZED_ACCESS'
-                )
-            ),
-            catchError(this.handleError)
+    //getValidTariffAt nuevo
+    getValidTariffAt(
+        type: string,
+        category: string,
+        targetDate: Date
+    ): Observable<TariffConfig | null> {
+        return this.getTariffsByType(type, category, targetDate).pipe(
+            catchError(() => of(null))
         );
     }
 
