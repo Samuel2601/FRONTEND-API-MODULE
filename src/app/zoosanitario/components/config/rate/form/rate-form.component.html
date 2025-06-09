@@ -1,0 +1,397 @@
+<div class="rate-form">
+    <form [formGroup]="rateForm" (ngSubmit)="onSubmit()">
+        <p-tabView styleClass="form-tabs">
+            <!-- Información General -->
+            <p-tabPanel
+                header="Información General"
+                leftIcon="pi pi-info-circle"
+            >
+                <div class="grid">
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="code">Código *</label>
+                            <input
+                                type="text"
+                                pInputText
+                                id="code"
+                                formControlName="code"
+                                placeholder="Ej: INS_BOVINO"
+                                styleClass="w-full"
+                            />
+
+                            <small
+                                class="p-error"
+                                *ngIf="isFieldInvalid('code')"
+                            >
+                                {{ getFieldError("code") }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="name">Nombre *</label>
+                            <input
+                                type="text"
+                                pInputText
+                                id="name"
+                                formControlName="name"
+                                placeholder="Nombre descriptivo"
+                                styleClass="w-full"
+                            />
+
+                            <small
+                                class="p-error"
+                                *ngIf="isFieldInvalid('name')"
+                            >
+                                {{ getFieldError("name") }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="field">
+                            <label for="description">Descripción</label>
+                            <textarea
+                                id="description"
+                                formControlName="description"
+                                [rows]="3"
+                                placeholder="Descripción detallada de la tarifa"
+                                styleClass="w-full"
+                            >
+                            </textarea>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="type">Tipo *</label>
+                            <p-dropdown
+                                id="type"
+                                formControlName="type"
+                                [options]="typeOptions"
+                                placeholder="Seleccionar tipo"
+                                [disabled]="mode === 'view'"
+                                styleClass="w-full"
+                            >
+                            </p-dropdown>
+                            <small
+                                class="p-error"
+                                *ngIf="isFieldInvalid('type')"
+                            >
+                                {{ getFieldError("type") }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="status">Estado *</label>
+                            <p-dropdown
+                                id="status"
+                                formControlName="status"
+                                [options]="statusOptions"
+                                placeholder="Seleccionar estado"
+                                [disabled]="mode === 'view'"
+                                styleClass="w-full"
+                            >
+                            </p-dropdown>
+                            <small
+                                class="p-error"
+                                *ngIf="isFieldInvalid('status')"
+                            >
+                                {{ getFieldError("status") }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="priority">Prioridad *</label>
+                            <p-inputNumber
+                                id="priority"
+                                formControlName="priority"
+                                [min]="1"
+                                [max]="10"
+                                placeholder="1-10"
+                                styleClass="w-full"
+                            >
+                            </p-inputNumber>
+                            <small class="help-text"
+                                >1 = Mayor prioridad, 10 = Menor
+                                prioridad</small
+                            >
+                            <small
+                                class="p-error"
+                                *ngIf="isFieldInvalid('priority')"
+                            >
+                                {{ getFieldError("priority") }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </p-tabPanel>
+
+            <!-- Vigencia -->
+            <p-tabPanel header="Vigencia" leftIcon="pi pi-calendar">
+                <div class="grid">
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="effectiveFrom">Vigente desde *</label>
+                            <p-calendar
+                                id="effectiveFrom"
+                                formControlName="effectiveFrom"
+                                [showIcon]="true"
+                                placeholder="Fecha de inicio"
+                                dateFormat="dd/mm/yy"
+                                styleClass="w-full"
+                            >
+                            </p-calendar>
+                            <small
+                                class="p-error"
+                                *ngIf="isFieldInvalid('effectiveFrom')"
+                            >
+                                {{ getFieldError("effectiveFrom") }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="effectiveUntil">Vigente hasta</label>
+                            <p-calendar
+                                id="effectiveUntil"
+                                formControlName="effectiveUntil"
+                                [showIcon]="true"
+                                placeholder="Fecha de fin (opcional)"
+                                dateFormat="dd/mm/yy"
+                                styleClass="w-full"
+                            >
+                            </p-calendar>
+                            <small class="help-text"
+                                >Dejar vacío para vigencia indefinida</small
+                            >
+                        </div>
+                    </div>
+                </div>
+            </p-tabPanel>
+
+            <!-- Reglas de Aplicabilidad -->
+            <p-tabPanel header="Reglas de Aplicabilidad" leftIcon="pi pi-cog">
+                <div class="applicability-section">
+                    <div class="section-header">
+                        <h3>Condiciones de Aplicación</h3>
+                        <p>
+                            Defina las condiciones bajo las cuales esta tarifa
+                            será aplicada
+                        </p>
+                    </div>
+
+                    <div class="rule-builder" *ngIf="mode !== 'view'">
+                        <div class="grid">
+                            <div class="col-12 md:col-3">
+                                <p-dropdown
+                                    [(ngModel)]="newRule.field"
+                                    [options]="ruleFieldOptions"
+                                    placeholder="Campo"
+                                    [ngModelOptions]="{ standalone: true }"
+                                    styleClass="w-full"
+                                >
+                                </p-dropdown>
+                            </div>
+                            <div class="col-12 md:col-3">
+                                <p-dropdown
+                                    [(ngModel)]="newRule.operator"
+                                    [options]="operatorOptions"
+                                    placeholder="Operador"
+                                    [ngModelOptions]="{ standalone: true }"
+                                    styleClass="w-full"
+                                >
+                                </p-dropdown>
+                            </div>
+                            <div class="col-12 md:col-4">
+                                <input
+                                    type="text"
+                                    pInputText
+                                    [(ngModel)]="newRule.value"
+                                    placeholder="Valor"
+                                    [ngModelOptions]="{ standalone: true }"
+                                    styleClass="w-full"
+                                />
+                            </div>
+                            <div class="col-12 md:col-2">
+                                <p-button
+                                    icon="pi pi-plus"
+                                    label="Agregar"
+                                    [disabled]="!isNewRuleValid()"
+                                    (click)="addRule()"
+                                    styleClass="w-full"
+                                >
+                                </p-button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="rules-list"
+                        *ngIf="applicabilityRules.length > 0"
+                    >
+                        <div
+                            class="rule-item"
+                            *ngFor="
+                                let rule of applicabilityRules;
+                                let i = index
+                            "
+                        >
+                            <div class="rule-content">
+                                <span class="rule-field">{{
+                                    getRuleFieldLabel(rule.field)
+                                }}</span>
+                                <span class="rule-operator">{{
+                                    getOperatorLabel(rule.operator)
+                                }}</span>
+                                <span class="rule-value">{{ rule.value }}</span>
+                                <span
+                                    class="rule-logic"
+                                    *ngIf="i < applicabilityRules.length - 1"
+                                >
+                                    {{ rule.logicalOperator }}
+                                </span>
+                            </div>
+                            <div class="rule-actions" *ngIf="mode !== 'view'">
+                                <p-button
+                                    icon="pi pi-trash"
+                                    severity="danger"
+                                    [text]="true"
+                                    size="small"
+                                    (click)="removeRule(i)"
+                                >
+                                </p-button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="empty-rules"
+                        *ngIf="applicabilityRules.length === 0"
+                    >
+                        <i class="pi pi-info-circle"></i>
+                        <p>
+                            No hay reglas de aplicabilidad configuradas. Esta
+                            tarifa se aplicará por defecto.
+                        </p>
+                    </div>
+                </div>
+            </p-tabPanel>
+
+            <!-- Vista Previa JSON -->
+            <p-tabPanel
+                header="Vista Previa"
+                leftIcon="pi pi-eye"
+                *ngIf="mode !== 'create'"
+            >
+                <div class="json-preview">
+                    <h3>Configuración JSON</h3>
+                    <pre><code>{{ getFormPreview() }}</code></pre>
+                </div>
+            </p-tabPanel>
+        </p-tabView>
+
+        <!-- Form Actions -->
+        <div class="form-actions" *ngIf="mode !== 'view'">
+            <div class="flex justify-content-end gap-2">
+                <p-button
+                    label="Cancelar"
+                    severity="secondary"
+                    [text]="true"
+                    type="button"
+                    (click)="onCancel()"
+                >
+                </p-button>
+                <p-button
+                    label="Validar Fórmula"
+                    severity="secondary"
+                    icon="pi pi-check"
+                    type="button"
+                    [disabled]="rateForm.invalid"
+                    [loading]="validating"
+                    (click)="validateFormula()"
+                >
+                </p-button>
+                <p-button
+                    [label]="
+                        mode === 'create' ? 'Crear Tarifa' : 'Actualizar Tarifa'
+                    "
+                    type="submit"
+                    [disabled]="rateForm.invalid || saving"
+                    [loading]="saving"
+                >
+                </p-button>
+            </div>
+        </div>
+
+        <!-- View Mode Actions -->
+        <div class="form-actions" *ngIf="mode === 'view'">
+            <div class="flex justify-content-end gap-2">
+                <p-button
+                    label="Cerrar"
+                    severity="secondary"
+                    (click)="onCancel()"
+                >
+                </p-button>
+                <p-button
+                    label="Editar"
+                    icon="pi pi-pencil"
+                    (click)="switchToEditMode()"
+                >
+                </p-button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Validation Dialog -->
+<p-dialog
+    header="Resultado de Validación"
+    [(visible)]="showValidationDialog"
+    [modal]="true"
+    [style]="{ width: '500px' }"
+    styleClass="validation-dialog"
+>
+    <div class="validation-content">
+        <div
+            class="validation-result"
+            [ngClass]="validationResult?.success ? 'success' : 'error'"
+        >
+            <i
+                [class]="
+                    validationResult?.success
+                        ? 'pi pi-check-circle'
+                        : 'pi pi-times-circle'
+                "
+            ></i>
+            <h4>
+                {{
+                    validationResult?.success
+                        ? "Validación Exitosa"
+                        : "Error de Validación"
+                }}
+            </h4>
+            <p>{{ validationResult?.message }}</p>
+        </div>
+
+        <div class="validation-details" *ngIf="validationResult?.details">
+            <h5>Detalles:</h5>
+            <ul>
+                <li *ngFor="let detail of validationResult.details">
+                    {{ detail }}
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Cerrar" (click)="showValidationDialog = false">
+        </p-button>
+    </ng-template>
+</p-dialog>

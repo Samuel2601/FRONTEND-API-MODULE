@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import { CacheService } from 'src/app/demo/services/cache.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';

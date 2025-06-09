@@ -1,0 +1,271 @@
+<div class="config-dashboard">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="dashboard-title">Panel de Configuración</h1>
+                <p class="dashboard-subtitle">Gestión de tarifas y valores de referencia del sistema</p>
+            </div>
+            <div class="header-actions">
+                <p-button 
+                    icon="pi pi-refresh" 
+                    label="Actualizar" 
+                    severity="secondary"
+                    (click)="refreshData()">
+                </p-button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="grid mb-4">
+        <div class="col-12 md:col-6 lg:col-3">
+            <div class="stats-card">
+                <div class="stats-content">
+                    <div class="stats-icon rates-icon">
+                        <i class="pi pi-money-bill"></i>
+                    </div>
+                    <div class="stats-info">
+                        <span class="stats-number">{{ statsData.totalRates || 0 }}</span>
+                        <span class="stats-label">Tarifas Activas</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 md:col-6 lg:col-3">
+            <div class="stats-card">
+                <div class="stats-content">
+                    <div class="stats-icon reference-icon">
+                        <i class="pi pi-cog"></i>
+                    </div>
+                    <div class="stats-info">
+                        <span class="stats-number">{{ statsData.totalReferenceValues || 0 }}</span>
+                        <span class="stats-label">Valores Referencia</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 md:col-6 lg:col-3">
+            <div class="stats-card">
+                <div class="stats-content">
+                    <div class="stats-icon details-icon">
+                        <i class="pi pi-list"></i>
+                    </div>
+                    <div class="stats-info">
+                        <span class="stats-number">{{ statsData.totalRateDetails || 0 }}</span>
+                        <span class="stats-label">Detalles Tarifa</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 md:col-6 lg:col-3">
+            <div class="stats-card">
+                <div class="stats-content">
+                    <div class="stats-icon inactive-icon">
+                        <i class="pi pi-times-circle"></i>
+                    </div>
+                    <div class="stats-info">
+                        <span class="stats-number">{{ statsData.inactiveRates || 0 }}</span>
+                        <span class="stats-label">Tarifas Inactivas</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reference Values Quick View -->
+    <div class="grid mb-4">
+        <div class="col-12 lg:col-6">
+            <p-card header="Valores de Referencia Principales" styleClass="reference-values-card">
+                <div class="reference-values-content">
+                    <div class="reference-item" *ngFor="let value of mainReferenceValues">
+                        <div class="flex justify-content-between align-items-center mb-3">
+                            <div class="reference-info">
+                                <span class="reference-name">{{ value.name }}</span>
+                                <small class="reference-code">{{ value.code }}</small>
+                            </div>
+                            <div class="reference-value-container">
+                                <span class="reference-value" 
+                                      [ngClass]="{'monetary': value.valueType === 'MONETARY'}">
+                                    {{ formatReferenceValue(value) }}
+                                </span>
+                                <p-button 
+                                    icon="pi pi-pencil" 
+                                    severity="secondary"
+                                    size="small"
+                                    [text]="true"
+                                    (click)="editReferenceValue(value)">
+                                </p-button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-3" *ngIf="mainReferenceValues.length === 0">
+                        <i class="pi pi-info-circle text-muted"></i>
+                        <p class="text-muted mt-2">No hay valores de referencia configurados</p>
+                    </div>
+                </div>
+                
+                <ng-template pTemplate="footer">
+                    <div class="flex justify-content-end">
+                        <p-button 
+                            label="Ver Todos" 
+                            icon="pi pi-external-link"
+                            severity="secondary"
+                            [text]="true"
+                            (click)="navigateToReferenceValues()">
+                        </p-button>
+                    </div>
+                </ng-template>
+            </p-card>
+        </div>
+
+        <div class="col-12 lg:col-6">
+            <p-card header="Tarifas Recientes" styleClass="recent-rates-card">
+                <div class="recent-rates-content">
+                    <div class="rate-item" *ngFor="let rate of recentRates">
+                        <div class="flex justify-content-between align-items-center mb-3">
+                            <div class="rate-info">
+                                <span class="rate-name">{{ rate.name }}</span>
+                                <small class="rate-code">{{ rate.code }}</small>
+                            </div>
+                            <div class="rate-status-container">
+                                <p-tag 
+                                    [value]="rate.status" 
+                                    [severity]="getRateStatusSeverity(rate.status)">
+                                </p-tag>
+                                <p-button 
+                                    icon="pi pi-eye" 
+                                    severity="secondary"
+                                    size="small"
+                                    [text]="true"
+                                    (click)="viewRate(rate)">
+                                </p-button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-3" *ngIf="recentRates.length === 0">
+                        <i class="pi pi-info-circle text-muted"></i>
+                        <p class="text-muted mt-2">No hay tarifas registradas</p>
+                    </div>
+                </div>
+                
+                <ng-template pTemplate="footer">
+                    <div class="flex justify-content-end">
+                        <p-button 
+                            label="Ver Todas" 
+                            icon="pi pi-external-link"
+                            severity="secondary"
+                            [text]="true"
+                            (click)="navigateToRates()">
+                        </p-button>
+                    </div>
+                </ng-template>
+            </p-card>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid">
+        <div class="col-12">
+            <p-card header="Acciones Rápidas" styleClass="quick-actions-card">
+                <div class="quick-actions-grid">
+                    <div class="action-item" (click)="navigateToRates()">
+                        <div class="action-icon rates-bg">
+                            <i class="pi pi-money-bill"></i>
+                        </div>
+                        <div class="action-content">
+                            <h4>Gestionar Tarifas</h4>
+                            <p>Crear, editar y administrar las tarifas del sistema</p>
+                        </div>
+                        <i class="pi pi-chevron-right action-arrow"></i>
+                    </div>
+
+                    <div class="action-item" (click)="navigateToRateDetails()">
+                        <div class="action-icon details-bg">
+                            <i class="pi pi-list"></i>
+                        </div>
+                        <div class="action-content">
+                            <h4>Detalles de Tarifas</h4>
+                            <p>Configurar detalles específicos de cálculo</p>
+                        </div>
+                        <i class="pi pi-chevron-right action-arrow"></i>
+                    </div>
+
+                    <div class="action-item" (click)="navigateToReferenceValues()">
+                        <div class="action-icon reference-bg">
+                            <i class="pi pi-cog"></i>
+                        </div>
+                        <div class="action-content">
+                            <h4>Valores de Referencia</h4>
+                            <p>Actualizar RBU, SBU y otros valores base</p>
+                        </div>
+                        <i class="pi pi-chevron-right action-arrow"></i>
+                    </div>
+
+                    <div class="action-item" (click)="setupDefaultRates()">
+                        <div class="action-icon setup-bg">
+                            <i class="pi pi-wrench"></i>
+                        </div>
+                        <div class="action-content">
+                            <h4>Configuración Inicial</h4>
+                            <p>Establecer tarifas y valores por defecto</p>
+                        </div>
+                        <i class="pi pi-chevron-right action-arrow"></i>
+                    </div>
+                </div>
+            </p-card>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" *ngIf="loading">
+        <p-progressSpinner strokeWidth="3"></p-progressSpinner>
+    </div>
+</div>
+
+<!-- Edit Reference Value Dialog -->
+<p-dialog 
+    header="Editar Valor de Referencia" 
+    [(visible)]="showEditDialog" 
+    [modal]="true" 
+    [draggable]="false"
+    [style]="{width: '400px'}"
+    styleClass="edit-reference-dialog">
+    
+    <div class="edit-form" *ngIf="selectedReferenceValue">
+        <div class="field">
+            <label [for]="'ref-name-' + selectedReferenceValue.code">{{ selectedReferenceValue.name }}</label>
+            <p-inputNumber
+                [id]="'ref-name-' + selectedReferenceValue.code"
+                [(ngModel)]="editForm.value"
+                [mode]="selectedReferenceValue.valueType === 'MONETARY' ? 'currency' : 'decimal'"
+                [currency]="selectedReferenceValue.currency || 'USD'"
+                [minFractionDigits]="2"
+                [maxFractionDigits]="4"
+                styleClass="w-full">
+            </p-inputNumber>
+            <small class="form-text">{{ selectedReferenceValue.description }}</small>
+        </div>
+    </div>
+    
+    <ng-template pTemplate="footer">
+        <div class="flex justify-content-end gap-2">
+            <p-button 
+                label="Cancelar" 
+                severity="secondary" 
+                [text]="true"
+                (click)="cancelEdit()">
+            </p-button>
+            <p-button 
+                label="Guardar" 
+                (click)="saveReferenceValue()"
+                [loading]="saving">
+            </p-button>
+        </div>
+    </ng-template>
+</p-dialog>

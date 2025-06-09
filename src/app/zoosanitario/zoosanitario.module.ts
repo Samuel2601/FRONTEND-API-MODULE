@@ -5,29 +5,31 @@ import { ImportsModule } from '../demo/services/import';
 import { WorkflowGuard } from './guards/workflow.guard';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule, Routes } from '@angular/router';
-import { TemperaturePipe } from './utils/pipes/temperature.pipe';
-import { WeightPipe } from './utils/pipes/weight.pipe';
-import { StatusPipe } from './utils/pipes/status.pipe';
-import { WorkflowStatusPipe } from './utils/pipes/workflow-status.pipe';
 import { AutoSaveDirective } from './utils/directives/auto-save.directive';
 import { NumericOnlyDirective } from './utils/directives/numeric-only.directive';
 import { UpperCaseDirective } from './utils/directives/upper-case.directive';
 import { QrScannerModalComponent } from './components/qr-scanner/qr-scanner-modal.component';
 import { ConfirmationService } from 'primeng/api';
-import { SlaughterDashboardComponent } from './components/dashboard/dashboard.component';
-import { ReceptionComponent } from './components/reception/reception.component';
-import { ExternalInspectionComponent } from './components/external-inspection/external-inspection.component';
-import { SlaughterComponent } from './components/slaughter/slaughter.component';
-import { TariffModuleSimple } from './components/tariff-config/tariff.module';
-import { InvoiceListComponent } from './components/invoice/list/invoice-list.component';
-import { InvoiceFormComponent } from './components/invoice/form/invoice-form.component';
-import { IntroducerListComponent } from './components/introducer/list/introducer-list.component';
-import { IntroducerFormComponent } from './components/introducer/form/introducer-form.component';
-import { IntroducerDetailComponent } from './components/introducer/detail/introducer-detail.component';
+//import { SlaughterDashboardComponent } from './components/dashboard/dashboard.component';
+//import { ReceptionComponent } from './components/reception/reception.component';
+//import { ExternalInspectionComponent } from './components/external-inspection/external-inspection.component';
+//import { SlaughterComponent } from './components/slaughter/slaughter.component';
+//import { InvoiceListComponent } from './components/invoice/list/invoice-list.component';
+//import { InvoiceFormComponent } from './components/invoice/form/invoice-form.component';
+//import { IntroducerListComponent } from './components/introducer/list/introducer-list.component';
+//import { IntroducerFormComponent } from './components/introducer/form/introducer-form.component';
+//import { IntroducerDetailComponent } from './components/introducer/detail/introducer-detail.component';
+import { ReferenceValuesComponent } from './components/config/reference-values/list/reference-values.component';
+import { RatesComponent } from './components/config/rate/list/rates.component';
+import { RateFormComponent } from './components/config/rate/form/rate-form.component';
+import { ReferenceValueFormComponent } from './components/config/reference-values/form/reference-value-form.component';
+import { ConfigDashboardComponent } from './components/config/dashboard/config-dashboard.component';
+import { RateDetailsComponent } from './components/config/rate-details/list/rate-details.component';
+import { RateDetailFormComponent } from './components/config/rate-details/form/rate-detail-form.component';
 
 // Rutas del módulo
 const routes: Routes = [
-    {
+    /*{
         path: '',
         component: SlaughterDashboardComponent,
         data: { title: 'Dashboard Veterinario' },
@@ -52,57 +54,79 @@ const routes: Routes = [
         path: 'external-inspection/:id',
         component: ExternalInspectionComponent,
         data: { title: 'Inspección Externa' },
-    },
-    //SlaughterComponent
+    },*/
+
     {
-        path: 'slaughter',
-        component: SlaughterComponent,
-    },
-    {
-        path: 'tariffs',
-        loadChildren: () =>
-            import('./components/tariff-config/tariff.module').then(
-                (m) => m.TariffModuleSimple
-            ),
-    },
-    // introducer routes
-    {
-        path: 'introducers',
+        path: 'config',
         children: [
             {
                 path: '',
-                component: IntroducerListComponent,
+                component: ConfigDashboardComponent,
             },
             {
-                path: 'new',
-                component: IntroducerFormComponent,
+                path: 'reference-values',
+                children: [
+                    {
+                        path: '',
+                        component: ReferenceValuesComponent,
+                    },
+                    {
+                        path: 'new',
+                        component: ReferenceValueFormComponent,
+                    },
+                    {
+                        path: 'edit/:id',
+                        component: ReferenceValueFormComponent,
+                    },
+                    {
+                        path: 'view/:id',
+                        component: ReferenceValueFormComponent,
+                    },
+                ],
             },
             {
-                path: 'edit/:id',
-                component: IntroducerFormComponent,
+                path: 'rate',
+                children: [
+                    {
+                        path: '',
+                        component: RatesComponent,
+                    },
+                    {
+                        path: 'new',
+                        component: RateFormComponent,
+                    },
+                    {
+                        path: 'edit/:id',
+                        component: RateFormComponent,
+                    },
+                    {
+                        path: 'view/:id',
+                        component: RateFormComponent,
+                    },
+                ],
             },
             {
-                path: 'view/:id',
-                component: IntroducerDetailComponent,
+                path: 'rates-details',
+                children: [
+                    {
+                        path: '',
+                        component: RateDetailsComponent,
+                    },
+                    {
+                        path: 'new',
+                        component: RateDetailFormComponent,
+                    },
+                    {
+                        path: 'edit/:id',
+                        component: RateDetailFormComponent,
+                    },
+                    {
+                        path: 'view/:id',
+                        component: RateDetailsComponent,
+                    },
+                ],
             },
         ],
-    },
-    //invoices
-    {
-        path: 'invoices',
-        component: InvoiceListComponent,
-    },
-    {
-        path: 'invoices/create',
-        component: InvoiceFormComponent,
-    },
-    {
-        path: 'invoices/edit/:id',
-        component: InvoiceFormComponent,
-    },
-    {
-        path: 'invoices/payment/:id',
-        component: InvoiceFormComponent,
     },
 ];
 
@@ -110,12 +134,6 @@ const routes: Routes = [
     declarations: [
         // Componentes principales
         QrScannerModalComponent,
-
-        // Pipes personalizados
-        TemperaturePipe,
-        WeightPipe,
-        StatusPipe,
-        WorkflowStatusPipe,
 
         // Directivas personalizadas
         AutoSaveDirective,
@@ -132,12 +150,6 @@ const routes: Routes = [
     providers: [QrScannerService, WorkflowGuard, ConfirmationService],
     exports: [
         QrScannerModalComponent,
-
-        // Exportar pipes para uso en otros módulos
-        TemperaturePipe,
-        WeightPipe,
-        StatusPipe,
-        WorkflowStatusPipe,
 
         // Exportar directivas
         AutoSaveDirective,

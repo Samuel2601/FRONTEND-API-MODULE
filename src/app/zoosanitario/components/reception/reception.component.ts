@@ -20,7 +20,7 @@ import {
 import {
     ZoosanitaryCertificate,
     ZoosanitaryCertificateService,
-} from '../../services/zoosanitary-certificate.service';
+} from '../../services/animal-health-certificate.service';
 
 interface AnimalData {
     animalId: string;

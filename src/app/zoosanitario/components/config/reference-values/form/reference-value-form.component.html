@@ -1,0 +1,667 @@
+<div class="reference-value-form">
+    <form [formGroup]="valueForm" (ngSubmit)="onSubmit()">
+        <p-tabView styleClass="form-tabs">
+            <!-- Información Básica -->
+            <p-tabPanel
+                header="Información Básica"
+                leftIcon="pi pi-info-circle"
+            >
+                <div class="grid">
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="code">Código *</label>
+                            <input
+                                type="text"
+                                pInputText
+                                id="code"
+                                formControlName="code"
+                                placeholder="Ej: NUEVA_TARIFA"
+                                [readonly]="mode === 'view' || isSystemValue()"
+                                styleClass="w-full"
+                            />
+
+                            <small class="help-text" *ngIf="!isSystemValue()">
+                                Use mayúsculas y guiones bajos únicamente
+                            </small>
+                            <small class="warning-text" *ngIf="isSystemValue()">
+                                Los valores del sistema no pueden modificar su
+                                código
+                            </small>
+                            <small
+                                class="p-error"
+                                *ngIf="isFieldInvalid('code')"
+                            >
+                                {{ getFieldError("code") }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="name">Nombre *</label>
+                            <input
+                                type="text"
+                                pInputText
+                                id="name"
+                                formControlName="name"
+                                placeholder="Nombre descriptivo"
+                                styleClass="w-full"
+                            />
+
+                            <small
+                                class="p-error"
+                                *ngIf="isFieldInvalid('name')"
+                            >
+                                {{ getFieldError("name") }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="field">
+                            <label for="description">Descripción *</label>
+                            <textarea
+                                id="description"
+                                formControlName="description"
+                                [rows]="3"
+                                placeholder="Descripción detallada del valor de referencia"
+                                styleClass="w-full"
+                            >
+                            </textarea>
+                            <small
+                                class="p-error"
+                                *ngIf="isFieldInvalid('description')"
+                            >
+                                {{ getFieldError("description") }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="valueType">Tipo de Valor *</label>
+                            <p-dropdown
+                                id="valueType"
+                                formControlName="valueType"
+                                [options]="valueTypeOptions"
+                                placeholder="Seleccionar tipo"
+                                [disabled]="mode === 'view' || isSystemValue()"
+                                (onChange)="onValueTypeChange()"
+                                styleClass="w-full"
+                            >
+                            </p-dropdown>
+                            <small class="help-text"
+                                >Define cómo se interpreta y formatea el
+                                valor</small
+                            >
+                            <small
+                                class="p-error"
+                                *ngIf="isFieldInvalid('valueType')"
+                            >
+                                {{ getFieldError("valueType") }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="priority">Prioridad *</label>
+                            <p-inputNumber
+                                id="priority"
+                                formControlName="priority"
+                                [min]="1"
+                                [max]="10"
+                                placeholder="1-10"
+                                styleClass="w-full"
+                            >
+                            </p-inputNumber>
+                            <small class="help-text"
+                                >1 = Mayor prioridad, 10 = Menor
+                                prioridad</small
+                            >
+                            <small
+                                class="p-error"
+                                *ngIf="isFieldInvalid('priority')"
+                            >
+                                {{ getFieldError("priority") }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="field">
+                            <label>Estado</label>
+                            <div class="status-toggle">
+                                <p-inputSwitch
+                                    formControlName="isActive"
+                                    [disabled]="mode === 'view'"
+                                >
+                                </p-inputSwitch>
+                                <span class="status-label">
+                                    {{
+                                        valueForm.get("isActive")?.value
+                                            ? "Activo"
+                                            : "Inactivo"
+                                    }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </p-tabPanel>
+
+            <!-- Configuración de Valor -->
+            <p-tabPanel header="Configuración de Valor" leftIcon="pi pi-dollar">
+                <div class="grid">
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="value">Valor *</label>
+                            <p-inputNumber
+                                id="value"
+                                formControlName="value"
+                                [mode]="getNumberMode()"
+                                [currency]="getCurrency()"
+                                [minFractionDigits]="getMinDecimals()"
+                                [maxFractionDigits]="getMaxDecimals()"
+                                [suffix]="getSuffix()"
+                                styleClass="w-full"
+                            >
+                            </p-inputNumber>
+                            <small
+                                class="p-error"
+                                *ngIf="isFieldInvalid('value')"
+                            >
+                                {{ getFieldError("value") }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-6" *ngIf="showCurrencyField()">
+                        <div class="field">
+                            <label for="currency">Moneda</label>
+                            <p-dropdown
+                                id="currency"
+                                formControlName="currency"
+                                [options]="currencyOptions"
+                                placeholder="Seleccionar moneda"
+                                [disabled]="mode === 'view'"
+                                styleClass="w-full"
+                            >
+                            </p-dropdown>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="value-preview">
+                            <h4>Vista Previa del Valor</h4>
+                            <div class="preview-display">
+                                <span
+                                    class="preview-value"
+                                    [class]="getValueClass()"
+                                >
+                                    {{ formatPreviewValue() }}
+                                </span>
+                                <small class="preview-type">{{
+                                    getValueTypeLabel()
+                                }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </p-tabPanel>
+
+            <!-- Vigencia -->
+            <p-tabPanel header="Vigencia" leftIcon="pi pi-calendar">
+                <div class="grid">
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="startDate">Vigente desde *</label>
+                            <p-calendar
+                                id="startDate"
+                                formControlName="startDate"
+                                [showIcon]="true"
+                                placeholder="Fecha de inicio"
+                                dateFormat="dd/mm/yy"
+                                styleClass="w-full"
+                            >
+                            </p-calendar>
+                            <small
+                                class="p-error"
+                                *ngIf="isFieldInvalid('startDate')"
+                            >
+                                {{ getFieldError("startDate") }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="endDate">Vigente hasta</label>
+                            <p-calendar
+                                id="endDate"
+                                formControlName="endDate"
+                                [showIcon]="true"
+                                placeholder="Fecha de fin (opcional)"
+                                dateFormat="dd/mm/yy"
+                                styleClass="w-full"
+                            >
+                            </p-calendar>
+                            <small class="help-text"
+                                >Dejar vacío para vigencia indefinida</small
+                            >
+                        </div>
+                    </div>
+                </div>
+            </p-tabPanel>
+
+            <!-- Configuración Avanzada -->
+            <p-tabPanel header="Configuración Avanzada" leftIcon="pi pi-cog">
+                <div class="advanced-config">
+                    <div class="section-header">
+                        <h3>Reglas de Aplicabilidad</h3>
+                        <p>
+                            Define cuándo y cómo debe aplicarse este valor de
+                            referencia
+                        </p>
+                    </div>
+
+                    <div class="config-section">
+                        <h4>Fórmula de Cálculo</h4>
+                        <div class="grid">
+                            <div class="col-12 md:col-6">
+                                <div class="field">
+                                    <label>Tipo de Cálculo</label>
+                                    <p-dropdown
+                                        [(ngModel)]="formulaType"
+                                        [options]="formulaTypeOptions"
+                                        placeholder="Seleccionar tipo"
+                                        [disabled]="mode === 'view'"
+                                        [ngModelOptions]="{ standalone: true }"
+                                        (onChange)="onFormulaTypeChange()"
+                                        styleClass="w-full"
+                                    >
+                                    </p-dropdown>
+                                </div>
+                            </div>
+
+                            <div
+                                class="col-12 md:col-6"
+                                *ngIf="formulaType === 'dynamic'"
+                            >
+                                <div class="field">
+                                    <label>Variables</label>
+                                    <p-multiSelect
+                                        [(ngModel)]="selectedVariables"
+                                        [options]="availableVariables"
+                                        placeholder="Seleccionar variables"
+                                        [disabled]="mode === 'view'"
+                                        [ngModelOptions]="{ standalone: true }"
+                                        styleClass="w-full"
+                                    >
+                                    </p-multiSelect>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="formula-editor"
+                            *ngIf="formulaType === 'custom'"
+                        >
+                            <label>Fórmula Personalizada</label>
+                            <textarea
+                                [(ngModel)]="customFormula"
+                                [rows]="4"
+                                placeholder="Ej: baseValue * (1 + inflationRate/100)"
+                                [ngModelOptions]="{ standalone: true }"
+                                styleClass="w-full formula-input"
+                            >
+                            </textarea>
+                            <small class="help-text">
+                                Use variables como {inflationRate}, {baseValue},
+                                etc.
+                            </small>
+                        </div>
+
+                        <div class="formula-test" *ngIf="hasFormula()">
+                            <h5>Probar Fórmula</h5>
+                            <div class="grid">
+                                <div class="col-12 md:col-4">
+                                    <label>Valor Base</label>
+                                    <p-inputNumber
+                                        [(ngModel)]="testValues.baseValue"
+                                        mode="currency"
+                                        currency="USD"
+                                        [ngModelOptions]="{ standalone: true }"
+                                        styleClass="w-full"
+                                    >
+                                    </p-inputNumber>
+                                </div>
+                                <div class="col-12 md:col-4">
+                                    <label>Factor (%)</label>
+                                    <p-inputNumber
+                                        [(ngModel)]="testValues.factor"
+                                        [minFractionDigits]="0"
+                                        [maxFractionDigits]="2"
+                                        [ngModelOptions]="{ standalone: true }"
+                                        styleClass="w-full"
+                                    >
+                                    </p-inputNumber>
+                                </div>
+                                <div class="col-12 md:col-4">
+                                    <div class="test-actions">
+                                        <p-button
+                                            label="Calcular"
+                                            icon="pi pi-calculator"
+                                            [disabled]="mode === 'view'"
+                                            [loading]="testing"
+                                            (click)="testFormula()"
+                                            styleClass="w-full"
+                                        >
+                                        </p-button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="test-result" *ngIf="testResult">
+                                <div class="result-header">
+                                    <h6>Resultado del Cálculo</h6>
+                                    <p-tag
+                                        [value]="
+                                            testResult.success
+                                                ? 'VÁLIDO'
+                                                : 'ERROR'
+                                        "
+                                        [severity]="
+                                            testResult.success
+                                                ? 'success'
+                                                : 'danger'
+                                        "
+                                    >
+                                    </p-tag>
+                                </div>
+                                <div class="result-content">
+                                    <div
+                                        class="result-value"
+                                        *ngIf="testResult.success"
+                                    >
+                                        {{ formattedTestValue }}
+                                    </div>
+
+                                    <div
+                                        class="result-error"
+                                        *ngIf="!testResult.success"
+                                    >
+                                        {{ testResult.error }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="config-section">
+                        <h4>Reglas de Aplicabilidad</h4>
+                        <div class="rules-builder" *ngIf="mode !== 'view'">
+                            <div class="grid">
+                                <div class="col-12 md:col-3">
+                                    <p-dropdown
+                                        [(ngModel)]="newRule.field"
+                                        [options]="ruleFieldOptions"
+                                        placeholder="Campo"
+                                        [ngModelOptions]="{ standalone: true }"
+                                        styleClass="w-full"
+                                    >
+                                    </p-dropdown>
+                                </div>
+                                <div class="col-12 md:col-3">
+                                    <p-dropdown
+                                        [(ngModel)]="newRule.operator"
+                                        [options]="operatorOptions"
+                                        placeholder="Operador"
+                                        [ngModelOptions]="{ standalone: true }"
+                                        styleClass="w-full"
+                                    >
+                                    </p-dropdown>
+                                </div>
+                                <div class="col-12 md:col-4">
+                                    <input
+                                        type="text"
+                                        pInputText
+                                        [(ngModel)]="newRule.value"
+                                        placeholder="Valor"
+                                        [ngModelOptions]="{ standalone: true }"
+                                        styleClass="w-full"
+                                    />
+                                </div>
+                                <div class="col-12 md:col-2">
+                                    <p-button
+                                        icon="pi pi-plus"
+                                        label="Agregar"
+                                        [disabled]="!isNewRuleValid()"
+                                        (click)="addRule()"
+                                        styleClass="w-full"
+                                    >
+                                    </p-button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="rules-list"
+                            *ngIf="applicabilityRules.length > 0"
+                        >
+                            <div
+                                class="rule-item"
+                                *ngFor="
+                                    let rule of applicabilityRules;
+                                    let i = index
+                                "
+                            >
+                                <div class="rule-content">
+                                    <span class="rule-field">{{
+                                        getRuleFieldLabel(rule.field)
+                                    }}</span>
+                                    <span class="rule-operator">{{
+                                        getOperatorLabel(rule.operator)
+                                    }}</span>
+                                    <span class="rule-value">{{
+                                        rule.value
+                                    }}</span>
+                                </div>
+                                <div
+                                    class="rule-actions"
+                                    *ngIf="mode !== 'view'"
+                                >
+                                    <p-button
+                                        icon="pi pi-trash"
+                                        severity="danger"
+                                        [text]="true"
+                                        size="small"
+                                        (click)="removeRule(i)"
+                                    >
+                                    </p-button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="empty-rules"
+                            *ngIf="applicabilityRules.length === 0"
+                        >
+                            <i class="pi pi-info-circle"></i>
+                            <p>
+                                No hay reglas configuradas. El valor se aplicará
+                                por defecto.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </p-tabPanel>
+
+            <!-- Vista Previa -->
+            <p-tabPanel
+                header="Vista Previa"
+                leftIcon="pi pi-eye"
+                *ngIf="mode !== 'create'"
+            >
+                <div class="preview-section">
+                    <h3>Configuración Completa</h3>
+                    <div class="config-display">
+                        <div class="config-grid">
+                            <div class="config-item">
+                                <label>Código:</label>
+                                <span class="config-value">{{
+                                    valueForm.get("code")?.value
+                                }}</span>
+                            </div>
+                            <div class="config-item">
+                                <label>Tipo:</label>
+                                <span class="config-value">{{
+                                    getValueTypeLabel()
+                                }}</span>
+                            </div>
+                            <div class="config-item">
+                                <label>Valor:</label>
+                                <span class="config-value highlight">{{
+                                    formatPreviewValue()
+                                }}</span>
+                            </div>
+                            <div class="config-item">
+                                <label>Prioridad:</label>
+                                <span class="config-value">{{
+                                    valueForm.get("priority")?.value
+                                }}</span>
+                            </div>
+                            <div class="config-item">
+                                <label>Estado:</label>
+                                <span class="config-value">{{
+                                    valueForm.get("isActive")?.value
+                                        ? "Activo"
+                                        : "Inactivo"
+                                }}</span>
+                            </div>
+                            <div class="config-item">
+                                <label>Vigencia:</label>
+                                <span class="config-value">{{
+                                    formatDateRange()
+                                }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="json-export">
+                        <h4>Exportar Configuración</h4>
+                        <pre><code>{{ getConfigurationJSON() }}</code></pre>
+                        <p-button
+                            label="Copiar JSON"
+                            icon="pi pi-copy"
+                            severity="secondary"
+                            [text]="true"
+                            (click)="copyToClipboard()"
+                        >
+                        </p-button>
+                    </div>
+                </div>
+            </p-tabPanel>
+        </p-tabView>
+
+        <!-- Form Actions -->
+        <div class="form-actions" *ngIf="mode !== 'view'">
+            <div class="flex justify-content-end gap-2">
+                <p-button
+                    label="Cancelar"
+                    severity="secondary"
+                    [text]="true"
+                    type="button"
+                    (click)="onCancel()"
+                >
+                </p-button>
+                <p-button
+                    label="Validar Configuración"
+                    severity="secondary"
+                    icon="pi pi-check"
+                    type="button"
+                    [disabled]="valueForm.invalid"
+                    [loading]="validating"
+                    (click)="validateConfiguration()"
+                >
+                </p-button>
+                <p-button
+                    [label]="
+                        mode === 'create' ? 'Crear Valor' : 'Actualizar Valor'
+                    "
+                    type="submit"
+                    [disabled]="valueForm.invalid || saving"
+                    [loading]="saving"
+                >
+                </p-button>
+            </div>
+        </div>
+
+        <!-- View Mode Actions -->
+        <div class="form-actions" *ngIf="mode === 'view'">
+            <div class="flex justify-content-end gap-2">
+                <p-button
+                    label="Cerrar"
+                    severity="secondary"
+                    (click)="onCancel()"
+                >
+                </p-button>
+                <p-button
+                    label="Editar"
+                    icon="pi pi-pencil"
+                    [disabled]="isSystemValue() && !canEditSystemValue()"
+                    (click)="switchToEditMode()"
+                >
+                </p-button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Validation Result Dialog -->
+<p-dialog
+    header="Resultado de Validación"
+    [(visible)]="showValidationDialog"
+    [modal]="true"
+    [style]="{ width: '500px' }"
+    styleClass="validation-dialog"
+>
+    <div class="validation-content">
+        <div
+            class="validation-result"
+            [ngClass]="validationResult?.success ? 'success' : 'error'"
+        >
+            <i
+                [class]="
+                    validationResult?.success
+                        ? 'pi pi-check-circle'
+                        : 'pi pi-times-circle'
+                "
+            ></i>
+            <div class="result-text">
+                <h4>
+                    {{
+                        validationResult?.success
+                            ? "Configuración Válida"
+                            : "Error de Configuración"
+                    }}
+                </h4>
+                <p>{{ validationResult?.message }}</p>
+            </div>
+        </div>
+
+        <div class="validation-details" *ngIf="validationResult?.details">
+            <h5>Detalles:</h5>
+            <ul>
+                <li *ngFor="let detail of validationResult.details">
+                    {{ detail }}
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Cerrar" (click)="showValidationDialog = false">
+        </p-button>
+    </ng-template>
+</p-dialog>

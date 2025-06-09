@@ -1,0 +1,668 @@
+:host {
+  --primary-color: var(--primary-color);
+  --surface-card: var(--surface-card);
+  --surface-section: var(--surface-section);
+  --surface-border: var(--surface-border);
+  --text-color: var(--text-color);
+  --text-color-secondary: var(--text-color-secondary);
+  --border-radius: var(--border-radius);
+  --transition-duration: var(--transition-duration);
+}
+
+.rate-detail-form {
+  .form-tabs {
+    .field {
+      margin-bottom: 1.5rem;
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--text-color);
+      }
+
+      .help-text {
+        display: block;
+        margin-top: 0.25rem;
+        color: var(--text-color-secondary);
+        font-size: 0.875rem;
+      }
+
+      .p-error {
+        display: block;
+        margin-top: 0.25rem;
+        color: var(--red-500);
+        font-size: 0.875rem;
+      }
+
+      .status-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+
+        .status-label {
+          font-weight: 500;
+          color: var(--text-color);
+        }
+      }
+    }
+
+    .value-preview {
+      background: var(--surface-section);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      margin-top: 1rem;
+
+      h4 {
+        color: var(--text-color);
+        margin: 0 0 1rem 0;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .preview-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+
+        .preview-item {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+
+          label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-color-secondary);
+            margin: 0;
+          }
+
+          span {
+            font-weight: 600;
+            color: var(--text-color);
+
+            &.value {
+              font-size: 1.1rem;
+              color: var(--green-600);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .formula-section {
+    .section-header {
+      margin-bottom: 2rem;
+      text-align: center;
+
+      h3 {
+        color: var(--text-color);
+        margin: 0 0 0.5rem 0;
+        font-size: 1.25rem;
+      }
+
+      p {
+        color: var(--text-color-secondary);
+        margin: 0;
+      }
+    }
+
+    .formula-builder {
+      background: var(--surface-section);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+
+      .field {
+        margin-bottom: 1rem;
+
+        label {
+          font-weight: 600;
+          color: var(--text-color);
+          margin-bottom: 0.5rem;
+        }
+      }
+
+      .formula-editor {
+        margin-top: 1rem;
+
+        label {
+          display: block;
+          margin-bottom: 0.5rem;
+          font-weight: 600;
+          color: var(--text-color);
+        }
+
+        .help-text {
+          margin-top: 0.5rem;
+          color: var(--text-color-secondary);
+          font-size: 0.875rem;
+        }
+      }
+
+      .formula-templates {
+        margin-top: 1rem;
+
+        label {
+          display: block;
+          margin-bottom: 1rem;
+          font-weight: 600;
+          color: var(--text-color);
+        }
+
+        .template-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 1rem;
+
+          .template-item {
+            background: var(--surface-card);
+            border: 2px solid var(--surface-border);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            cursor: pointer;
+            transition: all var(--transition-duration);
+
+            &:hover {
+              border-color: var(--primary-color);
+              transform: translateY(-2px);
+            }
+
+            &.selected {
+              border-color: var(--primary-color);
+              background: var(--primary-50);
+            }
+
+            h5 {
+              color: var(--text-color);
+              margin: 0 0 0.5rem 0;
+              font-size: 1rem;
+            }
+
+            p {
+              color: var(--text-color-secondary);
+              margin: 0 0 0.75rem 0;
+              font-size: 0.875rem;
+              line-height: 1.3;
+            }
+
+            code {
+              background: var(--surface-100);
+              color: var(--text-color);
+              padding: 0.25rem 0.5rem;
+              border-radius: 4px;
+              font-family: 'Courier New', monospace;
+              font-size: 0.75rem;
+            }
+          }
+        }
+      }
+    }
+
+    .formula-test {
+      background: var(--surface-overlay);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+
+      h4 {
+        color: var(--text-color);
+        margin: 0 0 1rem 0;
+        font-size: 1rem;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--text-color);
+      }
+
+      .test-actions {
+        display: flex;
+        align-items: end;
+        height: 100%;
+        padding-top: 1.5rem;
+      }
+
+      .test-result {
+        margin-top: 1.5rem;
+        background: var(--surface-card);
+        border: 1px solid var(--surface-border);
+        border-radius: var(--border-radius);
+        padding: 1rem;
+
+        .result-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 1rem;
+
+          h5 {
+            color: var(--text-color);
+            margin: 0;
+            font-size: 1rem;
+          }
+        }
+
+        .result-content {
+          .result-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--green-600);
+            text-align: center;
+            margin-bottom: 0.5rem;
+          }
+
+          .result-error {
+            color: var(--red-600);
+            text-align: center;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+          }
+
+          .result-details {
+            text-align: center;
+
+            small {
+              color: var(--text-color-secondary);
+              font-size: 0.875rem;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .conditions-section {
+    .section-header {
+      margin-bottom: 2rem;
+      text-align: center;
+
+      h3 {
+        color: var(--text-color);
+        margin: 0 0 0.5rem 0;
+        font-size: 1.25rem;
+      }
+
+      p {
+        color: var(--text-color-secondary);
+        margin: 0;
+      }
+    }
+
+    .condition-builder {
+      background: var(--surface-section);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .conditions-list {
+      .condition-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        background: var(--surface-overlay);
+        border: 1px solid var(--surface-border);
+        border-radius: var(--border-radius);
+        margin-bottom: 0.75rem;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        .condition-content {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          flex: 1;
+
+          .condition-field {
+            background: var(--blue-100);
+            color: var(--blue-700);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 600;
+          }
+
+          .condition-operator {
+            background: var(--purple-100);
+            color: var(--purple-700);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 600;
+          }
+
+          .condition-value {
+            background: var(--green-100);
+            color: var(--green-700);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 600;
+          }
+
+          .condition-logic {
+            background: var(--orange-100);
+            color: var(--orange-700);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 600;
+          }
+        }
+
+        .condition-actions {
+          margin-left: 1rem;
+        }
+      }
+    }
+
+    .empty-conditions {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--text-color-secondary);
+
+      .pi {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      p {
+        margin: 0;
+      }
+    }
+  }
+
+  .form-actions {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--surface-border);
+  }
+}
+
+.validation-dialog {
+  .validation-content {
+    .validation-result {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      margin-bottom: 1rem;
+
+      &.success {
+        background: var(--green-50);
+        border: 1px solid var(--green-200);
+
+        .pi {
+          color: var(--green-600);
+          font-size: 1.5rem;
+          margin-top: 0.25rem;
+        }
+
+        .result-text {
+          h4 {
+            color: var(--green-700);
+            margin: 0 0 0.5rem 0;
+          }
+
+          p {
+            color: var(--green-600);
+            margin: 0;
+          }
+        }
+      }
+
+      &.error {
+        background: var(--red-50);
+        border: 1px solid var(--red-200);
+
+        .pi {
+          color: var(--red-600);
+          font-size: 1.5rem;
+          margin-top: 0.25rem;
+        }
+
+        .result-text {
+          h4 {
+            color: var(--red-700);
+            margin: 0 0 0.5rem 0;
+          }
+
+          p {
+            color: var(--red-600);
+            margin: 0;
+          }
+        }
+      }
+    }
+
+    .validation-details {
+      h5 {
+        color: var(--text-color);
+        margin: 0 0 0.75rem 0;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 1.5rem;
+
+        li {
+          color: var(--text-color-secondary);
+          margin-bottom: 0.5rem;
+          font-size: 0.875rem;
+        }
+      }
+    }
+  }
+}
+
+::ng-deep {
+  .p-tabview {
+    .p-tabview-nav {
+      background: var(--surface-section);
+      border-bottom: 1px solid var(--surface-border);
+
+      .p-tabview-nav-link {
+        background: transparent;
+        color: var(--text-color-secondary);
+        border: none;
+        padding: 1rem 1.5rem;
+        border-radius: 0;
+        transition: all var(--transition-duration);
+
+        &:hover {
+          background: var(--surface-hover);
+          color: var(--text-color);
+        }
+
+        .p-tabview-title {
+          font-weight: 500;
+        }
+      }
+
+      .p-highlight .p-tabview-nav-link {
+        background: var(--primary-color);
+        color: white;
+      }
+    }
+
+    .p-tabview-panels {
+      padding: 2rem 1.5rem;
+      background: var(--surface-card);
+    }
+  }
+
+  .p-inputswitch {
+    &.p-inputswitch-checked .p-inputswitch-slider {
+      background: var(--primary-color);
+    }
+  }
+
+  .p-editor {
+    .p-editor-toolbar {
+      background: var(--surface-section);
+      border: 1px solid var(--surface-border);
+      border-bottom: none;
+    }
+
+    .p-editor-content {
+      border: 1px solid var(--surface-border);
+      
+      .ql-editor {
+        background: var(--surface-card);
+        color: var(--text-color);
+        font-family: 'Courier New', monospace;
+      }
+    }
+  }
+
+  .p-multiselect {
+    .p-multiselect-label {
+      padding: 0.75rem;
+    }
+
+    .p-multiselect-trigger {
+      width: 2.5rem;
+    }
+  }
+
+  .p-dialog {
+    .p-dialog-header {
+      background: var(--surface-section);
+      border-bottom: 1px solid var(--surface-border);
+    }
+
+    .p-dialog-content {
+      padding: 1.5rem;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .rate-detail-form {
+    .form-tabs {
+      .field {
+        margin-bottom: 1rem;
+      }
+    }
+
+    .formula-section {
+      .formula-builder {
+        padding: 1rem;
+
+        .template-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .formula-test {
+        padding: 1rem;
+
+        .grid .col-12 {
+          margin-bottom: 1rem;
+        }
+
+        .test-actions {
+          padding-top: 0;
+        }
+      }
+    }
+
+    .conditions-section {
+      .condition-builder {
+        padding: 1rem;
+
+        .grid .col-12 {
+          margin-bottom: 0.75rem;
+        }
+      }
+
+      .conditions-list {
+        .condition-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.75rem;
+
+          .condition-content {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+          }
+
+          .condition-actions {
+            margin-left: 0;
+            align-self: flex-end;
+          }
+        }
+      }
+    }
+
+    .form-actions {
+      .flex {
+        flex-direction: column;
+        gap: 0.75rem;
+
+        .p-button {
+          width: 100%;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .rate-detail-form {
+    .value-preview {
+      .preview-content {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+    }
+
+    .formula-section {
+      .template-grid {
+        .template-item {
+          padding: 0.75rem;
+
+          h5 {
+            font-size: 0.875rem;
+          }
+
+          p {
+            font-size: 0.8rem;
+          }
+
+          code {
+            font-size: 0.7rem;
+          }
+        }
+      }
+    }
+  }
+
+  ::ng-deep {
+    .p-tabview {
+      .p-tabview-nav {
+        .p-tabview-nav-link {
+          padding: 0.75rem 1rem;
+          font-size: 0.875rem;
+        }
+      }
+
+      .p-tabview-panels {
+        padding: 1rem;
+      }
+    }
+  }
+}

@@ -1,0 +1,576 @@
+<div class="reference-values-container">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="flex justify-content-between align-items-center">
+            <div>
+                <h1>Valores de Referencia</h1>
+                <p class="subtitle">
+                    Gestión de RBU, SBU y otros valores base del sistema
+                </p>
+            </div>
+            <div class="header-actions">
+                <p-button
+                    label="Nuevo Valor"
+                    icon="pi pi-plus"
+                    (click)="openCreateForm()"
+                >
+                </p-button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Panel -->
+    <div class="grid mb-4">
+        <div class="col-12 lg:col-6">
+            <p-card header="Acciones Rápidas" styleClass="quick-actions-card">
+                <div class="quick-actions">
+                    <div class="action-item" (click)="updateRBU()">
+                        <div class="action-icon rbu-icon">
+                            <i class="pi pi-dollar"></i>
+                        </div>
+                        <div class="action-content">
+                            <h4>Actualizar RBU</h4>
+                            <p>
+                                Valor actual:
+                                {{
+                                    currentRBU
+                                        | currency : "USD" : "symbol" : "1.2-2"
+                                }}
+                            </p>
+                        </div>
+                        <i class="pi pi-chevron-right"></i>
+                    </div>
+
+                    <div class="action-item" (click)="updateSBU()">
+                        <div class="action-icon sbu-icon">
+                            <i class="pi pi-percentage"></i>
+                        </div>
+                        <div class="action-content">
+                            <h4>Actualizar SBU</h4>
+                            <p>
+                                Valor actual:
+                                {{
+                                    currentSBU
+                                        | currency : "USD" : "symbol" : "1.2-2"
+                                }}
+                            </p>
+                        </div>
+                        <i class="pi pi-chevron-right"></i>
+                    </div>
+                </div>
+            </p-card>
+        </div>
+
+        <div class="col-12 lg:col-6">
+            <p-card
+                header="Últimas Actualizaciones"
+                styleClass="recent-updates-card"
+            >
+                <div class="recent-updates">
+                    <div
+                        class="update-item"
+                        *ngFor="let update of recentUpdates"
+                    >
+                        <div class="update-info">
+                            <span class="update-code">{{ update.code }}</span>
+                            <small class="update-date">{{
+                                update.updatedAt | date : "dd/MM/yyyy HH:mm"
+                            }}</small>
+                        </div>
+                        <div class="update-value">
+                            <span class="old-value">{{
+                                formatValue(update.oldValue, update.valueType)
+                            }}</span>
+                            <i class="pi pi-arrow-right"></i>
+                            <span class="new-value">{{
+                                formatValue(update.newValue, update.valueType)
+                            }}</span>
+                        </div>
+                    </div>
+
+                    <div
+                        class="empty-updates"
+                        *ngIf="recentUpdates.length === 0"
+                    >
+                        <i class="pi pi-info-circle"></i>
+                        <p>No hay actualizaciones recientes</p>
+                    </div>
+                </div>
+            </p-card>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <p-card styleClass="filters-card">
+        <div class="filters-content">
+            <div class="grid">
+                <div class="col-12 md:col-3">
+                    <label>Buscar</label>
+                    <input
+                        type="text"
+                        pInputText
+                        [(ngModel)]="filters.search"
+                        placeholder="Código, nombre..."
+                        (input)="onFilterChange()"
+                        styleClass="w-full"
+                    />
+                </div>
+
+                <div class="col-12 md:col-3">
+                    <label>Tipo de Valor</label>
+                    <p-dropdown
+                        [(ngModel)]="filters.valueType"
+                        [options]="valueTypeOptions"
+                        placeholder="Todos los tipos"
+                        (onChange)="onFilterChange()"
+                        styleClass="w-full"
+                        [showClear]="true"
+                    >
+                    </p-dropdown>
+                </div>
+
+                <div class="col-12 md:col-3">
+                    <label>Estado</label>
+                    <p-dropdown
+                        [(ngModel)]="filters.isActive"
+                        [options]="statusOptions"
+                        placeholder="Todos los estados"
+                        (onChange)="onFilterChange()"
+                        styleClass="w-full"
+                        [showClear]="true"
+                    >
+                    </p-dropdown>
+                </div>
+
+                <div class="col-12 md:col-3">
+                    <label>&nbsp;</label>
+                    <div class="flex gap-2">
+                        <p-button
+                            label="Limpiar"
+                            severity="secondary"
+                            [text]="true"
+                            icon="pi pi-filter-slash"
+                            (click)="clearFilters()"
+                            styleClass="w-full"
+                        >
+                        </p-button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </p-card>
+
+    <!-- Data Table -->
+    <p-card styleClass="table-card">
+        <p-table
+            [value]="filteredValues"
+            [loading]="loading"
+            [paginator]="true"
+            [rows]="pageSize"
+            [totalRecords]="totalRecords"
+            [rowsPerPageOptions]="[10, 25, 50]"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} valores"
+            responsiveLayout="scroll"
+            [scrollable]="true"
+            scrollHeight="calc(100vh - 500px)"
+            styleClass="reference-values-table"
+        >
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="code">
+                        Código <p-sortIcon field="code"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="name">
+                        Nombre <p-sortIcon field="name"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="valueType">
+                        Tipo <p-sortIcon field="valueType"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="value">
+                        Valor Actual <p-sortIcon field="value"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="priority">
+                        Prioridad <p-sortIcon field="priority"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="startDate">
+                        Vigencia <p-sortIcon field="startDate"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="isActive">
+                        Estado <p-sortIcon field="isActive"></p-sortIcon>
+                    </th>
+                    <th>Acciones</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-value>
+                <tr [class]="getRowClass(value)">
+                    <td>
+                        <div class="code-cell">
+                            <span
+                                class="value-code"
+                                [class]="'code-' + value.code.toLowerCase()"
+                            >
+                                {{ value.code }}
+                            </span>
+                            <p-tag
+                                *ngIf="isSystemValue(value.code)"
+                                value="SISTEMA"
+                                severity="info"
+                                styleClass="system-tag"
+                            >
+                            </p-tag>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="name-cell">
+                            <span class="value-name">{{ value.name }}</span>
+                            <small class="value-description">{{
+                                value.description
+                            }}</small>
+                        </div>
+                    </td>
+                    <td>
+                        <p-tag
+                            [value]="value.valueType"
+                            [severity]="getValueTypeSeverity(value.valueType)"
+                        >
+                        </p-tag>
+                    </td>
+                    <td>
+                        <div class="value-cell">
+                            <span
+                                class="current-value"
+                                [class]="getValueClass(value.valueType)"
+                            >
+                                {{ formatValue(value.value, value.valueType) }}
+                            </span>
+                            <small
+                                class="currency-info"
+                                *ngIf="
+                                    value.currency &&
+                                    value.valueType === 'MONETARY'
+                                "
+                            >
+                                {{ value.currency }}
+                            </small>
+                        </div>
+                    </td>
+                    <td>
+                        <span
+                            class="priority-badge"
+                            [class]="'priority-' + value.priority"
+                        >
+                            {{ value.priority }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="date-range">
+                            <span>{{
+                                value.startDate | date : "dd/MM/yyyy"
+                            }}</span>
+                            <span *ngIf="value.endDate" class="end-date">
+                                - {{ value.endDate | date : "dd/MM/yyyy" }}
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <p-tag
+                            [value]="value.isActive ? 'ACTIVO' : 'INACTIVO'"
+                            [severity]="value.isActive ? 'success' : 'danger'"
+                        >
+                        </p-tag>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <p-button
+                                icon="pi pi-eye"
+                                severity="secondary"
+                                [text]="true"
+                                size="small"
+                                pTooltip="Ver detalles"
+                                (click)="viewValue(value)"
+                            >
+                            </p-button>
+                            <p-button
+                                icon="pi pi-pencil"
+                                severity="secondary"
+                                [text]="true"
+                                size="small"
+                                pTooltip="Editar"
+                                (click)="editValue(value)"
+                            >
+                            </p-button>
+                            <p-button
+                                icon="pi pi-history"
+                                severity="secondary"
+                                [text]="true"
+                                size="small"
+                                pTooltip="Historial"
+                                (click)="viewHistory(value)"
+                            >
+                            </p-button>
+                            <p-button
+                                icon="pi pi-calculator"
+                                severity="secondary"
+                                [text]="true"
+                                size="small"
+                                pTooltip="Calcular"
+                                *ngIf="hasCalculationFormula(value)"
+                                (click)="testCalculation(value)"
+                            >
+                            </p-button>
+                            <p-button
+                                icon="pi pi-trash"
+                                severity="danger"
+                                [text]="true"
+                                size="small"
+                                pTooltip="Eliminar"
+                                [disabled]="isSystemValue(value.code)"
+                                (click)="deleteValue(value)"
+                            >
+                            </p-button>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="8" class="text-center">
+                        <div class="empty-state">
+                            <i class="pi pi-cog empty-icon"></i>
+                            <h3>No hay valores de referencia configurados</h3>
+                            <p>
+                                Comience creando el primer valor de referencia
+                            </p>
+                            <p-button
+                                label="Crear Valor"
+                                icon="pi pi-plus"
+                                (click)="openCreateForm()"
+                            >
+                            </p-button>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </p-card>
+</div>
+
+<!-- Reference Value Form Dialog -->
+<p-dialog
+    [header]="dialogTitle"
+    [(visible)]="showFormDialog"
+    [modal]="true"
+    [draggable]="false"
+    [style]="{ width: '800px' }"
+    [maximizable]="true"
+    styleClass="reference-value-form-dialog"
+>
+    <app-reference-value-form
+        [referenceValue]="selectedValue"
+        [mode]="formMode"
+        (save)="onValueSave($event)"
+        (cancel)="onFormCancel()"
+    >
+    </app-reference-value-form>
+</p-dialog>
+
+<!-- Quick Update Dialogs -->
+<p-dialog
+    header="Actualizar RBU"
+    [(visible)]="showRBUDialog"
+    [modal]="true"
+    [draggable]="false"
+    [style]="{ width: '500px' }"
+    styleClass="quick-update-dialog"
+>
+    <div class="quick-update-content">
+        <div class="current-value-display">
+            <h4>Valor Actual</h4>
+            <div class="value-display">
+                {{ currentRBU | currency : "USD" : "symbol" : "1.2-2" }}
+            </div>
+        </div>
+
+        <div class="field">
+            <label for="newRBU">Nuevo Valor RBU *</label>
+            <p-inputNumber
+                id="newRBU"
+                [(ngModel)]="newRBUValue"
+                mode="currency"
+                currency="USD"
+                [minFractionDigits]="2"
+                [maxFractionDigits]="4"
+                styleClass="w-full"
+            >
+            </p-inputNumber>
+        </div>
+
+        <div class="field">
+            <label for="rbuReason">Motivo del Cambio</label>
+            <textarea
+                id="rbuReason"
+                [(ngModel)]="updateReason"
+                [rows]="3"
+                placeholder="Describa el motivo del cambio..."
+                styleClass="w-full"
+            >
+            </textarea>
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div class="flex justify-content-end gap-2">
+            <p-button
+                label="Cancelar"
+                severity="secondary"
+                [text]="true"
+                (click)="cancelQuickUpdate()"
+            >
+            </p-button>
+            <p-button
+                label="Actualizar RBU"
+                [disabled]="!newRBUValue || newRBUValue <= 0"
+                [loading]="updating"
+                (click)="confirmRBUUpdate()"
+            >
+            </p-button>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<p-dialog
+    header="Actualizar SBU"
+    [(visible)]="showSBUDialog"
+    [modal]="true"
+    [draggable]="false"
+    [style]="{ width: '500px' }"
+    styleClass="quick-update-dialog"
+>
+    <div class="quick-update-content">
+        <div class="current-value-display">
+            <h4>Valor Actual</h4>
+            <div class="value-display">
+                {{ currentSBU | currency : "USD" : "symbol" : "1.2-2" }}
+            </div>
+        </div>
+
+        <div class="field">
+            <label for="newSBU">Nuevo Valor SBU *</label>
+            <p-inputNumber
+                id="newSBU"
+                [(ngModel)]="newSBUValue"
+                mode="currency"
+                currency="USD"
+                [minFractionDigits]="2"
+                [maxFractionDigits]="4"
+                styleClass="w-full"
+            >
+            </p-inputNumber>
+        </div>
+
+        <div class="field">
+            <label for="sbuReason">Motivo del Cambio</label>
+            <textarea
+                id="sbuReason"
+                [(ngModel)]="updateReason"
+                [rows]="3"
+                placeholder="Describa el motivo del cambio..."
+                styleClass="w-full"
+            >
+            </textarea>
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div class="flex justify-content-end gap-2">
+            <p-button
+                label="Cancelar"
+                severity="secondary"
+                [text]="true"
+                (click)="cancelQuickUpdate()"
+            >
+            </p-button>
+            <p-button
+                label="Actualizar SBU"
+                [disabled]="!newSBUValue || newSBUValue <= 0"
+                [loading]="updating"
+                (click)="confirmSBUUpdate()"
+            >
+            </p-button>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<!-- History Dialog -->
+<p-dialog
+    header="Historial de Cambios"
+    [(visible)]="showHistoryDialog"
+    [modal]="true"
+    [draggable]="false"
+    [style]="{ width: '800px' }"
+    styleClass="history-dialog"
+>
+    <div class="history-content" *ngIf="selectedValueHistory">
+        <p-timeline
+            [value]="selectedValueHistory"
+            layout="vertical"
+            styleClass="history-timeline"
+        >
+            <ng-template pTemplate="content" let-event>
+                <div class="history-item">
+                    <div class="flex justify-content-between align-items-start">
+                        <div class="history-details">
+                            <h4>{{ event.action }}</h4>
+                            <p>{{ event.description }}</p>
+                            <div class="value-change" *ngIf="event.valueChange">
+                                <span class="old-value">{{
+                                    event.valueChange.from
+                                }}</span>
+                                <i class="pi pi-arrow-right"></i>
+                                <span class="new-value">{{
+                                    event.valueChange.to
+                                }}</span>
+                            </div>
+                            <div class="change-reason" *ngIf="event.reason">
+                                <strong>Motivo:</strong> {{ event.reason }}
+                            </div>
+                        </div>
+                        <div class="history-meta">
+                            <small>{{
+                                event.createdAt | date : "dd/MM/yyyy HH:mm"
+                            }}</small>
+                            <br />
+                            <small>{{ event.user }}</small>
+                        </div>
+                    </div>
+                </div>
+            </ng-template>
+
+            <ng-template pTemplate="marker" let-event>
+                <div class="timeline-marker" [ngClass]="'marker-' + event.type">
+                    <i [class]="getHistoryIcon(event.type)"></i>
+                </div>
+            </ng-template>
+        </p-timeline>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <p-button
+            label="Cerrar"
+            severity="secondary"
+            (click)="showHistoryDialog = false"
+        >
+        </p-button>
+    </ng-template>
+</p-dialog>
+
+<!-- Delete Confirmation -->
+<p-confirmDialog
+    [style]="{ width: '450px' }"
+    [baseZIndex]="10000"
+    rejectButtonStyleClass="p-button-text"
+>
+</p-confirmDialog>

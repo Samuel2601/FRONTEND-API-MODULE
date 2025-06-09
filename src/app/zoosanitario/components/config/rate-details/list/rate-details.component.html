@@ -1,0 +1,365 @@
+<div class="rate-details-container">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="flex justify-content-between align-items-center">
+            <div>
+                <h1>Detalles de Tarifas</h1>
+                <p class="subtitle">
+                    Configuración específica de cálculos y condiciones
+                </p>
+            </div>
+            <div class="header-actions">
+                <p-button
+                    label="Nuevo Detalle"
+                    icon="pi pi-plus"
+                    (click)="openCreateForm()"
+                >
+                </p-button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <p-card styleClass="filters-card">
+        <div class="filters-content">
+            <div class="grid">
+                <div class="col-12 md:col-3">
+                    <label>Buscar</label>
+                    <input
+                        type="text"
+                        pInputText
+                        [(ngModel)]="filters.search"
+                        placeholder="Descripción..."
+                        (input)="onFilterChange()"
+                        styleClass="w-full"
+                    />
+                </div>
+
+                <div class="col-12 md:col-3">
+                    <label>Tarifa</label>
+                    <p-dropdown
+                        [(ngModel)]="filters.rateId"
+                        [options]="rateOptions"
+                        placeholder="Todas las tarifas"
+                        (onChange)="onFilterChange()"
+                        styleClass="w-full"
+                        [showClear]="true"
+                    >
+                    </p-dropdown>
+                </div>
+
+                <div class="col-12 md:col-3">
+                    <label>Tipo de Unidad</label>
+                    <p-dropdown
+                        [(ngModel)]="filters.unitType"
+                        [options]="unitTypeOptions"
+                        placeholder="Todos los tipos"
+                        (onChange)="onFilterChange()"
+                        styleClass="w-full"
+                        [showClear]="true"
+                    >
+                    </p-dropdown>
+                </div>
+
+                <div class="col-12 md:col-3">
+                    <label>Estado</label>
+                    <p-multiSelect
+                        [(ngModel)]="filters.isActive"
+                        [options]="statusOptions"
+                        placeholder="Todos los estados"
+                        (onChange)="onFilterChange()"
+                        styleClass="w-full"
+                        [showClear]="true"
+                    >
+                    </p-multiSelect>
+                </div>
+            </div>
+        </div>
+    </p-card>
+
+    <!-- Data Table -->
+    <p-card styleClass="table-card">
+        <p-table
+            [value]="filteredRateDetails"
+            [loading]="loading"
+            [paginator]="true"
+            [rows]="pageSize"
+            [totalRecords]="totalRecords"
+            [rowsPerPageOptions]="[10, 25, 50]"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} detalles"
+            responsiveLayout="scroll"
+            [scrollable]="true"
+            scrollHeight="calc(100vh - 400px)"
+            styleClass="rate-details-table"
+        >
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="rate">
+                        Tarifa <p-sortIcon field="rate"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="description">
+                        Descripción
+                        <p-sortIcon field="description"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="unitType">
+                        Tipo Unidad <p-sortIcon field="unitType"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="defaultValue">
+                        Valor Por Defecto
+                        <p-sortIcon field="defaultValue"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="isActive">
+                        Estado <p-sortIcon field="isActive"></p-sortIcon>
+                    </th>
+                    <th>Fórmula</th>
+                    <th>Acciones</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-detail>
+                <tr>
+                    <td>
+                        <div class="rate-info">
+                            <span class="rate-code">{{
+                                getRateName(detail.rate)
+                            }}</span>
+                            <small class="rate-id">{{ detail.rate }}</small>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="detail-description">{{
+                            detail.description
+                        }}</span>
+                    </td>
+                    <td>
+                        <p-tag
+                            [value]="detail.unitType"
+                            [severity]="getUnitTypeSeverity(detail.unitType)"
+                        >
+                        </p-tag>
+                    </td>
+                    <td>
+                        <div class="value-cell">
+                            <span class="default-value">{{
+                                formatValue(
+                                    detail.defaultValue,
+                                    detail.unitType
+                                )
+                            }}</span>
+                            <div
+                                class="value-range"
+                                *ngIf="
+                                    detail.minimumValue || detail.maximumValue
+                                "
+                            >
+                                <small>
+                                    Rango: {{ detail.minimumValue || 0 }} -
+                                    {{ detail.maximumValue || "∞" }}
+                                </small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <p-tag
+                            [value]="detail.isActive ? 'ACTIVO' : 'INACTIVO'"
+                            [severity]="detail.isActive ? 'success' : 'danger'"
+                        >
+                        </p-tag>
+                    </td>
+                    <td>
+                        <div class="formula-cell">
+                            <p-button
+                                icon="pi pi-calculator"
+                                [severity]="
+                                    detail.calculationFormula
+                                        ? 'info'
+                                        : 'secondary'
+                                "
+                                [text]="true"
+                                size="small"
+                                [pTooltip]="
+                                    detail.calculationFormula
+                                        ? 'Ver fórmula'
+                                        : 'Sin fórmula'
+                                "
+                                (click)="viewFormula(detail)"
+                            >
+                            </p-button>
+                            <span
+                                class="formula-indicator"
+                                *ngIf="detail.calculationFormula"
+                            >
+                                <i class="pi pi-check-circle"></i>
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <p-button
+                                icon="pi pi-eye"
+                                severity="secondary"
+                                [text]="true"
+                                size="small"
+                                pTooltip="Ver detalles"
+                                (click)="viewDetail(detail)"
+                            >
+                            </p-button>
+                            <p-button
+                                icon="pi pi-pencil"
+                                severity="secondary"
+                                [text]="true"
+                                size="small"
+                                pTooltip="Editar"
+                                (click)="editDetail(detail)"
+                            >
+                            </p-button>
+                            <p-button
+                                icon="pi pi-cog"
+                                severity="secondary"
+                                [text]="true"
+                                size="small"
+                                pTooltip="Calcular"
+                                (click)="testCalculation(detail)"
+                            >
+                            </p-button>
+                            <p-button
+                                icon="pi pi-trash"
+                                severity="danger"
+                                [text]="true"
+                                size="small"
+                                pTooltip="Eliminar"
+                                (click)="deleteDetail(detail)"
+                            >
+                            </p-button>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="7" class="text-center">
+                        <div class="empty-state">
+                            <i class="pi pi-list empty-icon"></i>
+                            <h3>No hay detalles de tarifa configurados</h3>
+                            <p>Comience creando el primer detalle de tarifa</p>
+                            <p-button
+                                label="Crear Detalle"
+                                icon="pi pi-plus"
+                                (click)="openCreateForm()"
+                            >
+                            </p-button>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </p-card>
+</div>
+
+<!-- Rate Detail Form Dialog -->
+<p-dialog
+    [header]="dialogTitle"
+    [(visible)]="showFormDialog"
+    [modal]="true"
+    [draggable]="false"
+    [style]="{ width: '900px' }"
+    [maximizable]="true"
+    styleClass="rate-detail-form-dialog"
+>
+    <app-rate-detail-form
+        [rateDetail]="selectedDetail"
+        [mode]="formMode"
+        [rates]="rates"
+        (save)="onDetailSave($event)"
+        (cancel)="onFormCancel()"
+    >
+    </app-rate-detail-form>
+</p-dialog>
+
+<!-- Formula Viewer Dialog -->
+<p-dialog
+    header="Fórmula de Cálculo"
+    [(visible)]="showFormulaDialog"
+    [modal]="true"
+    [draggable]="false"
+    [style]="{ width: '700px' }"
+    styleClass="formula-dialog"
+>
+    <div class="formula-content" *ngIf="selectedDetail">
+        <div class="formula-info">
+            <h4>{{ selectedDetail.description }}</h4>
+            <p class="formula-type">Tipo: {{ selectedDetail.unitType }}</p>
+        </div>
+
+        <div class="formula-display" *ngIf="selectedDetail.calculationFormula">
+            <h5>Fórmula:</h5>
+            <pre><code>{{ formatFormula(selectedDetail.calculationFormula) }}</code></pre>
+        </div>
+
+        <div class="formula-test">
+            <h5>Probar Cálculo:</h5>
+            <div class="grid">
+                <div class="col-12 md:col-6">
+                    <label>Cantidad</label>
+                    <p-inputNumber
+                        [(ngModel)]="testData.quantity"
+                        [minFractionDigits]="0"
+                        [maxFractionDigits]="4"
+                        styleClass="w-full"
+                    >
+                    </p-inputNumber>
+                </div>
+                <div class="col-12 md:col-6">
+                    <label>Peso (kg)</label>
+                    <p-inputNumber
+                        [(ngModel)]="testData.weight"
+                        [minFractionDigits]="0"
+                        [maxFractionDigits]="2"
+                        styleClass="w-full"
+                    >
+                    </p-inputNumber>
+                </div>
+            </div>
+            <div class="test-actions">
+                <p-button
+                    label="Calcular"
+                    icon="pi pi-calculator"
+                    [loading]="calculating"
+                    (click)="calculateTestValue()"
+                >
+                </p-button>
+            </div>
+            <div class="test-result" *ngIf="calculationResult">
+                <h6>Resultado:</h6>
+                <div class="result-value">
+                    {{
+                        calculationResult.value
+                            | currency : "USD" : "symbol" : "1.2-4"
+                    }}
+                </div>
+                <div class="result-details" *ngIf="calculationResult.details">
+                    <small>{{ calculationResult.details }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <p-button
+            label="Cerrar"
+            severity="secondary"
+            (click)="showFormulaDialog = false"
+        >
+        </p-button>
+    </ng-template>
+</p-dialog>
+
+<!-- Delete Confirmation -->
+<p-confirmDialog
+    [style]="{ width: '450px' }"
+    [baseZIndex]="10000"
+    rejectButtonStyleClass="p-button-text"
+>
+</p-confirmDialog>
