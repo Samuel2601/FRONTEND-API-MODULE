@@ -5,10 +5,7 @@ import { AuthService } from 'src/app/demo/services/auth.service';
 import { BaseService } from './base.service';
 import {
     ApiResponse,
-    Invoice,
     Rate,
-    RateCalculationRequest,
-    RateCalculationResponse,
     RateDetail,
     ReferenceValue,
 } from '../interfaces/slaughter.interface';

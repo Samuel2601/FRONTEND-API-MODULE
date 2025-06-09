@@ -124,6 +124,43 @@
             </div>
         </div>
 
+        <!-- Estado de Procesamiento -->
+        <div
+            *ngIf="introducerData?.canProceed !== undefined"
+            class="process-status"
+        >
+            <div
+                class="status-indicator"
+                [class.can-proceed]="introducerData.canProceed"
+                [class.blocked]="!introducerData.canProceed"
+            >
+                <i
+                    [class]="
+                        introducerData.canProceed
+                            ? 'pi pi-check-circle'
+                            : 'pi pi-exclamation-triangle'
+                    "
+                ></i>
+                <div class="status-content">
+                    <h4>
+                        {{
+                            introducerData.canProceed
+                                ? "Puede proceder con nuevos faenos"
+                                : "Procesamiento bloqueado"
+                        }}
+                    </h4>
+                    <p>{{ introducerData.message }}</p>
+                    <div
+                        *ngIf="introducerData.details?.warningMessage"
+                        class="warning-text"
+                    >
+                        <i class="pi pi-info-circle"></i>
+                        {{ introducerData.details.warningMessage }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Grid de Información -->
         <div class="info-grid">
             <!-- Información Personal/Empresarial -->
@@ -238,7 +275,79 @@
                 </div>
             </div>
 
-            <!-- Estado de Pagos -->
+            <!-- Límites y Cuotas de Procesamiento -->
+            <div *ngIf="introducerData?.details" class="card limits-info">
+                <div class="card-header">
+                    <h3>
+                        <i class="pi pi-chart-pie"></i>
+                        Límites de Procesamiento
+                    </h3>
+                </div>
+                <div class="content">
+                    <div class="limits-summary">
+                        <div class="limit-item">
+                            <div
+                                class="limit-circle"
+                                [class.warning]="
+                                    introducerData.details
+                                        .remainingFreeProcesses <= 1
+                                "
+                            >
+                                <span class="remaining">{{
+                                    introducerData.details
+                                        .remainingFreeProcesses
+                                }}</span>
+                                <span class="total"
+                                    >/
+                                    {{
+                                        introducerData.details.limitInfo
+                                            .maxFreeProcesses
+                                    }}</span
+                                >
+                            </div>
+                            <div class="limit-text">
+                                <strong>Procesos Gratuitos Restantes</strong>
+                                <p>
+                                    {{
+                                        introducerData.details.limitInfo
+                                            .configDescription
+                                    }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="limit-details">
+                            <div class="detail-row">
+                                <span>Procesos utilizados:</span>
+                                <span class="value">{{
+                                    introducerData.details.usedProcesses
+                                }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Configuración:</span>
+                                <span class="value">{{
+                                    introducerData.details.limitInfo.configCode
+                                }}</span>
+                            </div>
+                            <div
+                                class="detail-row"
+                                *ngIf="
+                                    introducerData.details
+                                        .willRequirePaymentNext
+                                "
+                            >
+                                <span>Próximo proceso:</span>
+                                <p-tag
+                                    value="Requerirá pago"
+                                    severity="warning"
+                                ></p-tag>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estado de Pagos Mejorado -->
             <div class="card payment-info">
                 <div class="card-header">
                     <h3>
@@ -270,11 +379,23 @@
                         <p class="payment-message">
                             {{ paymentStatus?.message || "Sin información" }}
                         </p>
+                        <div *ngIf="paymentStatus?.rateId" class="rate-info">
+                            <small class="rate-id"
+                                >ID de Tarifa: {{ paymentStatus.rateId }}</small
+                            >
+                        </div>
                         <small
                             *ngIf="paymentStatus?.paidDate"
                             class="payment-date"
                         >
                             Pagado el: {{ formatDate(paymentStatus.paidDate) }}
+                        </small>
+                        <small
+                            *ngIf="paymentStatus?.lastUpdated"
+                            class="last-updated"
+                        >
+                            Actualizado:
+                            {{ formatDate(paymentStatus.lastUpdated) }}
                         </small>
                     </div>
 
@@ -328,11 +449,18 @@
                         >
                             Sin multas pendientes
                         </p>
+                        <small
+                            *ngIf="finesStatus?.lastUpdated"
+                            class="last-updated"
+                        >
+                            Verificado:
+                            {{ formatDate(finesStatus.lastUpdated) }}
+                        </small>
                     </div>
                 </div>
             </div>
 
-            <!-- Estadísticas -->
+            <!-- Estadísticas Mejoradas -->
             <div *ngIf="processStatistics" class="card statistics-info">
                 <div class="card-header">
                     <h3>
@@ -349,15 +477,15 @@
                     </div>
                     <div class="stat-item">
                         <div class="stat-value">
-                            {{ processStatistics.completedProcesses || 0 }}
+                            {{ processStatistics.freeProcessLimit || 0 }}
                         </div>
-                        <div class="stat-label">Completados</div>
+                        <div class="stat-label">Límite Gratuito</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-value">
-                            {{ processStatistics.pendingProcesses || 0 }}
+                            {{ processStatistics.remainingFree || 0 }}
                         </div>
-                        <div class="stat-label">Pendientes</div>
+                        <div class="stat-label">Restantes Gratis</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-value">
@@ -368,6 +496,20 @@
                             }}
                         </div>
                         <div class="stat-label">Monto Total</div>
+                    </div>
+                    <div
+                        class="stat-item full-width"
+                        *ngIf="processStatistics.limitConfig"
+                    >
+                        <div class="config-info">
+                            <p-tag
+                                [value]="processStatistics.limitConfig"
+                                severity="info"
+                            ></p-tag>
+                            <span class="config-label"
+                                >Configuración de límite aplicada</span
+                            >
+                        </div>
                     </div>
                 </div>
             </div>

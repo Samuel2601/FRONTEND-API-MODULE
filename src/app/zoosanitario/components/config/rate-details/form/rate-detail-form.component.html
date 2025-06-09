@@ -50,12 +50,12 @@
 
                     <div class="col-12 md:col-6">
                         <div class="field">
-                            <label for="unitType">Tipo de Unidad *</label>
+                            <label for="unit">Unidad *</label>
                             <p-dropdown
-                                id="unitType"
-                                formControlName="unitType"
-                                [options]="unitTypeOptions"
-                                placeholder="Seleccionar tipo"
+                                id="unit"
+                                formControlName="unit"
+                                [options]="unitOptions"
+                                placeholder="Seleccionar unidad"
                                 [disabled]="mode === 'view'"
                                 styleClass="w-full"
                             >
@@ -65,9 +65,9 @@
                             >
                             <small
                                 class="p-error"
-                                *ngIf="isFieldInvalid('unitType')"
+                                *ngIf="isFieldInvalid('unit')"
                             >
-                                {{ getFieldError("unitType") }}
+                                {{ getFieldError("unit") }}
                             </small>
                         </div>
                     </div>
@@ -92,74 +92,122 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="effectiveDate">Fecha Efectiva *</label>
+                            <p-calendar
+                                id="effectiveDate"
+                                formControlName="effectiveDate"
+                                [showIcon]="true"
+                                dateFormat="dd/mm/yy"
+                                [disabled]="mode === 'view'"
+                                styleClass="w-full"
+                            >
+                            </p-calendar>
+                            <small
+                                class="p-error"
+                                *ngIf="isFieldInvalid('effectiveDate')"
+                            >
+                                {{ getFieldError("effectiveDate") }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="expirationDate">Fecha Expiración</label>
+                            <p-calendar
+                                id="expirationDate"
+                                formControlName="expirationDate"
+                                [showIcon]="true"
+                                dateFormat="dd/mm/yy"
+                                [disabled]="mode === 'view'"
+                                styleClass="w-full"
+                                [showClear]="true"
+                            >
+                            </p-calendar>
+                        </div>
+                    </div>
                 </div>
             </p-tabPanel>
 
-            <!-- Valores y Límites -->
-            <p-tabPanel header="Valores y Límites" leftIcon="pi pi-calculator">
+            <!-- Valor o Fórmula -->
+            <p-tabPanel header="Valor o Fórmula" leftIcon="pi pi-calculator">
                 <div class="grid">
-                    <div class="col-12 md:col-4">
+                    <div class="col-12">
                         <div class="field">
-                            <label for="defaultValue"
-                                >Valor Por Defecto *</label
-                            >
+                            <label for="isFormula">Tipo de Cálculo</label>
+                            <div class="calculation-type">
+                                <p-inputSwitch
+                                    id="isFormula"
+                                    formControlName="isFormula"
+                                    [disabled]="mode === 'view'"
+                                >
+                                </p-inputSwitch>
+                                <span class="calculation-label">
+                                    {{
+                                        detailForm.get("isFormula")?.value
+                                            ? "Usar Fórmula"
+                                            : "Valor Fijo"
+                                    }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12" *ngIf="!isFormulaMode">
+                        <div class="field">
+                            <label for="fixedValue">Valor Fijo *</label>
                             <p-inputNumber
-                                id="defaultValue"
-                                formControlName="defaultValue"
-                                [mode]="getNumberMode()"
-                                [currency]="getCurrency()"
-                                [minFractionDigits]="getMinDecimals()"
-                                [maxFractionDigits]="getMaxDecimals()"
+                                id="fixedValue"
+                                formControlName="fixedValue"
+                                mode="currency"
+                                currency="USD"
+                                [minFractionDigits]="2"
+                                [maxFractionDigits]="4"
                                 styleClass="w-full"
                             >
                             </p-inputNumber>
                             <small
                                 class="p-error"
-                                *ngIf="isFieldInvalid('defaultValue')"
+                                *ngIf="isFieldInvalid('fixedValue')"
                             >
-                                {{ getFieldError("defaultValue") }}
+                                {{ getFieldError("fixedValue") }}
                             </small>
                         </div>
                     </div>
 
-                    <div class="col-12 md:col-4">
+                    <div class="col-12" *ngIf="isFormulaMode">
                         <div class="field">
-                            <label for="minimumValue">Valor Mínimo</label>
-                            <p-inputNumber
-                                id="minimumValue"
-                                formControlName="minimumValue"
-                                [mode]="getNumberMode()"
-                                [currency]="getCurrency()"
-                                [minFractionDigits]="getMinDecimals()"
-                                [maxFractionDigits]="getMaxDecimals()"
-                                styleClass="w-full"
+                            <label for="formulaText">Fórmula *</label>
+                            <textarea
+                                id="formulaText"
+                                formControlName="formulaText"
+                                [rows]="5"
+                                placeholder="Ingrese la fórmula de cálculo"
+                                styleClass="w-full font-monospace"
                             >
-                            </p-inputNumber>
-                        </div>
-                    </div>
-
-                    <div class="col-12 md:col-4">
-                        <div class="field">
-                            <label for="maximumValue">Valor Máximo</label>
-                            <p-inputNumber
-                                id="maximumValue"
-                                formControlName="maximumValue"
-                                [mode]="getNumberMode()"
-                                [currency]="getCurrency()"
-                                [minFractionDigits]="getMinDecimals()"
-                                [maxFractionDigits]="getMaxDecimals()"
-                                styleClass="w-full"
+                            </textarea>
+                            <small class="help-text">
+                                Variables disponibles: quantity, weight, days,
+                                fixedValue
+                            </small>
+                            <small
+                                class="p-error"
+                                *ngIf="isFieldInvalid('formulaText')"
                             >
-                            </p-inputNumber>
+                                {{ getFieldError("formulaText") }}
+                            </small>
                         </div>
                     </div>
 
                     <div class="col-12">
                         <div class="value-preview">
-                            <h4>Vista Previa del Cálculo</h4>
+                            <h4>Vista Previa</h4>
                             <div class="preview-content">
                                 <div class="preview-item">
-                                    <label>Tipo:</label>
+                                    <label>Unidad:</label>
                                     <span>{{ getUnitTypeLabel() }}</span>
                                 </div>
                                 <div class="preview-item">
@@ -168,192 +216,105 @@
                                         formatPreviewValue()
                                     }}</span>
                                 </div>
-                                <div class="preview-item" *ngIf="hasLimits()">
-                                    <label>Límites:</label>
-                                    <span>{{ formatLimits() }}</span>
+                                <div class="preview-item">
+                                    <label>Versión:</label>
+                                    <span>{{
+                                        detailForm.get("version")?.value
+                                    }}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </p-tabPanel>
 
-            <!-- Fórmula de Cálculo -->
-            <p-tabPanel header="Fórmula de Cálculo" leftIcon="pi pi-code">
-                <div class="formula-section">
-                    <div class="section-header">
-                        <h3>Configuración de Fórmula</h3>
-                        <p>
-                            Define cómo se calculará el valor final basado en
-                            variables dinámicas
-                        </p>
-                    </div>
-
-                    <div class="formula-builder">
-                        <div class="grid">
-                            <div class="col-12 md:col-6">
-                                <div class="field">
-                                    <label>Tipo de Fórmula</label>
-                                    <p-dropdown
-                                        [(ngModel)]="formulaType"
-                                        [options]="formulaTypeOptions"
-                                        placeholder="Seleccionar tipo"
-                                        [disabled]="mode === 'view'"
-                                        [ngModelOptions]="{ standalone: true }"
-                                        (onChange)="onFormulaTypeChange()"
-                                        styleClass="w-full"
-                                    >
-                                    </p-dropdown>
-                                </div>
-                            </div>
-
-                            <div class="col-12 md:col-6" *ngIf="formulaType">
-                                <div class="field">
-                                    <label>Variables Disponibles</label>
-                                    <p-multiSelect
-                                        [(ngModel)]="selectedVariables"
-                                        [options]="availableVariables"
-                                        placeholder="Seleccionar variables"
-                                        [disabled]="mode === 'view'"
-                                        [ngModelOptions]="{ standalone: true }"
-                                        styleClass="w-full"
-                                    >
-                                    </p-multiSelect>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div
-                            class="formula-editor"
-                            *ngIf="formulaType === 'custom'"
-                        >
-                            <label>Fórmula Personalizada</label>
-                            <p-editor
-                                [(ngModel)]="customFormula"
-                                [style]="{ height: '200px' }"
+                <div class="formula-test" *ngIf="isFormulaMode">
+                    <h4>Probar Fórmula</h4>
+                    <div class="grid">
+                        <div class="col-12 md:col-3">
+                            <label>Cantidad</label>
+                            <p-inputNumber
+                                [(ngModel)]="testValues.quantity"
+                                [minFractionDigits]="0"
+                                [maxFractionDigits]="2"
                                 [ngModelOptions]="{ standalone: true }"
+                                styleClass="w-full"
                             >
-                            </p-editor>
-                            <small class="help-text">
-                                Use variables como {{ "{quantity}" }} o
-                                {{ "{weight}" }}. Ejemplo: defaultValue *
-                                {{ "{quantity}" }}
-                            </small>
+                            </p-inputNumber>
                         </div>
-
-                        <div
-                            class="formula-templates"
-                            *ngIf="formulaType === 'template'"
-                        >
-                            <label>Plantillas Predefinidas</label>
-                            <div class="template-grid">
-                                <div
-                                    class="template-item"
-                                    *ngFor="let template of formulaTemplates"
-                                    [class.selected]="
-                                        selectedTemplate === template.id
+                        <div class="col-12 md:col-3">
+                            <label>Peso (kg)</label>
+                            <p-inputNumber
+                                [(ngModel)]="testValues.weight"
+                                [minFractionDigits]="0"
+                                [maxFractionDigits]="2"
+                                [ngModelOptions]="{ standalone: true }"
+                                styleClass="w-full"
+                            >
+                            </p-inputNumber>
+                        </div>
+                        <div class="col-12 md:col-3">
+                            <label>Días</label>
+                            <p-inputNumber
+                                [(ngModel)]="testValues.days"
+                                [minFractionDigits]="0"
+                                [maxFractionDigits]="0"
+                                [ngModelOptions]="{ standalone: true }"
+                                styleClass="w-full"
+                            >
+                            </p-inputNumber>
+                        </div>
+                        <div class="col-12 md:col-3">
+                            <div class="test-actions">
+                                <p-button
+                                    label="Probar"
+                                    icon="pi pi-play"
+                                    [disabled]="
+                                        mode === 'view' ||
+                                        !detailForm.get('formulaText')?.value
                                     "
-                                    (click)="selectTemplate(template)"
+                                    [loading]="testing"
+                                    (click)="testFormula()"
+                                    styleClass="w-full"
                                 >
-                                    <h5>{{ template.name }}</h5>
-                                    <p>{{ template.description }}</p>
-                                    <code>{{ template.formula }}</code>
-                                </div>
+                                </p-button>
                             </div>
                         </div>
                     </div>
 
-                    <div class="formula-test" *ngIf="hasFormula()">
-                        <h4>Probar Fórmula</h4>
-                        <div class="grid">
-                            <div class="col-12 md:col-3">
-                                <label>Cantidad</label>
-                                <p-inputNumber
-                                    [(ngModel)]="testValues.quantity"
-                                    [minFractionDigits]="0"
-                                    [maxFractionDigits]="2"
-                                    [ngModelOptions]="{ standalone: true }"
-                                    styleClass="w-full"
-                                >
-                                </p-inputNumber>
-                            </div>
-                            <div class="col-12 md:col-3">
-                                <label>Peso (kg)</label>
-                                <p-inputNumber
-                                    [(ngModel)]="testValues.weight"
-                                    [minFractionDigits]="0"
-                                    [maxFractionDigits]="2"
-                                    [ngModelOptions]="{ standalone: true }"
-                                    styleClass="w-full"
-                                >
-                                </p-inputNumber>
-                            </div>
-                            <div class="col-12 md:col-3">
-                                <label>Días</label>
-                                <p-inputNumber
-                                    [(ngModel)]="testValues.days"
-                                    [minFractionDigits]="0"
-                                    [maxFractionDigits]="0"
-                                    [ngModelOptions]="{ standalone: true }"
-                                    styleClass="w-full"
-                                >
-                                </p-inputNumber>
-                            </div>
-                            <div class="col-12 md:col-3">
-                                <div class="test-actions">
-                                    <p-button
-                                        label="Calcular"
-                                        icon="pi pi-calculator"
-                                        [disabled]="mode === 'view'"
-                                        [loading]="testing"
-                                        (click)="testFormula()"
-                                        styleClass="w-full"
-                                    >
-                                    </p-button>
-                                </div>
-                            </div>
+                    <div class="test-result" *ngIf="testResult">
+                        <div class="result-header">
+                            <h5>Resultado del Cálculo</h5>
+                            <p-tag
+                                [value]="
+                                    testResult.success ? 'VÁLIDO' : 'ERROR'
+                                "
+                                [severity]="
+                                    testResult.success ? 'success' : 'danger'
+                                "
+                            >
+                            </p-tag>
                         </div>
-
-                        <div class="test-result" *ngIf="testResult">
-                            <div class="result-header">
-                                <h5>Resultado del Cálculo</h5>
-                                <p-tag
-                                    [value]="
-                                        testResult.success ? 'VÁLIDO' : 'ERROR'
-                                    "
-                                    [severity]="
-                                        testResult.success
-                                            ? 'success'
-                                            : 'danger'
-                                    "
-                                >
-                                </p-tag>
+                        <div class="result-content">
+                            <div
+                                class="result-value"
+                                *ngIf="testResult.success"
+                            >
+                                {{
+                                    testResult.value
+                                        | currency : "USD" : "symbol" : "1.2-4"
+                                }}
                             </div>
-                            <div class="result-content">
-                                <div
-                                    class="result-value"
-                                    *ngIf="testResult.success"
-                                >
-                                    {{
-                                        testResult.value
-                                            | currency
-                                                : "USD"
-                                                : "symbol"
-                                                : "1.2-4"
-                                    }}
-                                </div>
-                                <div
-                                    class="result-error"
-                                    *ngIf="!testResult.success"
-                                >
-                                    {{ testResult.error }}
-                                </div>
-                                <div
-                                    class="result-details"
-                                    *ngIf="testResult.details"
-                                >
-                                    <small>{{ testResult.details }}</small>
-                                </div>
+                            <div
+                                class="result-error"
+                                *ngIf="!testResult.success"
+                            >
+                                {{ testResult.error }}
+                            </div>
+                            <div
+                                class="result-details"
+                                *ngIf="testResult.details"
+                            >
+                                <small>{{ testResult.details }}</small>
                             </div>
                         </div>
                     </div>

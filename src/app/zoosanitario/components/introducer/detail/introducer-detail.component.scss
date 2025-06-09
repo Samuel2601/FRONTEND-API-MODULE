@@ -163,6 +163,90 @@
         }
     }
 
+    // Estado de Procesamiento
+    .process-status {
+        margin-bottom: 2rem;
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            padding: 1.5rem 2rem;
+            border-radius: 16px;
+            border: 2px solid;
+            transition: all 0.3s ease;
+
+            &.can-proceed {
+                border-color: var(--blue-500);
+                background: linear-gradient(
+                    135deg,
+                    var(--blue-50),
+                    rgba(59, 130, 246, 0.1)
+                );
+
+                i {
+                    color: var(--blue-500);
+                    font-size: 2.5rem;
+                }
+
+                .status-content h4 {
+                    color: var(--blue-700);
+                }
+            }
+
+            &.blocked {
+                border-color: var(--orange-500);
+                background: linear-gradient(
+                    135deg,
+                    var(--orange-50),
+                    rgba(249, 115, 22, 0.1)
+                );
+
+                i {
+                    color: var(--orange-500);
+                    font-size: 2.5rem;
+                }
+
+                .status-content h4 {
+                    color: var(--orange-700);
+                }
+            }
+
+            .status-content {
+                flex: 1;
+
+                h4 {
+                    margin-bottom: 0.5rem;
+                    font-size: 1.2rem;
+                    font-weight: 600;
+                }
+
+                p {
+                    margin: 0 0 0.5rem 0;
+                    color: var(--text-color-secondary);
+                    line-height: 1.4;
+                }
+
+                .warning-text {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    margin-top: 0.5rem;
+                    padding: 0.5rem;
+                    background: var(--yellow-50);
+                    border-radius: 6px;
+                    font-size: 0.9rem;
+                    color: var(--yellow-800);
+
+                    i {
+                        font-size: 1rem;
+                        color: var(--yellow-600);
+                    }
+                }
+            }
+        }
+    }
+
     // Grid de Información
     .info-grid {
         display: grid;
@@ -254,6 +338,111 @@
         }
     }
 
+    // Límites de procesamiento
+    .limits-info {
+        .limits-summary {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .limit-item {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1rem;
+            background: var(--surface-100);
+            border-radius: 12px;
+            border: 1px solid var(--surface-200);
+
+            .limit-circle {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                background: linear-gradient(
+                    135deg,
+                    var(--green-500),
+                    var(--green-600)
+                );
+                color: white;
+                font-weight: 700;
+                position: relative;
+                box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+
+                &.warning {
+                    background: linear-gradient(
+                        135deg,
+                        var(--orange-500),
+                        var(--orange-600)
+                    );
+                    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+                }
+
+                .remaining {
+                    font-size: 1.8rem;
+                    line-height: 1;
+                }
+
+                .total {
+                    font-size: 0.9rem;
+                    opacity: 0.9;
+                }
+            }
+
+            .limit-text {
+                flex: 1;
+
+                strong {
+                    display: block;
+                    margin-bottom: 0.3rem;
+                    color: var(--text-color);
+                    font-size: 1.1rem;
+                }
+
+                p {
+                    margin: 0;
+                    color: var(--text-color-secondary);
+                    font-size: 0.9rem;
+                    line-height: 1.4;
+                }
+            }
+        }
+
+        .limit-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+
+            .detail-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.5rem 0;
+                border-bottom: 1px solid var(--surface-200);
+
+                &:last-child {
+                    border-bottom: none;
+                }
+
+                span {
+                    &:first-child {
+                        color: var(--text-color-secondary);
+                        font-size: 0.9rem;
+                    }
+
+                    &.value {
+                        color: var(--text-color);
+                        font-weight: 600;
+                    }
+                }
+            }
+        }
+    }
+
     // Estado de pagos
     .payment-section {
         padding: 1rem 0;
@@ -281,9 +470,26 @@
             margin: 0.5rem 0;
         }
 
-        .payment-date {
+        .rate-info {
+            margin: 0.5rem 0;
+
+            .rate-id {
+                color: var(--text-color-secondary);
+                font-size: 0.85rem;
+                font-family: monospace;
+                background: var(--surface-100);
+                padding: 0.2rem 0.5rem;
+                border-radius: 4px;
+            }
+        }
+
+        .payment-date,
+        .last-updated {
             color: var(--text-color-secondary);
             font-style: italic;
+            font-size: 0.85rem;
+            display: block;
+            margin-top: 0.5rem;
         }
 
         .fines-info {
@@ -323,28 +529,45 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
         gap: 1.5rem;
-    }
 
-    .stat-item {
-        text-align: center;
-        padding: 1rem;
-        background: var(--surface-50);
-        border-radius: 12px;
-        border: 1px solid var(--surface-200);
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: var(--surface-50);
+            border-radius: 12px;
+            border: 1px solid var(--surface-200);
 
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
+            &.full-width {
+                grid-column: 1 / -1;
+                text-align: left;
+                padding: 1.5rem;
 
-        .stat-label {
-            font-size: 0.9rem;
-            color: var(--text-color-secondary);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+                .config-info {
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+
+                    .config-label {
+                        color: var(--text-color-secondary);
+                        font-size: 0.9rem;
+                    }
+                }
+            }
+
+            .stat-value {
+                font-size: 2rem;
+                font-weight: 700;
+                color: var(--primary-color);
+                margin-bottom: 0.5rem;
+            }
+
+            .stat-label {
+                font-size: 0.9rem;
+                color: var(--text-color-secondary);
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
         }
     }
 
@@ -547,7 +770,8 @@
             }
         }
 
-        .slaughter-status {
+        .slaughter-status,
+        .process-status .status-indicator {
             flex-direction: column;
             text-align: center;
             gap: 1rem;
@@ -585,6 +809,12 @@
                 }
             }
         }
+
+        .limits-info .limit-item {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
     }
 
     @media (max-width: 480px) {
@@ -598,6 +828,19 @@
 
         .meta-info {
             justify-content: center;
+        }
+
+        .limit-item .limit-circle {
+            width: 60px;
+            height: 60px;
+
+            .remaining {
+                font-size: 1.4rem;
+            }
+
+            .total {
+                font-size: 0.8rem;
+            }
         }
     }
 }

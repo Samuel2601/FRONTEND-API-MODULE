@@ -2,27 +2,25 @@ import { Component, OnInit } from '@angular/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ImportsModule } from 'src/app/demo/services/import';
 import { RateDetailFormComponent } from '../form/rate-detail-form.component';
-import {
-    Rate,
-    RateDetail,
-} from 'src/app/zoosanitario/interfaces/slaughter.interface';
 import { RateService } from 'src/app/zoosanitario/services/rate.service';
+import {
+    CalculationRequest,
+    RateDetail,
+    RateDetailService,
+} from 'src/app/zoosanitario/services/rate-details.service';
+import { Rate } from 'src/app/zoosanitario/interfaces/slaughter.interface';
 
 interface RateDetailFilters {
     search: string;
     rateId: string;
-    unitType: string;
+    unit: string;
     isActive: boolean[];
+    isFormula: boolean | null;
 }
 
 interface TestData {
     quantity: number;
     weight: number;
-}
-
-interface CalculationResult {
-    value: number;
-    details?: string;
 }
 
 @Component({
@@ -45,23 +43,26 @@ export class RateDetailsComponent implements OnInit {
     filters: RateDetailFilters = {
         search: '',
         rateId: '',
-        unitType: '',
+        unit: '',
         isActive: [],
+        isFormula: null,
     };
 
     rateOptions: any[] = [];
 
-    unitTypeOptions = [
-        { label: 'Fijo', value: 'FIXED' },
-        { label: 'Porcentaje', value: 'PERCENTAGE' },
-        { label: 'Por Unidad', value: 'PER_UNIT' },
-        { label: 'Por Kilogramo', value: 'PER_KG' },
-        { label: 'Por Día', value: 'PER_DAY' },
+    unitOptions = [
+        { label: 'Unidad', value: 'Unidad' },
+        { label: 'Peso', value: 'Peso' },
     ];
 
     statusOptions = [
         { label: 'Activo', value: true },
         { label: 'Inactivo', value: false },
+    ];
+
+    calculationTypeOptions = [
+        { label: 'Valor Fijo', value: false },
+        { label: 'Fórmula', value: true },
     ];
 
     // Form dialog
@@ -74,10 +75,11 @@ export class RateDetailsComponent implements OnInit {
     showFormulaDialog = false;
     testData: TestData = { quantity: 1, weight: 1 };
     calculating = false;
-    calculationResult: CalculationResult | null = null;
+    calculationResult: any | null = null;
 
     constructor(
         private rateService: RateService,
+        private rateDetailService: RateDetailService,
         private messageService: MessageService,
         private confirmationService: ConfirmationService
     ) {}
@@ -105,20 +107,14 @@ export class RateDetailsComponent implements OnInit {
     async loadRateDetails(): Promise<void> {
         this.loading = true;
         try {
-            // Simulamos carga de detalles - en realidad usaríamos un endpoint específico
-            const allDetails: RateDetail[] = [];
-
-            for (const rate of this.rates) {
-                const response = await this.rateService
-                    .getRateDetails(rate._id)
-                    .toPromise();
-                if (response?.success && response.data) {
-                    allDetails.push(...response.data);
-                }
+            const response: any = await this.rateDetailService
+                .getAll()
+                .toPromise();
+            console.log(response);
+            if (response?.success && response.data) {
+                this.rateDetails = response.data.docs;
+                this.applyFilters();
             }
-
-            this.rateDetails = allDetails;
-            this.applyFilters();
         } catch (error) {
             this.showError('Error al cargar los detalles de tarifa');
         } finally {
@@ -146,15 +142,21 @@ export class RateDetailsComponent implements OnInit {
             );
         }
 
-        if (this.filters.unitType) {
+        if (this.filters.unit) {
             filtered = filtered.filter(
-                (detail) => detail.unitType === this.filters.unitType
+                (detail) => detail.unit === this.filters.unit
             );
         }
 
         if (this.filters.isActive.length > 0) {
             filtered = filtered.filter((detail) =>
                 this.filters.isActive.includes(detail.isActive)
+            );
+        }
+
+        if (this.filters.isFormula !== null) {
+            filtered = filtered.filter(
+                (detail) => detail.isFormula === this.filters.isFormula
             );
         }
 
@@ -213,8 +215,7 @@ export class RateDetailsComponent implements OnInit {
 
     async performDelete(detail: RateDetail): Promise<void> {
         try {
-            // Simulamos delete - usaríamos endpoint específico
-            await this.rateService.delete(detail._id).toPromise();
+            await this.rateDetailService.delete(detail._id!).toPromise();
             this.showSuccess('Detalle eliminado correctamente');
             this.loadRateDetails();
         } catch (error) {
@@ -225,13 +226,11 @@ export class RateDetailsComponent implements OnInit {
     async onDetailSave(detail: RateDetail): Promise<void> {
         try {
             if (this.formMode === 'create') {
-                await this.rateService
-                    .createRateDetail(detail.rate, detail)
-                    .toPromise();
+                await this.rateDetailService.create(detail).toPromise();
                 this.showSuccess('Detalle creado correctamente');
             } else {
-                await this.rateService
-                    .updateRateDetail(detail._id, detail)
+                await this.rateDetailService
+                    .update(detail._id!, detail)
                     .toPromise();
                 this.showSuccess('Detalle actualizado correctamente');
             }
@@ -249,63 +248,50 @@ export class RateDetailsComponent implements OnInit {
     }
 
     async calculateTestValue(): Promise<void> {
-        if (!this.selectedDetail) return;
+        if (!this.selectedDetail || !this.selectedDetail._id) return;
 
         this.calculating = true;
         try {
-            const response = await this.rateService
-                .calculateRateDetailValue(
-                    this.selectedDetail._id,
-                    this.testData
-                )
+            const request: CalculationRequest = {
+                rateDetailId: this.selectedDetail._id,
+                amount: this.testData.quantity,
+                context: {
+                    quantity: this.testData.quantity,
+                    weight: this.testData.weight,
+                    fixedValue: this.selectedDetail.fixedValue || 0,
+                },
+            };
+
+            const response = await this.rateDetailService
+                .calculateValue(request)
                 .toPromise();
 
             if (response?.success && response.data) {
-                this.calculationResult = {
-                    value: response.data.calculatedValue,
-                    details: response.data.details,
-                };
-            } else {
-                // Cálculo simulado si no hay endpoint
-                this.calculationResult = this.simulateCalculation();
+                this.calculationResult = response.data;
             }
         } catch (error) {
-            // Fallback a cálculo simulado
-            this.calculationResult = this.simulateCalculation();
+            this.showError('Error al calcular el valor');
         } finally {
             this.calculating = false;
         }
     }
 
-    private simulateCalculation(): CalculationResult {
-        if (!this.selectedDetail) return { value: 0 };
+    async toggleStatus(detail: RateDetail): Promise<void> {
+        try {
+            const newStatus = !detail.isActive;
+            await this.rateDetailService
+                .toggleStatus(detail._id!, newStatus)
+                .toPromise();
 
-        let value = this.selectedDetail.defaultValue || 0;
-        let details = '';
-
-        switch (this.selectedDetail.unitType) {
-            case 'PER_UNIT':
-                value = value * this.testData.quantity;
-                details = `${value} × ${this.testData.quantity} unidades`;
-                break;
-            case 'PER_KG':
-                value = value * this.testData.weight;
-                details = `${value} × ${this.testData.weight} kg`;
-                break;
-            case 'PERCENTAGE':
-                value =
-                    this.testData.quantity *
-                    this.testData.weight *
-                    (value / 100);
-                details = `${
-                    this.testData.quantity * this.testData.weight
-                } × ${value}%`;
-                break;
-            default:
-                details = 'Valor fijo';
+            this.showSuccess(
+                `Detalle ${
+                    newStatus ? 'activado' : 'desactivado'
+                } correctamente`
+            );
+            this.loadRateDetails();
+        } catch (error) {
+            this.showError('Error al cambiar el estado');
         }
-
-        return { value, details };
     }
 
     getRateName(rateId: string): string {
@@ -313,44 +299,43 @@ export class RateDetailsComponent implements OnInit {
         return rate ? `${rate.code} - ${rate.name}` : 'Tarifa no encontrada';
     }
 
-    getUnitTypeSeverity(
-        unitType: string
+    getUnitSeverity(unit: string): 'success' | 'info' | 'warning' | 'danger' {
+        return unit === 'Unidad' ? 'success' : 'info';
+    }
+
+    getCalculationType(detail: RateDetail): string {
+        return detail.isFormula ? 'Fórmula' : 'Fijo';
+    }
+
+    getCalculationTypeSeverity(
+        isFormula: boolean
     ): 'success' | 'info' | 'warning' | 'danger' {
-        const severityMap: {
-            [key: string]: 'success' | 'info' | 'warning' | 'danger';
-        } = {
-            FIXED: 'success',
-            PERCENTAGE: 'info',
-            PER_UNIT: 'warning',
-            PER_KG: 'warning',
-            PER_DAY: 'danger',
-        };
-        return severityMap[unitType] || 'info';
+        return isFormula ? 'warning' : 'success';
     }
 
-    formatValue(value: number | undefined, unitType: string): string {
-        if (value === undefined || value === null) return 'N/A';
-
-        switch (unitType) {
-            case 'PERCENTAGE':
-                return `${value}%`;
-            case 'FIXED':
-            case 'PER_UNIT':
-            case 'PER_KG':
-            case 'PER_DAY':
-                return new Intl.NumberFormat('es-US', {
-                    style: 'currency',
-                    currency: 'USD',
-                    minimumFractionDigits: 2,
-                }).format(value);
-            default:
-                return value.toString();
+    formatValue(detail: RateDetail): string {
+        if (detail.isFormula) {
+            return 'Calculado por fórmula';
         }
+
+        const value = detail.fixedValue || 0;
+        return new Intl.NumberFormat('es-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+        }).format(value);
     }
 
-    formatFormula(formula: any): string {
-        if (typeof formula === 'string') return formula;
-        return JSON.stringify(formula, null, 2);
+    formatFormula(detail: RateDetail): string {
+        if (!detail.isFormula || !detail.formulaText) {
+            return 'Sin fórmula';
+        }
+        return detail.formulaText;
+    }
+
+    formatEffectiveDate(date: Date | undefined): string {
+        if (!date) return 'N/A';
+        return new Date(date).toLocaleDateString('es-EC');
     }
 
     private showSuccess(message: string): void {

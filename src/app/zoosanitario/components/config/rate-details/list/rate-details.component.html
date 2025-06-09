@@ -48,12 +48,12 @@
                     </p-dropdown>
                 </div>
 
-                <div class="col-12 md:col-3">
-                    <label>Tipo de Unidad</label>
+                <div class="col-12 md:col-2">
+                    <label>Unidad</label>
                     <p-dropdown
-                        [(ngModel)]="filters.unitType"
-                        [options]="unitTypeOptions"
-                        placeholder="Todos los tipos"
+                        [(ngModel)]="filters.unit"
+                        [options]="unitOptions"
+                        placeholder="Todas"
                         (onChange)="onFilterChange()"
                         styleClass="w-full"
                         [showClear]="true"
@@ -61,12 +61,25 @@
                     </p-dropdown>
                 </div>
 
-                <div class="col-12 md:col-3">
+                <div class="col-12 md:col-2">
+                    <label>Tipo Cálculo</label>
+                    <p-dropdown
+                        [(ngModel)]="filters.isFormula"
+                        [options]="calculationTypeOptions"
+                        placeholder="Todos"
+                        (onChange)="onFilterChange()"
+                        styleClass="w-full"
+                        [showClear]="true"
+                    >
+                    </p-dropdown>
+                </div>
+
+                <div class="col-12 md:col-2">
                     <label>Estado</label>
                     <p-multiSelect
                         [(ngModel)]="filters.isActive"
                         [options]="statusOptions"
-                        placeholder="Todos los estados"
+                        placeholder="Todos"
                         (onChange)="onFilterChange()"
                         styleClass="w-full"
                         [showClear]="true"
@@ -102,17 +115,18 @@
                         Descripción
                         <p-sortIcon field="description"></p-sortIcon>
                     </th>
-                    <th pSortableColumn="unitType">
-                        Tipo Unidad <p-sortIcon field="unitType"></p-sortIcon>
+                    <th pSortableColumn="unit">
+                        Unidad <p-sortIcon field="unit"></p-sortIcon>
                     </th>
-                    <th pSortableColumn="defaultValue">
-                        Valor Por Defecto
-                        <p-sortIcon field="defaultValue"></p-sortIcon>
+                    <th>Tipo Cálculo</th>
+                    <th>Valor</th>
+                    <th pSortableColumn="effectiveDate">
+                        Vigencia
+                        <p-sortIcon field="effectiveDate"></p-sortIcon>
                     </th>
                     <th pSortableColumn="isActive">
                         Estado <p-sortIcon field="isActive"></p-sortIcon>
                     </th>
-                    <th>Fórmula</th>
                     <th>Acciones</th>
                 </tr>
             </ng-template>
@@ -134,65 +148,46 @@
                     </td>
                     <td>
                         <p-tag
-                            [value]="detail.unitType"
-                            [severity]="getUnitTypeSeverity(detail.unitType)"
+                            [value]="detail.unit"
+                            [severity]="getUnitSeverity(detail.unit)"
+                        >
+                        </p-tag>
+                    </td>
+                    <td>
+                        <p-tag
+                            [value]="getCalculationType(detail)"
+                            [severity]="
+                                getCalculationTypeSeverity(detail.isFormula)
+                            "
                         >
                         </p-tag>
                     </td>
                     <td>
                         <div class="value-cell">
                             <span class="default-value">{{
-                                formatValue(
-                                    detail.defaultValue,
-                                    detail.unitType
-                                )
+                                formatValue(detail)
                             }}</span>
-                            <div
-                                class="value-range"
-                                *ngIf="
-                                    detail.minimumValue || detail.maximumValue
-                                "
+                        </div>
+                    </td>
+                    <td>
+                        <div class="date-cell">
+                            <span class="effective-date">{{
+                                formatEffectiveDate(detail.effectiveDate)
+                            }}</span>
+                            <small class="version-info"
+                                >v{{ detail.version }}</small
                             >
-                                <small>
-                                    Rango: {{ detail.minimumValue || 0 }} -
-                                    {{ detail.maximumValue || "∞" }}
-                                </small>
-                            </div>
                         </div>
                     </td>
                     <td>
                         <p-tag
                             [value]="detail.isActive ? 'ACTIVO' : 'INACTIVO'"
                             [severity]="detail.isActive ? 'success' : 'danger'"
+                            (click)="toggleStatus(detail)"
+                            [style]="{ cursor: 'pointer' }"
+                            pTooltip="Click para cambiar estado"
                         >
                         </p-tag>
-                    </td>
-                    <td>
-                        <div class="formula-cell">
-                            <p-button
-                                icon="pi pi-calculator"
-                                [severity]="
-                                    detail.calculationFormula
-                                        ? 'info'
-                                        : 'secondary'
-                                "
-                                [text]="true"
-                                size="small"
-                                [pTooltip]="
-                                    detail.calculationFormula
-                                        ? 'Ver fórmula'
-                                        : 'Sin fórmula'
-                                "
-                                (click)="viewFormula(detail)"
-                            >
-                            </p-button>
-                            <span
-                                class="formula-indicator"
-                                *ngIf="detail.calculationFormula"
-                            >
-                                <i class="pi pi-check-circle"></i>
-                            </span>
-                        </div>
                     </td>
                     <td>
                         <div class="action-buttons">
@@ -215,8 +210,10 @@
                             >
                             </p-button>
                             <p-button
-                                icon="pi pi-cog"
-                                severity="secondary"
+                                icon="pi pi-calculator"
+                                [severity]="
+                                    detail.isFormula ? 'info' : 'secondary'
+                                "
                                 [text]="true"
                                 size="small"
                                 pTooltip="Calcular"
@@ -239,7 +236,7 @@
 
             <ng-template pTemplate="emptymessage">
                 <tr>
-                    <td colspan="7" class="text-center">
+                    <td colspan="8" class="text-center">
                         <div class="empty-state">
                             <i class="pi pi-list empty-icon"></i>
                             <h3>No hay detalles de tarifa configurados</h3>
@@ -278,9 +275,9 @@
     </app-rate-detail-form>
 </p-dialog>
 
-<!-- Formula Viewer Dialog -->
+<!-- Formula/Calculation Dialog -->
 <p-dialog
-    header="Fórmula de Cálculo"
+    header="Cálculo de Tarifa"
     [(visible)]="showFormulaDialog"
     [modal]="true"
     [draggable]="false"
@@ -290,12 +287,31 @@
     <div class="formula-content" *ngIf="selectedDetail">
         <div class="formula-info">
             <h4>{{ selectedDetail.description }}</h4>
-            <p class="formula-type">Tipo: {{ selectedDetail.unitType }}</p>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Unidad:</label>
+                    <span>{{ selectedDetail.unit }}</span>
+                </div>
+                <div class="info-item">
+                    <label>Tipo:</label>
+                    <span>{{ getCalculationType(selectedDetail) }}</span>
+                </div>
+                <div class="info-item" *ngIf="!selectedDetail.isFormula">
+                    <label>Valor Fijo:</label>
+                    <span class="value">{{
+                        selectedDetail.fixedValue
+                            | currency : "USD" : "symbol" : "1.2-4"
+                    }}</span>
+                </div>
+            </div>
         </div>
 
-        <div class="formula-display" *ngIf="selectedDetail.calculationFormula">
+        <div
+            class="formula-display"
+            *ngIf="selectedDetail.isFormula && selectedDetail.formulaText"
+        >
             <h5>Fórmula:</h5>
-            <pre><code>{{ formatFormula(selectedDetail.calculationFormula) }}</code></pre>
+            <pre><code>{{ selectedDetail.formulaText }}</code></pre>
         </div>
 
         <div class="formula-test">
@@ -332,15 +348,40 @@
                 </p-button>
             </div>
             <div class="test-result" *ngIf="calculationResult">
-                <h6>Resultado:</h6>
-                <div class="result-value">
-                    {{
-                        calculationResult.value
-                            | currency : "USD" : "symbol" : "1.2-4"
-                    }}
+                <h6>Resultado del Cálculo:</h6>
+
+                <div class="result-summary">
+                    <div class="result-value">
+                        {{
+                            calculationResult.calculation.totalValue
+                                | currency : "USD" : "symbol" : "1.2-4"
+                        }}
+                    </div>
+                    <div class="result-unit">
+                        {{ calculationResult.calculation.amount }} ×
+                        {{
+                            calculationResult.calculation.unitValue
+                                | currency : "USD" : "symbol" : "1.2-4"
+                        }}
+                        / {{ calculationResult.calculation.unit }}
+                    </div>
                 </div>
-                <div class="result-details" *ngIf="calculationResult.details">
-                    <small>{{ calculationResult.details }}</small>
+
+                <div
+                    class="result-details"
+                    *ngIf="calculationResult.calculation.message"
+                >
+                    <small>{{ calculationResult.calculation.message }}</small>
+                </div>
+
+                <div
+                    class="result-applicable"
+                    *ngIf="!calculationResult.calculation.applicable"
+                >
+                    <p-message
+                        severity="warn"
+                        text="Este detalle no es aplicable según las condiciones definidas"
+                    ></p-message>
                 </div>
             </div>
         </div>

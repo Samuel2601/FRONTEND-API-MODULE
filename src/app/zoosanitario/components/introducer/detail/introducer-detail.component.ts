@@ -19,6 +19,9 @@ export class IntroducerDetailComponent implements OnInit {
     loading = true;
     introducerId!: string;
 
+    // Datos completos del introductor
+    introducerData: any = null;
+
     // Estados financieros
     paymentStatus: any = null;
     finesStatus: any = null;
@@ -56,6 +59,9 @@ export class IntroducerDetailComponent implements OnInit {
         }).subscribe({
             next: ({ introducer, payment, fines }) => {
                 console.log(introducer, payment, fines);
+
+                // Guardar datos completos
+                this.introducerData = introducer.data;
                 this.introducer = introducer.data.introducer || introducer;
                 this.paymentStatus = payment.data;
                 this.finesStatus = fines.data;
@@ -81,23 +87,46 @@ export class IntroducerDetailComponent implements OnInit {
     }
 
     updateValidationStatus(): void {
-        this.canSlaughter =
-            !this.paymentStatus?.required && !this.finesStatus?.hasPendingFines;
+        // Usar canProceed del API si está disponible, sino usar la lógica anterior
+        if (this.introducerData?.canProceed !== undefined) {
+            this.canSlaughter =
+                this.introducerData.canProceed &&
+                !this.paymentStatus?.required &&
+                !this.finesStatus?.hasPendingFines;
+        } else {
+            this.canSlaughter =
+                !this.paymentStatus?.required &&
+                !this.finesStatus?.hasPendingFines;
+        }
 
         const messages = [];
+
+        // Agregar mensaje del API si existe
+        if (this.introducerData?.message && !this.introducerData.canProceed) {
+            messages.push(this.introducerData.message);
+        }
+
         if (this.paymentStatus?.required) {
             messages.push(this.paymentStatus.message);
         }
+
         if (this.finesStatus?.hasPendingFines) {
             messages.push(
-                `Multas pendientes: $${this.finesStatus.pendingAmount}`
+                `Multas pendientes: ${this.formatCurrency(
+                    this.finesStatus.pendingAmount
+                )}`
             );
+        }
+
+        // Agregar warning del límite si existe
+        if (this.introducerData?.details?.warningMessage) {
+            messages.push(this.introducerData.details.warningMessage);
         }
 
         this.validationMessage =
             messages.length > 0
                 ? messages.join('. ')
-                : 'Autorizado para faenamiento';
+                : this.introducerData?.message || 'Autorizado para faenamiento';
     }
 
     getIntroducerName(): string {
@@ -151,6 +180,17 @@ export class IntroducerDetailComponent implements OnInit {
         });
     }
 
+    getLimitStatus(): 'success' | 'warning' | 'danger' {
+        if (!this.introducerData?.details) return 'success';
+
+        const remaining = this.introducerData.details.remainingFreeProcesses;
+        const hasExceeded = this.processStatistics?.hasExceededFreeLimit;
+
+        if (hasExceeded) return 'danger';
+        if (remaining <= 1) return 'warning';
+        return 'success';
+    }
+
     editIntroducer(): void {
         this.router.navigate([
             '/zoosanitario/introducers/edit',
@@ -160,10 +200,17 @@ export class IntroducerDetailComponent implements OnInit {
 
     refreshData(): void {
         // Limpiar cache y recargar
-        this.introducerService['cacheService'].clearByPrefix(
+        this.introducerService['cacheService']?.clearByPrefix(
             `introducers_${this.introducerId}`
         );
         this.loadIntroducerData();
+
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Actualizado',
+            detail: 'Información actualizada correctamente',
+            life: 3000,
+        });
     }
 
     activateIntroducer(): void {
@@ -171,11 +218,18 @@ export class IntroducerDetailComponent implements OnInit {
             message: '¿Está seguro de activar este introductor?',
             header: 'Confirmar Activación',
             icon: 'pi pi-check-circle',
+            acceptLabel: 'Sí, activar',
+            rejectLabel: 'Cancelar',
             accept: () => {
                 this.introducerService
                     .activateIntroducer(this.introducerId)
                     .subscribe({
                         next: () => {
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Éxito',
+                                detail: 'Introductor activado correctamente',
+                            });
                             this.refreshData();
                         },
                         error: (error) => {
@@ -193,16 +247,23 @@ export class IntroducerDetailComponent implements OnInit {
     suspendIntroducer(): void {
         this.confirmationService.confirm({
             message:
-                '¿Está seguro de suspender este introductor? Proporcione una razón:',
+                '¿Está seguro de suspender este introductor? Esta acción requiere una justificación.',
             header: 'Confirmar Suspensión',
             icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Sí, suspender',
+            rejectLabel: 'Cancelar',
             accept: () => {
                 const reason = prompt('Motivo de suspensión:');
-                if (reason) {
+                if (reason?.trim()) {
                     this.introducerService
                         .suspendIntroducer(this.introducerId, reason)
                         .subscribe({
                             next: () => {
+                                this.messageService.add({
+                                    severity: 'warn',
+                                    summary: 'Suspendido',
+                                    detail: 'Introductor suspendido correctamente',
+                                });
                                 this.refreshData();
                             },
                             error: (error) => {
@@ -213,6 +274,12 @@ export class IntroducerDetailComponent implements OnInit {
                                 });
                             },
                         });
+                } else {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'Cancelado',
+                        detail: 'Debe proporcionar un motivo para la suspensión',
+                    });
                 }
             },
         });
@@ -232,6 +299,7 @@ export class IntroducerDetailComponent implements OnInit {
                 queryParams: {
                     introducerId: this.introducerId,
                     type: 'inscription',
+                    rateId: this.paymentStatus?.rateId,
                 },
             });
         }
@@ -241,7 +309,10 @@ export class IntroducerDetailComponent implements OnInit {
         if (this.finesStatus?.fines?.length > 0) {
             // Mostrar opciones de pago de multas
             this.router.navigate(['/zoosanitario/payments/fines'], {
-                queryParams: { introducerId: this.introducerId },
+                queryParams: {
+                    introducerId: this.introducerId,
+                    amount: this.finesStatus.pendingAmount,
+                },
             });
         }
     }
@@ -258,6 +329,17 @@ export class IntroducerDetailComponent implements OnInit {
     }
 
     formatDate(date: string | Date): string {
+        if (!date) return '';
+        return new Date(date).toLocaleDateString('es-EC', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    }
+
+    formatDateShort(date: string | Date): string {
         if (!date) return '';
         return new Date(date).toLocaleDateString('es-EC', {
             year: 'numeric',
