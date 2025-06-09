@@ -19,7 +19,7 @@ export class InternalInspectionService extends BaseService<InternalInspection> {
         protected override cacheService: CacheService,
         protected override auth: AuthService
     ) {
-        super(http, cacheService, auth, 'process/internal-inspection');
+        super('process/internal-inspection');
     }
 
     createInspection(data: {
@@ -34,12 +34,11 @@ export class InternalInspectionService extends BaseService<InternalInspection> {
         criteriosEvaluacion: InspectionCriteria[];
         clasificacionFinal?: string;
     }): Observable<ApiResponse<InternalInspection>> {
-        const token = this.token();
         return this.http.post<ApiResponse<InternalInspection>>(
             `${this.url}${this.endpoint}`,
             data,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -47,11 +46,10 @@ export class InternalInspectionService extends BaseService<InternalInspection> {
     getInspectionsByProcess(
         processId: string
     ): Observable<ApiResponse<InternalInspection[]>> {
-        const token = this.token();
         return this.http.get<ApiResponse<InternalInspection[]>>(
             `${this.url}${this.endpoint}/by-process/${processId}`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -69,22 +67,20 @@ export class InternalInspectionService extends BaseService<InternalInspection> {
             clasificacionFinal?: string;
         }
     ): Observable<ApiResponse<InternalInspection>> {
-        const token = this.token();
         return this.http.put<ApiResponse<InternalInspection>>(
             `${this.url}${this.endpoint}/${inspectionId}/result`,
             data,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
 
     generateQualityReport(inspectionId: string): Observable<ApiResponse<any>> {
-        const token = this.token();
         return this.http.get<ApiResponse<any>>(
             `${this.url}${this.endpoint}/${inspectionId}/quality-report`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }

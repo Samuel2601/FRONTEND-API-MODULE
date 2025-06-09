@@ -1,4 +1,3 @@
-import { CurrencyPipe } from '@angular/common';
 import {
     Component,
     Input,
@@ -36,7 +35,6 @@ interface ApplicabilityRule {
     imports: [ImportsModule],
     templateUrl: './reference-value-form.component.html',
     styleUrls: ['./reference-value-form.component.scss'],
-    providers: [CurrencyPipe],
 })
 export class ReferenceValueFormComponent implements OnInit, OnChanges {
     @Input() referenceValue: ReferenceValue | null = null;
@@ -107,8 +105,7 @@ export class ReferenceValueFormComponent implements OnInit, OnChanges {
     constructor(
         private fb: FormBuilder,
         private referenceValueService: ReferenceValueService,
-        private messageService: MessageService,
-        private currencyPipe: CurrencyPipe
+        private messageService: MessageService
     ) {
         this.initForm();
     }
@@ -492,6 +489,17 @@ export class ReferenceValueFormComponent implements OnInit, OnChanges {
         }
     }
 
+    formatTestValue(): string {
+        if (!this.testResult?.value) return '$0.00';
+
+        return new Intl.NumberFormat('es-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 4,
+        }).format(this.testResult.value);
+    }
+
     formatDateRange(): string {
         const startDate = this.valueForm.get('startDate')?.value;
         const endDate = this.valueForm.get('endDate')?.value;
@@ -562,16 +570,5 @@ export class ReferenceValueFormComponent implements OnInit, OnChanges {
             detail: message,
             life: 5000,
         });
-    }
-
-    get formattedTestValue(): string {
-        return (
-            this.currencyPipe.transform(
-                this.testResult?.value,
-                'USD',
-                'symbol',
-                '1.2-4'
-            ) || ''
-        );
     }
 }

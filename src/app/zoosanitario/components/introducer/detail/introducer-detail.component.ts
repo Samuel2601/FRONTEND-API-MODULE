@@ -2,10 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ImportsModule } from 'src/app/demo/services/import';
-import {
-    Introducer,
-    IntroducerService,
-} from 'src/app/zoosanitario/services/introducer.service';
+import { Introducer } from 'src/app/zoosanitario/interfaces/slaughter.interface';
+import { IntroducerService } from 'src/app/zoosanitario/services/introducer.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
     selector: 'app-introducer-detail',
@@ -16,38 +15,20 @@ import {
     providers: [MessageService, ConfirmationService],
 })
 export class IntroducerDetailComponent implements OnInit {
-    introducer!: Introducer;
+    introducer!: any;
     loading = true;
     introducerId!: string;
+
+    // Estados financieros
+    paymentStatus: any = null;
+    finesStatus: any = null;
     canSlaughter = false;
-    slaughterValidationMessage = '';
-    pendingAmount = 0;
+    validationMessage = '';
 
-    // Modales
-    showFineDialog = false;
-    showPaymentDialog = false;
-    selectedFine: any = null;
-
-    // Formularios de modal
-    newFine = {
-        type: '',
-        amount: 0,
-        reason: '',
-    };
-
-    newPayment = {
-        year: new Date().getFullYear(),
-        amount: 0,
-        paymentMethod: 'CASH',
-        receiptNumber: '',
-    };
-
-    paymentMethods = [
-        { label: 'Efectivo', value: 'CASH' },
-        { label: 'Transferencia', value: 'TRANSFER' },
-        { label: 'Cheque', value: 'CHECK' },
-        { label: 'Tarjeta', value: 'CARD' },
-    ];
+    // Estadísticas y datos adicionales
+    processStatistics: any = null;
+    recentInvoices: any[] = [];
+    warnings: any[] = [];
 
     constructor(
         private route: ActivatedRoute,
@@ -59,22 +40,39 @@ export class IntroducerDetailComponent implements OnInit {
 
     ngOnInit(): void {
         this.introducerId = this.route.snapshot.paramMap.get('id')!;
-        this.loadIntroducer();
+        this.loadIntroducerData();
     }
 
-    loadIntroducer(): void {
+    loadIntroducerData(): void {
         this.loading = true;
-        this.introducerService.getIntroducerById(this.introducerId).subscribe({
-            next: (introducer) => {
-                this.introducer = introducer;
+
+        // Cargar datos del introductor y validaciones en paralelo
+        forkJoin({
+            introducer: this.introducerService.getById(this.introducerId),
+            payment: this.introducerService.getCheckPayment(this.introducerId),
+            fines: this.introducerService.getCheckPendingFines(
+                this.introducerId
+            ),
+        }).subscribe({
+            next: ({ introducer, payment, fines }) => {
+                console.log(introducer, payment, fines);
+                this.introducer = introducer.data.introducer || introducer;
+                this.paymentStatus = payment.data;
+                this.finesStatus = fines.data;
+                this.processStatistics = introducer.data.statistics;
+                this.recentInvoices = introducer.data.recentInvoices || [];
+                this.warnings = introducer.data.warnings || [];
+
+                this.updateValidationStatus();
                 this.loading = false;
-                this.validateSlaughter();
             },
             error: (error) => {
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
-                    detail: 'Error al cargar introductor: ' + error.message,
+                    detail:
+                        'Error al cargar los datos del introductor: ' +
+                        error.message,
                 });
                 this.loading = false;
                 this.router.navigate(['/zoosanitario/introducers']);
@@ -82,82 +80,75 @@ export class IntroducerDetailComponent implements OnInit {
         });
     }
 
-    validateSlaughter(): void {
-        this.introducerService.validateSlaughter(this.introducerId).subscribe({
-            next: (validation) => {
-                this.canSlaughter = validation.canSlaughter;
-                this.slaughterValidationMessage = validation.reason || '';
-                this.pendingAmount = validation.pendingAmount || 0;
-            },
-            error: (error) => {
-                console.error('Error validando faenamiento:', error);
-            },
-        });
+    updateValidationStatus(): void {
+        this.canSlaughter =
+            !this.paymentStatus?.required && !this.finesStatus?.hasPendingFines;
+
+        const messages = [];
+        if (this.paymentStatus?.required) {
+            messages.push(this.paymentStatus.message);
+        }
+        if (this.finesStatus?.hasPendingFines) {
+            messages.push(
+                `Multas pendientes: $${this.finesStatus.pendingAmount}`
+            );
+        }
+
+        this.validationMessage =
+            messages.length > 0
+                ? messages.join('. ')
+                : 'Autorizado para faenamiento';
     }
 
     getIntroducerName(): string {
-        if (this.introducer.type === 'NATURAL') {
-            return `${this.introducer.firstName} ${this.introducer.lastName}`;
+        if (!this.introducer) return '';
+
+        if (this.introducer.personType === 'Natural') {
+            return this.introducer.name || '';
         }
-        return this.introducer.companyName || '';
+        return this.introducer.companyName || 'Sin nombre';
+    }
+
+    getDocumentNumber(): string {
+        if (!this.introducer) return '';
+
+        if (this.introducer.personType === 'Natural') {
+            return this.introducer.idNumber || '';
+        }
+        return this.introducer.ruc || '';
     }
 
     getStatusSeverity(
         status: string
     ): 'success' | 'warning' | 'danger' | 'secondary' | 'info' {
-        switch (status) {
+        switch (status?.toUpperCase()) {
             case 'ACTIVE':
-                return 'success';
-            case 'PENDING':
-                return 'warning';
-            case 'SUSPENDED':
-                return 'danger';
-            case 'EXPIRED':
-                return 'secondary';
             case 'PAID':
                 return 'success';
+            case 'PENDING':
+            case 'GENERATED':
+            case 'ISSUED':
+                return 'warning';
+            case 'SUSPENDED':
             case 'OVERDUE':
                 return 'danger';
+            case 'EXPIRED':
+            case 'CANCELLED':
+                return 'secondary';
             default:
                 return 'info';
         }
     }
 
-    getIntroducerTypeLabel(type: string): string {
-        switch (type) {
-            case 'BOVINE_MAJOR':
-                return 'Bovino Mayor';
-            case 'PORCINE_MINOR':
-                return 'Porcino Menor';
-            case 'MIXED':
-                return 'Mixto';
-            default:
-                return type;
-        }
-    }
+    getIntroducerTypeLabels(): string[] {
+        if (!this.introducer?.cattleTypes) return [];
 
-    getActiveInscriptions(): any[] {
-        return (
-            this.introducer.inscriptionPayments?.filter(
-                (p) => p.status === 'PAID'
-            ) || []
-        );
-    }
-
-    getPendingInscriptions(): any[] {
-        return (
-            this.introducer.inscriptionPayments?.filter(
-                (p) => p.status !== 'PAID'
-            ) || []
-        );
-    }
-
-    getPendingFines(): any[] {
-        return (
-            this.introducer.pendingFines?.filter(
-                (f) => f.status === 'PENDING'
-            ) || []
-        );
+        return this.introducer.cattleTypes.map((type: any) => {
+            if (typeof type === 'string') return type;
+            return type.species && type.category
+                ? `${type.species} (${type.category})`
+                : type.label || 'Tipo no especificado';
+        });
     }
 
     editIntroducer(): void {
@@ -167,129 +158,25 @@ export class IntroducerDetailComponent implements OnInit {
         ]);
     }
 
-    renewCard(): void {
+    refreshData(): void {
+        // Limpiar cache y recargar
+        this.introducerService['cacheService'].clearByPrefix(
+            `introducers_${this.introducerId}`
+        );
+        this.loadIntroducerData();
+    }
+
+    activateIntroducer(): void {
         this.confirmationService.confirm({
-            message: '¿Está seguro de renovar el carnet de identificación?',
-            header: 'Confirmar Renovación',
-            icon: 'pi pi-refresh',
+            message: '¿Está seguro de activar este introductor?',
+            header: 'Confirmar Activación',
+            icon: 'pi pi-check-circle',
             accept: () => {
-                this.introducerService.renewCard(this.introducerId).subscribe({
-                    next: () => {
-                        this.messageService.add({
-                            severity: 'success',
-                            summary: 'Éxito',
-                            detail: 'Carnet renovado correctamente',
-                        });
-                        this.loadIntroducer();
-                    },
-                    error: (error) => {
-                        this.messageService.add({
-                            severity: 'error',
-                            summary: 'Error',
-                            detail: error.message,
-                        });
-                    },
-                });
-            },
-        });
-    }
-
-    openFineDialog(): void {
-        this.newFine = { type: '', amount: 0, reason: '' };
-        this.showFineDialog = true;
-    }
-
-    applyFine(): void {
-        if (
-            !this.newFine.type ||
-            !this.newFine.amount ||
-            !this.newFine.reason
-        ) {
-            this.messageService.add({
-                severity: 'warn',
-                summary: 'Atención',
-                detail: 'Complete todos los campos',
-            });
-            return;
-        }
-
-        this.introducerService
-            .applyFine(this.introducerId, this.newFine)
-            .subscribe({
-                next: () => {
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Éxito',
-                        detail: 'Multa aplicada correctamente',
-                    });
-                    this.showFineDialog = false;
-                    this.loadIntroducer();
-                },
-                error: (error) => {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: error.message,
-                    });
-                },
-            });
-    }
-
-    openPaymentDialog(): void {
-        this.newPayment = {
-            year: new Date().getFullYear(),
-            amount: 0,
-            paymentMethod: 'CASH',
-            receiptNumber: '',
-        };
-        this.showPaymentDialog = true;
-    }
-
-    processPayment(): void {
-        this.introducerService
-            .processInscriptionPayment(this.introducerId, this.newPayment)
-            .subscribe({
-                next: () => {
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Éxito',
-                        detail: 'Pago procesado correctamente',
-                    });
-                    this.showPaymentDialog = false;
-                    this.loadIntroducer();
-                },
-                error: (error) => {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: error.message,
-                    });
-                },
-            });
-    }
-
-    payFine(fine: any): void {
-        this.confirmationService.confirm({
-            message: `¿Confirma el pago de la multa por $${fine.amount}?`,
-            header: 'Confirmar Pago',
-            icon: 'pi pi-dollar',
-            accept: () => {
-                const payment = {
-                    amount: fine.amount,
-                    paymentMethod: 'CASH',
-                    receiptNumber: '',
-                };
-
                 this.introducerService
-                    .payFine(this.introducerId, fine._id, payment)
+                    .activateIntroducer(this.introducerId)
                     .subscribe({
                         next: () => {
-                            this.messageService.add({
-                                severity: 'success',
-                                summary: 'Éxito',
-                                detail: 'Multa pagada correctamente',
-                            });
-                            this.loadIntroducer();
+                            this.refreshData();
                         },
                         error: (error) => {
                             this.messageService.add({
@@ -303,7 +190,79 @@ export class IntroducerDetailComponent implements OnInit {
         });
     }
 
+    suspendIntroducer(): void {
+        this.confirmationService.confirm({
+            message:
+                '¿Está seguro de suspender este introductor? Proporcione una razón:',
+            header: 'Confirmar Suspensión',
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {
+                const reason = prompt('Motivo de suspensión:');
+                if (reason) {
+                    this.introducerService
+                        .suspendIntroducer(this.introducerId, reason)
+                        .subscribe({
+                            next: () => {
+                                this.refreshData();
+                            },
+                            error: (error) => {
+                                this.messageService.add({
+                                    severity: 'error',
+                                    summary: 'Error',
+                                    detail: error.message,
+                                });
+                            },
+                        });
+                }
+            },
+        });
+    }
+
+    viewInvoice(invoiceId: string): void {
+        // Navegar a la vista de factura
+        this.router.navigate(['/zoosanitario/invoices/view', invoiceId]);
+    }
+
+    payInscription(): void {
+        if (this.paymentStatus?.pendingInvoiceId) {
+            this.viewInvoice(this.paymentStatus.pendingInvoiceId);
+        } else {
+            // Crear nueva factura de inscripción
+            this.router.navigate(['/zoosanitario/invoices/create'], {
+                queryParams: {
+                    introducerId: this.introducerId,
+                    type: 'inscription',
+                },
+            });
+        }
+    }
+
+    payFines(): void {
+        if (this.finesStatus?.fines?.length > 0) {
+            // Mostrar opciones de pago de multas
+            this.router.navigate(['/zoosanitario/payments/fines'], {
+                queryParams: { introducerId: this.introducerId },
+            });
+        }
+    }
+
     goBack(): void {
         this.router.navigate(['/zoosanitario/introducers']);
+    }
+
+    formatCurrency(amount: number): string {
+        return new Intl.NumberFormat('es-EC', {
+            style: 'currency',
+            currency: 'USD',
+        }).format(amount || 0);
+    }
+
+    formatDate(date: string | Date): string {
+        if (!date) return '';
+        return new Date(date).toLocaleDateString('es-EC', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+        });
     }
 }

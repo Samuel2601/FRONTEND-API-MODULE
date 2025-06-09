@@ -11,9 +11,9 @@
         <form [formGroup]="form" (ngSubmit)="onSubmit()" *ngIf="!loading">
             <!-- Tipo de Persona -->
             <div class="field">
-                <label for="type" class="required">Tipo de Persona</label>
+                <label for="personType" class="required">Tipo de Persona</label>
                 <p-selectButton
-                    formControlName="type"
+                    formControlName="personType"
                     [options]="typeOptions"
                     [disabled]="isEditMode"
                 >
@@ -25,73 +25,111 @@
                 <ng-container *ngIf="isNaturalPerson">
                     <div class="col-12 md:col-6">
                         <div class="field">
-                            <label for="firstName" class="required"
-                                >Nombres</label
-                            >
-                            <input
-                                pInputText
-                                id="firstName"
-                                formControlName="firstName"
-                                class="w-full"
-                                [class.p-invalid]="
-                                    form.get('firstName')?.invalid &&
-                                    form.get('firstName')?.touched
-                                "
-                            />
+                            <label for="name" class="required">
+                                Nombres
+                                <small
+                                    *ngIf="nameFromConsult"
+                                    style="color: #007ad9; font-weight: normal"
+                                >
+                                    (Obtenido automáticamente)
+                                </small>
+                            </label>
+                            <div class="p-inputgroup w-full">
+                                <span
+                                    class="p-input-icon-right"
+                                    style="flex: 1"
+                                >
+                                    <i
+                                        class="pi pi-spin pi-spinner"
+                                        *ngIf="consultingDocument"
+                                        style="color: #007ad9"
+                                    ></i>
+                                    <input
+                                        pInputText
+                                        id="name"
+                                        formControlName="name"
+                                        class="w-full"
+                                        [class.p-invalid]="
+                                            form.get('name')?.invalid &&
+                                            form.get('name')?.touched
+                                        "
+                                        [readonly]="nameFromConsult"
+                                        [placeholder]="
+                                            nameFromConsult
+                                                ? ''
+                                                : 'Se completará automáticamente'
+                                        "
+                                    />
+                                </span>
+                                <button
+                                    *ngIf="nameFromConsult"
+                                    pButton
+                                    type="button"
+                                    icon="pi pi-pencil"
+                                    class="p-button-text p-button-sm"
+                                    (click)="editarNombreManual()"
+                                    pTooltip="Editar manualmente"
+                                    tooltipPosition="top"
+                                ></button>
+                            </div>
                             <small
                                 class="p-error"
-                                *ngIf="getFieldError('firstName')"
+                                *ngIf="getFieldError('name')"
                             >
-                                {{ getFieldError("firstName") }}
+                                {{ getFieldError("name") }}
                             </small>
                         </div>
                     </div>
 
                     <div class="col-12 md:col-6">
                         <div class="field">
-                            <label for="lastName" class="required"
-                                >Apellidos</label
-                            >
-                            <input
-                                pInputText
-                                id="lastName"
-                                formControlName="lastName"
-                                class="w-full"
-                                [class.p-invalid]="
-                                    form.get('lastName')?.invalid &&
-                                    form.get('lastName')?.touched
-                                "
-                            />
-                            <small
-                                class="p-error"
-                                *ngIf="getFieldError('lastName')"
-                            >
-                                {{ getFieldError("lastName") }}
-                            </small>
-                        </div>
-                    </div>
-
-                    <div class="col-12 md:col-6">
-                        <div class="field">
-                            <label for="idNumber" class="required"
-                                >Cédula</label
-                            >
-                            <input
-                                pInputText
-                                id="idNumber"
-                                formControlName="idNumber"
-                                class="w-full"
-                                placeholder="Ej: 1712345678"
-                                [class.p-invalid]="
-                                    form.get('idNumber')?.invalid &&
-                                    form.get('idNumber')?.touched
-                                "
-                            />
+                            <label for="idNumber" class="required">
+                                Cédula / RUC
+                                <small style="font-weight: normal">
+                                    (10 dígitos: cédula, 13 dígitos: RUC)
+                                </small>
+                            </label>
+                            <span class="p-input-icon-right w-full">
+                                <i
+                                    class="pi pi-spin pi-spinner"
+                                    *ngIf="consultingDocument"
+                                    style="color: #007ad9"
+                                ></i>
+                                <input
+                                    pInputText
+                                    id="idNumber"
+                                    formControlName="idNumber"
+                                    class="w-full"
+                                    placeholder="Ej: 1712345678 o 1712345678001"
+                                    [class.p-invalid]="
+                                        form.get('idNumber')?.invalid &&
+                                        form.get('idNumber')?.touched
+                                    "
+                                />
+                            </span>
                             <small
                                 class="p-error"
                                 *ngIf="getFieldError('idNumber')"
                             >
                                 {{ getFieldError("idNumber") }}
+                            </small>
+                            <small
+                                class="p-info"
+                                *ngIf="
+                                    !getFieldError('idNumber') &&
+                                    form.get('idNumber')?.value?.length >= 10
+                                "
+                                style="
+                                    color: #007ad9;
+                                    display: block;
+                                    margin-top: 4px;
+                                "
+                            >
+                                {{
+                                    form.get("idNumber")?.value?.length === 10
+                                        ? "Consultando cédula..."
+                                        : "Consultando RUC..."
+                                }}
                             </small>
                         </div>
                     </div>
@@ -148,17 +186,24 @@
                             <label for="idNumber" class="required"
                                 >Cédula Representante</label
                             >
-                            <input
-                                pInputText
-                                id="idNumber"
-                                formControlName="idNumber"
-                                class="w-full"
-                                placeholder="Ej: 1712345678"
-                                [class.p-invalid]="
-                                    form.get('idNumber')?.invalid &&
-                                    form.get('idNumber')?.touched
-                                "
-                            />
+                            <span class="p-input-icon-right w-full">
+                                <i
+                                    class="pi pi-spin pi-spinner"
+                                    *ngIf="consultingDocument"
+                                    style="color: #007ad9"
+                                ></i>
+                                <input
+                                    pInputText
+                                    id="idNumber"
+                                    formControlName="idNumber"
+                                    class="w-full"
+                                    placeholder="Ej: 1712345678"
+                                    [class.p-invalid]="
+                                        form.get('idNumber')?.invalid &&
+                                        form.get('idNumber')?.touched
+                                    "
+                                />
+                            </span>
                             <small
                                 class="p-error"
                                 *ngIf="getFieldError('idNumber')"
@@ -170,24 +215,58 @@
 
                     <div class="col-12">
                         <div class="field">
-                            <label for="legalRepresentative" class="required"
-                                >Representante Legal</label
-                            >
-                            <input
-                                pInputText
-                                id="legalRepresentative"
-                                formControlName="legalRepresentative"
-                                class="w-full"
-                                [class.p-invalid]="
-                                    form.get('legalRepresentative')?.invalid &&
-                                    form.get('legalRepresentative')?.touched
-                                "
-                            />
+                            <label for="legalRepresentative" class="required">
+                                Representante Legal
+                                <small
+                                    *ngIf="nameFromConsult"
+                                    style="color: #007ad9; font-weight: normal"
+                                >
+                                    (Obtenido automáticamente)
+                                </small>
+                            </label>
+                            <div class="p-inputgroup w-full">
+                                <span
+                                    class="p-input-icon-right"
+                                    style="flex: 1"
+                                >
+                                    <i
+                                        class="pi pi-spin pi-spinner"
+                                        *ngIf="consultingDocument"
+                                        style="color: #007ad9"
+                                    ></i>
+                                    <input
+                                        pInputText
+                                        id="legalRepresentative"
+                                        formControlName="name"
+                                        class="w-full"
+                                        [class.p-invalid]="
+                                            form.get('name')?.invalid &&
+                                            form.get('name')?.touched
+                                        "
+                                        [readonly]="nameFromConsult"
+                                        [placeholder]="
+                                            nameFromConsult
+                                                ? ''
+                                                : 'Se completará automáticamente'
+                                        "
+                                    />
+                                </span>
+                                <button
+                                    *ngIf="nameFromConsult"
+                                    pButton
+                                    type="button"
+                                    icon="pi pi-pencil"
+                                    class="p-button-text p-button-sm"
+                                    (click)="editarNombreManual()"
+                                    pTooltip="Editar manualmente"
+                                    tooltipPosition="top"
+                                ></button>
+                            </div>
                             <small
                                 class="p-error"
-                                *ngIf="getFieldError('legalRepresentative')"
+                                *ngIf="getFieldError('name')"
                             >
-                                {{ getFieldError("legalRepresentative") }}
+                                {{ getFieldError("name") }}
                             </small>
                         </div>
                     </div>
@@ -196,23 +275,22 @@
                 <!-- Tipo de Introductor -->
                 <div class="col-12">
                     <div class="field">
-                        <label for="introducerType" class="required"
+                        <label for="cattleTypes" class="required"
                             >Tipo de Introductor</label
                         >
-                        <p-dropdown
-                            id="introducerType"
-                            formControlName="introducerType"
+                        <p-multiSelect
+                            formControlName="cattleTypes"
                             [options]="introducerTypeOptions"
-                            placeholder="Seleccione un tipo"
-                            class="w-full"
-                            [showClear]="true"
+                            optionLabel="label"
+                            optionValue="value"
+                            [placeholder]="'Seleccione tipos de ganado'"
                         >
-                        </p-dropdown>
+                        </p-multiSelect>
                         <small
                             class="p-error"
-                            *ngIf="getFieldError('introducerType')"
+                            *ngIf="getFieldError('cattleTypes')"
                         >
-                            {{ getFieldError("introducerType") }}
+                            {{ getFieldError("cattleTypes") }}
                         </small>
                     </div>
                 </div>
@@ -314,7 +392,9 @@
                     [label]="isEditMode ? 'Actualizar' : 'Guardar'"
                     class="p-button-success"
                     [loading]="submitting"
-                    [disabled]="form.invalid || submitting"
+                    [disabled]="
+                        form.invalid || submitting || consultingDocument
+                    "
                 ></button>
             </div>
         </form>

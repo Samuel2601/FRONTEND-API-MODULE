@@ -362,8 +362,8 @@ export class InvoiceFormComponent implements OnInit {
     }
 
     getIntroducerName(introducer: Introducer): string {
-        if (introducer.type === 'NATURAL') {
-            return `${introducer.firstName} ${introducer.lastName}`;
+        if (introducer.type === 'Natural') {
+            return introducer.name;
         } else {
             return introducer.companyName || 'Sin nombre';
         }
@@ -384,8 +384,8 @@ export class InvoiceFormComponent implements OnInit {
     }
 
     getIntroducerDisplayName(introducer: Introducer): string {
-        if (introducer.type === 'NATURAL') {
-            return `${introducer.firstName} ${introducer.lastName}`;
+        if (introducer.type === 'Natural') {
+            return introducer.name;
         } else {
             return introducer.companyName || 'Sin nombre';
         }

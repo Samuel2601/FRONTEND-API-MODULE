@@ -480,8 +480,8 @@ export class ProcessListComponent implements OnInit, OnDestroy {
      */
     getIntroducerName(process: SlaughterProcess): string {
         if (process.introducer) {
-            if (process.introducer.type === 'NATURAL') {
-                return `${process.introducer.firstName} ${process.introducer.lastName}`;
+            if (process.introducer.type === 'Natural') {
+                return process.introducer.name;
             } else {
                 return process.introducer.companyName || 'Sin nombre';
             }

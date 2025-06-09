@@ -20,19 +20,18 @@ export class InvoiceService extends BaseService<Invoice> {
         protected override cacheService: CacheService,
         protected override auth: AuthService
     ) {
-        super(http, cacheService, auth, 'invoices');
+        super('invoices');
     }
 
     generateInscriptionInvoice(data: {
         introducerId: string;
         animalType: string;
     }): Observable<ApiResponse<Invoice>> {
-        const token = this.token();
         return this.http.post<ApiResponse<Invoice>>(
             `${this.url}${this.endpoint}/inscription`,
             data,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -44,12 +43,11 @@ export class InvoiceService extends BaseService<Invoice> {
         penalties?: any[];
         permits?: any[];
     }): Observable<ApiResponse<Invoice>> {
-        const token = this.token();
         return this.http.post<ApiResponse<Invoice>>(
             `${this.url}${this.endpoint}/slaughter-services`,
             data,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -57,12 +55,11 @@ export class InvoiceService extends BaseService<Invoice> {
     calculateInvoiceCosts(
         data: RateCalculationRequest
     ): Observable<ApiResponse<RateCalculationResponse>> {
-        const token = this.token();
         return this.http.post<ApiResponse<RateCalculationResponse>>(
             `${this.url}${this.endpoint}/calculate`,
             data,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -82,12 +79,11 @@ export class InvoiceService extends BaseService<Invoice> {
         externalProducts?: any[];
         poultryProducts?: any[];
     }): Observable<ApiResponse<RateCalculationResponse>> {
-        const token = this.token();
         return this.http.post<ApiResponse<RateCalculationResponse>>(
             `${this.url}${this.endpoint}/process/calculate-stage`,
             data,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -101,22 +97,20 @@ export class InvoiceService extends BaseService<Invoice> {
             notes?: string;
         }
     ): Observable<ApiResponse<Invoice>> {
-        const token = this.token();
         return this.http.post<ApiResponse<Invoice>>(
             `${this.url}${this.endpoint}/${id}/payment`,
             data,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
 
     checkFreeUses(introducerId: string): Observable<ApiResponse<any>> {
-        const token = this.token();
         return this.http.get<ApiResponse<any>>(
             `${this.url}${this.endpoint}/free-uses/${introducerId}`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -124,21 +118,19 @@ export class InvoiceService extends BaseService<Invoice> {
     getPendingInvoices(
         introducerId: string
     ): Observable<ApiResponse<Invoice[]>> {
-        const token = this.token();
         return this.http.get<ApiResponse<Invoice[]>>(
             `${this.url}${this.endpoint}/pending/${introducerId}`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
 
     getBillingStatistics(): Observable<ApiResponse<any>> {
-        const token = this.token();
         return this.http.get<ApiResponse<any>>(
             `${this.url}${this.endpoint}/statistics/billing`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }

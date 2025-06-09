@@ -875,8 +875,8 @@ export class ReceptionComponent implements OnInit, OnDestroy {
      * Obtener nombre del introductor para mostrar
      */
     getIntroducerDisplayName(introducer: Introducer): string {
-        if (introducer.type === 'NATURAL') {
-            return `${introducer.firstName} ${introducer.lastName}`;
+        if (introducer.type === 'Natural') {
+            return introducer.name;
         } else {
             return introducer.companyName || 'Sin nombre';
         }

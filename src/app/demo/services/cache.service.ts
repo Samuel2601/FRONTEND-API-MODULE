@@ -338,4 +338,15 @@ export class CacheService {
             }
         }
     }
+
+    clearByPrefix(prefix: string): void {
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (!key) continue;
+
+            if (key.startsWith(prefix)) {
+                this.remove(key);
+            }
+        }
+    }
 }

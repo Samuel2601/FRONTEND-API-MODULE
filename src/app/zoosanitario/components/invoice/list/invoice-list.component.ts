@@ -273,8 +273,8 @@ export class InvoiceListComponent implements OnInit {
     getIntroducerName(invoice: Invoice): string {
         if (!invoice.introducer) return 'N/A';
 
-        if (invoice.introducer.type === 'NATURAL') {
-            return `${invoice.introducer.firstName} ${invoice.introducer.lastName}`;
+        if (invoice.introducer.type === 'Natural') {
+            return invoice.introducer.name;
         } else {
             return invoice.introducer.companyName || 'Sin nombre';
         }

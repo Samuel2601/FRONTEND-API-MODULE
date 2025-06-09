@@ -19,7 +19,7 @@ export class DispatchService extends BaseService<Dispatch> {
         protected override cacheService: CacheService,
         protected override auth: AuthService
     ) {
-        super(http, cacheService, auth, 'process/dispatch');
+        super('process/dispatch');
     }
 
     createDispatch(data: {
@@ -33,12 +33,11 @@ export class DispatchService extends BaseService<Dispatch> {
         destino: any;
         observaciones?: string;
     }): Observable<ApiResponse<Dispatch>> {
-        const token = this.token();
         return this.http.post<ApiResponse<Dispatch>>(
             `${this.url}${this.endpoint}`,
             data,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -47,12 +46,11 @@ export class DispatchService extends BaseService<Dispatch> {
         dispatchId: string,
         status: string
     ): Observable<ApiResponse<Dispatch>> {
-        const token = this.token();
         return this.http.put<ApiResponse<Dispatch>>(
             `${this.url}${this.endpoint}/${dispatchId}/status`,
             { status },
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -60,31 +58,28 @@ export class DispatchService extends BaseService<Dispatch> {
     getDispatchesByProcess(
         processId: string
     ): Observable<ApiResponse<Dispatch[]>> {
-        const token = this.token();
         return this.http.get<ApiResponse<Dispatch[]>>(
             `${this.url}${this.endpoint}/by-process/${processId}`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
 
     generateDispatchGuide(dispatchId: string): Observable<ApiResponse<any>> {
-        const token = this.token();
         return this.http.get<ApiResponse<any>>(
             `${this.url}${this.endpoint}/${dispatchId}/guide`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
 
     getDispatchStatistics(): Observable<ApiResponse<any>> {
-        const token = this.token();
         return this.http.get<ApiResponse<any>>(
             `${this.url}${this.endpoint}/statistics`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }

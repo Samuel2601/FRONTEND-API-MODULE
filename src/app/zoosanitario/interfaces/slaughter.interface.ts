@@ -114,19 +114,40 @@ export interface ReferenceValue extends BaseEntity {
 }
 
 // === INTERFACES DE INTRODUCTORES ===
-export interface Introducer extends BaseEntity {
-    idNumber?: string;
-    ruc?: string;
+export interface Introducer {
+    data?: any;
+    warnings?: any[];
+    recentInvoices?: any[];
+    statistics?: any;
+    introducer?: Introducer;
+    _id: string;
+    idNumber: string;
+    ruc: string;
     name: string;
-    personType: 'Natural' | 'Jurídica';
-    address: string;
-    phone: string;
     email: string;
-    cattleTypes: string[];
-    registrationNumber: string;
-    registrationDate: Date;
-    registrationStatus: 'ACTIVE' | 'PENDING' | 'SUSPENDED' | 'EXPIRED';
-    relationUser?: string;
+    phone: string;
+    personType: string;
+    cattleTypes: {
+        _id: string;
+        species: string;
+        category: string;
+        slaughter: boolean;
+        createdBy: string;
+        updatedBy: string;
+        createdAt: string;
+        updatedAt: string;
+        __v: number;
+        deletedAt: string | null;
+    }[];
+    companyName: string;
+    createdBy: string;
+    updatedBy: string;
+    registrationStatus: string;
+    deletedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+    id?: string;
 }
 
 // === INTERFACES DE CERTIFICADOS ===

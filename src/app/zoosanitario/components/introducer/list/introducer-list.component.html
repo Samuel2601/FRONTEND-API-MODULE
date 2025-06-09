@@ -1,45 +1,378 @@
 <div class="introducer-list-container">
-    <!-- Estadísticas -->
-    <div class="grid mb-4" *ngIf="statistics">
-        <div class="col-12 md:col-6 lg:col-3">
-            <div class="stat-card">
-                <div class="stat-header">
-                    <i class="pi pi-users"></i>
-                    <span>Total Introductores</span>
+    <!-- Dashboard de Estadísticas Mejorado -->
+    <div class="statistics-dashboard mb-4" *ngIf="statistics">
+        <!-- Estadísticas Principales -->
+        <div class="grid mb-3">
+            <div class="col-12 md:col-6 lg:col-3">
+                <div class="stat-card primary">
+                    <div class="stat-header">
+                        <i class="pi pi-users"></i>
+                        <span>Total Introductores</span>
+                    </div>
+                    <div class="stat-value">{{ statistics.total || 0 }}</div>
+                    <div class="stat-trend">
+                        <i class="pi pi-arrow-up"></i>
+                        <span>Base de datos</span>
+                    </div>
                 </div>
-                <div class="stat-value">{{ statistics.total }}</div>
+            </div>
+            <div class="col-12 md:col-6 lg:col-3">
+                <div class="stat-card success">
+                    <div class="stat-header">
+                        <i class="pi pi-file-o"></i>
+                        <span>Total Facturas</span>
+                    </div>
+                    <div class="stat-value">
+                        {{ statistics.totalInvoices || 0 }}
+                    </div>
+                    <div class="stat-trend">
+                        <span
+                            >{{
+                                (
+                                    statistics.avgInvoicesPerIntroducer || 0
+                                ).toFixed(1)
+                            }}
+                            promedio/introductor</span
+                        >
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 md:col-6 lg:col-3">
+                <div class="stat-card info">
+                    <div class="stat-header">
+                        <i class="pi pi-cog"></i>
+                        <span>Total Procesos</span>
+                    </div>
+                    <div class="stat-value">
+                        {{ statistics.totalProcesses || 0 }}
+                    </div>
+                    <div class="stat-trend">
+                        <span
+                            >{{
+                                (
+                                    statistics.avgProcessesPerIntroducer || 0
+                                ).toFixed(1)
+                            }}
+                            promedio/introductor</span
+                        >
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 md:col-6 lg:col-3">
+                <div class="stat-card warning">
+                    <div class="stat-header">
+                        <i class="pi pi-percentage"></i>
+                        <span>Tasa Activación</span>
+                    </div>
+                    <div class="stat-value">{{ getActivationRate() }}%</div>
+                    <div class="stat-trend">
+                        <span>Activos de {{ statistics.total }}</span>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-12 md:col-6 lg:col-3">
-            <div class="stat-card success">
-                <div class="stat-header">
-                    <i class="pi pi-check-circle"></i>
-                    <span>Activos</span>
+
+        <!-- Distribución por Estado y Tipo -->
+        <div class="grid mb-3">
+            <!-- Estados -->
+            <div class="col-12 lg:col-6">
+                <div class="card analytics-card">
+                    <div class="card-header">
+                        <h4>
+                            <i class="pi pi-chart-pie"></i> Distribución por
+                            Estado
+                        </h4>
+                    </div>
+                    <div class="status-breakdown">
+                        <div
+                            class="status-item"
+                            [class.no-data]="
+                                (statistics.statusBreakdown?.active || 0) === 0
+                            "
+                        >
+                            <div class="status-info">
+                                <div class="status-label">
+                                    <i
+                                        class="pi pi-check-circle text-green-500"
+                                    ></i>
+                                    <span>Activos</span>
+                                </div>
+                                <div class="status-value success">
+                                    {{
+                                        statistics.statusBreakdown?.active || 0
+                                    }}
+                                </div>
+                            </div>
+                            <div class="status-bar">
+                                <div
+                                    class="status-progress success"
+                                    [style.width.%]="getPercentage('active')"
+                                ></div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="status-item"
+                            [class.no-data]="
+                                (statistics.statusBreakdown?.pending || 0) === 0
+                            "
+                        >
+                            <div class="status-info">
+                                <div class="status-label">
+                                    <i class="pi pi-clock text-yellow-500"></i>
+                                    <span>Pendientes</span>
+                                </div>
+                                <div class="status-value warning">
+                                    {{
+                                        statistics.statusBreakdown?.pending || 0
+                                    }}
+                                </div>
+                            </div>
+                            <div class="status-bar">
+                                <div
+                                    class="status-progress warning"
+                                    [style.width.%]="getPercentage('pending')"
+                                ></div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="status-item"
+                            [class.no-data]="
+                                (statistics.statusBreakdown?.suspended || 0) ===
+                                0
+                            "
+                        >
+                            <div class="status-info">
+                                <div class="status-label">
+                                    <i class="pi pi-ban text-red-500"></i>
+                                    <span>Suspendidos</span>
+                                </div>
+                                <div class="status-value danger">
+                                    {{
+                                        statistics.statusBreakdown?.suspended ||
+                                            0
+                                    }}
+                                </div>
+                            </div>
+                            <div class="status-bar">
+                                <div
+                                    class="status-progress danger"
+                                    [style.width.%]="getPercentage('suspended')"
+                                ></div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="status-item"
+                            [class.no-data]="
+                                (statistics.statusBreakdown?.expired || 0) === 0
+                            "
+                        >
+                            <div class="status-info">
+                                <div class="status-label">
+                                    <i
+                                        class="pi pi-calendar-times text-gray-500"
+                                    ></i>
+                                    <span>Expirados</span>
+                                </div>
+                                <div class="status-value secondary">
+                                    {{
+                                        statistics.statusBreakdown?.expired || 0
+                                    }}
+                                </div>
+                            </div>
+                            <div class="status-bar">
+                                <div
+                                    class="status-progress secondary"
+                                    [style.width.%]="getPercentage('expired')"
+                                ></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-value">{{ statistics.active }}</div>
+            </div>
+
+            <!-- Tipos de Persona -->
+            <div class="col-12 lg:col-6">
+                <div class="card analytics-card">
+                    <div class="card-header">
+                        <h4>
+                            <i class="pi pi-users"></i> Distribución por Tipo
+                        </h4>
+                    </div>
+                    <div class="type-breakdown">
+                        <div class="type-item">
+                            <div class="type-visual">
+                                <div class="type-circle natural">
+                                    <i class="pi pi-user"></i>
+                                </div>
+                                <div class="type-info">
+                                    <span class="type-label"
+                                        >Personas Naturales</span
+                                    >
+                                    <span class="type-count">{{
+                                        statistics.personTypeBreakdown
+                                            ?.natural || 0
+                                    }}</span>
+                                    <span class="type-percentage"
+                                        >{{
+                                            getPersonTypePercentage("natural")
+                                        }}%</span
+                                    >
+                                </div>
+                            </div>
+                            <div class="type-bar">
+                                <div
+                                    class="type-progress natural"
+                                    [style.width.%]="
+                                        getPersonTypePercentage('natural')
+                                    "
+                                ></div>
+                            </div>
+                        </div>
+
+                        <div class="type-item">
+                            <div class="type-visual">
+                                <div class="type-circle juridica">
+                                    <i class="pi pi-building"></i>
+                                </div>
+                                <div class="type-info">
+                                    <span class="type-label"
+                                        >Personas Jurídicas</span
+                                    >
+                                    <span class="type-count">{{
+                                        statistics.personTypeBreakdown
+                                            ?.juridica || 0
+                                    }}</span>
+                                    <span class="type-percentage"
+                                        >{{
+                                            getPersonTypePercentage("juridica")
+                                        }}%</span
+                                    >
+                                </div>
+                            </div>
+                            <div class="type-bar">
+                                <div
+                                    class="type-progress juridica"
+                                    [style.width.%]="
+                                        getPersonTypePercentage('juridica')
+                                    "
+                                ></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-12 md:col-6 lg:col-3">
-            <div class="stat-card warning">
-                <div class="stat-header">
-                    <i class="pi pi-clock"></i>
-                    <span>Pendientes</span>
+
+        <!-- Métricas de Rendimiento -->
+        <div class="grid mb-3">
+            <div class="col-12 lg:col-4">
+                <div class="card metric-card">
+                    <div class="metric-header">
+                        <i class="pi pi-chart-line text-blue-500"></i>
+                        <span>Promedio Facturas</span>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-main">
+                            <span class="metric-value">{{
+                                (
+                                    statistics.avgInvoicesPerIntroducer || 0
+                                ).toFixed(2)
+                            }}</span>
+                            <span class="metric-unit">por introductor</span>
+                        </div>
+                        <div class="metric-detail">
+                            <span
+                                >{{ statistics.totalInvoices || 0 }} facturas
+                                totales</span
+                            >
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-value">{{ statistics.pending }}</div>
+            </div>
+
+            <div class="col-12 lg:col-4">
+                <div class="card metric-card">
+                    <div class="metric-header">
+                        <i class="pi pi-cog text-purple-500"></i>
+                        <span>Promedio Procesos</span>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-main">
+                            <span class="metric-value">{{
+                                (
+                                    statistics.avgProcessesPerIntroducer || 0
+                                ).toFixed(2)
+                            }}</span>
+                            <span class="metric-unit">por introductor</span>
+                        </div>
+                        <div class="metric-detail">
+                            <span
+                                >{{ statistics.totalProcesses || 0 }} procesos
+                                totales</span
+                            >
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 lg:col-4">
+                <div class="card metric-card">
+                    <div class="metric-header">
+                        <i class="pi pi-heart-fill text-pink-500"></i>
+                        <span>Salud del Sistema</span>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-main">
+                            <span class="metric-value"
+                                >{{ getSystemHealth() }}%</span
+                            >
+                            <span class="metric-unit">operativo</span>
+                        </div>
+                        <div class="metric-detail">
+                            <span [class]="getSystemHealthClass()">{{
+                                getSystemHealthText()
+                            }}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-12 md:col-6 lg:col-3">
-            <div class="stat-card danger">
-                <div class="stat-header">
-                    <i class="pi pi-ban"></i>
-                    <span>Suspendidos</span>
-                </div>
-                <div class="stat-value">{{ statistics.suspended }}</div>
+
+        <!-- Indicadores Rápidos -->
+        <div class="quick-indicators">
+            <div class="indicator" [class.active]="hasActiveIntroducers()">
+                <i class="pi pi-check-circle"></i>
+                <span>Sistema Activo</span>
+            </div>
+            <div class="indicator" [class.warning]="hasPendingIntroducers()">
+                <i class="pi pi-exclamation-triangle"></i>
+                <span
+                    >{{
+                        statistics.statusBreakdown?.pending || 0
+                    }}
+                    Pendientes</span
+                >
+            </div>
+            <div class="indicator" [class.danger]="hasSuspendedIntroducers()">
+                <i class="pi pi-ban"></i>
+                <span
+                    >{{
+                        statistics.statusBreakdown?.suspended || 0
+                    }}
+                    Suspendidos</span
+                >
+            </div>
+            <div class="indicator" [class.info]="hasInvoices()">
+                <i class="pi pi-file-o"></i>
+                <span>Facturación Activa</span>
             </div>
         </div>
     </div>
 
-    <!-- Barra de herramientas -->
+    <!-- Barra de herramientas existente -->
     <div class="card">
         <div class="toolbar mb-4">
             <div class="flex flex-column md:flex-row gap-3">
@@ -64,14 +397,14 @@
                     (onChange)="onSearch()"
                 >
                 </p-dropdown>
-                <p-dropdown
+                <p-multiSelect
                     [options]="introducerTypeOptions"
                     [(ngModel)]="selectedIntroducerType"
                     placeholder="Tipo de introductor"
                     [showClear]="true"
                     (onChange)="onSearch()"
                 >
-                </p-dropdown>
+                </p-multiSelect>
                 <p-dropdown
                     [options]="statusOptions"
                     [(ngModel)]="selectedStatus"
@@ -99,7 +432,7 @@
             </div>
         </div>
 
-        <!-- Tabla -->
+        <!-- Tabla existente -->
         <p-table
             #dt
             [value]="introducers"
@@ -122,7 +455,7 @@
                     <th style="width: 10%">Tipo</th>
                     <th style="width: 15%">Tipo Introductor</th>
                     <th style="width: 10%">Estado</th>
-                    <th style="width: 10%">Carnet</th>
+                    <th style="width: 10%">Correo</th>
                     <th style="width: 10%">Teléfono</th>
                     <th style="width: 10%">Acciones</th>
                 </tr>
@@ -135,7 +468,7 @@
                             <i
                                 class="pi"
                                 [ngClass]="
-                                    introducer.type === 'NATURAL'
+                                    introducer.personType === 'Natural'
                                         ? 'pi-user'
                                         : 'pi-building'
                                 "
@@ -146,10 +479,12 @@
                     <td>
                         <div class="document-info">
                             <span class="doc-type">{{
-                                introducer.type === "NATURAL" ? "CI:" : "RUC:"
+                                introducer.personType === "Natural"
+                                    ? "CI:"
+                                    : "RUC:"
                             }}</span>
                             <span>{{
-                                introducer.type === "NATURAL"
+                                introducer.personType === "Natural"
                                     ? introducer.idNumber
                                     : introducer.ruc
                             }}</span>
@@ -158,12 +493,12 @@
                     <td>
                         <p-tag
                             [value]="
-                                introducer.type === 'NATURAL'
+                                introducer.personType === 'Natural'
                                     ? 'Natural'
                                     : 'Jurídica'
                             "
                             [severity]="
-                                introducer.type === 'NATURAL'
+                                introducer.personType === 'Natural'
                                     ? 'info'
                                     : 'warning'
                             "
@@ -171,7 +506,7 @@
                         </p-tag>
                     </td>
                     <td>
-                        {{ getIntroducerTypeLabel(introducer.introducerType) }}
+                        {{ getIntroducerTypeLabel(introducer.cattleTypes) }}
                     </td>
                     <td>
                         <p-tag
@@ -184,26 +519,8 @@
                     </td>
                     <td>
                         <div class="card-status">
-                            <i
-                                class="pi"
-                                [ngClass]="
-                                    introducer.identificationCard?.isActive
-                                        ? 'pi-check-circle'
-                                        : 'pi-times-circle'
-                                "
-                                [style.color]="
-                                    introducer.identificationCard?.isActive
-                                        ? 'var(--green-500)'
-                                        : 'var(--red-500)'
-                                "
-                            >
-                            </i>
-                            <span
-                                *ngIf="
-                                    introducer.identificationCard?.cardNumber
-                                "
-                            >
-                                {{ introducer.identificationCard.cardNumber }}
+                            <span *ngIf="introducer.email">
+                                {{ introducer.email }}
                             </span>
                         </div>
                     </td>

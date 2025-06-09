@@ -26,6 +26,9 @@ import { ReferenceValueFormComponent } from './components/config/reference-value
 import { ConfigDashboardComponent } from './components/config/dashboard/config-dashboard.component';
 import { RateDetailsComponent } from './components/config/rate-details/list/rate-details.component';
 import { RateDetailFormComponent } from './components/config/rate-details/form/rate-detail-form.component';
+import { IntroducerListComponent } from './components/introducer/list/introducer-list.component';
+import { IntroducerFormComponent } from './components/introducer/form/introducer-form.component';
+import { IntroducerDetailComponent } from './components/introducer/detail/introducer-detail.component';
 
 // Rutas del módulo
 const routes: Routes = [
@@ -55,6 +58,31 @@ const routes: Routes = [
         component: ExternalInspectionComponent,
         data: { title: 'Inspección Externa' },
     },*/
+    {
+        path: 'introducers',
+        children: [
+            {
+                path: '',
+                component: IntroducerListComponent,
+                data: { title: 'Introducer' },
+            },
+            {
+                path: 'new',
+                component: IntroducerFormComponent,
+                data: { title: 'Introducer' },
+            },
+            {
+                path: 'edit/:id',
+                component: IntroducerFormComponent,
+                data: { title: 'Introducer' },
+            },
+            {
+                path: 'view/:id',
+                component: IntroducerDetailComponent,
+                data: { title: 'Introducer' },
+            },
+        ],
+    },
 
     {
         path: 'config',

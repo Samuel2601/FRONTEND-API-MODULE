@@ -18,7 +18,7 @@ export class SlaughterProcessService extends BaseService<SlaughterProcess> {
         protected override cacheService: CacheService,
         protected override auth: AuthService
     ) {
-        super(http, cacheService, auth, 'process/slaughter');
+        super('process/slaughter');
     }
 
     createSlaughterProcess(data: {
@@ -26,12 +26,11 @@ export class SlaughterProcessService extends BaseService<SlaughterProcess> {
         receptionId: string;
         externalInspectionIds: string[];
     }): Observable<ApiResponse<SlaughterProcess>> {
-        const token = this.token();
         return this.http.post<ApiResponse<SlaughterProcess>>(
             `${this.url}${this.endpoint}`,
             data,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -40,12 +39,11 @@ export class SlaughterProcessService extends BaseService<SlaughterProcess> {
         processId: string,
         status: string
     ): Observable<ApiResponse<SlaughterProcess>> {
-        const token = this.token();
         return this.http.put<ApiResponse<SlaughterProcess>>(
             `${this.url}${this.endpoint}/${processId}/status`,
             { status },
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -54,32 +52,29 @@ export class SlaughterProcessService extends BaseService<SlaughterProcess> {
         processId: string,
         inspectionId: string
     ): Observable<ApiResponse<SlaughterProcess>> {
-        const token = this.token();
         return this.http.post<ApiResponse<SlaughterProcess>>(
             `${this.url}${this.endpoint}/${processId}/internal-inspection`,
             { inspectionId },
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
 
     getProcessSummary(processId: string): Observable<ApiResponse<any>> {
-        const token = this.token();
         return this.http.get<ApiResponse<any>>(
             `${this.url}${this.endpoint}/${processId}/summary`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
 
     generateProcessReport(processId: string): Observable<ApiResponse<any>> {
-        const token = this.token();
         return this.http.get<ApiResponse<any>>(
             `${this.url}${this.endpoint}/${processId}/report`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -87,21 +82,19 @@ export class SlaughterProcessService extends BaseService<SlaughterProcess> {
     getProcessesByIntroducer(
         introducerId: string
     ): Observable<ApiResponse<SlaughterProcess[]>> {
-        const token = this.token();
         return this.http.get<ApiResponse<SlaughterProcess[]>>(
             `${this.url}${this.endpoint}/by-introducer/${introducerId}`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
 
     getProcessStatistics(): Observable<ApiResponse<any>> {
-        const token = this.token();
         return this.http.get<ApiResponse<any>>(
             `${this.url}${this.endpoint}/statistics`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }

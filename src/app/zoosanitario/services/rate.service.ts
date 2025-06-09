@@ -23,46 +23,42 @@ export class RateService extends BaseService<Rate> {
         protected override cacheService: CacheService,
         protected override auth: AuthService
     ) {
-        super(http, cacheService, auth, 'rates');
+        super('rates');
     }
 
     setupDefaultRates(): Observable<ApiResponse<any>> {
-        const token = this.token();
         return this.http.post<ApiResponse<any>>(
             `${this.url}${this.endpoint}/setup-defaults`,
             {},
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
 
     getInscriptionRates(): Observable<ApiResponse<Rate[]>> {
-        const token = this.token();
         return this.http.get<ApiResponse<Rate[]>>(
             `${this.url}${this.endpoint}/inscription-rates`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
 
     getRateByCode(code: string): Observable<ApiResponse<Rate>> {
-        const token = this.token();
         return this.http.get<ApiResponse<Rate>>(
             `${this.url}${this.endpoint}/by-code/${code}`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
 
     getRatesByType(type: string): Observable<ApiResponse<Rate[]>> {
-        const token = this.token();
         return this.http.get<ApiResponse<Rate[]>>(
             `${this.url}${this.endpoint}/by-type/${type}`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -71,12 +67,11 @@ export class RateService extends BaseService<Rate> {
         formula: string;
         testData?: any;
     }): Observable<ApiResponse<any>> {
-        const token = this.token();
         return this.http.post<ApiResponse<any>>(
             `${this.url}${this.endpoint}/validate-formula`,
             data,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -85,22 +80,20 @@ export class RateService extends BaseService<Rate> {
         rateId: string;
         testScenarios: any[];
     }): Observable<ApiResponse<any>> {
-        const token = this.token();
         return this.http.post<ApiResponse<any>>(
             `${this.url}${this.endpoint}/simulate`,
             data,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
 
     getReferenceValues(): Observable<ApiResponse<ReferenceValue[]>> {
-        const token = this.token();
         return this.http.get<ApiResponse<ReferenceValue[]>>(
             `${this.url}${this.endpoint}/reference-values`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -109,22 +102,20 @@ export class RateService extends BaseService<Rate> {
         code: string,
         data: { value: number | any }
     ): Observable<ApiResponse<ReferenceValue>> {
-        const token = this.token();
         return this.http.put<ApiResponse<ReferenceValue>>(
             `${this.url}${this.endpoint}/reference-value/${code}`,
             data,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
 
     getRateHistory(id: string): Observable<ApiResponse<any[]>> {
-        const token = this.token();
         return this.http.get<ApiResponse<any[]>>(
             `${this.url}${this.endpoint}/${id}/history`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -133,22 +124,20 @@ export class RateService extends BaseService<Rate> {
         rateId: string,
         data: Partial<RateDetail>
     ): Observable<ApiResponse<RateDetail>> {
-        const token = this.token();
         return this.http.post<ApiResponse<RateDetail>>(
             `${this.url}${this.endpoint}/${rateId}/detail`,
             data,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
 
     getRateDetails(rateId: string): Observable<ApiResponse<RateDetail[]>> {
-        const token = this.token();
         return this.http.get<ApiResponse<RateDetail[]>>(
             `${this.url}${this.endpoint}/${rateId}/details`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -157,12 +146,11 @@ export class RateService extends BaseService<Rate> {
         detailId: string,
         data: Partial<RateDetail>
     ): Observable<ApiResponse<RateDetail>> {
-        const token = this.token();
         return this.http.put<ApiResponse<RateDetail>>(
             `${this.url}${this.endpoint}/detail/${detailId}`,
             data,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -171,12 +159,11 @@ export class RateService extends BaseService<Rate> {
         detailId: string,
         data: any
     ): Observable<ApiResponse<any>> {
-        const token = this.token();
         return this.http.post<ApiResponse<any>>(
             `${this.url}${this.endpoint}/detail/${detailId}/calculate`,
             data,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }

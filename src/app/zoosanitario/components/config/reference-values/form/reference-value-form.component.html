@@ -317,8 +317,8 @@
                             >
                             </textarea>
                             <small class="help-text">
-                                Use variables como {inflationRate}, {baseValue},
-                                etc.
+                                Use variables como inflationRate, baseValue,
+                                etc. (sin llaves)
                             </small>
                         </div>
 
@@ -384,7 +384,7 @@
                                         class="result-value"
                                         *ngIf="testResult.success"
                                     >
-                                        {{ formattedTestValue }}
+                                        <span>{{ formatTestValue() }}</span>
                                     </div>
 
                                     <div

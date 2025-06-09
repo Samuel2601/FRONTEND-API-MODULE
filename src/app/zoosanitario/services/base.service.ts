@@ -1,47 +1,46 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { catchError, Observable, of, shareReplay, tap } from 'rxjs';
 import { CacheService } from 'src/app/demo/services/cache.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
+import { MessageService } from 'primeng/api';
 
 @Injectable({
     providedIn: 'root',
 })
 export abstract class BaseService<T> {
-    protected url: string;
-    private cacheExpiry = 5 * 60 * 1000; // 5 minutos
+    protected readonly url = GLOBAL.url_zoosanitario;
+    protected readonly cacheExpiry = 5 * 60 * 1000; // 5 minutos
+    protected http = inject(HttpClient);
+    protected cacheService = inject(CacheService);
+    protected auth = inject(AuthService);
+    protected messageService = inject(MessageService);
 
-    constructor(
-        protected http: HttpClient,
-        protected cacheService: CacheService,
-        protected auth: AuthService,
-        protected endpoint: string
-    ) {
-        this.url = GLOBAL.url_zoosanitario;
-    }
+    constructor(protected endpoint: string) {}
 
-    getHeaders(token: string): HttpHeaders {
+    protected getHeaders(): HttpHeaders {
         return new HttpHeaders({
             'Content-Type': 'application/json',
-            Authorization: token,
+            Authorization: this.auth.token(),
         });
     }
 
-    getFormDataHeaders(token: string): HttpHeaders {
+    protected getFormDataHeaders(): HttpHeaders {
         return new HttpHeaders({
-            Authorization: token,
+            Authorization: this.auth.token(),
         });
     }
 
-    token() {
-        return this.auth.token();
-    }
+    getAll(params?: Record<string, any>): Observable<T[]> {
+        const cacheKey = `${this.endpoint}_all_${JSON.stringify(params)}`;
+        const cachedData = this.cacheService.get<T[]>(cacheKey);
 
-    getAll(params?: any): Observable<T[]> {
-        const token = this.token();
+        if (cachedData) {
+            return of(cachedData);
+        }
+
         let httpParams = new HttpParams();
-
         if (params) {
             Object.keys(params).forEach((key) => {
                 if (params[key] !== null && params[key] !== undefined) {
@@ -50,37 +49,127 @@ export abstract class BaseService<T> {
             });
         }
 
-        return this.http.get<T[]>(`${this.url}${this.endpoint}`, {
-            headers: this.getHeaders(token),
-            params: httpParams,
-        });
+        return this.http
+            .get<T[]>(`${this.url}${this.endpoint}`, {
+                headers: this.getHeaders(),
+                params: httpParams,
+            })
+            .pipe(
+                tap((data) =>
+                    this.cacheService.set(cacheKey, data, this.cacheExpiry)
+                ),
+                shareReplay(1),
+                catchError((error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error al obtener los datos',
+                    });
+                    throw error;
+                })
+            );
     }
 
     getById(id: string): Observable<T> {
-        const token = this.token();
-        return this.http.get<T>(`${this.url}${this.endpoint}/${id}`, {
-            headers: this.getHeaders(token),
-        });
+        const cacheKey = `${this.endpoint}_${id}`;
+        const cachedData = this.cacheService.get<T>(cacheKey);
+
+        if (cachedData) {
+            return of(cachedData);
+        }
+
+        return this.http
+            .get<T>(`${this.url}${this.endpoint}/${id}`, {
+                headers: this.getHeaders(),
+            })
+            .pipe(
+                tap((data) =>
+                    this.cacheService.set(cacheKey, data, this.cacheExpiry)
+                ),
+                shareReplay(1),
+                catchError((error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error al obtener el registro',
+                    });
+                    throw error;
+                })
+            );
     }
 
     create(data: T): Observable<T> {
-        const token = this.token();
-        return this.http.post<T>(`${this.url}${this.endpoint}`, data, {
-            headers: this.getHeaders(token),
-        });
+        return this.http
+            .post<T>(`${this.url}${this.endpoint}`, data, {
+                headers: this.getHeaders(),
+            })
+            .pipe(
+                tap(() => {
+                    this.cacheService.clearByPrefix(this.endpoint);
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Registro creado correctamente',
+                    });
+                }),
+                catchError((error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error al crear el registro',
+                    });
+                    throw error;
+                })
+            );
     }
 
-    update(id: string, data: T): Observable<T> {
-        const token = this.token();
-        return this.http.put<T>(`${this.url}${this.endpoint}/${id}`, data, {
-            headers: this.getHeaders(token),
-        });
+    update(id: string, data: Partial<T>): Observable<T> {
+        return this.http
+            .put<T>(`${this.url}${this.endpoint}/${id}`, data, {
+                headers: this.getHeaders(),
+            })
+            .pipe(
+                tap(() => {
+                    this.cacheService.clearByPrefix(this.endpoint);
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Registro actualizado correctamente',
+                    });
+                }),
+                catchError((error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error al actualizar el registro',
+                    });
+                    throw error;
+                })
+            );
     }
 
-    delete(id: string): Observable<any> {
-        const token = this.token();
-        return this.http.delete(`${this.url}${this.endpoint}/${id}`, {
-            headers: this.getHeaders(token),
-        });
+    delete(id: string): Observable<void> {
+        return this.http
+            .delete<void>(`${this.url}${this.endpoint}/${id}`, {
+                headers: this.getHeaders(),
+            })
+            .pipe(
+                tap(() => {
+                    this.cacheService.clearByPrefix(this.endpoint);
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Registro eliminado correctamente',
+                    });
+                }),
+                catchError((error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error al eliminar el registro',
+                    });
+                    throw error;
+                })
+            );
     }
 }

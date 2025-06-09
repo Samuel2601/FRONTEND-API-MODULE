@@ -1,25 +1,26 @@
 <div class="introducer-detail-container">
-    <p-progressBar
-        *ngIf="loading"
-        mode="indeterminate"
-        [style]="{ height: '6px' }"
-    ></p-progressBar>
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+        <p-progressSpinner></p-progressSpinner>
+        <p>Cargando información del introductor...</p>
+    </div>
 
-    <div *ngIf="!loading">
+    <!-- Main Content -->
+    <div *ngIf="!loading" class="detail-content">
         <!-- Header -->
-        <div class="detail-header card">
+        <div class="detail-header">
             <div class="header-content">
                 <div class="introducer-info">
                     <h1>{{ getIntroducerName() }}</h1>
                     <div class="meta-info">
                         <p-tag
                             [value]="
-                                introducer.type === 'NATURAL'
-                                    ? 'Natural'
-                                    : 'Jurídica'
+                                introducer.personType === 'Natural'
+                                    ? 'Persona Natural'
+                                    : 'Persona Jurídica'
                             "
                             [severity]="
-                                introducer.type === 'NATURAL'
+                                introducer.personType === 'Natural'
                                     ? 'info'
                                     : 'warning'
                             "
@@ -27,16 +28,17 @@
                         </p-tag>
                         <p-tag
                             [value]="
-                                getIntroducerTypeLabel(
-                                    introducer.introducerType
-                                )
+                                introducer.registrationStatus ||
+                                'Estado no definido'
                             "
-                        ></p-tag>
-                        <p-tag
-                            [value]="introducer.registrationStatus"
                             [severity]="
                                 getStatusSeverity(introducer.registrationStatus)
                             "
+                        >
+                        </p-tag>
+                        <p-tag
+                            value="{{ getDocumentNumber() }}"
+                            severity="secondary"
                         >
                         </p-tag>
                     </div>
@@ -45,292 +47,366 @@
                     <button
                         pButton
                         type="button"
-                        icon="pi pi-arrow-left"
-                        label="Volver"
-                        class="p-button-text"
-                        (click)="goBack()"
+                        icon="pi pi-refresh"
+                        label="Actualizar"
+                        class="p-button-outlined"
+                        (click)="refreshData()"
                     ></button>
                     <button
                         pButton
                         type="button"
                         icon="pi pi-pencil"
                         label="Editar"
-                        class="p-button-warning"
+                        class="p-button-primary"
                         (click)="editIntroducer()"
+                    ></button>
+                    <button
+                        pButton
+                        type="button"
+                        icon="pi pi-arrow-left"
+                        label="Volver"
+                        class="p-button-secondary"
+                        (click)="goBack()"
                     ></button>
                 </div>
             </div>
         </div>
 
-        <!-- Validación de Faenamiento -->
-        <div class="card" *ngIf="introducer.registrationStatus === 'ACTIVE'">
-            <h3>Estado de Faenamiento</h3>
-            <div
-                class="slaughter-status"
-                [class.allowed]="canSlaughter"
-                [class.denied]="!canSlaughter"
-            >
-                <i
-                    class="pi"
-                    [ngClass]="
-                        canSlaughter ? 'pi-check-circle' : 'pi-times-circle'
+        <!-- Estado de Faenamiento -->
+        <div
+            class="slaughter-status"
+            [class.allowed]="canSlaughter"
+            [class.denied]="!canSlaughter"
+        >
+            <i
+                [class]="
+                    canSlaughter ? 'pi pi-check-circle' : 'pi pi-times-circle'
+                "
+            ></i>
+            <div class="status-info">
+                <h4>
+                    {{
+                        canSlaughter
+                            ? "Autorizado para Faenamiento"
+                            : "No Autorizado para Faenamiento"
+                    }}
+                </h4>
+                <p>{{ validationMessage }}</p>
+                <div
+                    *ngIf="
+                        !canSlaughter &&
+                        (paymentStatus?.required ||
+                            finesStatus?.hasPendingFines)
                     "
-                ></i>
-                <div class="status-info">
-                    <h4>{{ canSlaughter ? "Permitido" : "No Permitido" }}</h4>
-                    <p>{{ slaughterValidationMessage }}</p>
-                    <p *ngIf="pendingAmount > 0" class="pending-amount">
-                        Monto pendiente:
-                        <strong>${{ pendingAmount | number : "1.2-2" }}</strong>
-                    </p>
+                    class="action-buttons"
+                >
+                    <button
+                        *ngIf="paymentStatus?.required"
+                        pButton
+                        type="button"
+                        label="Pagar Inscripción"
+                        icon="pi pi-credit-card"
+                        class="p-button-sm p-button-success"
+                        (click)="payInscription()"
+                    ></button>
+                    <button
+                        *ngIf="finesStatus?.hasPendingFines"
+                        pButton
+                        type="button"
+                        label="Pagar Multas ({{
+                            formatCurrency(finesStatus.pendingAmount)
+                        }})"
+                        icon="pi pi-credit-card"
+                        class="p-button-sm p-button-warning"
+                        (click)="payFines()"
+                    ></button>
                 </div>
             </div>
         </div>
 
-        <div class="grid">
-            <!-- Información Básica -->
-            <div class="col-12 md:col-6">
-                <div class="card">
-                    <h3>Información Básica</h3>
-                    <div class="info-grid">
-                        <div
-                            class="info-item"
-                            *ngIf="introducer.type === 'NATURAL'"
-                        >
-                            <label>Nombres:</label>
-                            <span>{{ introducer.firstName }}</span>
-                        </div>
-                        <div
-                            class="info-item"
-                            *ngIf="introducer.type === 'NATURAL'"
-                        >
-                            <label>Apellidos:</label>
-                            <span>{{ introducer.lastName }}</span>
-                        </div>
-                        <div
-                            class="info-item"
-                            *ngIf="introducer.type === 'JURIDICAL'"
-                        >
-                            <label>Razón Social:</label>
-                            <span>{{ introducer.companyName }}</span>
-                        </div>
-                        <div
-                            class="info-item"
-                            *ngIf="introducer.type === 'JURIDICAL'"
-                        >
-                            <label>Representante Legal:</label>
-                            <span>{{ introducer.legalRepresentative }}</span>
-                        </div>
+        <!-- Grid de Información -->
+        <div class="info-grid">
+            <!-- Información Personal/Empresarial -->
+            <div class="card personal-info">
+                <div class="card-header">
+                    <h3>
+                        <i class="pi pi-user"></i>
+                        {{
+                            introducer.personType === "Natural"
+                                ? "Información Personal"
+                                : "Información Empresarial"
+                        }}
+                    </h3>
+                </div>
+                <div class="info-grid-content">
+                    <ng-container *ngIf="introducer.personType === 'Natural'">
                         <div class="info-item">
-                            <label>{{
-                                introducer.type === "NATURAL"
-                                    ? "Cédula:"
-                                    : "RUC:"
-                            }}</label>
+                            <label>Nombres</label>
                             <span>{{
-                                introducer.type === "NATURAL"
-                                    ? introducer.idNumber
-                                    : introducer.ruc
+                                introducer.name || "No especificado"
                             }}</span>
                         </div>
-                    </div>
+                        <div class="info-item">
+                            <label>Cédula</label>
+                            <span>{{
+                                introducer.idNumber || "No especificado"
+                            }}</span>
+                        </div>
+                    </ng-container>
+                    <ng-container *ngIf="introducer.personType === 'Jurídica'">
+                        <div class="info-item">
+                            <label>Razón Social</label>
+                            <span>{{
+                                introducer.companyName || "No especificado"
+                            }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>RUC</label>
+                            <span>{{
+                                introducer.ruc || "No especificado"
+                            }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Representante Legal</label>
+                            <span>{{
+                                introducer.legalRepresentative ||
+                                    "No especificado"
+                            }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Cédula Representante</label>
+                            <span>{{
+                                introducer.idNumber || "No especificado"
+                            }}</span>
+                        </div>
+                    </ng-container>
                 </div>
             </div>
 
             <!-- Información de Contacto -->
-            <div class="col-12 md:col-6">
-                <div class="card">
-                    <h3>Información de Contacto</h3>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <label>Teléfono:</label>
-                            <span>{{ introducer.phone || "-" }}</span>
-                        </div>
-                        <div class="info-item">
-                            <label>Email:</label>
-                            <span>{{ introducer.email || "-" }}</span>
-                        </div>
-                        <div class="info-item">
-                            <label>Dirección:</label>
-                            <span>{{ introducer.address || "-" }}</span>
-                        </div>
+            <div class="card contact-info">
+                <div class="card-header">
+                    <h3>
+                        <i class="pi pi-phone"></i>
+                        Información de Contacto
+                    </h3>
+                </div>
+                <div class="info-grid-content">
+                    <div class="info-item">
+                        <label>Teléfono</label>
+                        <span>{{ introducer.phone || "No especificado" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Email</label>
+                        <span>{{ introducer.email || "No especificado" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Dirección</label>
+                        <span>{{
+                            introducer.address || "No especificado"
+                        }}</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Carnet de Identificación -->
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Carnet de Identificación</h3>
-                        <button
-                            pButton
-                            type="button"
-                            icon="pi pi-refresh"
-                            label="Renovar"
-                            class="p-button-sm p-button-success"
-                            [disabled]="
-                                !introducer.identificationCard?.isActive
-                            "
-                            (click)="renewCard()"
-                        ></button>
-                    </div>
-
+            <!-- Tipos de Introductor -->
+            <div class="card type-info">
+                <div class="card-header">
+                    <h3>
+                        <i class="pi pi-list"></i>
+                        Tipos de Introductor
+                    </h3>
+                </div>
+                <div class="content">
                     <div
-                        class="card-info"
-                        *ngIf="introducer.identificationCard; else noCard"
+                        *ngIf="getIntroducerTypeLabels().length > 0"
+                        class="type-chips"
                     >
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <label>Número:</label>
-                                <span>{{
-                                    introducer.identificationCard.cardNumber ||
-                                        "-"
-                                }}</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Estado:</label>
-                                <p-tag
-                                    [value]="
-                                        introducer.identificationCard.isActive
-                                            ? 'Activo'
-                                            : 'Inactivo'
-                                    "
-                                    [severity]="
-                                        introducer.identificationCard.isActive
-                                            ? 'success'
-                                            : 'danger'
-                                    "
+                        <p-chip
+                            *ngFor="let type of getIntroducerTypeLabels()"
+                            [label]="type"
+                            class="type-chip"
+                        >
+                        </p-chip>
+                    </div>
+                    <p
+                        *ngIf="getIntroducerTypeLabels().length === 0"
+                        class="no-data"
+                    >
+                        No se han definido tipos de introductor
+                    </p>
+                </div>
+            </div>
+
+            <!-- Estado de Pagos -->
+            <div class="card payment-info">
+                <div class="card-header">
+                    <h3>
+                        <i class="pi pi-credit-card"></i>
+                        Estado de Pagos
+                    </h3>
+                </div>
+                <div class="content">
+                    <!-- Estado de Inscripción -->
+                    <div class="payment-section">
+                        <div class="payment-header">
+                            <span class="payment-label"
+                                >Tarifa de Inscripción</span
+                            >
+                            <p-tag
+                                [value]="
+                                    paymentStatus?.required
+                                        ? 'Pendiente'
+                                        : 'Pagado'
+                                "
+                                [severity]="
+                                    paymentStatus?.required
+                                        ? 'warning'
+                                        : 'success'
+                                "
+                            >
+                            </p-tag>
+                        </div>
+                        <p class="payment-message">
+                            {{ paymentStatus?.message || "Sin información" }}
+                        </p>
+                        <small
+                            *ngIf="paymentStatus?.paidDate"
+                            class="payment-date"
+                        >
+                            Pagado el: {{ formatDate(paymentStatus.paidDate) }}
+                        </small>
+                    </div>
+
+                    <!-- Estado de Multas -->
+                    <div class="payment-section">
+                        <div class="payment-header">
+                            <span class="payment-label">Multas</span>
+                            <p-tag
+                                [value]="
+                                    finesStatus?.hasPendingFines
+                                        ? 'Pendientes'
+                                        : 'Al día'
+                                "
+                                [severity]="
+                                    finesStatus?.hasPendingFines
+                                        ? 'danger'
+                                        : 'success'
+                                "
+                            >
+                            </p-tag>
+                        </div>
+                        <div
+                            *ngIf="finesStatus?.hasPendingFines"
+                            class="fines-info"
+                        >
+                            <p class="amount">
+                                Monto pendiente:
+                                {{ formatCurrency(finesStatus.pendingAmount) }}
+                            </p>
+                            <div
+                                *ngIf="finesStatus.fines?.length > 0"
+                                class="fines-list"
+                            >
+                                <div
+                                    *ngFor="let fine of finesStatus.fines"
+                                    class="fine-item"
                                 >
-                                </p-tag>
-                            </div>
-                            <div class="info-item">
-                                <label>Fecha de Emisión:</label>
-                                <span>{{
-                                    introducer.identificationCard.issueDate
-                                        | date : "dd/MM/yyyy"
-                                }}</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Fecha de Expiración:</label>
-                                <span>{{
-                                    introducer.identificationCard.expirationDate
-                                        | date : "dd/MM/yyyy"
-                                }}</span>
+                                    <span>{{ fine.invoiceNumber }}</span>
+                                    <span>{{
+                                        formatCurrency(fine.amount)
+                                    }}</span>
+                                    <small>{{
+                                        formatDate(fine.issueDate)
+                                    }}</small>
+                                </div>
                             </div>
                         </div>
+                        <p
+                            *ngIf="!finesStatus?.hasPendingFines"
+                            class="payment-message"
+                        >
+                            Sin multas pendientes
+                        </p>
                     </div>
-                    <ng-template #noCard>
-                        <p class="no-data">No tiene carnet de identificación</p>
-                    </ng-template>
                 </div>
             </div>
 
-            <!-- Pagos de Inscripción -->
-            <div class="col-12 lg:col-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Pagos de Inscripción</h3>
-                        <button
-                            pButton
-                            type="button"
-                            icon="pi pi-plus"
-                            label="Registrar Pago"
-                            class="p-button-sm p-button-success"
-                            (click)="openPaymentDialog()"
-                        ></button>
+            <!-- Estadísticas -->
+            <div *ngIf="processStatistics" class="card statistics-info">
+                <div class="card-header">
+                    <h3>
+                        <i class="pi pi-chart-bar"></i>
+                        Estadísticas de Procesos
+                    </h3>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            {{ processStatistics.totalProcesses || 0 }}
+                        </div>
+                        <div class="stat-label">Total Procesos</div>
                     </div>
-
-                    <p-table
-                        [value]="introducer.inscriptionPayments || []"
-                        [scrollable]="true"
-                        scrollHeight="300px"
-                    >
-                        <ng-template pTemplate="header">
-                            <tr>
-                                <th>Año</th>
-                                <th>Monto</th>
-                                <th>Estado</th>
-                                <th>Fecha Pago</th>
-                            </tr>
-                        </ng-template>
-                        <ng-template pTemplate="body" let-payment>
-                            <tr>
-                                <td>{{ payment.year }}</td>
-                                <td>
-                                    ${{ payment.amount | number : "1.2-2" }}
-                                </td>
-                                <td>
-                                    <p-tag
-                                        [value]="payment.status"
-                                        [severity]="
-                                            getStatusSeverity(payment.status)
-                                        "
-                                    >
-                                    </p-tag>
-                                </td>
-                                <td>
-                                    {{
-                                        payment.paymentDate
-                                            ? (payment.paymentDate
-                                              | date : "dd/MM/yyyy")
-                                            : "-"
-                                    }}
-                                </td>
-                            </tr>
-                        </ng-template>
-                        <ng-template pTemplate="emptymessage">
-                            <tr>
-                                <td colspan="4" class="text-center">
-                                    No hay pagos registrados
-                                </td>
-                            </tr>
-                        </ng-template>
-                    </p-table>
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            {{ processStatistics.completedProcesses || 0 }}
+                        </div>
+                        <div class="stat-label">Completados</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            {{ processStatistics.pendingProcesses || 0 }}
+                        </div>
+                        <div class="stat-label">Pendientes</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            {{
+                                formatCurrency(
+                                    processStatistics.totalAmount || 0
+                                )
+                            }}
+                        </div>
+                        <div class="stat-label">Monto Total</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Multas -->
-            <div class="col-12 lg:col-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Multas</h3>
-                        <button
-                            pButton
-                            type="button"
-                            icon="pi pi-plus"
-                            label="Aplicar Multa"
-                            class="p-button-sm p-button-danger"
-                            (click)="openFineDialog()"
-                        ></button>
-                    </div>
-
+            <!-- Facturas Recientes -->
+            <div *ngIf="recentInvoices?.length > 0" class="card invoices-info">
+                <div class="card-header">
+                    <h3>
+                        <i class="pi pi-file-o"></i>
+                        Facturas Recientes
+                    </h3>
+                </div>
+                <div class="content">
                     <p-table
-                        [value]="introducer.pendingFines || []"
-                        [scrollable]="true"
-                        scrollHeight="300px"
+                        [value]="recentInvoices"
+                        [paginator]="false"
+                        styleClass="p-datatable-sm"
                     >
                         <ng-template pTemplate="header">
                             <tr>
-                                <th>Tipo</th>
+                                <th>Número</th>
+                                <th>Fecha</th>
                                 <th>Monto</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
                         </ng-template>
-                        <ng-template pTemplate="body" let-fine>
+                        <ng-template pTemplate="body" let-invoice>
                             <tr>
+                                <td>{{ invoice.invoiceNumber }}</td>
+                                <td>{{ formatDate(invoice.issueDate) }}</td>
                                 <td>
-                                    <span pTooltip="{{ fine.reason }}">{{
-                                        fine.type
-                                    }}</span>
+                                    {{ formatCurrency(invoice.totalAmount) }}
                                 </td>
-                                <td>${{ fine.amount | number : "1.2-2" }}</td>
                                 <td>
                                     <p-tag
-                                        [value]="fine.status"
+                                        [value]="invoice.status"
                                         [severity]="
-                                            getStatusSeverity(fine.status)
+                                            getStatusSeverity(invoice.status)
                                         "
                                     >
                                     </p-tag>
@@ -339,157 +415,87 @@
                                     <button
                                         pButton
                                         type="button"
-                                        icon="pi pi-dollar"
-                                        class="p-button-rounded p-button-text p-button-success"
-                                        pTooltip="Pagar multa"
-                                        [disabled]="fine.status !== 'PENDING'"
-                                        (click)="payFine(fine)"
+                                        icon="pi pi-eye"
+                                        class="p-button-text p-button-sm"
+                                        (click)="viewInvoice(invoice._id)"
+                                        pTooltip="Ver factura"
                                     ></button>
-                                </td>
-                            </tr>
-                        </ng-template>
-                        <ng-template pTemplate="emptymessage">
-                            <tr>
-                                <td colspan="4" class="text-center">
-                                    No hay multas registradas
                                 </td>
                             </tr>
                         </ng-template>
                     </p-table>
                 </div>
             </div>
+
+            <!-- Alertas y Advertencias -->
+            <div *ngIf="warnings?.length > 0" class="card warnings-info">
+                <div class="card-header">
+                    <h3>
+                        <i class="pi pi-exclamation-triangle"></i>
+                        Alertas
+                    </h3>
+                </div>
+                <div class="content">
+                    <div *ngFor="let warning of warnings" class="warning-item">
+                        <i
+                            [class]="
+                                'pi ' +
+                                (warning.severity === 'error'
+                                    ? 'pi-times-circle text-red-500'
+                                    : 'pi-exclamation-triangle text-yellow-500')
+                            "
+                        ></i>
+                        <div class="warning-content">
+                            <strong>{{ warning.title }}</strong>
+                            <p>{{ warning.message }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notas -->
+            <div *ngIf="introducer.notes" class="card notes-info">
+                <div class="card-header">
+                    <h3>
+                        <i class="pi pi-file-edit"></i>
+                        Notas
+                    </h3>
+                </div>
+                <div class="content">
+                    <p>{{ introducer.notes }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones Adicionales -->
+        <div class="actions-section">
+            <div class="actions-header">
+                <h3>Acciones Administrativas</h3>
+            </div>
+            <div class="actions-buttons">
+                <button
+                    *ngIf="introducer.registrationStatus !== 'ACTIVE'"
+                    pButton
+                    type="button"
+                    label="Activar Introductor"
+                    icon="pi pi-check"
+                    class="p-button-success"
+                    (click)="activateIntroducer()"
+                ></button>
+                <button
+                    *ngIf="introducer.registrationStatus === 'ACTIVE'"
+                    pButton
+                    type="button"
+                    label="Suspender Introductor"
+                    icon="pi pi-ban"
+                    class="p-button-danger"
+                    (click)="suspendIntroducer()"
+                ></button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Dialog Aplicar Multa -->
-<p-dialog
-    header="Aplicar Multa"
-    [(visible)]="showFineDialog"
-    [style]="{ width: '450px' }"
-    [modal]="true"
->
-    <div class="field">
-        <label for="fineType" class="required">Tipo de Multa</label>
-        <input
-            pInputText
-            id="fineType"
-            [(ngModel)]="newFine.type"
-            class="w-full"
-        />
-    </div>
-
-    <div class="field">
-        <label for="fineAmount" class="required">Monto</label>
-        <p-inputNumber
-            id="fineAmount"
-            [(ngModel)]="newFine.amount"
-            mode="currency"
-            currency="USD"
-            locale="en-US"
-            class="w-full"
-        ></p-inputNumber>
-    </div>
-
-    <div class="field">
-        <label for="fineReason" class="required">Razón</label>
-        <textarea
-            pInputTextarea
-            id="fineReason"
-            [(ngModel)]="newFine.reason"
-            rows="3"
-            class="w-full"
-        ></textarea>
-    </div>
-
-    <ng-template pTemplate="footer">
-        <button
-            pButton
-            type="button"
-            label="Cancelar"
-            icon="pi pi-times"
-            class="p-button-text"
-            (click)="showFineDialog = false"
-        ></button>
-        <button
-            pButton
-            type="button"
-            label="Aplicar"
-            icon="pi pi-check"
-            class="p-button-danger"
-            (click)="applyFine()"
-        ></button>
-    </ng-template>
-</p-dialog>
-
-<!-- Dialog Registrar Pago -->
-<p-dialog
-    header="Registrar Pago de Inscripción"
-    [(visible)]="showPaymentDialog"
-    [style]="{ width: '450px' }"
-    [modal]="true"
->
-    <div class="field">
-        <label for="paymentYear" class="required">Año</label>
-        <p-inputNumber
-            id="paymentYear"
-            [(ngModel)]="newPayment.year"
-            [useGrouping]="false"
-            class="w-full"
-        ></p-inputNumber>
-    </div>
-
-    <div class="field">
-        <label for="paymentAmount" class="required">Monto</label>
-        <p-inputNumber
-            id="paymentAmount"
-            [(ngModel)]="newPayment.amount"
-            mode="currency"
-            currency="USD"
-            locale="en-US"
-            class="w-full"
-        ></p-inputNumber>
-    </div>
-
-    <div class="field">
-        <label for="paymentMethod" class="required">Método de Pago</label>
-        <p-dropdown
-            id="paymentMethod"
-            [(ngModel)]="newPayment.paymentMethod"
-            [options]="paymentMethods"
-            class="w-full"
-        ></p-dropdown>
-    </div>
-
-    <div class="field">
-        <label for="receiptNumber">Número de Recibo</label>
-        <input
-            pInputText
-            id="receiptNumber"
-            [(ngModel)]="newPayment.receiptNumber"
-            class="w-full"
-        />
-    </div>
-
-    <ng-template pTemplate="footer">
-        <button
-            pButton
-            type="button"
-            label="Cancelar"
-            icon="pi pi-times"
-            class="p-button-text"
-            (click)="showPaymentDialog = false"
-        ></button>
-        <button
-            pButton
-            type="button"
-            label="Procesar"
-            icon="pi pi-check"
-            class="p-button-success"
-            (click)="processPayment()"
-        ></button>
-    </ng-template>
-</p-dialog>
-
+<!-- Toast y Confirmación -->
 <p-toast></p-toast>
 <p-confirmDialog></p-confirmDialog>

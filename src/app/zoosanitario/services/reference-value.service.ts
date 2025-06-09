@@ -15,50 +15,46 @@ export class ReferenceValueService extends BaseService<ReferenceValue> {
         protected override cacheService: CacheService,
         protected override auth: AuthService
     ) {
-        super(http, cacheService, auth, 'rates/reference-values');
+        super('rates/reference-values');
     }
 
     updateRBU(value: number): Observable<ApiResponse<ReferenceValue>> {
-        const token = this.token();
         return this.http.put<ApiResponse<ReferenceValue>>(
             `${this.url}rates/reference-value/RBU`,
             { value },
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
 
     updateSBU(value: number): Observable<ApiResponse<ReferenceValue>> {
-        const token = this.token();
         return this.http.put<ApiResponse<ReferenceValue>>(
             `${this.url}rates/reference-value/SBU`,
             { value },
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
 
     getActiveValues(): Observable<ApiResponse<ReferenceValue[]>> {
-        const token = this.token();
         let httpParams = new HttpParams().set('isActive', 'true');
 
         return this.http.get<ApiResponse<ReferenceValue[]>>(
             `${this.url}${this.endpoint}`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
                 params: httpParams,
             }
         );
     }
 
     getValueByCode(code: string): Observable<ApiResponse<ReferenceValue>> {
-        const token = this.token();
         return this.http.get<ApiResponse<ReferenceValue>>(
             `${this.url}${this.endpoint}/by-code/${code}`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -67,12 +63,11 @@ export class ReferenceValueService extends BaseService<ReferenceValue> {
         code: string,
         config: any
     ): Observable<ApiResponse<ReferenceValue>> {
-        const token = this.token();
         return this.http.put<ApiResponse<ReferenceValue>>(
             `${this.url}rates/reference-value/${code}`,
             config,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }

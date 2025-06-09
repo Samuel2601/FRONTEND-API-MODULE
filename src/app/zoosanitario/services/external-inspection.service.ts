@@ -19,7 +19,7 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
         protected override cacheService: CacheService,
         protected override auth: AuthService
     ) {
-        super(http, cacheService, auth, 'process/external-inspection');
+        super('process/external-inspection');
     }
 
     createInspection(data: {
@@ -29,12 +29,11 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
         observaciones?: string;
         criteriosEvaluacion: InspectionCriteria[];
     }): Observable<ApiResponse<ExternalInspection>> {
-        const token = this.token();
         return this.http.post<ApiResponse<ExternalInspection>>(
             `${this.url}${this.endpoint}`,
             data,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -42,11 +41,10 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
     getInspectionsByReception(
         receptionId: string
     ): Observable<ApiResponse<ExternalInspection[]>> {
-        const token = this.token();
         return this.http.get<ApiResponse<ExternalInspection[]>>(
             `${this.url}${this.endpoint}/by-reception/${receptionId}`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -59,12 +57,11 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
             criteriosEvaluacion?: InspectionCriteria[];
         }
     ): Observable<ApiResponse<ExternalInspection>> {
-        const token = this.token();
         return this.http.put<ApiResponse<ExternalInspection>>(
             `${this.url}${this.endpoint}/${inspectionId}/result`,
             data,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
@@ -72,11 +69,10 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
     generateInspectionReport(
         inspectionId: string
     ): Observable<ApiResponse<any>> {
-        const token = this.token();
         return this.http.get<ApiResponse<any>>(
             `${this.url}${this.endpoint}/${inspectionId}/report`,
             {
-                headers: this.getHeaders(token),
+                headers: this.getHeaders(),
             }
         );
     }
