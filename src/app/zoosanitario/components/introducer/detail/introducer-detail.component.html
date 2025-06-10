@@ -276,7 +276,12 @@
             </div>
 
             <!-- Límites y Cuotas de Procesamiento -->
-            <div *ngIf="introducerData?.details" class="card limits-info">
+            <div
+                *ngIf="
+                    introducerData?.details && introducerData.canProceed == true
+                "
+                class="card limits-info"
+            >
                 <div class="card-header">
                     <h3>
                         <i class="pi pi-chart-pie"></i>

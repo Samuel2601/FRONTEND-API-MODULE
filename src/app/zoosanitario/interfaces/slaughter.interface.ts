@@ -25,7 +25,7 @@ export interface Invoice extends BaseEntity {
         externalPaymentId?: string;
         externalReference?: string;
     };
-    introducer: string;
+    introducer: Introducer;
     items: InvoiceItem[];
     totalAmount: number;
     type: 'inscription' | 'slaughter_services' | 'penalties' | 'permits';

@@ -2,10 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ImportsModule } from 'src/app/demo/services/import';
-import {
-    Invoice,
-    InvoiceService,
-} from 'src/app/zoosanitario/services/invoice.service';
+import { Invoice } from 'src/app/zoosanitario/interfaces/slaughter.interface';
+import { InvoiceService } from 'src/app/zoosanitario/services/invoice.service';
 
 @Component({
     selector: 'app-invoice-list',
@@ -71,8 +69,9 @@ export class InvoiceListComponent implements OnInit {
             introducerId: this.selectedIntroducerId || undefined,
         };
 
-        this.invoiceService.getAllInvoices(params).subscribe({
-            next: (response) => {
+        this.invoiceService.getAll(params).subscribe({
+            next: (response: any) => {
+                console.log(response);
                 this.invoices = response.invoices;
                 this.totalRecords = response.total;
                 this.loading = false;
@@ -128,8 +127,8 @@ export class InvoiceListComponent implements OnInit {
         if (this.dateFrom) filters.dateFrom = this.dateFrom;
         if (this.dateTo) filters.dateTo = this.dateTo;
 
-        this.invoiceService.searchInvoices(filters).subscribe({
-            next: (response) => {
+        this.invoiceService.getAll(filters).subscribe({
+            next: (response: any) => {
                 console.log('Response:', response);
                 this.invoices = response.invoices;
                 this.totalRecords = response.total;
@@ -155,10 +154,7 @@ export class InvoiceListComponent implements OnInit {
     }
 
     editInvoice(invoice: Invoice) {
-        if (
-            invoice.paymentStatus === 'PAID' ||
-            invoice.paymentStatus === 'CANCELLED'
-        ) {
+        if (invoice.status === 'Paid' || invoice.status === 'Cancelled') {
             this.messageService.add({
                 severity: 'warn',
                 summary: 'Advertencia',
@@ -170,7 +166,7 @@ export class InvoiceListComponent implements OnInit {
     }
 
     processPayment(invoice: Invoice) {
-        if (invoice.paymentStatus === 'PAID') {
+        if (invoice.status === 'Paid') {
             this.messageService.add({
                 severity: 'info',
                 summary: 'Información',
@@ -182,7 +178,7 @@ export class InvoiceListComponent implements OnInit {
     }
 
     cancelInvoice(invoice: Invoice) {
-        if (invoice.paymentStatus === 'PAID') {
+        if (invoice.status === 'Paid') {
             this.messageService.add({
                 severity: 'warn',
                 summary: 'Advertencia',
@@ -197,24 +193,27 @@ export class InvoiceListComponent implements OnInit {
             icon: 'pi pi-exclamation-triangle',
             acceptButtonStyleClass: 'p-button-danger',
             accept: () => {
-                this.invoiceService.cancelInvoice(invoice._id!).subscribe({
-                    next: () => {
-                        this.messageService.add({
-                            severity: 'success',
-                            summary: 'Éxito',
-                            detail: 'Factura cancelada correctamente',
-                        });
-                        this.loadInvoices();
-                    },
-                    error: (error) => {
-                        this.messageService.add({
-                            severity: 'error',
-                            summary: 'Error',
-                            detail:
-                                'Error al cancelar factura: ' + error.message,
-                        });
-                    },
-                });
+                this.invoiceService
+                    .update(invoice._id!, { status: 'Cancelled' })
+                    .subscribe({
+                        next: () => {
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Éxito',
+                                detail: 'Factura cancelada correctamente',
+                            });
+                            this.loadInvoices();
+                        },
+                        error: (error) => {
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'Error',
+                                detail:
+                                    'Error al cancelar factura: ' +
+                                    error.message,
+                            });
+                        },
+                    });
             },
         });
     }
@@ -273,17 +272,17 @@ export class InvoiceListComponent implements OnInit {
     getIntroducerName(invoice: Invoice): string {
         if (!invoice.introducer) return 'N/A';
 
-        if (invoice.introducer.type === 'Natural') {
+        if (invoice.introducer.personType === 'Natural') {
             return invoice.introducer.name;
         } else {
             return invoice.introducer.companyName || 'Sin nombre';
         }
     }
-
+    // Función para
     getRemainingAmount(invoice: Invoice): number {
         const totalPaid =
-            invoice.payments?.reduce(
-                (sum, payment) => sum + payment.amount,
+            invoice.items?.reduce(
+                (sum, payment) => sum + payment.totalAmount,
                 0
             ) || 0;
         return invoice.totalAmount - totalPaid;
@@ -297,8 +296,9 @@ export class InvoiceListComponent implements OnInit {
             format: 'excel' as const,
         };
 
-        this.invoiceService.getInvoiceReport(params).subscribe({
-            next: (blob) => {
+        this.invoiceService.getAll(params).subscribe({
+            next: (blob: any) => {
+                console.log(blob);
                 const url = window.URL.createObjectURL(blob as Blob);
                 const link = document.createElement('a');
                 link.href = url;

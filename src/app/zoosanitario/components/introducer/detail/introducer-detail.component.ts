@@ -224,7 +224,8 @@ export class IntroducerDetailComponent implements OnInit {
                 this.introducerService
                     .activateIntroducer(this.introducerId)
                     .subscribe({
-                        next: () => {
+                        next: (response: any) => {
+                            console.log(response);
                             this.messageService.add({
                                 severity: 'success',
                                 summary: 'Éxito',

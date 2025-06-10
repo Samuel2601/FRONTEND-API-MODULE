@@ -136,9 +136,12 @@
                     <td>
                         <div class="rate-info">
                             <span class="rate-code">{{
-                                getRateName(detail.rate)
+                                detail.rate.type
                             }}</span>
-                            <small class="rate-id">{{ detail.rate }}</small>
+                            <br />
+                            <p-tag class="rate-id">
+                                {{ detail.rate.code }}
+                            </p-tag>
                         </div>
                     </td>
                     <td>

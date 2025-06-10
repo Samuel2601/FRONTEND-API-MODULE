@@ -147,8 +147,8 @@ export class IntroducerService extends BaseService<Introducer> {
     ): Observable<ApiResponse<Introducer>> {
         return this.http
             .put<ApiResponse<Introducer>>(
-                `${this.url}${this.endpoint}/${introducerId}/status`,
-                { status },
+                `${this.url}${this.endpoint}/${introducerId}/${status}`,
+                //{ status },
                 { headers: this.getHeaders() }
             )
             .pipe(
@@ -176,7 +176,7 @@ export class IntroducerService extends BaseService<Introducer> {
     activateIntroducer(
         introducerId: string
     ): Observable<ApiResponse<Introducer>> {
-        return this.updateRegistrationStatus(introducerId, 'ACTIVE');
+        return this.updateRegistrationStatus(introducerId, 'activate');
     }
 
     suspendIntroducer(

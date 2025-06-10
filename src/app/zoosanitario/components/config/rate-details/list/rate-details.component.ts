@@ -91,9 +91,11 @@ export class RateDetailsComponent implements OnInit {
 
     async loadRates(): Promise<void> {
         try {
-            const response = await this.rateService.getAll().toPromise();
+            const response: any = await this.rateService.getAll().toPromise();
             if (response) {
-                this.rates = response;
+                console.log(response);
+                this.rates = response.data.rates;
+                console.log('TARIFAS', this.rates);
                 this.rateOptions = response.map((rate) => ({
                     label: `${rate.code} - ${rate.name}`,
                     value: rate._id,
@@ -113,6 +115,7 @@ export class RateDetailsComponent implements OnInit {
             console.log(response);
             if (response?.success && response.data) {
                 this.rateDetails = response.data.docs;
+                console.log('DETALLES', this.rateDetails);
                 this.applyFilters();
             }
         } catch (error) {
@@ -296,7 +299,8 @@ export class RateDetailsComponent implements OnInit {
 
     getRateName(rateId: string): string {
         const rate = this.rates.find((r) => r._id === rateId);
-        return rate ? `${rate.code} - ${rate.name}` : 'Tarifa no encontrada';
+        //console.log(rate);
+        return rate ? `${rate.code}` : 'Tarifa no encontrada';
     }
 
     getUnitSeverity(unit: string): 'success' | 'info' | 'warning' | 'danger' {
