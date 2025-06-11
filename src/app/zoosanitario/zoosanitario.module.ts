@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { QrScannerService } from './services/QrScanner.service';
+import { QrScannerService } from './utils/QR/QrScanner.service';
 import { ImportsModule } from '../demo/services/import';
 import { WorkflowGuard } from './guards/workflow.guard';
 import { IonicModule } from '@ionic/angular';
@@ -8,7 +8,6 @@ import { RouterModule, Routes } from '@angular/router';
 import { AutoSaveDirective } from './utils/directives/auto-save.directive';
 import { NumericOnlyDirective } from './utils/directives/numeric-only.directive';
 import { UpperCaseDirective } from './utils/directives/upper-case.directive';
-import { QrScannerModalComponent } from './components/qr-scanner/qr-scanner-modal.component';
 import { ConfirmationService } from 'primeng/api';
 //import { SlaughterDashboardComponent } from './components/dashboard/dashboard.component';
 //import { ReceptionComponent } from './components/reception/reception.component';
@@ -29,6 +28,7 @@ import { RateDetailFormComponent } from './components/config/rate-details/form/r
 import { IntroducerListComponent } from './components/introducer/list/introducer-list.component';
 import { IntroducerFormComponent } from './components/introducer/form/introducer-form.component';
 import { IntroducerDetailComponent } from './components/introducer/detail/introducer-detail.component';
+import { ReceptionComponent } from './components/reception/reception.component';
 
 // Rutas del módulo
 const routes: Routes = [
@@ -58,6 +58,21 @@ const routes: Routes = [
         component: ExternalInspectionComponent,
         data: { title: 'Inspección Externa' },
     },*/
+    {
+        path: 'workflow',
+        children: [
+            {
+                path: '',
+                component: ReceptionComponent,
+                data: { title: 'Recepción' },
+            },
+            {
+                path: 'reception',
+                component: ReceptionComponent,
+                data: { title: 'Recepción' },
+            },
+        ],
+    },
     {
         path: 'introducers',
         children: [
@@ -161,7 +176,6 @@ const routes: Routes = [
 @NgModule({
     declarations: [
         // Componentes principales
-        QrScannerModalComponent,
 
         // Directivas personalizadas
         AutoSaveDirective,
@@ -177,8 +191,6 @@ const routes: Routes = [
     ],
     providers: [QrScannerService, WorkflowGuard, ConfirmationService],
     exports: [
-        QrScannerModalComponent,
-
         // Exportar directivas
         AutoSaveDirective,
         NumericOnlyDirective,

@@ -1,33 +1,33 @@
+// src/app/components/reception/reception.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ImportsModule } from 'src/app/demo/services/import';
-import {
-    ReceptionParams,
-    SlaughterProcessService,
-} from '../../services/slaughter-process.service';
-import {
-    Introducer,
-    IntroducerService,
-} from '../../services/introducer.service';
-import {
-    QrScannerService,
-    QRScanResult,
-} from '../../services/QrScanner.service';
-import {
-    ZoosanitaryCertificate,
-    ZoosanitaryCertificateService,
-} from '../../services/animal-health-certificate.service';
 
-interface AnimalData {
-    animalId: string;
-    species: 'BOVINE' | 'PORCINE';
-    weight?: number;
-    condition: string;
-    observations?: string;
+// Nuevos imports del sistema QR refactorizado
+
+// Servicios existentes
+import { ReceptionService } from '../../services/reception.service';
+import { IntroducerService } from '../../services/introducer.service';
+import { QrScannerModalComponent } from '../../utils/QR/components/qr-scanner-modal.component';
+import {
+    AnimalHealthCertificate,
+    QRScanOptions,
+} from '../../utils/QR/types/qr.types';
+import { QrScannerService } from '../../utils/QR/QrScanner.service';
+
+interface TransportData {
+    temperatura: number;
+    humedadAmbiental: number;
+    condicionesHigienicas: 'Óptimas' | 'Aceptables' | 'Deficientes';
+    condicionAnimales: string;
+    observaciones?: string;
+    fotografias?: File[];
+    inspeccionadoPor: string;
+    fechaInspeccion: Date;
 }
 
 interface CertificateValidationResult {
@@ -39,7 +39,7 @@ interface CertificateValidationResult {
 @Component({
     selector: 'app-reception',
     standalone: true,
-    imports: [ImportsModule],
+    imports: [ImportsModule, QrScannerModalComponent],
     templateUrl: './reception.component.html',
     styleUrls: ['./reception.component.scss'],
     providers: [ConfirmationService],
@@ -49,50 +49,43 @@ export class ReceptionComponent implements OnInit, OnDestroy {
 
     // Estados de carga
     loading = false;
-    scanning = false;
-    validatingCertificate = false;
-    validatingPayments = false;
     submitting = false;
-    creatingCertificate = false;
+    uploadingFiles = false;
 
     // Formularios
     receptionForm!: FormGroup;
 
-    // Datos
-    introducers: Introducer[] = [];
-    selectedIntroducer: Introducer | null = null;
-    certificateData: ZoosanitaryCertificate | null = null;
+    // Datos del certificado (usando nueva interfaz)
+    certificateData: AnimalHealthCertificate | null = null;
+    certificateValidation: CertificateValidationResult | null = null;
 
     // Estados del proceso
     currentStep = 1;
-    totalSteps = 4;
+    totalSteps = 3;
 
-    // Validaciones
-    certificateValidation: CertificateValidationResult | null = null;
-    paymentValidation: {
-        canProceed: boolean;
-        inscriptionStatus: string;
-        finesStatus: string;
-        pendingAmount: number;
-        reason?: string;
-    } | null = null;
+    // Variables para el QR Scanner Modal
+    showQRScannerModal = false;
+    qrScanOptions: QRScanOptions = {
+        timeout: 60000, // 1 minuto
+        showInstructions: true,
+        allowManualInput: true,
+    };
+
+    // Archivos de fotografías
+    selectedPhotos: File[] = [];
+    maxPhotos = 10;
+    maxFileSize = 5 * 1024 * 1024; // 5MB
 
     // Opciones para dropdowns
-    speciesOptions = [
-        { label: 'Bovino', value: 'BOVINE' },
-        { label: 'Porcino', value: 'PORCINE' },
-    ];
-
-    conditionOptions = [
-        { label: 'Excelente', value: 'EXCELLENT' },
-        { label: 'Bueno', value: 'GOOD' },
-        { label: 'Regular', value: 'FAIR' },
-        { label: 'Deficiente', value: 'POOR' },
-    ];
-
     receptionMethodOptions = [
         { label: 'Escaneo QR', value: 'QR_SCAN' },
         { label: 'Entrada Manual', value: 'MANUAL_ENTRY' },
+    ];
+
+    hygienicConditionOptions = [
+        { label: 'Óptimas', value: 'Óptimas' },
+        { label: 'Aceptables', value: 'Aceptables' },
+        { label: 'Deficientes', value: 'Deficientes' },
     ];
 
     // Control de pasos
@@ -103,37 +96,50 @@ export class ReceptionComponent implements OnInit, OnDestroy {
             description: 'Escanear o ingresar certificado zoosanitario',
         },
         {
-            label: 'Introductor',
-            icon: 'pi pi-user',
-            description: 'Seleccionar y validar introductor',
-        },
-        {
-            label: 'Animales',
-            icon: 'pi pi-list',
-            description: 'Registrar animales recibidos',
+            label: 'Transporte',
+            icon: 'pi pi-truck',
+            description: 'Registrar condiciones de transporte',
         },
         {
             label: 'Confirmación',
             icon: 'pi pi-check',
-            description: 'Revisar y confirmar recepción',
+            description: 'Confirmar y crear recepción',
         },
     ];
 
+    // Datos de introductores
+    intruders: any[] = [];
+
     constructor(
         private fb: FormBuilder,
-        private slaughterService: SlaughterProcessService,
-        private introducerService: IntroducerService,
-        private certificateService: ZoosanitaryCertificateService,
-        private qrService: QrScannerService,
+        private receptionService: ReceptionService,
+        private qrScannerService: QrScannerService, // Nuevo servicio refactorizado
         private messageService: MessageService,
         private confirmationService: ConfirmationService,
-        private router: Router
+        private router: Router,
+        private introducerService: IntroducerService
     ) {
         this.initializeForm();
     }
 
+    getPlatform(): string {
+        return this.qrScannerService.getPlatform();
+    }
+
+    getAvailableMethods(): string[] {
+        return this.qrScannerService.getAvailableMethods();
+    }
+
+    getMethodLabel(method: string): string {
+        return this.qrScannerService.getMethodLabel(method);
+    }
+
+    getReceptionMethodLabel(): string {
+        return this.receptionForm.get('receptionMethod')?.value;
+    }
+
     ngOnInit(): void {
-        this.loadIntroducers();
+        this.loadIntroducer();
     }
 
     ngOnDestroy(): void {
@@ -142,32 +148,84 @@ export class ReceptionComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * Inicializar formulario
+     * Cargar introductores
+     */
+    async loadIntroducer(): Promise<void> {
+        this.loading = true;
+        this.introducerService
+            .getAll() //{ registrationStatus: 'ACTIVE' }
+            .pipe(
+                takeUntil(this.destroy$),
+                finalize(() => (this.loading = false))
+            )
+            .subscribe({
+                next: (introducers: any) => {
+                    console.log(introducers);
+                    this.intruders = introducers.data.introducers;
+                },
+                error: (error) => {
+                    console.error('Error cargando introductores:', error);
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'No se pudieron cargar los introductores',
+                    });
+                },
+            });
+    }
+
+    /**
+     * Inicializar formulario completo
      */
     private initializeForm(): void {
         this.receptionForm = this.fb.group({
-            // Método de recepción
+            // === MÉTODO DE RECEPCIÓN ===
             receptionMethod: ['QR_SCAN', Validators.required],
 
-            // Datos del certificado zoosanitario
-            czpmNumber: [''],
-            authorizedTo: ['', Validators.required],
-            originAreaCode: ['', Validators.required],
-            destinationAreaCode: ['', Validators.required],
-            vehiclePlate: ['', Validators.required],
-            totalProducts: [1, [Validators.required, Validators.min(1)]],
-            validTo: ['', Validators.required],
-            certificateNumber: [''],
+            // === DATOS DEL CERTIFICADO ZOOSANITARIO ===
+            animalHealthCertificate: this.fb.group({
+                numeroCZPM: [''],
+                autorizadoA: ['', Validators.required],
+                codigoAreaOrigen: ['', Validators.required],
+                codigoAreaDestino: ['', Validators.required],
+                totalProductos: [1, [Validators.required, Validators.min(1)]],
+                validoHasta: ['', Validators.required],
+                vehiculo: ['', Validators.required],
+            }),
 
-            // Datos del introductor
-            introducerId: ['', Validators.required],
+            // === DATOS DE TRANSPORTE ===
+            transporte: this.fb.group({
+                temperatura: [
+                    null,
+                    [
+                        Validators.required,
+                        Validators.min(-10),
+                        Validators.max(50),
+                    ],
+                ],
+                humedadAmbiental: [
+                    null,
+                    [
+                        Validators.required,
+                        Validators.min(0),
+                        Validators.max(100),
+                    ],
+                ],
+                condicionesHigienicas: ['', Validators.required],
+                condicionAnimales: [
+                    '',
+                    [Validators.required, Validators.maxLength(500)],
+                ],
+                observaciones: ['', Validators.maxLength(1000)],
+                fechaInspeccion: [new Date(), Validators.required],
+            }),
 
-            // Datos de recepción
-            receptionDate: [new Date(), Validators.required],
-            receptionNotes: [''],
+            introducer: [''],
 
-            // Animales
-            animals: this.fb.array([]),
+            // === DATOS GENERALES DE RECEPCIÓN ===
+            prioridad: [0, [Validators.min(0), Validators.max(10)]],
+            fechaProgramada: [''],
+            observaciones: ['', Validators.maxLength(1000)],
         });
 
         // Agregar validaciones condicionales
@@ -182,327 +240,109 @@ export class ReceptionComponent implements OnInit, OnDestroy {
      * Actualizar validadores según el método de recepción
      */
     private updateValidators(method: string): void {
+        const certificateGroup = this.receptionForm.get(
+            'animalHealthCertificate'
+        ) as FormGroup;
         const certificateFields = [
-            'czpmNumber',
-            'authorizedTo',
-            'originAreaCode',
-            'destinationAreaCode',
-            'vehiclePlate',
-            'totalProducts',
-            'validTo',
+            'autorizadoA',
+            'codigoAreaOrigen',
+            'codigoAreaDestino',
+            'vehiculo',
+            'validoHasta',
         ];
 
         if (method === 'MANUAL_ENTRY') {
             // Hacer campos requeridos para entrada manual
             certificateFields.forEach((field) => {
-                const control = this.receptionForm.get(field);
-                if (field === 'czpmNumber') {
-                    control?.setValidators([]);
-                } else {
-                    control?.setValidators([Validators.required]);
-                }
+                const control = certificateGroup.get(field);
+                control?.setValidators([Validators.required]);
                 control?.updateValueAndValidity();
             });
         } else {
-            // Quitar validaciones para escáner QR
+            // Para QR, solo validar si hay datos
             certificateFields.forEach((field) => {
-                const control = this.receptionForm.get(field);
+                const control = certificateGroup.get(field);
                 control?.setValidators([]);
                 control?.updateValueAndValidity();
             });
         }
     }
 
+    // === MÉTODOS DE ESCANEO QR (REFACTORIZADOS) ===
+
     /**
-     * Getter para el FormArray de animales
+     * Abre el modal de escaneo QR
      */
-    get animalsFormArray(): FormArray {
-        return this.receptionForm.get('animals') as FormArray;
+    openQRScanner(): void {
+        this.showQRScannerModal = true;
     }
 
     /**
-     * Método auxiliar para obtener un FormGroup desde el FormArray
+     * Maneja el resultado del escaneo exitoso
      */
-    getAnimalFormGroup(index: number): FormGroup {
-        return this.animalsFormArray.at(index) as FormGroup;
-    }
+    onCertificateScanned(certificate: AnimalHealthCertificate): void {
+        this.certificateData = certificate;
+        this.fillCertificateFromData(certificate);
+        this.validateCertificate();
 
-    /**
-     * Cargar lista de introductores
-     */
-    private loadIntroducers(): void {
-        this.loading = true;
-        this.introducerService
-            .getAllIntroducers()
-            .pipe(
-                takeUntil(this.destroy$),
-                finalize(() => (this.loading = false))
-            )
-            .subscribe({
-                next: (introducers: any) => {
-                    this.introducers = introducers.data.filter(
-                        (i) => i.registrationStatus === 'ACTIVE'
-                    );
-                },
-                error: (error) => {
-                    console.error('Error cargando introductores:', error);
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: 'No se pudieron cargar los introductores',
-                    });
-                },
-            });
-    }
-
-    /**
-     * Escanear código QR
-     */
-    async scanQRCode(): Promise<void> {
-        try {
-            this.scanning = true;
-
-            const permissionsGranted =
-                await this.qrService.requestPermissions();
-            if (!permissionsGranted) {
-                throw new Error('Permisos de cámara denegados');
-            }
-
-            const result = await this.qrService.scanQR();
-
-            if (result.success && result.data) {
-                // Parsear datos del QR y llenar el formulario
-                this.parseQRData(result.data);
-
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'QR Escaneado',
-                    detail: 'Certificado leído correctamente',
-                });
-
-                // Validar certificado
-                await this.validateCertificate();
-            } else {
-                throw new Error(
-                    result.error || 'Error desconocido al escanear QR'
-                );
-            }
-        } catch (error: any) {
-            console.error('Error en escaneo QR:', error);
-            this.messageService.add({
-                severity: 'error',
-                summary: 'Error de Escaneo',
-                detail: error.message || 'No se pudo escanear el código QR',
-            });
-        } finally {
-            this.scanning = false;
-        }
-    }
-
-    /**
-     * Parsear datos del QR
-     */
-    private parseQRData(qrData: any): void {
-        // Asumir que el QR contiene la información en formato JSON o texto estructurado
-        try {
-            let parsedData;
-            if (typeof qrData === 'string') {
-                // Si es string, intentar parsearlo como JSON o extraer campos
-                parsedData = this.extractDataFromQRString(qrData);
-            } else {
-                parsedData = qrData;
-            }
-
-            this.receptionForm.patchValue({
-                czpmNumber: parsedData.czpmNumber || '',
-                authorizedTo: parsedData.authorizedTo || '',
-                originAreaCode: parsedData.originAreaCode || '',
-                destinationAreaCode: parsedData.destinationAreaCode || '',
-                vehiclePlate: parsedData.vehiclePlate || '',
-                totalProducts: parsedData.totalProducts || 1,
-                validTo: parsedData.validTo || '',
-                certificateNumber: parsedData.certificateNumber || '',
-            });
-        } catch (error) {
-            console.error('Error parseando QR:', error);
-            this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'No se pudo interpretar la información del QR',
-            });
-        }
-    }
-
-    /**
-     * Extraer datos del string QR
-     */
-    private extractDataFromQRString(qrString: string): any {
-        const data: any = {};
-        const lines = qrString.split('\n');
-
-        lines.forEach((line) => {
-            if (line.includes('CZPM No:')) {
-                data.czpmNumber = line.split(':')[1]?.trim();
-            } else if (line.includes('AUTORIZADO A:')) {
-                data.authorizedTo = line.split(':')[1]?.trim();
-            } else if (line.includes('CODIGÓ ÁREA ORIGEN:')) {
-                data.originAreaCode = line.split(':')[1]?.trim();
-            } else if (line.includes('CODIGÓ ÁREA DESTINO:')) {
-                data.destinationAreaCode = line.split(':')[1]?.trim();
-            } else if (line.includes('TOTAL PRODUCTOS:')) {
-                data.totalProducts = parseInt(line.split(':')[1]?.trim()) || 1;
-            } else if (line.includes('VALIDO HASTA:')) {
-                data.validTo = line.split(':')[1]?.trim();
-            } else if (line.includes('VEHICULO:')) {
-                data.vehiclePlate = line.split(':')[1]?.trim();
-            }
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Certificado Escaneado',
+            detail: `Certificado ${certificate.numeroCZPM} procesado correctamente`,
         });
 
-        return data;
+        // Cambiar automáticamente al método QR_SCAN
+        this.receptionForm.get('receptionMethod')?.setValue('QR_SCAN');
     }
 
     /**
-     * Crear certificado zoosanitario
+     * Maneja la cancelación del escaneo
      */
-    async createCertificate(): Promise<void> {
-        const formValue = this.receptionForm.value;
-
-        this.creatingCertificate = true;
-
-        const certificateData: Partial<ZoosanitaryCertificate> = {
-            czpmNumber: formValue.czpmNumber,
-            authorizedTo: formValue.authorizedTo,
-            originAreaCode: formValue.originAreaCode,
-            destinationAreaCode: formValue.destinationAreaCode,
-            vehiclePlate: formValue.vehiclePlate,
-            totalProducts: formValue.totalProducts,
-            validTo: new Date(formValue.validTo),
-            certificateNumber:
-                formValue.certificateNumber || this.generateCertificateNumber(),
-            introducerId: formValue.introducerId,
-        };
-
-        this.certificateService
-            .createCertificate(certificateData)
-            .pipe(
-                takeUntil(this.destroy$),
-                finalize(() => (this.creatingCertificate = false))
-            )
-            .subscribe({
-                next: (certificate) => {
-                    this.certificateData = certificate;
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Certificado Creado',
-                        detail: `Certificado ${certificate.certificateNumber} creado exitosamente`,
-                    });
-
-                    // Actualizar el número de certificado en el formulario
-                    this.receptionForm.patchValue({
-                        certificateNumber: certificate.certificateNumber,
-                    });
-
-                    // Validar certificado recién creado
-                    this.validateCertificate();
-                },
-                error: (error) => {
-                    console.error('Error creando certificado:', error);
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: 'No se pudo crear el certificado zoosanitario',
-                    });
-                },
-            });
+    onQRScanCancelled(): void {
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Escaneo Cancelado',
+            detail: 'El escaneo del certificado fue cancelado',
+        });
     }
 
     /**
-     * Generar número de certificado automático
+     * Llena el formulario con datos del certificado
      */
-    private generateCertificateNumber(): string {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const random = Math.floor(Math.random() * 10000)
-            .toString()
-            .padStart(4, '0');
-        return `ZOO-${year}${month}-${random}`;
+    private fillCertificateFromData(
+        certificate: AnimalHealthCertificate
+    ): void {
+        const certificateGroup = this.receptionForm.get(
+            'animalHealthCertificate'
+        ) as FormGroup;
+
+        certificateGroup.patchValue({
+            numeroCZPM: certificate.numeroCZPM || '',
+            autorizadoA: certificate.autorizadoA || '',
+            codigoAreaOrigen: certificate.codigoAreaOrigen || '',
+            codigoAreaDestino: certificate.codigoAreaDestino || '',
+            vehiculo: certificate.vehiculo || '',
+            totalProductos: certificate.totalProductos || 1,
+            validoHasta: certificate.validoHasta || new Date(),
+        });
     }
 
-    /**
-     * Validar certificado zoosanitario
-     */
-    async validateCertificate(): Promise<void> {
-        const formValue = this.receptionForm.value;
-
-        this.validatingCertificate = true;
-
-        try {
-            const errors: string[] = [];
-            const warnings: string[] = [];
-
-            // Validar fecha de expiración
-            if (formValue.validTo) {
-                const expiration = new Date(formValue.validTo);
-                const today = new Date();
-
-                if (expiration < today) {
-                    errors.push('El certificado zoosanitario ha expirado');
-                } else if (this.daysBetween(today, expiration) < 3) {
-                    warnings.push('El certificado expira en menos de 3 días');
-                }
-            }
-
-            // Validar campos requeridos
-            if (!formValue.authorizedTo) {
-                errors.push('Campo "Autorizado a" es requerido');
-            }
-            if (!formValue.originAreaCode) {
-                errors.push('Código de área origen es requerido');
-            }
-            if (!formValue.destinationAreaCode) {
-                errors.push('Código de área destino es requerido');
-            }
-            if (!formValue.vehiclePlate) {
-                errors.push('Placa del vehículo es requerida');
-            }
-
-            this.certificateValidation = {
-                isValid: errors.length === 0,
-                errors,
-                warnings,
-            };
-        } catch (error) {
-            this.certificateValidation = {
-                isValid: false,
-                errors: ['Error validando certificado'],
-                warnings: [],
-            };
-        } finally {
-            this.validatingCertificate = false;
-        }
-    }
+    // === MÉTODOS EXISTENTES (MANTENIDOS) ===
 
     /**
      * Manejar cambio en el método de recepción
      */
     onReceptionMethodChange(): void {
-        const method = this.receptionForm.get('receptionMethod')?.value;
-
         // Limpiar datos del certificado
         this.certificateData = null;
         this.certificateValidation = null;
 
         // Limpiar formulario de certificado
-        this.receptionForm.patchValue({
-            czpmNumber: '',
-            authorizedTo: '',
-            originAreaCode: '',
-            destinationAreaCode: '',
-            vehiclePlate: '',
-            totalProducts: 1,
-            validTo: '',
-            certificateNumber: '',
+        const certificateGroup = this.receptionForm.get(
+            'animalHealthCertificate'
+        ) as FormGroup;
+        certificateGroup.reset({
+            totalProductos: 1,
         });
     }
 
@@ -516,16 +356,21 @@ export class ReceptionComponent implements OnInit, OnDestroy {
             return;
         }
 
+        const certificateData = this.receptionForm.get(
+            'animalHealthCertificate'
+        )?.value;
+
         // Validar campos requeridos para entrada manual
         const requiredFields = [
-            'authorizedTo',
-            'originAreaCode',
-            'destinationAreaCode',
-            'vehiclePlate',
-            'validTo',
+            'autorizadoA',
+            'codigoAreaOrigen',
+            'codigoAreaDestino',
+            'vehiculo',
+            'validoHasta',
         ];
+
         const missingFields = requiredFields.filter(
-            (field) => !this.receptionForm.get(field)?.value
+            (field) => !certificateData[field]
         );
 
         if (missingFields.length > 0) {
@@ -537,161 +382,80 @@ export class ReceptionComponent implements OnInit, OnDestroy {
             return;
         }
 
-        // Validar certificado
+        // Crear certificado desde entrada manual
+        const manualCertificate: AnimalHealthCertificate = {
+            numeroCZPM: certificateData.numeroCZPM || `MANUAL-${Date.now()}`,
+            autorizadoA: certificateData.autorizadoA,
+            codigoAreaOrigen: certificateData.codigoAreaOrigen,
+            codigoAreaDestino: certificateData.codigoAreaDestino,
+            totalProductos: certificateData.totalProductos,
+            validoHasta: certificateData.validoHasta,
+            vehiculo: certificateData.vehiculo,
+        };
+
+        this.certificateData = manualCertificate;
         this.validateCertificate();
     }
 
-    private daysBetween(date1: Date, date2: Date): number {
-        const diff = date2.getTime() - date1.getTime();
-        return Math.ceil(diff / (1000 * 3600 * 24));
-    }
-
     /**
-     * Manejar selección de introductor
+     * Validar certificado zoosanitario
      */
-    onIntroducerSelect(): void {
-        const introducerId = this.receptionForm.get('introducerId')?.value;
-        this.selectedIntroducer =
-            this.introducers.find((i) => i._id === introducerId) || null;
-
-        if (this.selectedIntroducer) {
-            this.validatePayments();
-        }
-    }
-
-    /**
-     * Validar estado de pagos del introductor
-     */
-    private validatePayments(): void {
-        if (!this.selectedIntroducer) return;
-
-        this.validatingPayments = true;
-
-        this.introducerService
-            .validateSlaughter(this.selectedIntroducer._id!)
-            .pipe(
-                takeUntil(this.destroy$),
-                finalize(() => (this.validatingPayments = false))
-            )
-            .subscribe({
-                next: (validation) => {
-                    this.paymentValidation = {
-                        canProceed: validation.canSlaughter,
-                        inscriptionStatus: validation.canSlaughter
-                            ? 'PAID'
-                            : 'PENDING',
-                        finesStatus:
-                            validation.pendingAmount &&
-                            validation.pendingAmount > 0
-                                ? 'PENDING'
-                                : 'NONE',
-                        pendingAmount: validation.pendingAmount || 0,
-                        reason: validation.reason,
-                    };
-
-                    if (!validation.canSlaughter) {
-                        this.messageService.add({
-                            severity: 'warn',
-                            summary: 'Pagos Pendientes',
-                            detail:
-                                validation.reason ||
-                                'El introductor tiene pagos pendientes',
-                        });
-                    }
-                },
-                error: (error) => {
-                    console.error('Error validando pagos:', error);
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: 'No se pudo validar el estado de pagos',
-                    });
-                },
-            });
-    }
-
-    /**
-     * Agregar animal al formulario
-     */
-    addAnimal(): void {
-        const animalForm = this.fb.group({
-            animalId: ['', Validators.required],
-            species: ['', Validators.required],
-            weight: [null, [Validators.min(1)]],
-            condition: ['GOOD', Validators.required],
-            observations: [''],
-        });
-
-        this.animalsFormArray.push(animalForm);
-    }
-
-    /**
-     * Remover animal del formulario
-     */
-    removeAnimal(index: number): void {
-        this.confirmationService.confirm({
-            message: '¿Está seguro de que desea eliminar este animal?',
-            header: 'Confirmar Eliminación',
-            icon: 'pi pi-exclamation-triangle',
-            accept: () => {
-                this.animalsFormArray.removeAt(index);
-                this.messageService.add({
-                    severity: 'info',
-                    summary: 'Animal Eliminado',
-                    detail: 'El animal ha sido removido de la lista',
-                });
-            },
-        });
-    }
-
-    /**
-     * Auto-llenar animales desde certificado
-     */
-    autoFillAnimalsFromCertificate(): void {
-        const totalProducts = this.receptionForm.get('totalProducts')?.value;
-
-        if (!totalProducts || totalProducts < 1) {
-            this.messageService.add({
-                severity: 'warn',
-                summary: 'Sin Productos',
-                detail: 'No hay productos especificados en el certificado',
-            });
+    async validateCertificate(): Promise<void> {
+        if (!this.certificateData) {
             return;
         }
 
-        this.confirmationService.confirm({
-            message: `¿Desea auto-llenar ${totalProducts} animales según el certificado?`,
-            header: 'Auto-llenar Animales',
-            icon: 'pi pi-question-circle',
-            accept: () => {
-                // Limpiar animales existentes
-                while (this.animalsFormArray.length > 0) {
-                    this.animalsFormArray.removeAt(0);
-                }
+        try {
+            const errors: string[] = [];
+            const warnings: string[] = [];
 
-                // Agregar animales según certificado
-                for (let i = 1; i <= totalProducts; i++) {
-                    const animalForm = this.fb.group({
-                        animalId: [
-                            `ANI-${String(i).padStart(3, '0')}`,
-                            Validators.required,
-                        ],
-                        species: ['BOVINE', Validators.required], // Por defecto bovino
-                        weight: [null, [Validators.min(1)]],
-                        condition: ['GOOD', Validators.required],
-                        observations: [''],
-                    });
-                    this.animalsFormArray.push(animalForm);
-                }
+            // Validar fecha de expiración
+            if (this.certificateData.validoHasta) {
+                const expiration = new Date(this.certificateData.validoHasta);
+                const today = new Date();
 
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Animales Auto-llenados',
-                    detail: `Se agregaron ${totalProducts} animales`,
-                });
-            },
-        });
+                // Ignorar la hora para ambas fechas
+                expiration.setHours(0, 0, 0, 0);
+                today.setHours(0, 0, 0, 0);
+
+                const diffDays = this.daysBetween(today, expiration);
+
+                if (diffDays < 0) {
+                    errors.push('El certificado zoosanitario ha expirado');
+                } else if (diffDays < 3) {
+                    warnings.push('El certificado expira en menos de 3 días');
+                }
+            }
+
+            // Validar campos requeridos
+            if (!this.certificateData.autorizadoA) {
+                errors.push('Campo "Autorizado a" es requerido');
+            }
+            if (!this.certificateData.codigoAreaOrigen) {
+                errors.push('Código de área origen es requerido');
+            }
+            if (!this.certificateData.codigoAreaDestino) {
+                errors.push('Código de área destino es requerido');
+            }
+            if (!this.certificateData.vehiculo) {
+                errors.push('Vehículo es requerido');
+            }
+
+            this.certificateValidation = {
+                isValid: errors.length === 0,
+                errors,
+                warnings,
+            };
+        } catch (error) {
+            this.certificateValidation = {
+                isValid: false,
+                errors: ['Error validando certificado'],
+                warnings: [],
+            };
+        }
     }
+
+    // === MÉTODOS DE NAVEGACIÓN Y VALIDACIÓN ===
 
     /**
      * Navegar entre pasos
@@ -721,20 +485,102 @@ export class ReceptionComponent implements OnInit, OnDestroy {
         switch (this.currentStep) {
             case 1: // Certificado
                 return this.certificateValidation?.isValid || false;
-            case 2: // Introductor
-                return this.paymentValidation?.canProceed || false;
-            case 3: // Animales
-                return (
-                    this.animalsFormArray.length > 0 &&
-                    this.animalsFormArray.valid
-                );
+            case 2: // Transporte
+                return this.receptionForm.get('transporte')?.valid || false;
             default:
                 return true;
         }
     }
 
     /**
-     * Enviar formulario de recepción
+     * Obtener clase CSS para el paso actual
+     */
+    getStepClass(stepIndex: number): string {
+        if (stepIndex + 1 < this.currentStep) {
+            return 'completed';
+        } else if (stepIndex + 1 === this.currentStep) {
+            return 'active';
+        } else {
+            return 'pending';
+        }
+    }
+
+    // === MÉTODOS DE ARCHIVOS ===
+
+    /**
+     * Manejar selección de fotografías
+     */
+    onPhotosSelected(event: any): void {
+        const files = Array.from(event.files) as File[];
+
+        // Validar número máximo de archivos
+        if (this.selectedPhotos.length + files.length > this.maxPhotos) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Límite Excedido',
+                detail: `Solo se permiten máximo ${this.maxPhotos} fotografías`,
+            });
+            return;
+        }
+
+        // Validar tamaño de archivos
+        const invalidFiles = files.filter(
+            (file) => file.size > this.maxFileSize
+        );
+        if (invalidFiles.length > 0) {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Archivo Muy Grande',
+                detail: 'Cada fotografía debe ser menor a 5MB',
+            });
+            return;
+        }
+
+        // Validar tipos de archivo
+        const validTypes = [
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/webp',
+        ];
+        const invalidTypes = files.filter(
+            (file) => !validTypes.includes(file.type)
+        );
+        if (invalidTypes.length > 0) {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Tipo de Archivo Inválido',
+                detail: 'Solo se permiten imágenes JPG, PNG o WebP',
+            });
+            return;
+        }
+
+        // Agregar archivos válidos
+        this.selectedPhotos.push(...files);
+
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Fotografías Agregadas',
+            detail: `${files.length} fotografía(s) agregada(s) exitosamente`,
+        });
+    }
+
+    /**
+     * Remover fotografía
+     */
+    removePhoto(index: number): void {
+        this.selectedPhotos.splice(index, 1);
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Fotografía Removida',
+            detail: 'La fotografía ha sido removida',
+        });
+    }
+
+    // === ENVÍO DEL FORMULARIO ===
+
+    /**
+     * Enviar formulario de recepción completo
      */
     onSubmit(): void {
         if (this.receptionForm.invalid) {
@@ -747,36 +593,9 @@ export class ReceptionComponent implements OnInit, OnDestroy {
             return;
         }
 
-        // Crear certificado si es entrada manual y no existe
-        if (
-            this.receptionForm.get('receptionMethod')?.value ===
-                'MANUAL_ENTRY' &&
-            !this.certificateData
-        ) {
-            this.confirmationService.confirm({
-                message:
-                    '¿Desea crear el certificado zoosanitario con los datos ingresados?',
-                header: 'Crear Certificado',
-                icon: 'pi pi-question-circle',
-                accept: async () => {
-                    await this.createCertificate();
-                    if (this.certificateData) {
-                        this.proceedWithReception();
-                    }
-                },
-            });
-        } else {
-            this.proceedWithReception();
-        }
-    }
-
-    /**
-     * Proceder con la recepción
-     */
-    private proceedWithReception(): void {
         this.confirmationService.confirm({
             message:
-                '¿Está seguro de que desea iniciar el proceso de recepción?',
+                '¿Está seguro de que desea crear la recepción? Esto iniciará automáticamente el proceso de faenamiento.',
             header: 'Confirmar Recepción',
             icon: 'pi pi-question-circle',
             accept: () => {
@@ -786,45 +605,48 @@ export class ReceptionComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * Enviar datos de recepción
+     * Enviar datos de recepción al backend
      */
     private submitReception(): void {
         this.submitting = true;
 
         const formValue = this.receptionForm.value;
 
-        const receptionParams: ReceptionParams = {
-            zoosanitaryCertificateId:
-                this.certificateData?._id || 'temp-cert-id',
-            introducerId: formValue.introducerId,
-            receptionMethod: formValue.receptionMethod,
-            receivedAnimals: formValue.animals.map((animal: any) => ({
-                animalId: animal.animalId,
-                species: animal.species,
-                weight: animal.weight,
-                condition: animal.condition,
-                observations: animal.observations,
-            })),
-            receptionNotes: formValue.receptionNotes,
+        // Preparar datos para el backend (usando certificateData si está disponible)
+        const receptionData = {
+            animalHealthCertificate:
+                this.certificateData || formValue.animalHealthCertificate,
+            transporte: {
+                ...formValue.transporte,
+                fotografias: [], // Las fotos se envían por separado
+                inspeccionadoPor: '', // Se asignará en el backend
+            },
+            introducer: formValue.introducer,
+            prioridad: formValue.prioridad || 0,
+            fechaProgramada: formValue.fechaProgramada,
+            observaciones: formValue.observaciones,
+            fechaHoraRecepcion: new Date(),
         };
 
-        this.slaughterService
-            .startReception(receptionParams)
+        this.receptionService
+            .createWithFiles(receptionData, this.selectedPhotos)
             .pipe(
                 takeUntil(this.destroy$),
                 finalize(() => (this.submitting = false))
             )
             .subscribe({
-                next: (process) => {
+                next: (reception: any) => {
+                    console.log('Recepción:', reception);
                     this.messageService.add({
                         severity: 'success',
-                        summary: 'Recepción Exitosa',
-                        detail: `Proceso ${process.processNumber} iniciado correctamente`,
+                        summary: 'Recepción Creada',
+                        detail: 'La recepción se ha registrado exitosamente y se han creado las inspecciones correspondientes',
                     });
 
+                    // Navegar al dashboard o a la vista de la recepción
                     this.router.navigate([
-                        '/faenamiento/procesos',
-                        process._id,
+                        '/zoosanitario/workflow',
+                        reception.data.slaughterProcess._id,
                     ]);
                 },
                 error: (error) => {
@@ -833,27 +655,11 @@ export class ReceptionComponent implements OnInit, OnDestroy {
                         severity: 'error',
                         summary: 'Error en Recepción',
                         detail:
-                            error.message ||
+                            error.error?.message ||
                             'No se pudo completar la recepción',
                     });
                 },
             });
-    }
-
-    /**
-     * Marcar todos los campos como tocados
-     */
-    private markFormGroupTouched(): void {
-        Object.keys(this.receptionForm.controls).forEach((key) => {
-            const control = this.receptionForm.get(key);
-            control?.markAsTouched();
-        });
-
-        this.animalsFormArray.controls.forEach((control) => {
-            Object.keys((control as FormGroup).controls).forEach((key) => {
-                control.get(key)?.markAsTouched();
-            });
-        });
     }
 
     /**
@@ -871,36 +677,44 @@ export class ReceptionComponent implements OnInit, OnDestroy {
         });
     }
 
+    // === UTILIDADES ===
+
     /**
-     * Obtener nombre del introductor para mostrar
+     * Marcar todos los campos como tocados
      */
-    getIntroducerDisplayName(introducer: Introducer): string {
-        if (introducer.type === 'Natural') {
-            return introducer.name;
-        } else {
-            return introducer.companyName || 'Sin nombre';
-        }
+    private markFormGroupTouched(): void {
+        Object.keys(this.receptionForm.controls).forEach((key) => {
+            const control = this.receptionForm.get(key);
+            if (control instanceof FormGroup) {
+                Object.keys(control.controls).forEach((subKey) => {
+                    control.get(subKey)?.markAsTouched();
+                });
+            } else {
+                control?.markAsTouched();
+            }
+        });
     }
 
     /**
-     * Obtener clase CSS para el paso actual
+     * Calcular días entre fechas
      */
-    getStepClass(stepIndex: number): string {
-        if (stepIndex + 1 < this.currentStep) {
-            return 'completed';
-        } else if (stepIndex + 1 === this.currentStep) {
-            return 'active';
-        } else {
-            return 'pending';
-        }
+    daysBetween(date1: Date, date2: Date): number {
+        const oneDay = 1000 * 60 * 60 * 24;
+        const d1 = new Date(date1);
+        const d2 = new Date(date2);
+        d1.setHours(0, 0, 0, 0);
+        d2.setHours(0, 0, 0, 0);
+        return Math.floor((d2.getTime() - d1.getTime()) / oneDay);
     }
 
     /**
-     * Contar animales por especie
+     * Formatear tamaño de archivo
      */
-    getAnimalCountBySpecies(species: string): number {
-        return this.animalsFormArray.value.filter(
-            (animal: any) => animal.species === species
-        ).length;
+    formatFileSize(bytes: number): string {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 }

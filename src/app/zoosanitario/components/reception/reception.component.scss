@@ -174,31 +174,513 @@
         }
     }
 
-    // QR Scan Section
+    // QR Scan Sections Refactorizadas
     .qr-scan-section {
-        .border-dashed {
-            background: var(--surface-hover);
-            border-color: var(--primary-color) !important;
-            transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
 
-            &:hover {
-                background: var(--surface-section);
-                transform: translateY(-2px);
+        .native-qr-section,
+        .web-qr-section {
+            .qr-native-container,
+            .qr-web-container {
+                background: linear-gradient(
+                    135deg,
+                    var(--surface-hover) 0%,
+                    var(--surface-section) 100%
+                );
+                border-color: var(--primary-color) !important;
+                border-width: 2px !important;
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+
+                &::before {
+                    content: "";
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(
+                        90deg,
+                        transparent,
+                        rgba(var(--primary-color-rgb), 0.1),
+                        transparent
+                    );
+                    transition: left 1.5s;
+                }
+
+                &:hover {
+                    background: linear-gradient(
+                        135deg,
+                        var(--surface-section) 0%,
+                        var(--surface-hover) 100%
+                    );
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(var(--primary-color-rgb), 0.2);
+
+                    &::before {
+                        left: 100%;
+                    }
+                }
+
+                .pi-qrcode {
+                    color: var(--primary-color);
+                    text-shadow: 0 2px 4px rgba(var(--primary-color-rgb), 0.3);
+                }
+
+                h4 {
+                    color: var(--text-color);
+                    margin-bottom: 0.5rem;
+                    font-weight: 600;
+                }
+
+                p {
+                    color: var(--text-color-secondary);
+                    line-height: 1.4;
+                }
+            }
+        }
+
+        // Instrucciones paso a paso para dispositivos nativos
+        .qr-instructions {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: rgba(var(--primary-color-rgb), 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(var(--primary-color-rgb), 0.1);
+
+            .instruction-step {
+                display: flex;
+                align-items: center;
+                margin-bottom: 1rem;
+                padding: 0.75rem;
+                background: var(--surface-card);
+                border-radius: 8px;
+                transition: all 0.3s ease;
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+
+                &:hover {
+                    transform: translateX(5px);
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                }
+
+                .step-number {
+                    width: 28px;
+                    height: 28px;
+                    background: var(--primary-color);
+                    color: var(--primary-color-text);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 600;
+                    font-size: 0.875rem;
+                    margin-right: 1rem;
+                    flex-shrink: 0;
+                    box-shadow: 0 2px 8px rgba(var(--primary-color-rgb), 0.3);
+                }
+
+                .step-text {
+                    color: var(--text-color);
+                    font-weight: 500;
+                    font-size: 0.95rem;
+                    line-height: 1.3;
+                }
+            }
+        }
+
+        // Botones para dispositivos nativos
+        .native-scan-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+
+            .p-button {
+                border-radius: 12px;
+                font-weight: 600;
+                padding: 1rem 2rem;
+                min-width: 200px;
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+
+                &::before {
+                    content: "";
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    width: 0;
+                    height: 0;
+                    background: rgba(255, 255, 255, 0.2);
+                    border-radius: 50%;
+                    transform: translate(-50%, -50%);
+                    transition: width 0.3s, height 0.3s;
+                }
+
+                &:hover::before {
+                    width: 300px;
+                    height: 300px;
+                }
+
+                &:not(.p-button-outlined):not(.p-button-text) {
+                    box-shadow: 0 6px 20px rgba(var(--primary-color-rgb), 0.4);
+
+                    &:hover {
+                        transform: translateY(-3px);
+                        box-shadow: 0 8px 25px
+                            rgba(var(--primary-color-rgb), 0.5);
+                    }
+                }
+
+                &.p-button-outlined {
+                    border: 2px solid var(--primary-color);
+                    background: transparent;
+
+                    &:hover {
+                        background: var(--primary-color);
+                        color: var(--primary-color-text);
+                        transform: translateY(-2px);
+                    }
+                }
+
+                .p-button-icon {
+                    margin-right: 0.5rem;
+                    font-size: 1.1rem;
+                }
             }
 
-            .pi-qrcode {
-                color: var(--primary-color);
+            .flex.gap-2 {
+                .p-button {
+                    min-width: auto;
+                    padding: 0.75rem 1.5rem;
+                    font-size: 0.875rem;
+                }
+            }
+        }
+
+        // Estado de escaneo activo
+        .scanning-status {
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(
+                135deg,
+                rgba(var(--primary-color-rgb), 0.1) 0%,
+                rgba(var(--primary-color-rgb), 0.05) 100%
+            );
+            border-radius: 12px;
+            border: 2px dashed var(--primary-color);
+            position: relative;
+            overflow: hidden;
+
+            &::before {
+                content: "";
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: conic-gradient(
+                    from 0deg,
+                    transparent,
+                    rgba(var(--primary-color-rgb), 0.1),
+                    transparent
+                );
+                animation: rotate 3s linear infinite;
+            }
+
+            .scanning-animation {
+                position: relative;
+                z-index: 1;
+                margin-bottom: 1rem;
+
+                .pi-spinner {
+                    font-size: 3rem;
+                    color: var(--primary-color);
+                }
+            }
+
+            p {
+                position: relative;
+                z-index: 1;
+                margin: 0.5rem 0;
+
+                &.text-primary {
+                    font-size: 1.1rem;
+                    margin-bottom: 0.5rem;
+                }
+
+                &.text-600 {
+                    font-size: 0.9rem;
+                    margin-bottom: 1.5rem;
+                }
             }
 
             .p-button {
-                --p-button-background: var(--primary-color);
-                --p-button-border: 1px solid var(--primary-color);
-                --p-button-color: var(--primary-color-text);
-                box-shadow: 0 4px 15px rgba(var(--primary-color-rgb), 0.3);
+                position: relative;
+                z-index: 1;
+            }
+        }
 
-                &:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 20px rgba(var(--primary-color-rgb), 0.4);
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    }
+
+    // Badge del método de escaneo
+    .scan-method-badge {
+        margin-top: 1rem;
+        text-align: center;
+
+        .p-tag {
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            background: linear-gradient(
+                135deg,
+                var(--blue-500),
+                var(--blue-600)
+            );
+            border: none;
+            color: white;
+            box-shadow: 0 2px 8px rgba(var(--blue-500-rgb), 0.3);
+
+            .p-tag-icon {
+                margin-right: 0.5rem;
+            }
+        }
+    }
+
+    // Manual Entry Section (mantenido de la versión anterior)
+    .manual-entry-section {
+        padding: 1.5rem;
+        background: var(--surface-card);
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 1rem;
+
+        @media (max-width: 768px) {
+            padding: 1rem;
+            margin: 0 -0.5rem 1rem;
+            border-radius: 8px;
+        }
+
+        h5 {
+            color: var(--text-color);
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--surface-border);
+
+            @media (max-width: 768px) {
+                font-size: 1.1rem;
+                margin-bottom: 1rem;
+                padding-bottom: 0.5rem;
+            }
+        }
+
+        .grid {
+            gap: 0rem;
+
+            @media (max-width: 768px) {
+                gap: 0.75rem;
+            }
+        }
+
+        .field {
+            margin-bottom: 0;
+
+            label {
+                display: block;
+                font-weight: 600;
+                color: var(--text-color);
+                margin-bottom: 0.5rem;
+                font-size: 0.95rem;
+
+                @media (max-width: 768px) {
+                    font-size: 0.9rem;
+                    margin-bottom: 0.4rem;
+                }
+
+                &:after {
+                    content: "";
+                    color: var(--red-500);
+                }
+            }
+
+            // Input styles
+            input[pInputText] {
+                width: 100%;
+                padding: 0.75rem;
+                border: 1px solid var(--surface-border);
+                border-radius: 6px;
+                transition: all 0.3s ease;
+                font-size: 0.95rem;
+                background: var(--surface-ground);
+
+                @media (max-width: 768px) {
+                    padding: 0.65rem;
+                    font-size: 16px; // Prevents zoom on iOS
+                }
+
+                &:focus {
+                    border-color: var(--primary-color);
+                    box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.2);
+                    outline: none;
+                    background: var(--surface-card);
+                }
+
+                &::placeholder {
+                    color: var(--text-color-secondary);
+                    opacity: 0.7;
+                }
+
+                &.ng-invalid.ng-touched {
+                    border-color: var(--red-500);
+                    background: rgba(var(--red-500-rgb), 0.05);
+                }
+            }
+
+            // PrimeNG InputNumber styles
+            ::ng-deep p-inputnumber {
+                width: 100%;
+
+                .p-inputnumber-input {
+                    width: 100% !important;
+                    padding: 0.75rem;
+                    border: 1px solid var(--surface-border);
+                    border-radius: 6px;
+                    transition: all 0.3s ease;
+                    font-size: 0.95rem;
+                    background: var(--surface-ground);
+
+                    @media (max-width: 768px) {
+                        padding: 0.65rem;
+                        font-size: 16px;
+                    }
+
+                    &:focus {
+                        border-color: var(--primary-color);
+                        box-shadow: 0 0 0 0.2rem
+                            rgba(var(--primary-color-rgb), 0.2);
+                        outline: none;
+                        background: var(--surface-card);
+                    }
+                }
+
+                &.ng-invalid .p-inputnumber-input {
+                    border-color: var(--red-500);
+                    background: rgba(var(--red-500-rgb), 0.05);
+                }
+            }
+
+            // PrimeNG Calendar styles
+            ::ng-deep p-calendar {
+                width: 100%;
+
+                .p-calendar {
+                    width: 100%;
+
+                    .p-inputtext {
+                        width: 100% !important;
+                        padding: 0.75rem 2.5rem 0.75rem 0.75rem;
+                        border: 1px solid var(--surface-border);
+                        border-radius: 6px;
+                        transition: all 0.3s ease;
+                        font-size: 0.95rem;
+                        background: var(--surface-ground);
+
+                        @media (max-width: 768px) {
+                            padding: 0.65rem 2.5rem 0.65rem 0.65rem;
+                            font-size: 16px;
+                        }
+
+                        &:focus {
+                            border-color: var(--primary-color);
+                            box-shadow: 0 0 0 0.2rem
+                                rgba(var(--primary-color-rgb), 0.2);
+                            outline: none;
+                            background: var(--surface-card);
+                        }
+                    }
+
+                    .p-datepicker-trigger {
+                        right: 0.75rem;
+                        color: var(--text-color-secondary);
+
+                        @media (max-width: 768px) {
+                            right: 0.65rem;
+                        }
+                    }
+                }
+
+                &.ng-invalid .p-calendar .p-inputtext {
+                    border-color: var(--red-500);
+                    background: rgba(var(--red-500-rgb), 0.05);
+                }
+            }
+
+            // Error message styles
+            .p-error {
+                color: var(--red-500);
+                font-size: 0.85rem;
+                margin-top: 0.25rem;
+                display: block;
+                line-height: 1.4;
+
+                @media (max-width: 768px) {
+                    font-size: 0.8rem;
+                }
+            }
+        }
+
+        // Button container
+        .flex.justify-content-end {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--surface-border);
+
+            @media (max-width: 768px) {
+                margin-top: 1.5rem;
+                justify-content: center !important;
+            }
+
+            ::ng-deep p-button {
+                .p-button {
+                    padding: 0.75rem 1.5rem;
+                    font-weight: 600;
+                    border-radius: 6px;
+                    transition: all 0.3s ease;
+
+                    @media (max-width: 768px) {
+                        padding: 0.8rem 2rem;
+                        width: 100%;
+                        max-width: 280px;
+                    }
+
+                    &:not(:disabled):hover {
+                        transform: translateY(-1px);
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                    }
+
+                    &:disabled {
+                        opacity: 0.6;
+                        cursor: not-allowed;
+                    }
+
+                    .p-button-icon {
+                        margin-right: 0.5rem;
+                    }
                 }
             }
         }
@@ -642,6 +1124,85 @@
             }
         }
 
+        // QR Scan responsive
+        .qr-scan-section {
+            .native-qr-section,
+            .web-qr-section {
+                .qr-native-container,
+                .qr-web-container {
+                    padding: 1.5rem !important;
+
+                    .pi-qrcode {
+                        font-size: 4rem !important;
+                    }
+
+                    h4 {
+                        font-size: 1.1rem;
+                    }
+
+                    p {
+                        font-size: 0.9rem;
+                    }
+                }
+            }
+
+            .qr-instructions {
+                margin: 1rem 0;
+                padding: 0.75rem;
+
+                .instruction-step {
+                    padding: 0.5rem;
+                    margin-bottom: 0.75rem;
+
+                    .step-number {
+                        width: 24px;
+                        height: 24px;
+                        font-size: 0.8rem;
+                        margin-right: 0.75rem;
+                    }
+
+                    .step-text {
+                        font-size: 0.85rem;
+                    }
+                }
+            }
+
+            .native-scan-buttons {
+                .p-button {
+                    min-width: 100%;
+                    padding: 0.875rem 1.5rem;
+                    font-size: 0.9rem;
+                }
+
+                .flex.gap-2 {
+                    flex-direction: column;
+                    width: 100%;
+
+                    .p-button {
+                        width: 100%;
+                    }
+                }
+            }
+
+            .scanning-status {
+                padding: 1.5rem;
+
+                .scanning-animation .pi-spinner {
+                    font-size: 2.5rem;
+                }
+
+                p {
+                    &.text-primary {
+                        font-size: 1rem;
+                    }
+
+                    &.text-600 {
+                        font-size: 0.85rem;
+                    }
+                }
+            }
+        }
+
         .animals-toolbar {
             .flex {
                 flex-direction: column;
@@ -677,6 +1238,16 @@
             .p-button {
                 width: 100%;
             }
+        }
+
+        // Responsive grid adjustments
+        .col-12.md\\:col-6 {
+            width: 100% !important;
+            padding: 0 0.5rem;
+        }
+
+        .col-12 {
+            padding: 0 0.5rem;
         }
     }
 
@@ -753,247 +1324,38 @@
     }
 }
 
-// Certificado Zoosanitario Styles
-.manual-entry-section {
-    padding: 1.5rem;
-    background: var(--surface-card);
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-    margin-bottom: 1rem;
-
-    @media (max-width: 768px) {
-        padding: 1rem;
-        margin: 0 -0.5rem 1rem;
-        border-radius: 8px;
-    }
-
-    h5 {
-        color: var(--text-color);
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 2px solid var(--surface-border);
-
-        @media (max-width: 768px) {
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-        }
-    }
-
-    .grid {
-        gap: 0rem;
-
-        @media (max-width: 768px) {
-            gap: 0.75rem;
-        }
-    }
-
-    .field {
-        margin-bottom: 0;
-
-        label {
-            display: block;
-            font-weight: 600;
-            color: var(--text-color);
-            margin-bottom: 0.5rem;
-            font-size: 0.95rem;
-
-            @media (max-width: 768px) {
-                font-size: 0.9rem;
-                margin-bottom: 0.4rem;
-            }
-
-            &:after {
-                content: "";
-                color: var(--red-500);
-            }
-        }
-
-        // Input styles
-        input[pInputText] {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--surface-border);
-            border-radius: 6px;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;
-            background: var(--surface-ground);
-
-            @media (max-width: 768px) {
-                padding: 0.65rem;
-                font-size: 16px; // Prevents zoom on iOS
-            }
-
-            &:focus {
-                border-color: var(--primary-color);
-                box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.2);
-                outline: none;
-                background: var(--surface-card);
-            }
-
-            &::placeholder {
-                color: var(--text-color-secondary);
-                opacity: 0.7;
-            }
-
-            &.ng-invalid.ng-touched {
-                border-color: var(--red-500);
-                background: rgba(var(--red-500-rgb), 0.05);
-            }
-        }
-
-        // PrimeNG InputNumber styles
-        ::ng-deep p-inputnumber {
-            width: 100%;
-
-            .p-inputnumber-input {
-                width: 100% !important;
-                padding: 0.75rem;
-                border: 1px solid var(--surface-border);
-                border-radius: 6px;
-                transition: all 0.3s ease;
-                font-size: 0.95rem;
-                background: var(--surface-ground);
-
-                @media (max-width: 768px) {
-                    padding: 0.65rem;
-                    font-size: 16px;
-                }
-
-                &:focus {
-                    border-color: var(--primary-color);
-                    box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.2);
-                    outline: none;
-                    background: var(--surface-card);
-                }
-            }
-
-            &.ng-invalid .p-inputnumber-input {
-                border-color: var(--red-500);
-                background: rgba(var(--red-500-rgb), 0.05);
-            }
-        }
-
-        // PrimeNG Calendar styles
-        ::ng-deep p-calendar {
-            width: 100%;
-
-            .p-calendar {
-                width: 100%;
-
-                .p-inputtext {
-                    width: 100% !important;
-                    padding: 0.75rem 2.5rem 0.75rem 0.75rem;
-                    border: 1px solid var(--surface-border);
-                    border-radius: 6px;
-                    transition: all 0.3s ease;
-                    font-size: 0.95rem;
-                    background: var(--surface-ground);
-
-                    @media (max-width: 768px) {
-                        padding: 0.65rem 2.5rem 0.65rem 0.65rem;
-                        font-size: 16px;
-                    }
-
-                    &:focus {
-                        border-color: var(--primary-color);
-                        box-shadow: 0 0 0 0.2rem
-                            rgba(var(--primary-color-rgb), 0.2);
-                        outline: none;
-                        background: var(--surface-card);
-                    }
-                }
-
-                .p-datepicker-trigger {
-                    right: 0.75rem;
-                    color: var(--text-color-secondary);
-
-                    @media (max-width: 768px) {
-                        right: 0.65rem;
-                    }
-                }
-            }
-
-            &.ng-invalid .p-calendar .p-inputtext {
-                border-color: var(--red-500);
-                background: rgba(var(--red-500-rgb), 0.05);
-            }
-        }
-
-        // Error message styles
-        .p-error {
-            color: var(--red-500);
-            font-size: 0.85rem;
-            margin-top: 0.25rem;
-            display: block;
-            line-height: 1.4;
-
-            @media (max-width: 768px) {
-                font-size: 0.8rem;
-            }
-        }
-    }
-
-    // Button container
-    .flex.justify-content-end {
-        margin-top: 2rem;
-        padding-top: 1rem;
-        border-top: 1px solid var(--surface-border);
-
-        @media (max-width: 768px) {
-            margin-top: 1.5rem;
-            justify-content: center !important;
-        }
-
-        ::ng-deep p-button {
-            .p-button {
-                padding: 0.75rem 1.5rem;
-                font-weight: 600;
-                border-radius: 6px;
-                transition: all 0.3s ease;
-
-                @media (max-width: 768px) {
-                    padding: 0.8rem 2rem;
-                    width: 100%;
-                    max-width: 280px;
-                }
-
-                &:not(:disabled):hover {
-                    transform: translateY(-1px);
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                }
-
-                &:disabled {
-                    opacity: 0.6;
-                    cursor: not-allowed;
-                }
-
-                .p-button-icon {
-                    margin-right: 0.5rem;
-                }
-            }
-        }
-    }
-}
-
-// Responsive grid adjustments
-@media (max-width: 768px) {
-    .col-12.md\\:col-6 {
-        width: 100% !important;
-        padding: 0 0.5rem;
-    }
-
-    .col-12 {
-        padding: 0 0.5rem;
-    }
-}
-
 // Dark mode support
 @media (prefers-color-scheme: dark) {
-    .manual-entry-section {
-        background: var(--surface-card);
+    .manual-entry-section,
+    .qr-scan-section {
+        .native-qr-section,
+        .web-qr-section {
+            .qr-native-container,
+            .qr-web-container {
+                background: linear-gradient(
+                    135deg,
+                    var(--surface-card) 0%,
+                    var(--surface-section) 100%
+                );
+            }
+        }
+
+        .qr-instructions {
+            background: rgba(var(--primary-color-rgb), 0.08);
+            border-color: rgba(var(--primary-color-rgb), 0.15);
+
+            .instruction-step {
+                background: var(--surface-ground);
+            }
+        }
+
+        .scanning-status {
+            background: linear-gradient(
+                135deg,
+                rgba(var(--primary-color-rgb), 0.15) 0%,
+                rgba(var(--primary-color-rgb), 0.08) 100%
+            );
+        }
 
         input[pInputText],
         ::ng-deep .p-inputnumber-input,
@@ -1015,18 +1377,8 @@
     }
 }
 
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
-}
-
 // Focus management for better accessibility
-.manual-entry-section {
+.reception-container {
     *:focus {
         outline: 2px solid var(--primary-color);
         outline-offset: 2px;
@@ -1036,13 +1388,438 @@
 // Capacitor specific adjustments
 @supports (-webkit-touch-callout: none) {
     // iOS Safari specific styles
-    .manual-entry-section {
+    .reception-container {
         .field input[pInputText],
         ::ng-deep .p-inputnumber-input,
         ::ng-deep .p-calendar .p-inputtext {
             font-size: 16px; // Prevents zoom
             -webkit-appearance: none;
             border-radius: 6px;
+        }
+
+        .qr-scan-section {
+            .native-scan-buttons .p-button {
+                -webkit-tap-highlight-color: transparent;
+            }
+        }
+    }
+}
+
+::ng-deep {
+    // Asegurar que los diálogos estén por encima de todo
+    .p-dialog-mask {
+        z-index: 9999 !important;
+    }
+
+    // Estilos para el dialog
+    .p-dialog {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+
+        .p-dialog-header {
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .p-dialog-content {
+            padding: 0;
+        }
+
+        .p-dialog-footer {
+            padding: 1rem;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+        }
+    }
+
+    // Estilos para los mensajes toast
+    .p-toast {
+        z-index: 10000 !important;
+    }
+}
+
+// Estilos específicos para el contenido del scanner
+.qr-scanner-content {
+    padding: 2rem 1rem;
+    min-height: 350px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+// Estados del escáner
+.scanner-state {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+
+    .state-icon {
+        margin-bottom: 1.5rem;
+        height: 80px;
+        width: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: rgba(33, 150, 83, 0.1);
+
+        &.success {
+            background-color: rgba(33, 150, 83, 0.15);
+            animation: pulse 1.5s infinite;
+        }
+    }
+
+    .state-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .state-message {
+        margin-bottom: 1.5rem;
+        max-width: 300px;
+    }
+}
+
+// Animación de pulso para los íconos
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(33, 150, 83, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 15px rgba(33, 150, 83, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(33, 150, 83, 0);
+    }
+}
+
+// Formulario de entrada manual
+.manual-form {
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+
+    input {
+        height: 48px;
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+    }
+}
+
+// Previsualización del resultado
+.result-preview {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.75rem;
+    width: 100%;
+    max-width: 300px;
+    margin: 1rem 0;
+
+    .result-code {
+        font-family: monospace;
+        font-size: 0.85rem;
+        overflow-wrap: break-word;
+        word-break: break-all;
+        text-align: left;
+        white-space: pre-wrap;
+        max-height: 100px;
+        overflow-y: auto;
+    }
+}
+
+// Opciones de escaneo
+.scan-options {
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+// Footer del scanner
+.scanner-footer {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+// Estilos específicos para las alertas en Android
+:host-context(.md) {
+    ::ng-deep .qr-scan-alert,
+    ::ng-deep .qr-toast-alert {
+        --backdrop-opacity: 0.6;
+        --background: #ffffff;
+        --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        --min-width: 280px;
+        --max-width: 90%;
+        --width: 90%;
+        --min-height: auto;
+        border-radius: 12px;
+
+        .alert-title {
+            color: var(--ion-color-dark);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .alert-message {
+            color: var(--ion-color-medium);
+            font-size: 1rem;
+        }
+
+        .alert-button-group {
+            display: flex;
+            flex-direction: column;
+            padding: 0.5rem;
+
+            button {
+                margin: 0.25rem 0;
+                height: 44px;
+                font-size: 1rem;
+                font-weight: 500;
+                text-transform: none;
+
+                &.alert-button-primary {
+                    --background: var(--ion-color-primary);
+                    --color: white;
+                }
+
+                &.alert-button-cancel {
+                    --background: var(--ion-color-light);
+                    --color: var(--ion-color-dark);
+                }
+
+                &.alert-button-paste {
+                    --background: var(--ion-color-secondary);
+                    --color: white;
+                }
+            }
+        }
+    }
+}
+
+// Agregar estos estilos dentro de .qr-scan-section
+.qr-scanner-card {
+    background: linear-gradient(
+        135deg,
+        var(--surface-hover) 0%,
+        var(--surface-section) 100%
+    );
+    border: 2px solid var(--primary-color);
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(var(--primary-color-rgb), 0.1),
+            transparent
+        );
+        transition: left 1.5s;
+    }
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(var(--primary-color-rgb), 0.2);
+
+        &::before {
+            left: 100%;
+        }
+    }
+}
+
+.scanner-header {
+    margin-bottom: 2rem;
+
+    .pi-qrcode {
+        color: var(--primary-color);
+        text-shadow: 0 2px 4px rgba(var(--primary-color-rgb), 0.3);
+    }
+
+    h4 {
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    p {
+        color: var(--text-color-secondary);
+        line-height: 1.4;
+    }
+}
+
+.available-methods {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: rgba(var(--primary-color-rgb), 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(var(--primary-color-rgb), 0.1);
+
+    h6 {
+        color: var(--text-color);
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .methods-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+
+        .method-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: var(--surface-card);
+            border-radius: 8px;
+            border: 1px solid var(--surface-border);
+            transition: all 0.3s ease;
+
+            &:hover {
+                transform: translateX(5px);
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                border-color: var(--primary-color);
+            }
+
+            .pi {
+                color: var(--primary-color);
+                font-size: 1.2rem;
+                margin-right: 0.75rem;
+                flex-shrink: 0;
+            }
+
+            span {
+                color: var(--text-color);
+                font-weight: 500;
+                font-size: 0.9rem;
+            }
+        }
+    }
+}
+
+.scanner-actions {
+    .p-button {
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        &:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        &:not(.p-button-outlined) {
+            box-shadow: 0 6px 20px rgba(var(--primary-color-rgb), 0.4);
+
+            &:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 25px rgba(var(--primary-color-rgb), 0.5);
+            }
+        }
+    }
+
+    .alternative-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+
+        .p-button {
+            min-width: 160px;
+            font-size: 0.875rem;
+
+            &.p-button-outlined {
+                border: 2px solid var(--primary-color);
+                background: transparent;
+
+                &:hover {
+                    background: var(--primary-color);
+                    color: var(--primary-color-text);
+                    transform: translateY(-2px);
+                }
+
+                &[severity="secondary"] {
+                    border-color: var(--surface-600);
+                    color: var(--surface-600);
+
+                    &:hover {
+                        background: var(--surface-600);
+                        color: var(--surface-0);
+                    }
+                }
+
+                &[severity="info"] {
+                    border-color: var(--blue-500);
+                    color: var(--blue-500);
+
+                    &:hover {
+                        background: var(--blue-500);
+                        color: white;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Responsive para nuevos elementos
+@media (max-width: 768px) {
+    .qr-scanner-card {
+        padding: 1.5rem;
+        margin: 0 -0.5rem;
+    }
+
+    .available-methods {
+        .methods-list {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .scanner-actions {
+        .alternative-actions {
+            flex-direction: column;
+            align-items: center;
+
+            .p-button {
+                width: 100%;
+                max-width: 280px;
+            }
         }
     }
 }

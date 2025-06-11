@@ -5,6 +5,17 @@ import { HttpParams } from '@angular/common/http';
 import { tap, catchError } from 'rxjs/operators';
 
 // Interfaces
+export interface AnimalHealthCertificate {
+    _id?: string;
+    numeroCZPM: string;
+    autorizadoA: string;
+    codigoAreaOrigen: string;
+    codigoAreaDestino: string;
+    totalProductos: number;
+    validoHasta: Date;
+    vehiculo?: string;
+}
+
 export interface Transporte {
     temperatura: number;
     humedadAmbiental: number;
@@ -18,7 +29,7 @@ export interface Transporte {
 
 export interface Reception {
     _id?: string;
-    animalHealthCertificate: string;
+    animalHealthCertificate: AnimalHealthCertificate;
     transporte: Transporte;
     fechaHoraRecepcion: Date;
     prioridad?: number;
@@ -26,6 +37,7 @@ export interface Reception {
     observaciones?: string;
     estado: 'Pendiente' | 'Procesando' | 'Completado' | 'Rechazado';
     responsable?: string;
+    introducer?: string;
     createdBy: string;
     updatedBy?: string;
     createdAt?: Date;
@@ -53,7 +65,7 @@ export interface ReceptionStats {
 })
 export class ReceptionService extends BaseService<Reception> {
     constructor() {
-        super('/reception');
+        super('reception');
     }
 
     // Crear recepción con archivos
@@ -80,20 +92,8 @@ export class ReceptionService extends BaseService<Reception> {
             .pipe(
                 tap(() => {
                     this.cacheService.clearByPrefix(this.endpoint);
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Éxito',
-                        detail: 'Recepción creada correctamente',
-                    });
                 }),
                 catchError((error) => {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail:
-                            error.error?.message ||
-                            'Error al crear la recepción',
-                    });
                     throw error;
                 })
             );

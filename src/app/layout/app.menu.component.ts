@@ -92,7 +92,7 @@ export class AppMenuComponent implements OnInit {
                     {
                         label: 'Flujo de Trabajo',
                         icon: 'pi pi-fw pi-exclamation-triangle',
-                        routerLink: ['/zoosanitario/reception'],
+                        routerLink: ['/zoosanitario/workflow'],
                         visible: permissions.canViewZooSanitario,
                     },
                     {

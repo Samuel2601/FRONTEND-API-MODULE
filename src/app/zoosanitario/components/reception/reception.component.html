@@ -1,3 +1,4 @@
+<!-- src/app/components/reception/reception.component.html -->
 <div class="reception-container">
     <!-- Header -->
     <div class="reception-header">
@@ -7,8 +8,16 @@
                     Recepción de Animales
                 </h1>
                 <p class="text-white opacity-90">
-                    Etapa 1: Registro y validación inicial
+                    Registro completo de recepción y condiciones de transporte
                 </p>
+                <div class="platform-info mt-2">
+                    <p-tag
+                        [value]="'Plataforma: ' + getPlatform().toUpperCase()"
+                        severity="info"
+                        [rounded]="true"
+                    >
+                    </p-tag>
+                </div>
             </div>
             <div class="flex gap-2">
                 <p-button
@@ -43,14 +52,14 @@
 
     <!-- Main Content -->
     <form [formGroup]="receptionForm" (ngSubmit)="onSubmit()">
-        <!-- Paso 1: Certificado Zoosanitario -->
+        <!-- ===== PASO 1: CERTIFICADO ZOOSANITARIO ===== -->
         <div class="step-content-panel" *ngIf="currentStep === 1">
             <p-card header="Certificado Zoosanitario" styleClass="h-full">
                 <!-- Método de Recepción -->
                 <div class="field mb-4">
-                    <label for="receptionMethod" class="font-semibold"
-                        >Método de Recepción</label
-                    >
+                    <label for="receptionMethod" class="font-semibold">
+                        Método de Recepción
+                    </label>
                     <p-selectButton
                         id="receptionMethod"
                         formControlName="receptionMethod"
@@ -63,7 +72,7 @@
                     </p-selectButton>
                 </div>
 
-                <!-- Botón de Escaneo QR -->
+                <!-- Sección de Escaneo QR (Refactorizada) -->
                 <div
                     class="qr-scan-section mb-4"
                     *ngIf="
@@ -71,25 +80,84 @@
                         'QR_SCAN'
                     "
                 >
-                    <div
-                        class="text-center p-4 border-2 border-dashed border-300 border-round"
-                    >
-                        <i class="pi pi-qrcode text-6xl text-400 mb-3"></i>
-                        <h4 class="text-900 mb-2">
-                            Escanear Código QR del Certificado
-                        </h4>
-                        <p class="text-600 mb-4">
-                            Posicione el código QR del certificado zoosanitario
-                            frente a la cámara
-                        </p>
-                        <p-button
-                            icon="pi pi-camera"
-                            label="Iniciar Escáner"
-                            [loading]="scanning"
-                            loadingIcon="pi pi-spin pi-cog"
-                            (onClick)="scanQRCode()"
-                        >
-                        </p-button>
+                    <div class="qr-scanner-card">
+                        <div class="scanner-header">
+                            <i
+                                class="pi pi-qrcode text-6xl text-primary mb-3"
+                            ></i>
+                            <h4 class="text-900 mb-2">
+                                Escanear Certificado Zoosanitario
+                            </h4>
+                            <p class="text-600 mb-4">
+                                Use uno de los métodos disponibles para escanear
+                                el código QR
+                            </p>
+                        </div>
+
+                        <!-- Métodos Disponibles -->
+                        <div class="available-methods mb-4">
+                            <h6 class="text-700 mb-3">
+                                Métodos disponibles en su dispositivo:
+                            </h6>
+                            <div class="methods-list">
+                                <div
+                                    class="method-item"
+                                    *ngFor="let method of getAvailableMethods()"
+                                >
+                                    <i
+                                        class="pi"
+                                        [class.pi-camera]="
+                                            method.includes('camera')
+                                        "
+                                        [class.pi-image]="
+                                            method === 'file-upload'
+                                        "
+                                        [class.pi-clipboard]="
+                                            method.includes('clipboard')
+                                        "
+                                        [class.pi-pencil]="
+                                            method === 'manual-input'
+                                        "
+                                    ></i>
+                                    <span>{{ getMethodLabel(method) }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botón Principal de Escaneo -->
+                        <div class="scanner-actions">
+                            <p-button
+                                label="Iniciar Escaneo QR"
+                                icon="pi pi-qrcode"
+                                size="large"
+                                styleClass="w-full mb-3"
+                                (onClick)="openQRScanner()"
+                            >
+                            </p-button>
+
+                            <!-- Botones Alternativos -->
+                            <div class="alternative-actions">
+                                <p-button
+                                    label="Escanear desde Archivo"
+                                    icon="pi pi-image"
+                                    severity="secondary"
+                                    [outlined]="true"
+                                    size="small"
+                                    (onClick)="openQRScanner()"
+                                >
+                                </p-button>
+
+                                <p-button
+                                    label="Pegar desde Portapapeles"
+                                    icon="pi pi-clipboard"
+                                    severity="info"
+                                    [outlined]="true"
+                                    size="small"
+                                    (onClick)="openQRScanner()"
+                                >
+                                </p-button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -100,6 +168,7 @@
                         receptionForm.get('receptionMethod')?.value ===
                         'MANUAL_ENTRY'
                     "
+                    formGroupName="animalHealthCertificate"
                 >
                     <h5 class="text-900 mb-3">
                         Datos del Certificado Zoosanitario
@@ -109,14 +178,14 @@
                         <!-- CZPM Number -->
                         <div class="col-12 md:col-6">
                             <div class="field">
-                                <label for="czpmNumber" class="font-semibold"
-                                    >CZPM No</label
-                                >
+                                <label for="numeroCZPM" class="font-semibold">
+                                    CZPM No
+                                </label>
                                 <input
                                     type="text"
                                     pInputText
-                                    id="czpmNumber"
-                                    formControlName="czpmNumber"
+                                    id="numeroCZPM"
+                                    formControlName="numeroCZPM"
                                     placeholder="Ej: 2023-05-9765837433"
                                     styleClass="w-full"
                                 />
@@ -126,30 +195,34 @@
                         <!-- Autorizado A -->
                         <div class="col-12 md:col-6">
                             <div class="field">
-                                <label for="authorizedTo" class="font-semibold"
-                                    >Autorizado A *</label
-                                >
+                                <label for="autorizadoA" class="font-semibold">
+                                    Autorizado A *
+                                </label>
                                 <input
                                     type="text"
                                     pInputText
-                                    id="authorizedTo"
-                                    formControlName="authorizedTo"
+                                    id="autorizadoA"
+                                    formControlName="autorizadoA"
                                     placeholder="Ej: 0801921727"
                                     styleClass="w-full"
                                     [class.ng-invalid]="
-                                        receptionForm.get('authorizedTo')
-                                            ?.invalid &&
-                                        receptionForm.get('authorizedTo')
-                                            ?.touched
+                                        receptionForm.get(
+                                            'animalHealthCertificate.autorizadoA'
+                                        )?.invalid &&
+                                        receptionForm.get(
+                                            'animalHealthCertificate.autorizadoA'
+                                        )?.touched
                                     "
                                 />
                                 <small
                                     class="p-error"
                                     *ngIf="
-                                        receptionForm.get('authorizedTo')
-                                            ?.invalid &&
-                                        receptionForm.get('authorizedTo')
-                                            ?.touched
+                                        receptionForm.get(
+                                            'animalHealthCertificate.autorizadoA'
+                                        )?.invalid &&
+                                        receptionForm.get(
+                                            'animalHealthCertificate.autorizadoA'
+                                        )?.touched
                                     "
                                 >
                                     Este campo es requerido
@@ -161,31 +234,36 @@
                         <div class="col-12 md:col-6">
                             <div class="field">
                                 <label
-                                    for="originAreaCode"
+                                    for="codigoAreaOrigen"
                                     class="font-semibold"
-                                    >Código Área Origen *</label
                                 >
+                                    Código Área Origen *
+                                </label>
                                 <input
                                     type="text"
                                     pInputText
-                                    id="originAreaCode"
-                                    formControlName="originAreaCode"
+                                    id="codigoAreaOrigen"
+                                    formControlName="codigoAreaOrigen"
                                     placeholder="Ej: 03-0062-00436-00374833"
                                     styleClass="w-full"
                                     [class.ng-invalid]="
-                                        receptionForm.get('originAreaCode')
-                                            ?.invalid &&
-                                        receptionForm.get('originAreaCode')
-                                            ?.touched
+                                        receptionForm.get(
+                                            'animalHealthCertificate.codigoAreaOrigen'
+                                        )?.invalid &&
+                                        receptionForm.get(
+                                            'animalHealthCertificate.codigoAreaOrigen'
+                                        )?.touched
                                     "
                                 />
                                 <small
                                     class="p-error"
                                     *ngIf="
-                                        receptionForm.get('originAreaCode')
-                                            ?.invalid &&
-                                        receptionForm.get('originAreaCode')
-                                            ?.touched
+                                        receptionForm.get(
+                                            'animalHealthCertificate.codigoAreaOrigen'
+                                        )?.invalid &&
+                                        receptionForm.get(
+                                            'animalHealthCertificate.codigoAreaOrigen'
+                                        )?.touched
                                     "
                                 >
                                     Este campo es requerido
@@ -197,31 +275,36 @@
                         <div class="col-12 md:col-6">
                             <div class="field">
                                 <label
-                                    for="destinationAreaCode"
+                                    for="codigoAreaDestino"
                                     class="font-semibold"
-                                    >Código Área Destino *</label
                                 >
+                                    Código Área Destino *
+                                </label>
                                 <input
                                     type="text"
                                     pInputText
-                                    id="destinationAreaCode"
-                                    formControlName="destinationAreaCode"
+                                    id="codigoAreaDestino"
+                                    formControlName="codigoAreaDestino"
                                     placeholder="Ej: 03-0062-00438-00160206"
                                     styleClass="w-full"
                                     [class.ng-invalid]="
-                                        receptionForm.get('destinationAreaCode')
-                                            ?.invalid &&
-                                        receptionForm.get('destinationAreaCode')
-                                            ?.touched
+                                        receptionForm.get(
+                                            'animalHealthCertificate.codigoAreaDestino'
+                                        )?.invalid &&
+                                        receptionForm.get(
+                                            'animalHealthCertificate.codigoAreaDestino'
+                                        )?.touched
                                     "
                                 />
                                 <small
                                     class="p-error"
                                     *ngIf="
-                                        receptionForm.get('destinationAreaCode')
-                                            ?.invalid &&
-                                        receptionForm.get('destinationAreaCode')
-                                            ?.touched
+                                        receptionForm.get(
+                                            'animalHealthCertificate.codigoAreaDestino'
+                                        )?.invalid &&
+                                        receptionForm.get(
+                                            'animalHealthCertificate.codigoAreaDestino'
+                                        )?.touched
                                     "
                                 >
                                     Este campo es requerido
@@ -232,30 +315,34 @@
                         <!-- Vehículo -->
                         <div class="col-12 md:col-6">
                             <div class="field">
-                                <label for="vehiclePlate" class="font-semibold"
-                                    >Vehículo *</label
-                                >
+                                <label for="vehiculo" class="font-semibold">
+                                    Vehículo *
+                                </label>
                                 <input
                                     type="text"
                                     pInputText
-                                    id="vehiclePlate"
-                                    formControlName="vehiclePlate"
+                                    id="vehiculo"
+                                    formControlName="vehiculo"
                                     placeholder="Ej: JBE0076"
                                     styleClass="w-full"
                                     [class.ng-invalid]="
-                                        receptionForm.get('vehiclePlate')
-                                            ?.invalid &&
-                                        receptionForm.get('vehiclePlate')
-                                            ?.touched
+                                        receptionForm.get(
+                                            'animalHealthCertificate.vehiculo'
+                                        )?.invalid &&
+                                        receptionForm.get(
+                                            'animalHealthCertificate.vehiculo'
+                                        )?.touched
                                     "
                                 />
                                 <small
                                     class="p-error"
                                     *ngIf="
-                                        receptionForm.get('vehiclePlate')
-                                            ?.invalid &&
-                                        receptionForm.get('vehiclePlate')
-                                            ?.touched
+                                        receptionForm.get(
+                                            'animalHealthCertificate.vehiculo'
+                                        )?.invalid &&
+                                        receptionForm.get(
+                                            'animalHealthCertificate.vehiculo'
+                                        )?.touched
                                     "
                                 >
                                     Este campo es requerido
@@ -266,31 +353,38 @@
                         <!-- Total Productos -->
                         <div class="col-12 md:col-6">
                             <div class="field">
-                                <label for="totalProducts" class="font-semibold"
-                                    >Total Productos *</label
+                                <label
+                                    for="totalProductos"
+                                    class="font-semibold"
                                 >
+                                    Total Productos *
+                                </label>
                                 <p-inputNumber
-                                    id="totalProducts"
-                                    formControlName="totalProducts"
+                                    id="totalProductos"
+                                    formControlName="totalProductos"
                                     placeholder="1"
                                     [min]="1"
                                     [max]="1000"
                                     styleClass="w-full"
                                     [class.ng-invalid]="
-                                        receptionForm.get('totalProducts')
-                                            ?.invalid &&
-                                        receptionForm.get('totalProducts')
-                                            ?.touched
+                                        receptionForm.get(
+                                            'animalHealthCertificate.totalProductos'
+                                        )?.invalid &&
+                                        receptionForm.get(
+                                            'animalHealthCertificate.totalProductos'
+                                        )?.touched
                                     "
                                 >
                                 </p-inputNumber>
                                 <small
                                     class="p-error"
                                     *ngIf="
-                                        receptionForm.get('totalProducts')
-                                            ?.invalid &&
-                                        receptionForm.get('totalProducts')
-                                            ?.touched
+                                        receptionForm.get(
+                                            'animalHealthCertificate.totalProductos'
+                                        )?.invalid &&
+                                        receptionForm.get(
+                                            'animalHealthCertificate.totalProductos'
+                                        )?.touched
                                     "
                                 >
                                     Debe ser un número mayor a 0
@@ -301,28 +395,36 @@
                         <!-- Válido Hasta -->
                         <div class="col-12">
                             <div class="field">
-                                <label for="validTo" class="font-semibold"
-                                    >Válido Hasta *</label
-                                >
+                                <label for="validoHasta" class="font-semibold">
+                                    Válido Hasta *
+                                </label>
                                 <p-calendar
-                                    id="validTo"
-                                    formControlName="validTo"
+                                    id="validoHasta"
+                                    formControlName="validoHasta"
                                     placeholder="Seleccione fecha y hora"
                                     [showTime]="true"
                                     [showIcon]="true"
                                     [dateFormat]="'dd/mm/yy'"
                                     styleClass="w-full"
                                     [class.ng-invalid]="
-                                        receptionForm.get('validTo')?.invalid &&
-                                        receptionForm.get('validTo')?.touched
+                                        receptionForm.get(
+                                            'animalHealthCertificate.validoHasta'
+                                        )?.invalid &&
+                                        receptionForm.get(
+                                            'animalHealthCertificate.validoHasta'
+                                        )?.touched
                                     "
                                 >
                                 </p-calendar>
                                 <small
                                     class="p-error"
                                     *ngIf="
-                                        receptionForm.get('validTo')?.invalid &&
-                                        receptionForm.get('validTo')?.touched
+                                        receptionForm.get(
+                                            'animalHealthCertificate.validoHasta'
+                                        )?.invalid &&
+                                        receptionForm.get(
+                                            'animalHealthCertificate.validoHasta'
+                                        )?.touched
                                     "
                                 >
                                     Fecha de validez es requerida
@@ -338,10 +440,11 @@
                             icon="pi pi-check"
                             severity="success"
                             [outlined]="true"
-                            [loading]="validatingCertificate"
                             (onClick)="processManualEntry()"
                             [disabled]="
-                                !receptionForm.get('authorizedTo')?.value
+                                !receptionForm.get(
+                                    'animalHealthCertificate.autorizadoA'
+                                )?.value
                             "
                         >
                         </p-button>
@@ -357,24 +460,15 @@
                         header="Información del Certificado"
                         [toggleable]="false"
                     >
+                        <!-- Mostrar datos del certificado -->
                         <div class="grid" *ngIf="certificateData">
                             <div class="col-12 md:col-6">
                                 <div class="info-item">
                                     <label class="font-semibold text-600"
-                                        >Número:</label
+                                        >Certificado No:</label
                                     >
                                     <span class="ml-2">{{
-                                        certificateData.certificateNumber
-                                    }}</span>
-                                </div>
-                            </div>
-                            <div class="col-12 md:col-6">
-                                <div class="info-item">
-                                    <label class="font-semibold text-600"
-                                        >CZPM No:</label
-                                    >
-                                    <span class="ml-2">{{
-                                        certificateData.czpmNumber
+                                        certificateData.numeroCZPM
                                     }}</span>
                                 </div>
                             </div>
@@ -384,7 +478,27 @@
                                         >Autorizado A:</label
                                     >
                                     <span class="ml-2">{{
-                                        certificateData.authorizedTo
+                                        certificateData.autorizadoA
+                                    }}</span>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-6">
+                                <div class="info-item">
+                                    <label class="font-semibold text-600"
+                                        >Origen:</label
+                                    >
+                                    <span class="ml-2">{{
+                                        certificateData.codigoAreaOrigen
+                                    }}</span>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-6">
+                                <div class="info-item">
+                                    <label class="font-semibold text-600"
+                                        >Destino:</label
+                                    >
+                                    <span class="ml-2">{{
+                                        certificateData.codigoAreaDestino
                                     }}</span>
                                 </div>
                             </div>
@@ -394,7 +508,7 @@
                                         >Vehículo:</label
                                     >
                                     <span class="ml-2">{{
-                                        certificateData.vehiclePlate
+                                        certificateData.vehiculo
                                     }}</span>
                                 </div>
                             </div>
@@ -404,27 +518,28 @@
                                         >Total Productos:</label
                                     >
                                     <span class="ml-2">{{
-                                        certificateData.totalProducts
+                                        certificateData.totalProductos
                                     }}</span>
                                 </div>
                             </div>
-                            <div class="col-12 md:col-6">
+                            <div class="col-12">
                                 <div class="info-item">
                                     <label class="font-semibold text-600"
                                         >Válido Hasta:</label
                                     >
                                     <span class="ml-2">{{
-                                        certificateData.validTo
+                                        certificateData.validoHasta
                                             | date : "dd/MM/yyyy HH:mm"
                                     }}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Mostrar info del formulario si no hay certificateData -->
+                        <!-- Mostrar datos del formulario si no hay certificado parseado -->
                         <div
                             class="grid"
                             *ngIf="!certificateData && certificateValidation"
+                            formGroupName="animalHealthCertificate"
                         >
                             <div class="col-12 md:col-6">
                                 <div class="info-item">
@@ -432,7 +547,9 @@
                                         >Autorizado A:</label
                                     >
                                     <span class="ml-2">{{
-                                        receptionForm.get("authorizedTo")?.value
+                                        receptionForm.get(
+                                            "animalHealthCertificate.autorizadoA"
+                                        )?.value
                                     }}</span>
                                 </div>
                             </div>
@@ -442,7 +559,9 @@
                                         >Vehículo:</label
                                     >
                                     <span class="ml-2">{{
-                                        receptionForm.get("vehiclePlate")?.value
+                                        receptionForm.get(
+                                            "animalHealthCertificate.vehiculo"
+                                        )?.value
                                     }}</span>
                                 </div>
                             </div>
@@ -452,8 +571,9 @@
                                         >Total Productos:</label
                                     >
                                     <span class="ml-2">{{
-                                        receptionForm.get("totalProducts")
-                                            ?.value
+                                        receptionForm.get(
+                                            "animalHealthCertificate.totalProductos"
+                                        )?.value
                                     }}</span>
                                 </div>
                             </div>
@@ -463,10 +583,25 @@
                                         >Válido Hasta:</label
                                     >
                                     <span class="ml-2">{{
-                                        receptionForm.get("validTo")?.value
-                                            | date : "dd/MM/yyyy HH:mm"
+                                        receptionForm.get(
+                                            "animalHealthCertificate.validoHasta"
+                                        )?.value | date : "dd/MM/yyyy HH:mm"
                                     }}</span>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Badge del método usado -->
+                        <div class="col-12" *ngIf="certificateData">
+                            <div class="scan-method-badge mt-3">
+                                <p-tag
+                                    [value]="
+                                        'Método: ' + getReceptionMethodLabel()
+                                    "
+                                    severity="info"
+                                    icon="pi pi-qrcode"
+                                >
+                                </p-tag>
                             </div>
                         </div>
                     </p-panel>
@@ -489,14 +624,14 @@
 
                     <p-message
                         *ngFor="let warning of certificateValidation.warnings"
-                        severity="warning"
+                        severity="warn"
                         [text]="warning"
                     >
                     </p-message>
 
                     <p-message
                         *ngFor="let error of certificateValidation.errors"
-                        severity="danger"
+                        severity="error"
                         [text]="error"
                     >
                     </p-message>
@@ -516,521 +651,415 @@
             </p-card>
         </div>
 
-        <!-- Paso 2: Introductor -->
+        <!-- ===== PASO 2: INFORMACIÓN DE TRANSPORTE ===== -->
         <div class="step-content-panel" *ngIf="currentStep === 2">
-            <p-card header="Información del Introductor" styleClass="h-full">
-                <!-- Selector de Introductor -->
-                <div class="field mb-4">
-                    <label for="introducer" class="font-semibold"
-                        >Seleccionar Introductor *</label
-                    >
-                    <p-dropdown
-                        id="introducer"
-                        formControlName="introducerId"
-                        [options]="introducers"
-                        optionLabel="displayName"
-                        optionValue="_id"
-                        placeholder="Seleccione un introductor"
-                        [filter]="true"
-                        filterBy="displayName,idNumber"
-                        styleClass="w-full"
-                        (onChange)="onIntroducerSelect()"
-                        [class.ng-invalid]="
-                            receptionForm.get('introducerId')?.invalid &&
-                            receptionForm.get('introducerId')?.touched
-                        "
-                    >
-                        <ng-template let-introducer pTemplate="item">
-                            <div class="flex align-items-center gap-2">
-                                <i
-                                    class="pi"
-                                    [class.pi-user]="
-                                        introducer.type === 'NATURAL'
-                                    "
-                                    [class.pi-building]="
-                                        introducer.type === 'JURIDICAL'
-                                    "
-                                ></i>
-                                <div>
-                                    <div class="font-semibold">
-                                        {{
-                                            getIntroducerDisplayName(introducer)
-                                        }}
-                                    </div>
-                                    <div class="text-sm text-600">
-                                        {{ introducer.idNumber }} -
-                                        {{ introducer.introducerType }}
-                                    </div>
-                                </div>
-                            </div>
-                        </ng-template>
-                    </p-dropdown>
-                    <small
-                        class="p-error"
-                        *ngIf="
-                            receptionForm.get('introducerId')?.invalid &&
-                            receptionForm.get('introducerId')?.touched
-                        "
-                    >
-                        Debe seleccionar un introductor
-                    </small>
-                </div>
+            <p-card header="Condiciones de Transporte" styleClass="h-full">
+                <div formGroupName="transporte">
+                    <!-- Información Ambiental -->
+                    <div class="transport-section mb-4">
+                        <h5 class="text-900 mb-3">
+                            <i class="pi pi-cloud text-primary mr-2"></i>
+                            Condiciones Ambientales
+                        </h5>
 
-                <!-- Información del Introductor Seleccionado -->
-                <div class="introducer-details" *ngIf="selectedIntroducer">
-                    <p-panel
-                        header="Detalles del Introductor"
-                        [toggleable]="true"
-                    >
                         <div class="grid">
+                            <!-- Temperatura -->
                             <div class="col-12 md:col-6">
-                                <div class="info-item mb-3">
-                                    <label class="font-semibold text-600"
-                                        >Tipo:</label
+                                <div class="field">
+                                    <label
+                                        for="temperatura"
+                                        class="font-semibold"
                                     >
-                                    <span class="ml-2">
-                                        <p-tag
-                                            [value]="
-                                                selectedIntroducer.type ===
-                                                'NATURAL'
-                                                    ? 'Persona Natural'
-                                                    : 'Persona Jurídica'
-                                            "
-                                            [severity]="
-                                                selectedIntroducer.type ===
-                                                'NATURAL'
-                                                    ? 'info'
-                                                    : 'warning'
-                                            "
-                                        >
-                                        </p-tag>
-                                    </span>
-                                </div>
-                                <div class="info-item mb-3">
-                                    <label class="font-semibold text-600"
-                                        >Documento:</label
+                                        Temperatura (°C) *
+                                    </label>
+                                    <p-inputNumber
+                                        id="temperatura"
+                                        formControlName="temperatura"
+                                        placeholder="Ej: 15.5"
+                                        mode="decimal"
+                                        [minFractionDigits]="1"
+                                        [maxFractionDigits]="1"
+                                        [min]="-10"
+                                        [max]="50"
+                                        suffix=" °C"
+                                        styleClass="w-full"
+                                        [class.ng-invalid]="
+                                            receptionForm.get(
+                                                'transporte.temperatura'
+                                            )?.invalid &&
+                                            receptionForm.get(
+                                                'transporte.temperatura'
+                                            )?.touched
+                                        "
                                     >
-                                    <span class="ml-2">{{
-                                        selectedIntroducer.idNumber
-                                    }}</span>
-                                </div>
-                                <div class="info-item mb-3">
-                                    <label class="font-semibold text-600"
-                                        >Tipo de Introductor:</label
+                                    </p-inputNumber>
+                                    <small
+                                        class="p-error"
+                                        *ngIf="
+                                            receptionForm.get(
+                                                'transporte.temperatura'
+                                            )?.invalid &&
+                                            receptionForm.get(
+                                                'transporte.temperatura'
+                                            )?.touched
+                                        "
                                     >
-                                    <span class="ml-2">{{
-                                        selectedIntroducer.introducerType
-                                    }}</span>
+                                        Temperatura requerida (entre -10°C y
+                                        50°C)
+                                    </small>
                                 </div>
                             </div>
-                            <div class="col-12 md:col-6">
-                                <div
-                                    class="info-item mb-3"
-                                    *ngIf="selectedIntroducer.phone"
-                                >
-                                    <label class="font-semibold text-600"
-                                        >Teléfono:</label
-                                    >
-                                    <span class="ml-2">{{
-                                        selectedIntroducer.phone
-                                    }}</span>
-                                </div>
-                                <div
-                                    class="info-item mb-3"
-                                    *ngIf="selectedIntroducer.email"
-                                >
-                                    <label class="font-semibold text-600"
-                                        >Email:</label
-                                    >
-                                    <span class="ml-2">{{
-                                        selectedIntroducer.email
-                                    }}</span>
-                                </div>
-                                <div class="info-item mb-3">
-                                    <label class="font-semibold text-600"
-                                        >Estado:</label
-                                    >
-                                    <span class="ml-2">
-                                        <p-tag
-                                            [value]="
-                                                selectedIntroducer.registrationStatus
-                                            "
-                                            [severity]="
-                                                selectedIntroducer.registrationStatus ===
-                                                'ACTIVE'
-                                                    ? 'success'
-                                                    : 'danger'
-                                            "
-                                        >
-                                        </p-tag>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </p-panel>
-                </div>
 
-                <!-- Validación de Pagos -->
-                <div class="payment-validation mt-4" *ngIf="paymentValidation">
-                    <h5 class="text-900 mb-3">Estado de Pagos</h5>
-                    <div class="grid">
-                        <div class="col-12 md:col-4">
-                            <div
-                                class="payment-status-card p-3 border-1 border-200 border-round"
-                            >
-                                <div class="text-600 text-sm mb-1">
-                                    Inscripción Anual
-                                </div>
-                                <p-tag
-                                    [value]="
-                                        paymentValidation.inscriptionStatus ===
-                                        'PAID'
-                                            ? 'Pagado'
-                                            : 'Pendiente'
-                                    "
-                                    [severity]="
-                                        paymentValidation.inscriptionStatus ===
-                                        'PAID'
-                                            ? 'success'
-                                            : 'danger'
-                                    "
-                                >
-                                </p-tag>
-                            </div>
-                        </div>
-                        <div class="col-12 md:col-4">
-                            <div
-                                class="payment-status-card p-3 border-1 border-200 border-round"
-                            >
-                                <div class="text-600 text-sm mb-1">Multas</div>
-                                <p-tag
-                                    [value]="
-                                        paymentValidation.finesStatus === 'NONE'
-                                            ? 'Sin Multas'
-                                            : paymentValidation.finesStatus ===
-                                              'PAID'
-                                            ? 'Pagadas'
-                                            : 'Pendientes'
-                                    "
-                                    [severity]="
-                                        paymentValidation.finesStatus ===
-                                        'PENDING'
-                                            ? 'danger'
-                                            : 'success'
-                                    "
-                                >
-                                </p-tag>
-                            </div>
-                        </div>
-                        <div class="col-12 md:col-4">
-                            <div
-                                class="payment-status-card p-3 border-1 border-200 border-round"
-                            >
-                                <div class="text-600 text-sm mb-1">
-                                    Monto Pendiente
-                                </div>
-                                <div class="font-bold text-900">
-                                    ${{
-                                        paymentValidation.pendingAmount
-                                            | number : "1.2-2"
-                                    }}
+                            <!-- Humedad Ambiental -->
+                            <div class="col-12 md:col-6">
+                                <div class="field">
+                                    <label
+                                        for="humedadAmbiental"
+                                        class="font-semibold"
+                                    >
+                                        Humedad Ambiental (%) *
+                                    </label>
+                                    <p-inputNumber
+                                        id="humedadAmbiental"
+                                        formControlName="humedadAmbiental"
+                                        placeholder="Ej: 65"
+                                        [min]="0"
+                                        [max]="100"
+                                        suffix=" %"
+                                        styleClass="w-full"
+                                        [class.ng-invalid]="
+                                            receptionForm.get(
+                                                'transporte.humedadAmbiental'
+                                            )?.invalid &&
+                                            receptionForm.get(
+                                                'transporte.humedadAmbiental'
+                                            )?.touched
+                                        "
+                                    >
+                                    </p-inputNumber>
+                                    <small
+                                        class="p-error"
+                                        *ngIf="
+                                            receptionForm.get(
+                                                'transporte.humedadAmbiental'
+                                            )?.invalid &&
+                                            receptionForm.get(
+                                                'transporte.humedadAmbiental'
+                                            )?.touched
+                                        "
+                                    >
+                                        Humedad requerida (entre 0% y 100%)
+                                    </small>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <p-message
-                        *ngIf="!paymentValidation.canProceed"
-                        severity="danger"
-                        [text]="
-                            'No se puede proceder: ' + paymentValidation.reason
-                        "
-                    >
-                    </p-message>
+                    <!-- Condiciones Higiénicas y Estado -->
+                    <div class="transport-section mb-4">
+                        <h5 class="text-900 mb-3">
+                            <i class="pi pi-shield text-primary mr-2"></i>
+                            Condiciones Higiénicas y Estado de Animales
+                        </h5>
 
-                    <p-message
-                        *ngIf="paymentValidation.canProceed"
-                        severity="success"
-                        text="El introductor puede proceder con el faenamiento"
-                    >
-                    </p-message>
-                </div>
+                        <div class="grid">
+                            <!-- Condiciones Higiénicas -->
+                            <div class="col-12 md:col-6">
+                                <div class="field">
+                                    <label
+                                        for="condicionesHigienicas"
+                                        class="font-semibold"
+                                    >
+                                        Condiciones Higiénicas *
+                                    </label>
+                                    <p-dropdown
+                                        id="condicionesHigienicas"
+                                        formControlName="condicionesHigienicas"
+                                        [options]="hygienicConditionOptions"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                        placeholder="Seleccionar condición"
+                                        styleClass="w-full"
+                                        [class.ng-invalid]="
+                                            receptionForm.get(
+                                                'transporte.condicionesHigienicas'
+                                            )?.invalid &&
+                                            receptionForm.get(
+                                                'transporte.condicionesHigienicas'
+                                            )?.touched
+                                        "
+                                    >
+                                        <ng-template
+                                            let-option
+                                            pTemplate="item"
+                                        >
+                                            <div
+                                                class="flex align-items-center gap-2"
+                                            >
+                                                <i
+                                                    class="pi"
+                                                    [class.pi-check-circle]="
+                                                        option.value ===
+                                                        'Óptimas'
+                                                    "
+                                                    [class.pi-exclamation-triangle]="
+                                                        option.value ===
+                                                        'Aceptables'
+                                                    "
+                                                    [class.pi-times-circle]="
+                                                        option.value ===
+                                                        'Deficientes'
+                                                    "
+                                                    [style.color]="
+                                                        option.value ===
+                                                        'Óptimas'
+                                                            ? 'green'
+                                                            : option.value ===
+                                                              'Aceptables'
+                                                            ? 'orange'
+                                                            : 'red'
+                                                    "
+                                                ></i>
+                                                <span>{{ option.label }}</span>
+                                            </div>
+                                        </ng-template>
+                                    </p-dropdown>
+                                    <small
+                                        class="p-error"
+                                        *ngIf="
+                                            receptionForm.get(
+                                                'transporte.condicionesHigienicas'
+                                            )?.invalid &&
+                                            receptionForm.get(
+                                                'transporte.condicionesHigienicas'
+                                            )?.touched
+                                        "
+                                    >
+                                        Debe seleccionar las condiciones
+                                        higiénicas
+                                    </small>
+                                </div>
+                            </div>
 
-                <!-- Botones de Acción -->
-                <div class="flex justify-content-between gap-2 mt-4">
-                    <p-button
-                        label="Anterior"
-                        icon="pi pi-arrow-left"
-                        severity="secondary"
-                        [outlined]="true"
-                        (onClick)="previousStep()"
-                    >
-                    </p-button>
-                    <p-button
-                        label="Siguiente"
-                        icon="pi pi-arrow-right"
-                        iconPos="right"
-                        [disabled]="!canProceedToNextStep()"
-                        (onClick)="nextStep()"
-                    >
-                    </p-button>
-                </div>
-            </p-card>
-        </div>
-
-        <!-- Paso 3: Registro de Animales -->
-        <div class="step-content-panel" *ngIf="currentStep === 3">
-            <p-card header="Registro de Animales" styleClass="h-full">
-                <!-- Herramientas -->
-                <div class="animals-toolbar mb-4">
-                    <div
-                        class="flex justify-content-between align-items-center"
-                    >
-                        <div class="flex gap-2">
-                            <p-button
-                                icon="pi pi-plus"
-                                label="Agregar Animal"
-                                severity="success"
-                                (onClick)="addAnimal()"
-                            >
-                            </p-button>
-                            <p-button
-                                icon="pi pi-download"
-                                label="Auto-llenar desde Certificado"
-                                severity="info"
-                                [outlined]="true"
-                                [disabled]="
-                                    !receptionForm.get('totalProducts')?.value
-                                "
-                                (onClick)="autoFillAnimalsFromCertificate()"
-                            >
-                            </p-button>
-                        </div>
-                        <div class="animals-count">
-                            <p-tag
-                                [value]="
-                                    'Total: ' +
-                                    animalsFormArray.length +
-                                    ' animales'
-                                "
-                                severity="info"
-                            >
-                            </p-tag>
+                            <!-- Fecha de Inspección -->
+                            <div class="col-12 md:col-6">
+                                <div class="field">
+                                    <label
+                                        for="fechaInspeccion"
+                                        class="font-semibold"
+                                    >
+                                        Fecha de Inspección *
+                                    </label>
+                                    <p-calendar
+                                        id="fechaInspeccion"
+                                        formControlName="fechaInspeccion"
+                                        placeholder="Fecha y hora de inspección"
+                                        [showTime]="true"
+                                        [showIcon]="true"
+                                        [dateFormat]="'dd/mm/yy'"
+                                        styleClass="w-full"
+                                        [class.ng-invalid]="
+                                            receptionForm.get(
+                                                'transporte.fechaInspeccion'
+                                            )?.invalid &&
+                                            receptionForm.get(
+                                                'transporte.fechaInspeccion'
+                                            )?.touched
+                                        "
+                                    >
+                                    </p-calendar>
+                                    <small
+                                        class="p-error"
+                                        *ngIf="
+                                            receptionForm.get(
+                                                'transporte.fechaInspeccion'
+                                            )?.invalid &&
+                                            receptionForm.get(
+                                                'transporte.fechaInspeccion'
+                                            )?.touched
+                                        "
+                                    >
+                                        Fecha de inspección es requerida
+                                    </small>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Lista de Animales -->
-                <div class="animals-list" *ngIf="animalsFormArray.length > 0">
-                    <div
-                        class="animal-card"
-                        *ngFor="
-                            let animalControl of animalsFormArray.controls;
-                            let i = index
-                        "
-                        [formGroup]="getAnimalFormGroup(i)"
-                    >
-                        <p-panel
-                            [header]="'Animal #' + (i + 1)"
-                            [toggleable]="true"
+                    <!-- Condición de Animales -->
+                    <div class="transport-section mb-4">
+                        <div class="field">
+                            <label
+                                for="condicionAnimales"
+                                class="font-semibold"
+                            >
+                                Condición de Animales *
+                            </label>
+                            <textarea
+                                style="width: 100%"
+                                pInputTextarea
+                                id="condicionAnimales"
+                                formControlName="condicionAnimales"
+                                placeholder="Describa detalladamente la condición física y estado de los animales al momento de la recepción..."
+                                rows="4"
+                                maxlength="500"
+                                styleClass="w-full"
+                                [class.ng-invalid]="
+                                    receptionForm.get(
+                                        'transporte.condicionAnimales'
+                                    )?.invalid &&
+                                    receptionForm.get(
+                                        'transporte.condicionAnimales'
+                                    )?.touched
+                                "
+                            >
+                            </textarea>
+                            <div
+                                class="flex justify-content-between align-items-center mt-2"
+                            >
+                                <small
+                                    class="p-error"
+                                    *ngIf="
+                                        receptionForm.get(
+                                            'transporte.condicionAnimales'
+                                        )?.invalid &&
+                                        receptionForm.get(
+                                            'transporte.condicionAnimales'
+                                        )?.touched
+                                    "
+                                >
+                                    La condición de animales es requerida
+                                </small>
+                                <small class="text-600">
+                                    {{
+                                        receptionForm.get(
+                                            "transporte.condicionAnimales"
+                                        )?.value?.length || 0
+                                    }}/500 caracteres
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Observaciones -->
+                    <div class="transport-section mb-4">
+                        <div class="field">
+                            <label
+                                for="transporteObservaciones"
+                                class="font-semibold"
+                            >
+                                Observaciones Adicionales
+                            </label>
+                            <textarea
+                                style="width: 100%"
+                                pInputTextarea
+                                id="transporteObservaciones"
+                                formControlName="observaciones"
+                                placeholder="Observaciones adicionales sobre el transporte, condiciones especiales, incidentes, etc..."
+                                rows="3"
+                                maxlength="1000"
+                                styleClass="w-full"
+                            >
+                            </textarea>
+                            <div class="flex justify-content-end mt-2">
+                                <small class="text-600">
+                                    {{
+                                        receptionForm.get(
+                                            "transporte.observaciones"
+                                        )?.value?.length || 0
+                                    }}/1000 caracteres
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fotografías -->
+                    <div class="transport-section mb-4">
+                        <h5 class="text-900 mb-3">
+                            <i class="pi pi-camera text-primary mr-2"></i>
+                            Fotografías del Transporte
+                        </h5>
+
+                        <!-- Uploader de archivos -->
+                        <div class="photo-upload-section">
+                            <p-fileUpload
+                                mode="basic"
+                                chooseLabel="Seleccionar Fotografías"
+                                accept="image/*"
+                                [multiple]="true"
+                                [maxFileSize]="maxFileSize"
+                                [auto]="false"
+                                (onSelect)="onPhotosSelected($event)"
+                                styleClass="w-full"
+                            >
+                            </p-fileUpload>
+
+                            <div class="upload-info mt-2">
+                                <small class="text-600">
+                                    <i class="pi pi-info-circle mr-1"></i>
+                                    Máximo {{ maxPhotos }} fotos. Tamaño máximo:
+                                    5MB por foto. Formatos: JPG, PNG, WebP
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Preview de fotografías seleccionadas -->
+                        <div
+                            class="selected-photos mt-4"
+                            *ngIf="selectedPhotos.length > 0"
                         >
+                            <h6 class="text-900 mb-3">
+                                Fotografías Seleccionadas ({{
+                                    selectedPhotos.length
+                                }})
+                            </h6>
+
                             <div class="grid">
-                                <div class="col-12 md:col-6 lg:col-3">
-                                    <div class="field">
-                                        <label
-                                            [for]="'animalId_' + i"
-                                            class="font-semibold"
-                                            >ID del Animal *</label
-                                        >
-                                        <input
-                                            type="text"
-                                            pInputText
-                                            [id]="'animalId_' + i"
-                                            formControlName="animalId"
-                                            placeholder="Ej: BOV-001"
-                                            styleClass="w-full"
-                                            [class.ng-invalid]="
-                                                getAnimalFormGroup(i).get(
-                                                    'animalId'
-                                                )?.invalid &&
-                                                getAnimalFormGroup(i).get(
-                                                    'animalId'
-                                                )?.touched
-                                            "
-                                        />
-                                        <small
-                                            class="p-error"
-                                            *ngIf="
-                                                getAnimalFormGroup(i).get(
-                                                    'animalId'
-                                                )?.invalid &&
-                                                getAnimalFormGroup(i).get(
-                                                    'animalId'
-                                                )?.touched
-                                            "
-                                        >
-                                            ID del animal es requerido
-                                        </small>
-                                    </div>
-                                </div>
-
-                                <div class="col-12 md:col-6 lg:col-3">
-                                    <div class="field">
-                                        <label
-                                            [for]="'species_' + i"
-                                            class="font-semibold"
-                                            >Especie *</label
-                                        >
-                                        <p-dropdown
-                                            [id]="'species_' + i"
-                                            formControlName="species"
-                                            [options]="speciesOptions"
-                                            optionLabel="label"
-                                            optionValue="value"
-                                            placeholder="Seleccionar"
-                                            styleClass="w-full"
-                                            [class.ng-invalid]="
-                                                getAnimalFormGroup(i).get(
-                                                    'species'
-                                                )?.invalid &&
-                                                getAnimalFormGroup(i).get(
-                                                    'species'
-                                                )?.touched
-                                            "
-                                        >
-                                        </p-dropdown>
-                                        <small
-                                            class="p-error"
-                                            *ngIf="
-                                                getAnimalFormGroup(i).get(
-                                                    'species'
-                                                )?.invalid &&
-                                                getAnimalFormGroup(i).get(
-                                                    'species'
-                                                )?.touched
-                                            "
-                                        >
-                                            Especie es requerida
-                                        </small>
-                                    </div>
-                                </div>
-
-                                <div class="col-12 md:col-6 lg:col-3">
-                                    <div class="field">
-                                        <label
-                                            [for]="'weight_' + i"
-                                            class="font-semibold"
-                                            >Peso (kg)</label
-                                        >
-                                        <p-inputNumber
-                                            [id]="'weight_' + i"
-                                            formControlName="weight"
-                                            placeholder="0.00"
-                                            mode="decimal"
-                                            [minFractionDigits]="2"
-                                            [maxFractionDigits]="2"
-                                            styleClass="w-full"
-                                        >
-                                        </p-inputNumber>
-                                    </div>
-                                </div>
-
-                                <div class="col-12 md:col-6 lg:col-3">
-                                    <div class="field">
-                                        <label
-                                            [for]="'condition_' + i"
-                                            class="font-semibold"
-                                            >Condición *</label
-                                        >
-                                        <p-dropdown
-                                            [id]="'condition_' + i"
-                                            formControlName="condition"
-                                            [options]="conditionOptions"
-                                            optionLabel="label"
-                                            optionValue="value"
-                                            placeholder="Seleccionar"
-                                            styleClass="w-full"
-                                            [class.ng-invalid]="
-                                                getAnimalFormGroup(i).get(
-                                                    'condition'
-                                                )?.invalid &&
-                                                getAnimalFormGroup(i).get(
-                                                    'condition'
-                                                )?.touched
-                                            "
-                                        >
-                                        </p-dropdown>
-                                        <small
-                                            class="p-error"
-                                            *ngIf="
-                                                getAnimalFormGroup(i).get(
-                                                    'condition'
-                                                )?.invalid &&
-                                                getAnimalFormGroup(i).get(
-                                                    'condition'
-                                                )?.touched
-                                            "
-                                        >
-                                            Condición es requerida
-                                        </small>
-                                    </div>
-                                </div>
-
-                                <div class="col-12">
-                                    <div class="field">
-                                        <label
-                                            [for]="'observations_' + i"
-                                            class="font-semibold"
-                                            >Observaciones</label
-                                        >
-                                        <textarea
-                                            pInputTextarea
-                                            [id]="'observations_' + i"
-                                            formControlName="observations"
-                                            placeholder="Observaciones adicionales..."
-                                            rows="2"
-                                            styleClass="w-full"
-                                        >
-                                        </textarea>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="flex justify-content-end mt-3">
-                                <p-button
-                                    icon="pi pi-trash"
-                                    severity="danger"
-                                    size="small"
-                                    [text]="true"
-                                    (onClick)="removeAnimal(i)"
+                                <div
+                                    class="col-12 md:col-6 lg:col-4"
+                                    *ngFor="
+                                        let photo of selectedPhotos;
+                                        let i = index
+                                    "
                                 >
-                                </p-button>
+                                    <div class="photo-preview-card">
+                                        <div class="photo-preview-header">
+                                            <span class="photo-name">{{
+                                                photo.name
+                                            }}</span>
+                                            <p-button
+                                                icon="pi pi-times"
+                                                severity="danger"
+                                                [text]="true"
+                                                size="small"
+                                                (onClick)="removePhoto(i)"
+                                            >
+                                            </p-button>
+                                        </div>
+                                        <div class="photo-info">
+                                            <small class="text-600">
+                                                {{ formatFileSize(photo.size) }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </p-panel>
-                    </div>
-                </div>
+                        </div>
 
-                <!-- Estado Vacío -->
-                <div
-                    class="empty-animals"
-                    *ngIf="animalsFormArray.length === 0"
-                >
-                    <div
-                        class="text-center p-5 border-2 border-dashed border-300 border-round"
-                    >
-                        <i class="pi pi-inbox text-5xl text-400 mb-3"></i>
-                        <h4 class="text-900 mb-2">
-                            No hay animales registrados
-                        </h4>
-                        <p class="text-600 mb-4">
-                            Agregue al menos un animal para continuar
-                        </p>
-                        <p-button
-                            icon="pi pi-plus"
-                            label="Agregar Primer Animal"
-                            (onClick)="addAnimal()"
+                        <!-- Estado vacío -->
+                        <div
+                            class="empty-photos text-center p-4"
+                            *ngIf="selectedPhotos.length === 0"
                         >
-                        </p-button>
+                            <i class="pi pi-camera text-4xl text-400 mb-2"></i>
+                            <p class="text-600">
+                                No hay fotografías seleccionadas
+                            </p>
+                            <small class="text-500">
+                                Las fotografías ayudan a documentar las
+                                condiciones de transporte
+                            </small>
+                        </div>
                     </div>
                 </div>
 
@@ -1056,8 +1085,8 @@
             </p-card>
         </div>
 
-        <!-- Paso 4: Confirmación -->
-        <div class="step-content-panel" *ngIf="currentStep === 4">
+        <!-- ===== PASO 3: CONFIRMACIÓN ===== -->
+        <div class="step-content-panel" *ngIf="currentStep === 3">
             <p-card header="Confirmación de Recepción" styleClass="h-full">
                 <!-- Resumen del Proceso -->
                 <div class="summary-section">
@@ -1075,9 +1104,9 @@
                                         >Número:</label
                                     >
                                     <span class="ml-2">{{
-                                        certificateData?.certificateNumber ||
+                                        certificateData?.numeroCZPM ||
                                             receptionForm.get(
-                                                "certificateNumber"
+                                                "animalHealthCertificate.numeroCZPM"
                                             )?.value ||
                                             "Por generar"
                                     }}</span>
@@ -1087,10 +1116,7 @@
                                         >Método:</label
                                     >
                                     <span class="ml-2">{{
-                                        receptionForm.get("receptionMethod")
-                                            ?.value === "QR_SCAN"
-                                            ? "Escáner QR"
-                                            : "Entrada Manual"
+                                        getReceptionMethodLabel()
                                     }}</span>
                                 </div>
                                 <div class="info-item mb-2">
@@ -1098,9 +1124,10 @@
                                         >Autorizado A:</label
                                     >
                                     <span class="ml-2">{{
-                                        certificateData?.authorizedTo ||
-                                            receptionForm.get("authorizedTo")
-                                                ?.value
+                                        certificateData?.autorizadoA ||
+                                            receptionForm.get(
+                                                "animalHealthCertificate.autorizadoA"
+                                            )?.value
                                     }}</span>
                                 </div>
                             </div>
@@ -1110,9 +1137,10 @@
                                         >Vehículo:</label
                                     >
                                     <span class="ml-2">{{
-                                        certificateData?.vehiclePlate ||
-                                            receptionForm.get("vehiclePlate")
-                                                ?.value
+                                        certificateData?.vehiculo ||
+                                            receptionForm.get(
+                                                "animalHealthCertificate.vehiculo"
+                                            )?.value
                                     }}</span>
                                 </div>
                                 <div class="info-item mb-2">
@@ -1120,9 +1148,10 @@
                                         >Total Productos:</label
                                     >
                                     <span class="ml-2">{{
-                                        certificateData?.totalProducts ||
-                                            receptionForm.get("totalProducts")
-                                                ?.value
+                                        certificateData?.totalProductos ||
+                                            receptionForm.get(
+                                                "animalHealthCertificate.totalProductos"
+                                            )?.value
                                     }}</span>
                                 </div>
                                 <div class="info-item mb-2">
@@ -1130,143 +1159,286 @@
                                         >Vencimiento:</label
                                     >
                                     <span class="ml-2">{{
-                                        certificateData?.validTo ||
-                                            receptionForm.get("validTo")?.value
-                                            | date : "dd/MM/yyyy HH:mm"
+                                        certificateData?.validoHasta ||
+                                            receptionForm.get(
+                                                "animalHealthCertificate.validoHasta"
+                                            )?.value | date : "dd/MM/yyyy HH:mm"
                                     }}</span>
                                 </div>
                             </div>
                         </div>
                     </p-panel>
 
-                    <!-- Resumen del Introductor -->
+                    <!-- Resumen de Transporte -->
                     <p-panel
-                        header="Introductor"
+                        header="Condiciones de Transporte"
                         styleClass="mb-3"
-                        *ngIf="selectedIntroducer"
                     >
                         <div class="grid">
-                            <div class="col-12 md:col-6">
-                                <div class="info-item mb-2">
-                                    <label class="font-semibold text-600"
-                                        >Nombre:</label
-                                    >
-                                    <span class="ml-2">{{
-                                        getIntroducerDisplayName(
-                                            selectedIntroducer
-                                        )
-                                    }}</span>
-                                </div>
-                                <div class="info-item mb-2">
-                                    <label class="font-semibold text-600"
-                                        >Documento:</label
-                                    >
-                                    <span class="ml-2">{{
-                                        selectedIntroducer.idNumber
-                                    }}</span>
+                            <div class="col-12 md:col-4">
+                                <div class="transport-stat">
+                                    <div class="stat-label">Temperatura</div>
+                                    <div class="stat-value">
+                                        {{
+                                            receptionForm.get(
+                                                "transporte.temperatura"
+                                            )?.value
+                                        }}°C
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-12 md:col-6">
-                                <div class="info-item mb-2">
-                                    <label class="font-semibold text-600"
-                                        >Tipo:</label
-                                    >
-                                    <span class="ml-2">{{
-                                        selectedIntroducer.introducerType
-                                    }}</span>
+                            <div class="col-12 md:col-4">
+                                <div class="transport-stat">
+                                    <div class="stat-label">Humedad</div>
+                                    <div class="stat-value">
+                                        {{
+                                            receptionForm.get(
+                                                "transporte.humedadAmbiental"
+                                            )?.value
+                                        }}%
+                                    </div>
                                 </div>
-                                <div class="info-item mb-2">
-                                    <label class="font-semibold text-600"
-                                        >Estado de Pagos:</label
-                                    >
-                                    <span class="ml-2">
+                            </div>
+                            <div class="col-12 md:col-4">
+                                <div class="transport-stat">
+                                    <div class="stat-label">
+                                        Condiciones Higiénicas
+                                    </div>
+                                    <div class="stat-value">
                                         <p-tag
                                             [value]="
-                                                paymentValidation?.canProceed
-                                                    ? 'Al día'
-                                                    : 'Pendiente'
+                                                receptionForm.get(
+                                                    'transporte.condicionesHigienicas'
+                                                )?.value
                                             "
                                             [severity]="
-                                                paymentValidation?.canProceed
+                                                receptionForm.get(
+                                                    'transporte.condicionesHigienicas'
+                                                )?.value === 'Óptimas'
                                                     ? 'success'
+                                                    : receptionForm.get(
+                                                          'transporte.condicionesHigienicas'
+                                                      )?.value === 'Aceptables'
+                                                    ? 'warning'
                                                     : 'danger'
                                             "
                                         >
                                         </p-tag>
-                                    </span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </p-panel>
-
-                    <!-- Resumen de Animales -->
-                    <p-panel header="Animales a Recibir" styleClass="mb-3">
-                        <div class="animals-summary">
-                            <div class="grid">
-                                <div class="col-12 md:col-4">
-                                    <div class="summary-stat">
-                                        <div class="text-600 text-sm">
-                                            Total de Animales
-                                        </div>
-                                        <div
-                                            class="font-bold text-2xl text-900"
-                                        >
-                                            {{ animalsFormArray.length }}
-                                        </div>
+                            <div class="col-12">
+                                <div class="transport-stat">
+                                    <div class="stat-label">
+                                        Condición de Animales
+                                    </div>
+                                    <div class="stat-value text-sm">
+                                        {{
+                                            receptionForm.get(
+                                                "transporte.condicionAnimales"
+                                            )?.value
+                                        }}
                                     </div>
                                 </div>
-                                <div class="col-12 md:col-4">
-                                    <div class="summary-stat">
-                                        <div class="text-600 text-sm">
-                                            Bovinos
-                                        </div>
-                                        <div
-                                            class="font-bold text-2xl text-900"
+                            </div>
+                            <div
+                                class="col-12"
+                                *ngIf="selectedPhotos.length > 0"
+                            >
+                                <div class="transport-stat">
+                                    <div class="stat-label">Fotografías</div>
+                                    <div class="stat-value">
+                                        <p-tag
+                                            [value]="
+                                                selectedPhotos.length +
+                                                ' fotografía(s) adjunta(s)'
+                                            "
+                                            severity="info"
+                                            icon="pi pi-camera"
                                         >
-                                            {{
-                                                getAnimalCountBySpecies(
-                                                    "BOVINE"
-                                                )
-                                            }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-12 md:col-4">
-                                    <div class="summary-stat">
-                                        <div class="text-600 text-sm">
-                                            Porcinos
-                                        </div>
-                                        <div
-                                            class="font-bold text-2xl text-900"
-                                        >
-                                            {{
-                                                getAnimalCountBySpecies(
-                                                    "PORCINE"
-                                                )
-                                            }}
-                                        </div>
+                                        </p-tag>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </p-panel>
 
-                    <!-- Notas Adicionales -->
-                    <div class="field">
-                        <label for="receptionNotes" class="font-semibold"
-                            >Notas de Recepción</label
-                        >
-                        <textarea
-                            pInputTextarea
-                            id="receptionNotes"
-                            formControlName="receptionNotes"
-                            placeholder="Observaciones adicionales sobre la recepción..."
-                            rows="3"
-                            styleClass="w-full"
-                            style="width: 100%; height: 100px"
-                        >
-                        </textarea>
+                    <!-- Información Adicional -->
+                    <div class="additional-info mb-4">
+                        <div class="grid">
+                            <!-- Prioridad -->
+                            <div class="col-12 md:col-6">
+                                <div class="field">
+                                    <label
+                                        for="prioridad"
+                                        class="font-semibold"
+                                    >
+                                        Prioridad (0-10)
+                                    </label>
+                                    <p-inputNumber
+                                        id="prioridad"
+                                        formControlName="prioridad"
+                                        [min]="0"
+                                        [max]="10"
+                                        styleClass="w-full"
+                                    >
+                                    </p-inputNumber>
+                                    <small class="text-600">
+                                        0 = Normal, 10 = Máxima urgencia
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Fecha Programada -->
+                            <div class="col-12 md:col-6">
+                                <div class="field">
+                                    <label
+                                        for="fechaProgramada"
+                                        class="font-semibold"
+                                    >
+                                        Fecha Programada (Opcional)
+                                    </label>
+                                    <p-calendar
+                                        id="fechaProgramada"
+                                        formControlName="fechaProgramada"
+                                        placeholder="Fecha para programar faenamiento"
+                                        [showTime]="true"
+                                        [showIcon]="true"
+                                        [dateFormat]="'dd/mm/yy'"
+                                        styleClass="w-full"
+                                    >
+                                    </p-calendar>
+                                </div>
+                            </div>
+
+                            <!--Introductor Obcional-->
+                            <!-- Introductor Opcional -->
+                            <div class="col-12 md:col-6">
+                                <div class="field">
+                                    <label
+                                        for="introducer"
+                                        class="font-semibold"
+                                    >
+                                        Introductor
+                                    </label>
+                                    <p-dropdown
+                                        id="introducer"
+                                        formControlName="introducer"
+                                        [options]="intruders"
+                                        optionLabel="name"
+                                        optionValue="_id"
+                                        styleClass="w-full"
+                                        filter="true"
+                                        [class.ng-invalid]="
+                                            receptionForm.get('introducer')
+                                                ?.invalid &&
+                                            receptionForm.get('introducer')
+                                                ?.touched
+                                        "
+                                    >
+                                        <ng-template
+                                            let-option
+                                            pTemplate="item"
+                                        >
+                                            <div
+                                                class="flex align-items-center gap-2"
+                                            >
+                                                <i
+                                                    class="pi pi-user"
+                                                    style="color: #2196f3"
+                                                ></i>
+                                                <span>{{ option.name }}</span>
+                                            </div>
+                                        </ng-template>
+                                    </p-dropdown>
+                                    <small
+                                        class="p-error"
+                                        *ngIf="
+                                            receptionForm.get('introducer')
+                                                ?.invalid &&
+                                            receptionForm.get('introducer')
+                                                ?.touched
+                                        "
+                                    >
+                                        Debe seleccionar un introductor
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Observaciones Generales -->
+                        <div class="field">
+                            <label
+                                for="observacionesGenerales"
+                                class="font-semibold"
+                            >
+                                Observaciones Generales
+                            </label>
+                            <textarea
+                                style="width: 100%"
+                                pInputTextarea
+                                id="observacionesGenerales"
+                                formControlName="observaciones"
+                                placeholder="Observaciones adicionales sobre la recepción..."
+                                rows="3"
+                                maxlength="1000"
+                                styleClass="w-full"
+                            >
+                            </textarea>
+                            <div class="flex justify-content-end mt-2">
+                                <small class="text-600">
+                                    {{
+                                        receptionForm.get("observaciones")
+                                            ?.value?.length || 0
+                                    }}/1000 caracteres
+                                </small>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Información del Proceso -->
+                    <p-panel header="Proceso Automático" styleClass="mb-3">
+                        <div class="process-info">
+                            <p class="text-700 mb-3">
+                                Al confirmar esta recepción, el sistema
+                                realizará automáticamente:
+                            </p>
+                            <ul class="process-steps">
+                                <li>
+                                    <i
+                                        class="pi pi-check-circle text-green-500 mr-2"
+                                    ></i>
+                                    Crear el registro de recepción
+                                </li>
+                                <li>
+                                    <i
+                                        class="pi pi-check-circle text-green-500 mr-2"
+                                    ></i>
+                                    Generar
+                                    {{
+                                        certificateData?.totalProductos ||
+                                            receptionForm.get(
+                                                "animalHealthCertificate.totalProductos"
+                                            )?.value ||
+                                            0
+                                    }}
+                                    inspección(es) externa(s)
+                                </li>
+                                <li>
+                                    <i
+                                        class="pi pi-check-circle text-green-500 mr-2"
+                                    ></i>
+                                    Iniciar el proceso de faenamiento
+                                </li>
+                                <li>
+                                    <i
+                                        class="pi pi-check-circle text-green-500 mr-2"
+                                    ></i>
+                                    Detectar automáticamente el introductor
+                                </li>
+                            </ul>
+                        </div>
+                    </p-panel>
                 </div>
 
                 <!-- Botones de Acción -->
@@ -1280,11 +1452,12 @@
                     >
                     </p-button>
                     <p-button
-                        label="Iniciar Proceso de Recepción"
+                        label="Crear Recepción"
                         icon="pi pi-check"
                         iconPos="right"
-                        [loading]="submitting || creatingCertificate"
+                        [loading]="submitting"
                         type="submit"
+                        styleClass="reception-submit-btn"
                     >
                     </p-button>
                 </div>
@@ -1298,3 +1471,12 @@
 
 <!-- Toast para notificaciones -->
 <p-toast></p-toast>
+
+<!-- Modal QR Scanner (Refactorizado) -->
+<app-qr-scanner-modal
+    [(visible)]="showQRScannerModal"
+    [options]="qrScanOptions"
+    (certificateScanned)="onCertificateScanned($event)"
+    (scanCancelled)="onQRScanCancelled()"
+>
+</app-qr-scanner-modal>
