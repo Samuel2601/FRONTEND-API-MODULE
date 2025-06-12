@@ -65,7 +65,7 @@ export abstract class BaseService<T> {
                         summary: 'Error',
                         detail: 'Error al obtener los datos',
                     });
-                    throw error;
+                    throw error.error;
                 })
             );
     }
@@ -93,7 +93,7 @@ export abstract class BaseService<T> {
                         summary: 'Error',
                         detail: 'Error al obtener el registro',
                     });
-                    throw error;
+                    throw error.error;
                 })
             );
     }
@@ -113,12 +113,13 @@ export abstract class BaseService<T> {
                     });
                 }),
                 catchError((error) => {
+                    console.error('Error al crear el registro:', error);
                     this.messageService.add({
                         severity: 'error',
                         summary: 'Error',
                         detail: 'Error al crear el registro',
                     });
-                    throw error;
+                    throw error.error;
                 })
             );
     }
@@ -143,7 +144,7 @@ export abstract class BaseService<T> {
                         summary: 'Error',
                         detail: 'Error al actualizar el registro',
                     });
-                    throw error;
+                    throw error.error;
                 })
             );
     }
@@ -168,7 +169,7 @@ export abstract class BaseService<T> {
                         summary: 'Error',
                         detail: 'Error al eliminar el registro',
                     });
-                    throw error;
+                    throw error.error;
                 })
             );
     }

@@ -29,6 +29,8 @@ import { IntroducerListComponent } from './components/introducer/list/introducer
 import { IntroducerFormComponent } from './components/introducer/form/introducer-form.component';
 import { IntroducerDetailComponent } from './components/introducer/detail/introducer-detail.component';
 import { ReceptionComponent } from './components/reception/reception.component';
+import { ReceptionListComponent } from './components/reception/list/reception-list.component';
+import { ExternalInspectionListComponent } from './components/external-inspection/external-inspection-list.component';
 
 // Rutas del módulo
 const routes: Routes = [
@@ -70,6 +72,21 @@ const routes: Routes = [
                 path: 'reception',
                 component: ReceptionComponent,
                 data: { title: 'Recepción' },
+            },
+            {
+                path: 'list-reception',
+                component: ReceptionListComponent,
+                data: { title: 'Recepción Listado' },
+            },
+            {
+                path: 'external-inspection',
+                component: ExternalInspectionListComponent,
+                data: { title: 'Inspecciones Externas' },
+            },
+            {
+                path: 'external-inspection/:inspectionNumber',
+                component: ExternalInspectionListComponent,
+                data: { title: 'Inspecciones Externas' },
             },
         ],
     },

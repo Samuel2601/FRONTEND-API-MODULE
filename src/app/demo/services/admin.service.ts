@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { catchError, map, Observable, throwError } from 'rxjs';
 import { GLOBAL } from './GLOBAL';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 @Injectable({
@@ -105,5 +105,61 @@ export class AdminService {
         return this._http.get(this.url + 'verificarcorreo/' + id, {
             headers: headers,
         });
+    }
+
+    consultarIdentificacion(identificacion: string) {
+        const isCedula = identificacion.length === 10;
+        const codigoPaquete = isCedula ? 3789 : 3798;
+
+        const url = `${this.url}dinardap/consultar?codigoPaquete=${codigoPaquete}&identificacion=${identificacion}`;
+
+        return this._http.get<any>(url).pipe(
+            map((response) => {
+                if (!response.success) {
+                    throw new Error(response.mensaje || 'Error en la consulta');
+                }
+
+                const entidades = response.datos.entidades;
+
+                if (isCedula) {
+                    const demograficos = entidades.find((e: any) =>
+                        e.nombre.includes('Demográficos')
+                    )?.data?.[0];
+
+                    if (!demograficos) {
+                        throw new Error('Datos demográficos no encontrados');
+                    }
+
+                    return {
+                        actaDefuncion: demograficos.actaDefuncion,
+                        estadoCivil: demograficos.estadoCivil,
+                        nombre: demograficos.nombre,
+                    };
+                } else {
+                    const contribuyente = entidades.find((e: any) =>
+                        e.nombre.includes('Contribuyente')
+                    )?.data?.[0];
+
+                    if (!contribuyente) {
+                        throw new Error(
+                            'Datos de contribuyente no encontrados'
+                        );
+                    }
+
+                    return {
+                        razonSocial: contribuyente.razonSocial,
+                        direccionCorta: contribuyente.direccionCorta,
+                        email: contribuyente.email,
+                        telefonoTrabajo: contribuyente.telefonoTrabajo,
+                        numeroRuc: contribuyente.numeroRuc,
+                    };
+                }
+            }),
+            catchError((err) => {
+                return throwError(
+                    () => new Error(err.message || 'Error desconocido')
+                );
+            })
+        );
     }
 }

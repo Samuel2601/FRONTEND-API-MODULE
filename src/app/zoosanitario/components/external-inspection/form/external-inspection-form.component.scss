@@ -1,0 +1,768 @@
+::ng-deep .inspection-form-dialog {
+    .p-dialog-content {
+        padding: 0;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .p-dialog-header {
+        background: linear-gradient(
+            135deg,
+            var(--primary-color) 0%,
+            var(--primary-600) 100%
+        );
+        color: var(--primary-color-text);
+        padding: 1.5rem 2rem;
+        border-bottom: none;
+
+        .p-dialog-title {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .p-dialog-header-icon {
+            color: var(--primary-color-text);
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.1);
+            }
+        }
+    }
+
+    .p-dialog-footer {
+        padding: 1.5rem 2rem;
+        border-top: 1px solid var(--surface-border);
+        background: var(--surface-card);
+    }
+}
+
+.inspection-form-container {
+    padding: 2rem;
+    background: var(--surface-ground);
+
+    // Panel Styles
+    ::ng-deep .p-panel {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--surface-border);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+        .p-panel-header {
+            background: var(--surface-section);
+            border-bottom: 1px solid var(--surface-border);
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .p-panel-content {
+            padding: 1.5rem;
+            background: var(--surface-card);
+        }
+    }
+
+    // Field Styles
+    .field {
+        margin-bottom: 1.5rem;
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 0.95rem;
+
+            &:after {
+                content: "";
+                color: var(--red-500);
+            }
+        }
+
+        // Input styles
+        input[pInputText] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--surface-border);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            background: var(--surface-ground);
+
+            &:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.2);
+                outline: none;
+                background: var(--surface-card);
+            }
+
+            &::placeholder {
+                color: var(--text-color-secondary);
+                opacity: 0.7;
+            }
+
+            &.ng-invalid.ng-touched {
+                border-color: var(--red-500);
+                background: rgba(var(--red-500-rgb), 0.05);
+            }
+        }
+
+        // Textarea styles
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--surface-border);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            background: var(--surface-ground);
+            font-family: inherit;
+            resize: vertical;
+
+            &:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.2);
+                outline: none;
+                background: var(--surface-card);
+            }
+
+            &::placeholder {
+                color: var(--text-color-secondary);
+                opacity: 0.7;
+            }
+
+            &.ng-invalid.ng-touched {
+                border-color: var(--red-500);
+                background: rgba(var(--red-500-rgb), 0.05);
+            }
+        }
+
+        // PrimeNG InputNumber styles
+        ::ng-deep p-inputnumber {
+            width: 100%;
+
+            .p-inputnumber-input {
+                width: 100% !important;
+                padding: 0.75rem;
+                border: 1px solid var(--surface-border);
+                border-radius: 8px;
+                transition: all 0.3s ease;
+                font-size: 0.95rem;
+                background: var(--surface-ground);
+
+                &:focus {
+                    border-color: var(--primary-color);
+                    box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.2);
+                    outline: none;
+                    background: var(--surface-card);
+                }
+            }
+
+            &.ng-invalid .p-inputnumber-input {
+                border-color: var(--red-500);
+                background: rgba(var(--red-500-rgb), 0.05);
+            }
+        }
+
+        // PrimeNG Calendar styles
+        ::ng-deep p-calendar {
+            width: 100%;
+
+            .p-calendar {
+                width: 100%;
+
+                .p-inputtext {
+                    width: 100% !important;
+                    padding: 0.75rem 2.5rem 0.75rem 0.75rem;
+                    border: 1px solid var(--surface-border);
+                    border-radius: 8px;
+                    transition: all 0.3s ease;
+                    font-size: 0.95rem;
+                    background: var(--surface-ground);
+
+                    &:focus {
+                        border-color: var(--primary-color);
+                        box-shadow: 0 0 0 0.2rem
+                            rgba(var(--primary-color-rgb), 0.2);
+                        outline: none;
+                        background: var(--surface-card);
+                    }
+                }
+
+                .p-datepicker-trigger {
+                    right: 0.75rem;
+                    color: var(--text-color-secondary);
+                }
+            }
+
+            &.ng-invalid .p-calendar .p-inputtext {
+                border-color: var(--red-500);
+                background: rgba(var(--red-500-rgb), 0.05);
+            }
+        }
+
+        // PrimeNG Dropdown styles
+        ::ng-deep p-dropdown {
+            width: 100%;
+
+            .p-dropdown {
+                width: 100%;
+                border: 1px solid var(--surface-border);
+                border-radius: 8px;
+                transition: all 0.3s ease;
+                background: var(--surface-ground);
+
+                &:not(.p-disabled):hover {
+                    border-color: var(--primary-color);
+                }
+
+                &:not(.p-disabled).p-focus {
+                    border-color: var(--primary-color);
+                    box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.2);
+                }
+
+                .p-dropdown-label {
+                    padding: 0.75rem;
+                    font-size: 0.95rem;
+                }
+            }
+
+            &.ng-invalid .p-dropdown {
+                border-color: var(--red-500);
+                background: rgba(var(--red-500-rgb), 0.05);
+            }
+        }
+
+        // PrimeNG SelectButton styles
+        ::ng-deep p-selectbutton {
+            width: 100%;
+
+            .p-selectbutton {
+                width: 100%;
+
+                .p-button {
+                    flex: 1;
+                    border-radius: 8px;
+                    font-weight: 500;
+                    transition: all 0.3s ease;
+
+                    &:first-child {
+                        border-top-right-radius: 0;
+                        border-bottom-right-radius: 0;
+                    }
+
+                    &:last-child {
+                        border-top-left-radius: 0;
+                        border-bottom-left-radius: 0;
+                    }
+
+                    &:not(:first-child):not(:last-child) {
+                        border-radius: 0;
+                    }
+
+                    &.p-highlight {
+                        background: var(--primary-color);
+                        border-color: var(--primary-color);
+                        color: var(--primary-color-text);
+                        box-shadow: 0 2px 8px
+                            rgba(var(--primary-color-rgb), 0.3);
+                    }
+                }
+            }
+        }
+
+        // Error message styles
+        .p-error {
+            color: var(--red-500);
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+            display: block;
+            line-height: 1.4;
+        }
+    }
+
+    // Vital Signs Indicators
+    .temp-indicator,
+    .hr-indicator,
+    .rr-indicator {
+        small {
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+
+            &.normal {
+                background: rgba(var(--green-500-rgb), 0.1);
+                color: var(--green-700);
+            }
+
+            &.warning {
+                background: rgba(var(--orange-500-rgb), 0.1);
+                color: var(--orange-700);
+            }
+
+            &.danger {
+                background: rgba(var(--red-500-rgb), 0.1);
+                color: var(--red-700);
+            }
+
+            &.info {
+                background: rgba(var(--blue-500-rgb), 0.1);
+                color: var(--blue-700);
+            }
+        }
+    }
+
+    // Photos Section
+    .photos-section {
+        .upload-section {
+            ::ng-deep p-fileupload {
+                .p-fileupload-choose {
+                    background: var(--primary-color);
+                    border-color: var(--primary-color);
+                    color: var(--primary-color-text);
+                    border-radius: 8px;
+                    font-weight: 600;
+                    padding: 0.75rem 1.5rem;
+                    transition: all 0.3s ease;
+
+                    &:hover {
+                        background: var(--primary-600);
+                        transform: translateY(-1px);
+                        box-shadow: 0 4px 12px
+                            rgba(var(--primary-color-rgb), 0.3);
+                    }
+                }
+            }
+
+            .upload-info {
+                text-align: center;
+                padding: 1rem;
+                background: rgba(var(--blue-500-rgb), 0.05);
+                border-radius: 8px;
+
+                small {
+                    color: var(--text-color-secondary);
+                }
+            }
+        }
+
+        .existing-photos,
+        .new-photos {
+            h6 {
+                color: var(--text-color);
+                font-weight: 600;
+                padding-bottom: 0.5rem;
+                border-bottom: 2px solid var(--primary-color);
+                display: inline-block;
+                margin-bottom: 1rem;
+            }
+        }
+
+        .photo-card {
+            background: var(--surface-card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid var(--surface-border);
+            transition: all 0.3s ease;
+            position: relative;
+
+            &:hover {
+                border-color: var(--primary-color);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            }
+
+            &.existing {
+                .photo-thumbnail {
+                    width: 100%;
+                    height: 200px;
+                    object-fit: cover;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+
+                    &:hover {
+                        transform: scale(1.05);
+                    }
+                }
+            }
+
+            &.new {
+                .photo-preview {
+                    height: 200px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center;
+                    padding: 1rem;
+                    background: linear-gradient(
+                        135deg,
+                        rgba(var(--primary-color-rgb), 0.05) 0%,
+                        rgba(var(--primary-color-rgb), 0.1) 100%
+                    );
+
+                    .pi-image {
+                        color: var(--primary-color);
+                        margin-bottom: 1rem;
+                    }
+
+                    .photo-name {
+                        font-weight: 600;
+                        color: var(--text-color);
+                        margin-bottom: 0.5rem;
+                        font-size: 0.9rem;
+                        word-break: break-word;
+                    }
+
+                    .photo-size {
+                        color: var(--text-color-secondary);
+                        font-size: 0.8rem;
+                    }
+                }
+            }
+
+            .photo-actions {
+                position: absolute;
+                top: 0.5rem;
+                right: 0.5rem;
+                display: flex;
+                gap: 0.25rem;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+
+                ::ng-deep .p-button {
+                    width: 2rem;
+                    height: 2rem;
+                    padding: 0;
+                    border-radius: 50%;
+                    backdrop-filter: blur(10px);
+                    background: rgba(255, 255, 255, 0.9);
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+
+                    &:hover {
+                        background: rgba(255, 255, 255, 1);
+                        transform: scale(1.1);
+                    }
+
+                    &[data-pc-severity="danger"] {
+                        background: rgba(var(--red-500-rgb), 0.9);
+                        color: white;
+
+                        &:hover {
+                            background: var(--red-500);
+                        }
+                    }
+
+                    &[data-pc-severity="info"] {
+                        background: rgba(var(--blue-500-rgb), 0.9);
+                        color: white;
+
+                        &:hover {
+                            background: var(--blue-500);
+                        }
+                    }
+                }
+            }
+
+            &:hover .photo-actions {
+                opacity: 1;
+            }
+        }
+
+        .empty-photos {
+            background: var(--surface-hover);
+            border: 2px dashed var(--surface-border);
+            border-radius: 12px;
+            color: var(--text-color-secondary);
+
+            .pi-camera {
+                color: var(--text-color-secondary);
+            }
+        }
+    }
+
+    // Justification Panel
+    ::ng-deep .p-panel:has([formcontrolname="justificacion"]) {
+        .p-panel-header {
+            background: linear-gradient(
+                135deg,
+                var(--orange-500) 0%,
+                var(--orange-600) 100%
+            );
+            color: white;
+        }
+    }
+}
+
+// Photo Viewer Dialog
+::ng-deep .photo-viewer-dialog {
+    .p-dialog-content {
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+    }
+
+    .photo-viewer-image {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+}
+
+// Button Styles
+::ng-deep .p-button {
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    padding: 0.75rem 1.5rem;
+
+    &:not(.p-button-outlined):not(.p-button-text) {
+        box-shadow: 0 3px 12px rgba(var(--primary-color-rgb), 0.3);
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(var(--primary-color-rgb), 0.4);
+        }
+    }
+
+    &.p-button-outlined {
+        border: 2px solid var(--primary-color);
+        color: var(--primary-color);
+        background: transparent;
+
+        &:hover {
+            background: var(--primary-color);
+            color: var(--primary-color-text);
+            transform: translateY(-2px);
+        }
+    }
+
+    &[data-pc-severity="success"] {
+        --p-button-background: var(--green-500);
+        --p-button-border: 1px solid var(--green-500);
+        box-shadow: 0 3px 12px rgba(var(--green-500-rgb), 0.3);
+
+        &:hover {
+            --p-button-hover-background: var(--green-600);
+            box-shadow: 0 5px 20px rgba(var(--green-500-rgb), 0.4);
+        }
+    }
+
+    &[data-pc-severity="danger"] {
+        --p-button-background: var(--red-500);
+        --p-button-border: 1px solid var(--red-500);
+        box-shadow: 0 3px 12px rgba(var(--red-500-rgb), 0.3);
+
+        &:hover {
+            --p-button-hover-background: var(--red-600);
+            box-shadow: 0 5px 20px rgba(var(--red-500-rgb), 0.4);
+        }
+    }
+
+    &[data-pc-severity="warning"] {
+        --p-button-background: var(--orange-500);
+        --p-button-border: 1px solid var(--orange-500);
+        box-shadow: 0 3px 12px rgba(var(--orange-500-rgb), 0.3);
+
+        &:hover {
+            --p-button-hover-background: var(--orange-600);
+            box-shadow: 0 5px 20px rgba(var(--orange-500-rgb), 0.4);
+        }
+    }
+
+    &[data-pc-severity="info"] {
+        --p-button-background: var(--blue-500);
+        --p-button-border: 1px solid var(--blue-500);
+        box-shadow: 0 3px 12px rgba(var(--blue-500-rgb), 0.3);
+
+        &:hover {
+            --p-button-hover-background: var(--blue-600);
+            box-shadow: 0 5px 20px rgba(var(--blue-500-rgb), 0.4);
+        }
+    }
+
+    &[data-pc-severity="secondary"] {
+        --p-button-background: var(--surface-600);
+        --p-button-border: 1px solid var(--surface-600);
+        --p-button-color: var(--surface-0);
+        box-shadow: 0 3px 12px rgba(var(--surface-600-rgb), 0.3);
+
+        &:hover {
+            --p-button-hover-background: var(--surface-700);
+            box-shadow: 0 5px 20px rgba(var(--surface-600-rgb), 0.4);
+        }
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+    ::ng-deep .inspection-form-dialog {
+        width: 95vw !important;
+        height: 95vh !important;
+        max-width: none !important;
+
+        .p-dialog-header {
+            padding: 1rem;
+
+            .p-dialog-title {
+                font-size: 1.25rem;
+            }
+        }
+
+        .p-dialog-footer {
+            padding: 1rem;
+
+            .flex {
+                flex-direction: column-reverse;
+                gap: 1rem;
+
+                > div {
+                    width: 100%;
+                    text-align: center;
+
+                    .p-button {
+                        width: 100%;
+                    }
+                }
+            }
+        }
+    }
+
+    .inspection-form-container {
+        padding: 1rem;
+
+        .grid {
+            .col-12 {
+                padding: 0.5rem;
+            }
+        }
+
+        .photos-section {
+            .photo-card {
+                &.existing .photo-thumbnail,
+                &.new .photo-preview {
+                    height: 150px;
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 576px) {
+    .inspection-form-container {
+        padding: 0.5rem;
+
+        .field {
+            margin-bottom: 1rem;
+
+            label {
+                font-size: 0.9rem;
+            }
+        }
+
+        .photos-section {
+            .grid {
+                .col-12 {
+                    width: 100% !important;
+                    padding: 0.25rem;
+                }
+            }
+
+            .photo-card {
+                &.existing .photo-thumbnail,
+                &.new .photo-preview {
+                    height: 120px;
+                }
+            }
+        }
+    }
+}
+
+// Loading states
+::ng-deep .p-button[data-pc-section="loadingicon"] {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+    .inspection-form-container {
+        .field {
+            input[pInputText],
+            textarea,
+            ::ng-deep .p-inputnumber-input,
+            ::ng-deep .p-calendar .p-inputtext {
+                background: var(--surface-ground);
+                color: var(--text-color);
+
+                &::placeholder {
+                    color: var(--text-color-secondary);
+                }
+            }
+        }
+
+        .photos-section {
+            .upload-info {
+                background: rgba(var(--blue-500-rgb), 0.1);
+            }
+
+            .photo-card {
+                &.new .photo-preview {
+                    background: linear-gradient(
+                        135deg,
+                        rgba(var(--primary-color-rgb), 0.1) 0%,
+                        rgba(var(--primary-color-rgb), 0.15) 100%
+                    );
+                }
+            }
+        }
+    }
+}
+
+// Focus management
+.inspection-form-container {
+    *:focus {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 2px;
+    }
+}
+
+// Custom scrollbar
+.inspection-form-container {
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-border) var(--surface-ground);
+
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: var(--surface-ground);
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--surface-border);
+        border-radius: 3px;
+
+        &:hover {
+            background: var(--surface-hover);
+        }
+    }
+}

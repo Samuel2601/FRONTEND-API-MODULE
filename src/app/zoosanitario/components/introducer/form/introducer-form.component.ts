@@ -22,11 +22,18 @@ export class IntroducerFormComponent implements OnInit {
     introducerId?: string;
     loading = false;
     submitting = false;
-    consultingDocument = false; // Para mostrar loading durante consulta
+    consultingDocument = false;
+    consultingRuc = false; // Nueva bandera para consulta de RUC
 
     typeOptions = [
         { label: 'Persona Natural', value: 'Natural' },
         { label: 'Persona Jurídica', value: 'Jurídica' },
+    ];
+
+    // Nuevas opciones para facturación
+    billingOptions = [
+        { label: 'Cédula', value: 'idNumber' },
+        { label: 'RUC', value: 'ruc' },
     ];
 
     introducerTypeOptions = [];
@@ -54,26 +61,254 @@ export class IntroducerFormComponent implements OnInit {
     }
 
     setupDocumentWatcher(): void {
-        // Detectar cambios en idNumber para consulta automática
+        // Detectar cambios en cédula para persona natural
         this.form
             .get('idNumber')
             ?.valueChanges.pipe(
-                debounceTime(500), // Esperar 500ms después del último cambio
+                debounceTime(500),
                 distinctUntilChanged(),
-                filter((value) => this.shouldConsultDocument(value))
+                filter(
+                    (value) =>
+                        this.isNaturalPerson &&
+                        value &&
+                        value.length === 10 &&
+                        /^\d{10}$/.test(value)
+                )
             )
-            .subscribe((documentNumber: string) => {
-                this.consultarCiudadano(documentNumber);
+            .subscribe((cedula: string) => {
+                this.consultarCedula(cedula);
             });
 
-        // Resetear nombre automático cuando cambie el documento
+        // Detectar cambios en RUC para persona natural
+        this.form
+            .get('rucNatural')
+            ?.valueChanges.pipe(
+                debounceTime(500),
+                distinctUntilChanged(),
+                filter(
+                    (value) =>
+                        this.isNaturalPerson &&
+                        value &&
+                        value.length === 13 &&
+                        /^\d{13}$/.test(value)
+                )
+            )
+            .subscribe((ruc: string) => {
+                this.consultarRucNatural(ruc);
+            });
+
+        // Detectar cambios en RUC para persona jurídica (sin cambios)
+        this.form
+            .get('ruc')
+            ?.valueChanges.pipe(
+                debounceTime(500),
+                distinctUntilChanged(),
+                filter(
+                    (value) =>
+                        !this.isNaturalPerson &&
+                        this.shouldConsultDocument(value)
+                )
+            )
+            .subscribe((documentNumber: string) => {
+                this.consultarCiudadanoJuridico(documentNumber);
+            });
+
+        // Resetear datos cuando cambien los documentos
         this.form.get('idNumber')?.valueChanges.subscribe(() => {
             this.nameFromConsult = false;
+        });
+
+        this.form.get('rucNatural')?.valueChanges.subscribe((value) => {
+            // Si se borra el RUC, resetear preferencia de facturación
+            if (!value) {
+                this.form.get('billingPreference')?.setValue('cedula');
+            }
         });
 
         // Actualizar validadores cuando cambie personType
         this.form.get('personType')?.valueChanges.subscribe((personType) => {
             this.updateValidators(personType);
+        });
+    }
+
+    consultarCedula(cedula: string): void {
+        this.consultingDocument = true;
+
+        this.adminService.consultarIdentificacion(cedula).subscribe({
+            next: (response: any) => {
+                console.log('Respuesta cédula:', response);
+
+                if (response.actaDefuncion === '1') {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'Advertencia',
+                        detail: 'Esta persona tiene una acta de defunción',
+                    });
+                    this.form.patchValue({ name: '', idNumber: '' });
+                    this.consultingDocument = false;
+                    return;
+                }
+
+                if (response && response.nombre) {
+                    this.form.patchValue(
+                        {
+                            name: response.nombre,
+                            statusMarital: response.estadoCivil,
+                        },
+                        { emitEvent: false }
+                    );
+
+                    this.nameFromConsult = true;
+
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Información encontrada',
+                        detail: 'Datos de cédula consultados correctamente',
+                    });
+                } else {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'Sin resultados',
+                        detail: 'No se encontró información para la cédula proporcionada',
+                    });
+                }
+
+                this.consultingDocument = false;
+            },
+            error: (error) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error de consulta',
+                    detail: `Error al consultar cédula: ${
+                        error.message || 'Servicio no disponible'
+                    }`,
+                });
+                this.consultingDocument = false;
+            },
+        });
+    }
+
+    // Nueva función para consultar RUC de persona natural
+    consultarRucNatural(ruc: string): void {
+        this.consultingRuc = true;
+
+        this.adminService.consultarIdentificacion(ruc).subscribe({
+            next: (response: any) => {
+                console.log('Respuesta RUC natural:', response);
+
+                if (response && response.razonSocial) {
+                    // Para persona natural con RUC, la razón social suele ser el nombre
+                    if (!this.nameFromConsult) {
+                        this.form.patchValue(
+                            {
+                                name: response.razonSocial,
+                            },
+                            { emitEvent: false }
+                        );
+                        this.nameFromConsult = true;
+                    }
+
+                    // Completar otros datos
+                    this.form.patchValue(
+                        {
+                            email:
+                                response.email || this.form.get('email')?.value,
+                            phone:
+                                response.telefonoTrabajo ||
+                                this.form.get('phone')?.value,
+                            address:
+                                response.direccionCorta ||
+                                this.form.get('address')?.value,
+                        },
+                        { emitEvent: false }
+                    );
+
+                    // Actualizar bandera de datos obtenidos
+                    for (const key in response) {
+                        if (response[key]) {
+                            this.dataFromConsult[key] = true;
+                        }
+                    }
+
+                    // Establecer preferencia de facturación a RUC si no está definida
+                    if (!this.form.get('billingPreference')?.value) {
+                        this.form.get('billingPreference')?.setValue('ruc');
+                    }
+
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Información encontrada',
+                        detail: 'Datos de RUC consultados correctamente',
+                    });
+                } else {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'Sin resultados',
+                        detail: 'No se encontró información para el RUC proporcionado',
+                    });
+                }
+
+                this.consultingRuc = false;
+            },
+            error: (error) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error de consulta',
+                    detail: `Error al consultar RUC: ${
+                        error.message || 'Servicio no disponible'
+                    }`,
+                });
+                this.consultingRuc = false;
+            },
+        });
+    }
+
+    consultarCiudadanoJuridico(ruc: string): void {
+        if (ruc.length !== 13) return;
+
+        this.consultingDocument = true;
+
+        this.adminService.consultarIdentificacion(ruc).subscribe({
+            next: (response: any) => {
+                console.log('Respuesta RUC:', response);
+
+                if (response && response.razonSocial) {
+                    // Autocompletar datos de empresa
+                    this.form.patchValue(
+                        {
+                            companyName: response.razonSocial,
+                            email: response.email || '',
+                            phone: response.telefonoTrabajo || '',
+                            address: response.direccionCorta || '',
+                        },
+                        { emitEvent: false }
+                    );
+
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Información encontrada',
+                        detail: 'Datos de RUC consultados correctamente',
+                    });
+                } else {
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'Sin resultados',
+                        detail: 'No se encontró información para el RUC proporcionado',
+                    });
+                }
+
+                this.consultingDocument = false;
+            },
+            error: (error) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error de consulta',
+                    detail: `Error al consultar RUC: ${
+                        error.message || 'Servicio no disponible'
+                    }`,
+                });
+                this.consultingDocument = false;
+            },
         });
     }
 
@@ -86,11 +321,16 @@ export class IntroducerFormComponent implements OnInit {
             return /^\d{10,13}$/.test(documentNumber);
         }
 
-        return false; // No consultar para persona jurídica automáticamente
+        // Para persona jurídica: consultar RUC de 13 dígitos
+        if (!this.isNaturalPerson) {
+            return /^\d{13}$/.test(documentNumber);
+        }
+
+        return false;
     }
 
     nameFromConsult = false; // Bandera para saber si el nombre viene de consulta
-
+    dataFromConsult: any = {}; // Datos de la empresa obtenidos de consulta
     consultarCiudadano(documentNumber: string): void {
         if (documentNumber.length < 10) return;
 
@@ -99,31 +339,91 @@ export class IntroducerFormComponent implements OnInit {
         // Determinar si es cédula (10 dígitos) o RUC (más de 10)
         const documentType = documentNumber.length === 10 ? 'cédula' : 'RUC';
 
-        this.adminService.getCiudadanoInfo(documentNumber).subscribe({
+        this.adminService.consultarIdentificacion(documentNumber).subscribe({
             next: (response: any) => {
-                if (response && response.nombre) {
-                    // Autocompletar el nombre y marcarlo como readonly
-                    this.form.patchValue(
-                        {
-                            name: response.nombre,
-                        },
-                        { emitEvent: false }
-                    );
-
-                    this.nameFromConsult = true;
-
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Información encontrada',
-                        detail: `Datos de ${documentType} consultados correctamente`,
-                    });
-                } else {
+                console.log('Respuesta:', response);
+                if (response.actaDefuncion === '1') {
                     this.messageService.add({
                         severity: 'warn',
-                        summary: 'Sin resultados',
-                        detail: `No se encontró información para la ${documentType} proporcionada`,
+                        summary: 'Advertencia',
+                        detail: 'Esta persona tiene una acta de defunción',
                     });
+                    this.form.patchValue({
+                        name: '',
+                        ruc: '',
+                        idNumber: '',
+                    });
+                    return;
                 }
+                if (documentType === 'RUC') {
+                    if (response && response.razonSocial) {
+                        // Autocompletar el nombre y marcarlo como readonly
+                        this.form.patchValue(
+                            {
+                                personType: 'Jurídica',
+                                companyName: response.razonSocial,
+                                email: response.email,
+                                phone: response.telefonoTrabajo,
+                                ruc: response.numeroRuc,
+                                address: response.direccionCorta,
+                                idNumber: '',
+                                name: '',
+                            },
+                            { emitEvent: false }
+                        );
+                        for (const key in response) {
+                            if (response[key]) {
+                                this.dataFromConsult[key] = true;
+                            } else {
+                                this.dataFromConsult[key] = false;
+                            }
+                        }
+
+                        console.log(
+                            'Datos de la empresa:',
+                            this.dataFromConsult
+                        );
+                        this.nameFromConsult = true;
+
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Información encontrada',
+                            detail: `Datos de ${documentType} consultados correctamente`,
+                        });
+                    } else {
+                        this.messageService.add({
+                            severity: 'warn',
+                            summary: 'Sin resultados',
+                            detail: `No se encontró información para la ${documentType} proporcionada`,
+                        });
+                    }
+                } else {
+                    if (response && response.nombre) {
+                        // Autocompletar el nombre y marcarlo como readonly
+                        this.form.patchValue(
+                            {
+                                name: response.nombre,
+                                statusMarital: response.estadoCivil,
+                            },
+                            { emitEvent: false }
+                        );
+
+                        this.nameFromConsult = true;
+
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Información encontrada',
+                            detail: `Datos de ${documentType} consultados correctamente`,
+                        });
+                    } else {
+                        this.messageService.add({
+                            severity: 'warn',
+                            summary: 'Sin resultados',
+                            detail: `No se encontró información para la ${documentType} proporcionada`,
+                        });
+                    }
+                }
+
                 this.consultingDocument = false;
             },
             error: (error) => {
@@ -171,15 +471,12 @@ export class IntroducerFormComponent implements OnInit {
 
             // Persona Natural
             name: [{ value: '', disabled: false }],
+            idNumber: [{ value: '', disabled: false }], // Solo cédula
+            rucNatural: [{ value: '', disabled: false }], // RUC opcional para persona natural
+            billingPreference: [{ value: 'idNumber', disabled: false }], // Preferencia de facturación
 
             // Persona Jurídica
             companyName: [{ value: '', disabled: false }],
-
-            // Documentos - Validación dinámica
-            idNumber: [
-                { value: '', disabled: false },
-                [Validators.required, this.documentValidator.bind(this)],
-            ],
             ruc: [{ value: '', disabled: false }],
 
             // Contacto
@@ -192,6 +489,8 @@ export class IntroducerFormComponent implements OnInit {
 
             // Tipo de introductor
             cattleTypes: [{ value: [], disabled: false }, Validators.required],
+
+            statusMarital: [{ value: 'SOLTERO', disabled: false }],
 
             // Notas
             notes: [{ value: '', disabled: false }],
@@ -206,7 +505,7 @@ export class IntroducerFormComponent implements OnInit {
     // Validador personalizado para documentos
     documentValidator(control: any) {
         const value = control.value;
-        if (!value) return null;
+        if (!value) return null; // Si está vacío y es opcional, es válido
 
         const personType = this.form?.get('personType')?.value;
 
@@ -235,6 +534,7 @@ export class IntroducerFormComponent implements OnInit {
         const nameControl = this.form.get('name');
         const companyNameControl = this.form.get('companyName');
         const rucControl = this.form.get('ruc');
+        const rucNaturalControl = this.form.get('rucNatural');
         const idNumberControl = this.form.get('idNumber');
 
         if (personType === 'Natural') {
@@ -243,26 +543,43 @@ export class IntroducerFormComponent implements OnInit {
             companyNameControl?.clearValidators();
             rucControl?.clearValidators();
 
+            // Cédula es obligatoria, RUC es opcional
+            idNumberControl?.setValidators([
+                Validators.required,
+                Validators.pattern(/^\d{10}$/),
+            ]);
+            rucNaturalControl?.setValidators([Validators.pattern(/^\d{13}$/)]);
+
             // Limpiar valores de persona jurídica
             companyNameControl?.setValue('');
             rucControl?.setValue('');
         } else {
             // Validadores para persona jurídica
-            nameControl?.setValidators([Validators.required]); // Nombre del representante
+            nameControl?.clearValidators();
             companyNameControl?.setValidators([Validators.required]);
             rucControl?.setValidators([
                 Validators.required,
                 Validators.pattern(/^\d{13}$/),
             ]);
-        }
+            rucNaturalControl?.clearValidators();
+            idNumberControl?.setValidators([Validators.pattern(/^\d{10}$/)]);
 
-        // Actualizar validación del documento
-        idNumberControl?.updateValueAndValidity();
+            // Limpiar valores de persona natural
+            rucNaturalControl?.setValue('');
+            this.form.get('billingPreference')?.setValue('cedula');
+
+            if (this.nameFromConsult) {
+                nameControl?.setValue('');
+                this.nameFromConsult = false;
+            }
+        }
 
         // Actualizar estado de validación
         nameControl?.updateValueAndValidity();
         companyNameControl?.updateValueAndValidity();
         rucControl?.updateValueAndValidity();
+        rucNaturalControl?.updateValueAndValidity();
+        idNumberControl?.updateValueAndValidity();
     }
 
     loadIntroducer(): void {
@@ -366,9 +683,11 @@ export class IntroducerFormComponent implements OnInit {
 
         if (field.errors?.['required']) return 'Este campo es requerido';
         if (field.errors?.['email']) return 'Email inválido';
-        if (field.errors?.['invalidDocument'])
-            return field.errors['invalidDocument'];
         if (field.errors?.['pattern']) {
+            if (fieldName === 'idNumber')
+                return 'La cédula debe tener 10 dígitos';
+            if (fieldName === 'rucNatural')
+                return 'El RUC debe tener 13 dígitos';
             if (fieldName === 'ruc') return 'El RUC debe tener 13 dígitos';
             if (fieldName === 'phone')
                 return 'El teléfono debe tener entre 7 y 15 dígitos';

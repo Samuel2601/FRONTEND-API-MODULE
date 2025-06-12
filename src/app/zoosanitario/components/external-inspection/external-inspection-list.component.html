@@ -1,0 +1,596 @@
+<!-- src/app/components/external-inspection-list/external-inspection-list.component.html -->
+<div class="inspection-list-container">
+    <!-- Header -->
+    <div class="inspection-header">
+        <div class="flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-2">
+                    Inspecciones Externas
+                </h1>
+                <p class="text-white opacity-90">
+                    {{ totalInspections }} inspecciones encontradas
+                </p>
+                <div class="platform-info mt-2">
+                    <p-tag
+                        [value]="'Proceso: ' + (processId || 'General')"
+                        severity="info"
+                        [rounded]="true"
+                    >
+                    </p-tag>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <p-button
+                    icon="pi pi-plus"
+                    label="Nueva Inspección"
+                    severity="success"
+                    (onClick)="openCreateDialog()"
+                    *ngIf="canCreateInspection"
+                >
+                </p-button>
+                <p-button
+                    icon="pi pi-refresh"
+                    severity="secondary"
+                    [outlined]="true"
+                    (onClick)="refresh()"
+                    [loading]="loading"
+                >
+                </p-button>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filters-section">
+            <div class="grid">
+                <div class="col-12 md:col-3">
+                    <div class="field">
+                        <label
+                            for="searchNumber"
+                            class="font-semibold text-white"
+                            >Buscar por Número</label
+                        >
+                        <input
+                            type="text"
+                            pInputText
+                            id="searchNumber"
+                            [(ngModel)]="searchNumber"
+                            placeholder="Número de inspección"
+                            styleClass="w-full"
+                            (keyup.enter)="searchByNumber()"
+                        />
+                    </div>
+                </div>
+                <div class="col-12 md:col-3">
+                    <div class="field">
+                        <label
+                            for="resultFilter"
+                            class="font-semibold text-white"
+                            >Resultado</label
+                        >
+                        <p-dropdown
+                            appendTo="body"
+                            id="resultFilter"
+                            [(ngModel)]="filters.resultado"
+                            [options]="resultOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Todos los resultados"
+                            styleClass="w-full"
+                            (onChange)="onFilterChange()"
+                        >
+                        </p-dropdown>
+                    </div>
+                </div>
+                <div class="col-12 md:col-3">
+                    <div class="field">
+                        <label
+                            for="speciesFilter"
+                            class="font-semibold text-white"
+                            >Especie</label
+                        >
+                        <p-dropdown
+                            appendTo="body"
+                            id="speciesFilter"
+                            [(ngModel)]="filters.especie"
+                            [options]="speciesOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Todas las especies"
+                            styleClass="w-full"
+                            (onChange)="onFilterChange()"
+                        >
+                        </p-dropdown>
+                    </div>
+                </div>
+                <div class="col-12 md:col-3">
+                    <div class="field">
+                        <label for="dateFilter" class="font-semibold text-white"
+                            >Fecha</label
+                        >
+                        <p-calendar
+                            id="dateFilter"
+                            [(ngModel)]="filters.fecha"
+                            placeholder="Filtrar por fecha"
+                            [showIcon]="true"
+                            styleClass="w-full"
+                            (onSelect)="onFilterChange()"
+                        >
+                        </p-calendar>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas Rápidas -->
+    <div class="statistics-section mb-4" *ngIf="statistics">
+        <div class="grid">
+            <div class="col-12 md:col-2">
+                <div class="stat-card total">
+                    <div class="stat-value">{{ statistics.total }}</div>
+                    <div class="stat-label">Total</div>
+                </div>
+            </div>
+            <div class="col-12 md:col-2">
+                <div class="stat-card pending">
+                    <div class="stat-value">{{ statistics.pendientes }}</div>
+                    <div class="stat-label">Pendientes</div>
+                </div>
+            </div>
+            <div class="col-12 md:col-2">
+                <div class="stat-card approved">
+                    <div class="stat-value">{{ statistics.aptas }}</div>
+                    <div class="stat-label">Aptas</div>
+                </div>
+            </div>
+            <div class="col-12 md:col-2">
+                <div class="stat-card return">
+                    <div class="stat-value">{{ statistics.devolucion }}</div>
+                    <div class="stat-label">Devolución</div>
+                </div>
+            </div>
+            <div class="col-12 md:col-2">
+                <div class="stat-card quarantine">
+                    <div class="stat-value">{{ statistics.cuarentena }}</div>
+                    <div class="stat-label">Cuarentena</div>
+                </div>
+            </div>
+            <div class="col-12 md:col-2">
+                <div class="stat-card commission">
+                    <div class="stat-value">{{ statistics.comision }}</div>
+                    <div class="stat-label">Comisión</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Inspecciones -->
+    <div class="inspections-table-container">
+        <p-table
+            [value]="inspections"
+            [loading]="loading"
+            [paginator]="true"
+            [rows]="pageSize"
+            [totalRecords]="totalInspections"
+            [lazy]="true"
+            (onLazyLoad)="loadInspections($event)"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} inspecciones"
+            [rowsPerPageOptions]="[10, 25, 50]"
+            styleClass="p-datatable-striped"
+            [globalFilterFields]="['numero', 'especie', 'resultado']"
+        >
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="numero">
+                        Número <p-sortIcon field="numero"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="especie">
+                        Especie <p-sortIcon field="especie"></p-sortIcon>
+                    </th>
+                    <th>Características</th>
+                    <th>Signos Vitales</th>
+                    <th pSortableColumn="resultado">
+                        Resultado <p-sortIcon field="resultado"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="horaChequeo">
+                        Fecha <p-sortIcon field="horaChequeo"></p-sortIcon>
+                    </th>
+                    <th>Acciones</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-inspection>
+                <tr>
+                    <td>
+                        <div class="inspection-number">
+                            <span class="font-bold">{{
+                                inspection.numero
+                            }}</span>
+                            <div class="text-sm text-600">
+                                ID: {{ inspection._id?.slice(-6) }}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="species-info">
+                            <div class="font-semibold">
+                                {{
+                                    inspection.especie.species +
+                                        "(" +
+                                        inspection.especie.category +
+                                        ")" || "N/A"
+                                }}
+                            </div>
+                            <div class="text-sm text-600">
+                                {{ inspection.sexo || "Pendiente" }}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="characteristics">
+                            <div *ngIf="inspection.edad" class="text-sm">
+                                Edad: {{ inspection.edad }} años
+                            </div>
+                            <div *ngIf="inspection.peso" class="text-sm">
+                                Peso: {{ inspection.peso }} kg
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="vital-signs">
+                            <div *ngIf="inspection.temperatura" class="text-sm">
+                                T: {{ inspection.temperatura }}°C
+                            </div>
+                            <div
+                                *ngIf="inspection.frecuenciaCardiaca"
+                                class="text-sm"
+                            >
+                                FC: {{ inspection.frecuenciaCardiaca }} bpm
+                            </div>
+                            <div
+                                *ngIf="inspection.frecuenciaRespiratoria"
+                                class="text-sm"
+                            >
+                                FR: {{ inspection.frecuenciaRespiratoria }} rpm
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <p-tag
+                            [value]="inspection.resultado"
+                            [severity]="getResultSeverity(inspection.resultado)"
+                            [icon]="getResultIcon(inspection.resultado)"
+                        >
+                        </p-tag>
+                    </td>
+                    <td>
+                        <div *ngIf="inspection.horaChequeo" class="text-sm">
+                            {{
+                                inspection.horaChequeo
+                                    | date : "dd/MM/yyyy HH:mm"
+                            }}
+                        </div>
+                        <div *ngIf="!inspection.horaChequeo" class="text-600">
+                            Sin fecha
+                        </div>
+                    </td>
+                    <td>
+                        <div class="flex gap-2">
+                            <p-button
+                                icon="pi pi-eye"
+                                severity="info"
+                                [text]="true"
+                                size="small"
+                                (onClick)="viewDetails(inspection)"
+                                pTooltip="Ver detalles"
+                            >
+                            </p-button>
+                            <p-button
+                                icon="pi pi-pencil"
+                                severity="warning"
+                                [text]="true"
+                                size="small"
+                                (onClick)="editInspection(inspection)"
+                                pTooltip="Editar"
+                            >
+                            </p-button>
+                            <p-button
+                                icon="pi pi-trash"
+                                severity="danger"
+                                [text]="true"
+                                size="small"
+                                (onClick)="confirmDelete(inspection)"
+                                pTooltip="Eliminar"
+                            >
+                            </p-button>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="7">
+                        <div class="text-center p-4">
+                            <i class="pi pi-inbox text-4xl text-400 mb-3"></i>
+                            <p class="text-600">
+                                No se encontraron inspecciones
+                            </p>
+                            <p-button
+                                label="Nueva Inspección"
+                                icon="pi pi-plus"
+                                (onClick)="openCreateDialog()"
+                                *ngIf="canCreateInspection"
+                            >
+                            </p-button>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+
+    <!-- Acciones en Lote -->
+    <div class="batch-actions" *ngIf="selectedInspections.length > 0">
+        <p-card>
+            <div class="flex justify-content-between align-items-center">
+                <div>
+                    <span class="font-semibold">
+                        {{ selectedInspections.length }} inspección(es)
+                        seleccionada(s)
+                    </span>
+                </div>
+                <div class="flex gap-2">
+                    <p-dropdown
+                        appendTo="body"
+                        [(ngModel)]="batchResult"
+                        [options]="resultOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Cambiar resultado"
+                        styleClass="mr-2"
+                    >
+                    </p-dropdown>
+                    <p-button
+                        label="Aplicar"
+                        icon="pi pi-check"
+                        (onClick)="updateBatch()"
+                        [disabled]="!batchResult"
+                    >
+                    </p-button>
+                    <p-button
+                        label="Cancelar"
+                        icon="pi pi-times"
+                        severity="secondary"
+                        [outlined]="true"
+                        (onClick)="clearSelection()"
+                    >
+                    </p-button>
+                </div>
+            </div>
+        </p-card>
+    </div>
+</div>
+
+<!-- Diálogo de Detalles -->
+<p-dialog
+    [(visible)]="showDetailsDialog"
+    header="Detalles de Inspección"
+    [modal]="true"
+    [style]="{ width: '80vw', maxWidth: '900px' }"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+>
+    <div *ngIf="selectedInspection" class="inspection-details">
+        <!-- Información General -->
+        <p-panel header="Información General" styleClass="mb-3">
+            <div class="grid">
+                <div class="col-12 md:col-6">
+                    <div class="detail-item">
+                        <label>Número:</label>
+                        <span>{{ selectedInspection.numero }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Especie:</label>
+                        <span>{{
+                            selectedInspection.especie.species +
+                                "(" +
+                                selectedInspection.especie.category +
+                                ")" || "N/A"
+                        }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Sexo:</label>
+                        <span>{{
+                            selectedInspection.sexo || "Pendiente"
+                        }}</span>
+                    </div>
+                </div>
+                <div class="col-12 md:col-6">
+                    <div class="detail-item">
+                        <label>Edad:</label>
+                        <span>{{ selectedInspection.edad || "N/A" }} años</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Peso:</label>
+                        <span>{{ selectedInspection.peso || "N/A" }} kg</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Fecha/Hora:</label>
+                        <span>{{
+                            selectedInspection.horaChequeo
+                                | date : "dd/MM/yyyy HH:mm" || "N/A"
+                        }}</span>
+                    </div>
+                </div>
+            </div>
+        </p-panel>
+
+        <!-- Signos Vitales -->
+        <p-panel header="Signos Vitales" styleClass="mb-3">
+            <div class="grid">
+                <div class="col-12 md:col-4">
+                    <div class="vital-card">
+                        <div class="vital-value">
+                            {{ selectedInspection.temperatura || "N/A" }}
+                        </div>
+                        <div class="vital-label">Temperatura (°C)</div>
+                    </div>
+                </div>
+                <div class="col-12 md:col-4">
+                    <div class="vital-card">
+                        <div class="vital-value">
+                            {{ selectedInspection.frecuenciaCardiaca || "N/A" }}
+                        </div>
+                        <div class="vital-label">Frecuencia Cardíaca (bpm)</div>
+                    </div>
+                </div>
+                <div class="col-12 md:col-4">
+                    <div class="vital-card">
+                        <div class="vital-value">
+                            {{
+                                selectedInspection.frecuenciaRespiratoria ||
+                                    "N/A"
+                            }}
+                        </div>
+                        <div class="vital-label">
+                            Frecuencia Respiratoria (rpm)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </p-panel>
+
+        <!-- Estado y Observaciones -->
+        <p-panel header="Estado y Observaciones" styleClass="mb-3">
+            <div class="grid">
+                <div class="col-12">
+                    <div class="detail-item">
+                        <label>Estado General:</label>
+                        <p>
+                            {{
+                                selectedInspection.estadoGeneral ||
+                                    "No especificado"
+                            }}
+                        </p>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="detail-item">
+                        <label>Lesiones Visibles:</label>
+                        <p>
+                            {{
+                                selectedInspection.lesionesVisibles ||
+                                    "No especificado"
+                            }}
+                        </p>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="detail-item">
+                        <label>Resultado:</label>
+                        <p-tag
+                            [value]="selectedInspection.resultado"
+                            [severity]="
+                                getResultSeverity(selectedInspection.resultado)
+                            "
+                            [icon]="getResultIcon(selectedInspection.resultado)"
+                        >
+                        </p-tag>
+                    </div>
+                </div>
+                <div class="col-12" *ngIf="selectedInspection.motivoDictamen">
+                    <div class="detail-item">
+                        <label>Motivo del Dictamen:</label>
+                        <p>{{ selectedInspection.motivoDictamen }}</p>
+                    </div>
+                </div>
+            </div>
+        </p-panel>
+
+        <!-- Fotografías -->
+        <p-panel
+            header="Fotografías"
+            *ngIf="
+                selectedInspection.fotografias &&
+                selectedInspection.fotografias.length > 0
+            "
+        >
+            <div class="photos-gallery">
+                <div class="grid">
+                    <div
+                        class="col-12 md:col-4"
+                        *ngFor="let photo of selectedInspection.fotografias"
+                    >
+                        <div class="photo-item">
+                            <img
+                                [src]="photo"
+                                [alt]="
+                                    'Fotografía de inspección ' +
+                                    selectedInspection.numero
+                                "
+                                (click)="openPhotoViewer(photo)"
+                                class="photo-thumbnail"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </p-panel>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div class="flex justify-content-end gap-2">
+            <p-button
+                label="Editar"
+                icon="pi pi-pencil"
+                severity="warning"
+                (onClick)="editInspectionFromDetails()"
+            >
+            </p-button>
+            <p-button
+                label="Cerrar"
+                icon="pi pi-times"
+                severity="secondary"
+                [outlined]="true"
+                (onClick)="showDetailsDialog = false"
+            >
+            </p-button>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<!-- Diálogo de Formulario -->
+<app-external-inspection-form
+    *ngIf="showFormDialog"
+    [(visible)]="showFormDialog"
+    [inspectionId]="selectedInspectionId"
+    [receptionId]="receptionId"
+    [processId]="processId"
+    (inspectionSaved)="onInspectionSaved($event)"
+    (dialogClosed)="onFormDialogClosed()"
+>
+</app-external-inspection-form>
+
+<!-- Confirmación de Eliminación -->
+<p-confirmDialog></p-confirmDialog>
+
+<!-- Toast para notificaciones -->
+<p-toast></p-toast>
+
+<!-- Visor de Fotografías -->
+<p-dialog
+    [(visible)]="showPhotoViewer"
+    [modal]="true"
+    [style]="{ width: '90vw', height: '90vh' }"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="photo-viewer-dialog"
+>
+    <img
+        [src]="selectedPhoto"
+        alt="Fotografía de inspección"
+        class="photo-viewer-image"
+    />
+</p-dialog>

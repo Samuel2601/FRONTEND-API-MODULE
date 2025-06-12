@@ -103,11 +103,13 @@ export class ReceptionService extends BaseService<Reception> {
     getReceptions(
         filters?: ReceptionFilters,
         page: number = 1,
-        limit: number = 10
+        limit: number = 10,
+        populate?: string
     ): Observable<any> {
         let params = new HttpParams()
             .set('page', page.toString())
-            .set('limit', limit.toString());
+            .set('limit', limit.toString())
+            .set('populate', populate.toString());
 
         if (filters) {
             const filterObj = { ...filters };
@@ -118,6 +120,7 @@ export class ReceptionService extends BaseService<Reception> {
             filters,
             page,
             limit,
+            populate,
         })}`;
         const cachedData = this.cacheService.get<any>(cacheKey);
 

@@ -1,0 +1,659 @@
+.inspection-list-container {
+    min-height: 100vh;
+    background: var(--surface-ground);
+    padding: 1rem;
+
+    .inspection-header {
+        background: linear-gradient(
+            135deg,
+            var(--primary-color) 0%,
+            var(--primary-600) 100%
+        );
+        color: var(--primary-color-text);
+        padding: 2rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(var(--primary-color-rgb), 0.3);
+
+        h1 {
+            color: var(--primary-color-text);
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        p {
+            color: var(--primary-color-text);
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .p-button {
+            --p-button-background: rgba(255, 255, 255, 0.2);
+            --p-button-border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+
+            &:hover {
+                --p-button-hover-background: rgba(255, 255, 255, 0.3);
+                transform: translateY(-2px);
+            }
+
+            &[data-pc-severity="success"] {
+                --p-button-background: var(--green-500);
+                --p-button-border: 1px solid var(--green-500);
+                --p-button-color: white;
+                box-shadow: 0 4px 15px rgba(var(--green-500-rgb), 0.4);
+
+                &:hover {
+                    --p-button-hover-background: var(--green-600);
+                    box-shadow: 0 6px 20px rgba(var(--green-500-rgb), 0.5);
+                }
+            }
+        }
+
+        .filters-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+
+            .field {
+                margin-bottom: 0;
+
+                label {
+                    color: var(--primary-color-text);
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    display: block;
+                }
+
+                input,
+                ::ng-deep .p-dropdown,
+                ::ng-deep .p-calendar {
+                    background: rgba(255, 255, 255, 0.9);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 8px;
+
+                    &:focus {
+                        background: white;
+                        border-color: var(--primary-200);
+                        box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.3);
+                    }
+                }
+            }
+        }
+    }
+
+    // Estadísticas
+    .statistics-section {
+        .stat-card {
+            background: var(--surface-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--surface-border);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+
+            &::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                transition: all 0.3s ease;
+            }
+
+            &:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            }
+
+            .stat-value {
+                font-size: 2rem;
+                font-weight: 700;
+                margin-bottom: 0.5rem;
+                color: var(--text-color);
+            }
+
+            .stat-label {
+                font-size: 0.875rem;
+                color: var(--text-color-secondary);
+                font-weight: 500;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            &.total {
+                &::before {
+                    background: var(--blue-500);
+                }
+
+                .stat-value {
+                    color: var(--blue-500);
+                }
+            }
+
+            &.pending {
+                &::before {
+                    background: var(--orange-500);
+                }
+
+                .stat-value {
+                    color: var(--orange-500);
+                }
+            }
+
+            &.approved {
+                &::before {
+                    background: var(--green-500);
+                }
+
+                .stat-value {
+                    color: var(--green-500);
+                }
+            }
+
+            &.return {
+                &::before {
+                    background: var(--red-500);
+                }
+
+                .stat-value {
+                    color: var(--red-500);
+                }
+            }
+
+            &.quarantine {
+                &::before {
+                    background: var(--yellow-500);
+                }
+
+                .stat-value {
+                    color: var(--yellow-500);
+                }
+            }
+
+            &.commission {
+                &::before {
+                    background: var(--purple-500);
+                }
+
+                .stat-value {
+                    color: var(--purple-500);
+                }
+            }
+        }
+    }
+
+    // Tabla de Inspecciones
+    .inspections-table-container {
+        background: var(--surface-card);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--surface-border);
+
+        ::ng-deep .p-datatable {
+            .p-datatable-header {
+                background: var(--surface-section);
+                border-bottom: 1px solid var(--surface-border);
+                padding: 1.5rem;
+            }
+
+            .p-datatable-thead > tr > th {
+                background: var(--surface-section);
+                color: var(--text-color);
+                font-weight: 600;
+                padding: 1rem;
+                border-bottom: 2px solid var(--surface-border);
+                position: relative;
+
+                &:hover {
+                    background: var(--surface-hover);
+                }
+            }
+
+            .p-datatable-tbody > tr {
+                transition: all 0.2s ease;
+
+                &:hover {
+                    background: var(--surface-hover);
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                }
+
+                > td {
+                    padding: 1rem;
+                    border-bottom: 1px solid var(--surface-border);
+                    vertical-align: top;
+                }
+            }
+
+            .p-paginator {
+                background: var(--surface-card);
+                border-top: 1px solid var(--surface-border);
+                padding: 1rem 1.5rem;
+            }
+        }
+
+        .inspection-number {
+            .font-bold {
+                color: var(--primary-color);
+                font-size: 1.1rem;
+            }
+        }
+
+        .species-info {
+            .font-semibold {
+                color: var(--text-color);
+                margin-bottom: 0.25rem;
+            }
+        }
+
+        .characteristics,
+        .vital-signs {
+            line-height: 1.4;
+
+            > div {
+                margin-bottom: 0.25rem;
+                color: var(--text-color-secondary);
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+        }
+
+        ::ng-deep .p-tag {
+            font-weight: 600;
+            border-radius: 16px;
+            padding: 0.35rem 0.8rem;
+            font-size: 0.8rem;
+
+            &[data-pc-severity="success"] {
+                background: var(--green-500);
+                color: white;
+            }
+
+            &[data-pc-severity="danger"] {
+                background: var(--red-500);
+                color: white;
+            }
+
+            &[data-pc-severity="warning"] {
+                background: var(--orange-500);
+                color: white;
+            }
+
+            &[data-pc-severity="info"] {
+                background: var(--blue-500);
+                color: white;
+            }
+        }
+    }
+
+    // Acciones en Lote
+    .batch-actions {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        min-width: 600px;
+
+        .p-card {
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--surface-border);
+            background: var(--surface-card);
+
+            .p-card-body {
+                padding: 1rem 1.5rem;
+            }
+        }
+    }
+
+    // Diálogo de Detalles
+    ::ng-deep .p-dialog {
+        .inspection-details {
+            .detail-item {
+                display: flex;
+                flex-direction: column;
+                margin-bottom: 1rem;
+                padding: 0.75rem;
+                background: var(--surface-ground);
+                border-radius: 8px;
+                border-left: 4px solid var(--primary-color);
+
+                label {
+                    font-weight: 600;
+                    color: var(--text-color-secondary);
+                    font-size: 0.875rem;
+                    margin-bottom: 0.25rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+
+                span,
+                p {
+                    color: var(--text-color);
+                    font-weight: 500;
+                    font-size: 1rem;
+                    margin: 0;
+                }
+            }
+
+            .vital-card {
+                background: var(--surface-card);
+                border-radius: 12px;
+                padding: 1.5rem;
+                text-align: center;
+                border: 2px solid var(--surface-border);
+                transition: all 0.3s ease;
+
+                &:hover {
+                    border-color: var(--primary-color);
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 15px rgba(var(--primary-color-rgb), 0.1);
+                }
+
+                .vital-value {
+                    font-size: 2rem;
+                    font-weight: 700;
+                    color: var(--primary-color);
+                    margin-bottom: 0.5rem;
+                }
+
+                .vital-label {
+                    font-size: 0.875rem;
+                    color: var(--text-color-secondary);
+                    font-weight: 500;
+                }
+            }
+
+            .photos-gallery {
+                .photo-item {
+                    .photo-thumbnail {
+                        width: 100%;
+                        height: 200px;
+                        object-fit: cover;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        border: 2px solid var(--surface-border);
+
+                        &:hover {
+                            transform: scale(1.05);
+                            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+                            border-color: var(--primary-color);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Visor de Fotografías
+    ::ng-deep .photo-viewer-dialog {
+        .p-dialog-content {
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+
+        .photo-viewer-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+    }
+
+    // Botones
+    ::ng-deep .p-button {
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+
+        &:not(.p-button-outlined):not(.p-button-text) {
+            box-shadow: 0 3px 12px rgba(var(--primary-color-rgb), 0.3);
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 20px rgba(var(--primary-color-rgb), 0.4);
+            }
+        }
+
+        &.p-button-text {
+            &:hover {
+                background: var(--primary-50);
+                color: var(--primary-600);
+            }
+        }
+
+        &[data-pc-severity="success"] {
+            --p-button-background: var(--green-500);
+            --p-button-border: 1px solid var(--green-500);
+            box-shadow: 0 3px 12px rgba(var(--green-500-rgb), 0.3);
+
+            &:hover {
+                --p-button-hover-background: var(--green-600);
+                box-shadow: 0 5px 20px rgba(var(--green-500-rgb), 0.4);
+            }
+        }
+
+        &[data-pc-severity="danger"] {
+            --p-button-background: var(--red-500);
+            --p-button-border: 1px solid var(--red-500);
+            box-shadow: 0 3px 12px rgba(var(--red-500-rgb), 0.3);
+
+            &:hover {
+                --p-button-hover-background: var(--red-600);
+                box-shadow: 0 5px 20px rgba(var(--red-500-rgb), 0.4);
+            }
+        }
+
+        &[data-pc-severity="warning"] {
+            --p-button-background: var(--orange-500);
+            --p-button-border: 1px solid var(--orange-500);
+            box-shadow: 0 3px 12px rgba(var(--orange-500-rgb), 0.3);
+
+            &:hover {
+                --p-button-hover-background: var(--orange-600);
+                box-shadow: 0 5px 20px rgba(var(--orange-500-rgb), 0.4);
+            }
+        }
+
+        &[data-pc-severity="info"] {
+            --p-button-background: var(--blue-500);
+            --p-button-border: 1px solid var(--blue-500);
+            box-shadow: 0 3px 12px rgba(var(--blue-500-rgb), 0.3);
+
+            &:hover {
+                --p-button-hover-background: var(--blue-600);
+                box-shadow: 0 5px 20px rgba(var(--blue-500-rgb), 0.4);
+            }
+        }
+
+        &[data-pc-severity="secondary"] {
+            --p-button-background: var(--surface-600);
+            --p-button-border: 1px solid var(--surface-600);
+            --p-button-color: var(--surface-0);
+            box-shadow: 0 3px 12px rgba(var(--surface-600-rgb), 0.3);
+
+            &:hover {
+                --p-button-hover-background: var(--surface-700);
+                box-shadow: 0 5px 20px rgba(var(--surface-600-rgb), 0.4);
+            }
+        }
+
+        &:disabled {
+            opacity: 0.6;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+    }
+
+    // Responsive Design
+    @media (max-width: 768px) {
+        padding: 0.5rem;
+
+        .inspection-header {
+            padding: 1.5rem;
+            text-align: center;
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .flex {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .filters-section {
+                .grid {
+                    .col-12 {
+                        padding: 0.5rem;
+                    }
+                }
+            }
+        }
+
+        .statistics-section {
+            .grid {
+                gap: 0.5rem;
+
+                > div {
+                    padding: 0.25rem;
+                }
+            }
+
+            .stat-card {
+                padding: 1rem;
+
+                .stat-value {
+                    font-size: 1.5rem;
+                }
+
+                .stat-label {
+                    font-size: 0.75rem;
+                }
+            }
+        }
+
+        .inspections-table-container {
+            ::ng-deep .p-datatable {
+                .p-datatable-thead > tr > th,
+                .p-datatable-tbody > tr > td {
+                    padding: 0.5rem;
+                    font-size: 0.875rem;
+                }
+            }
+        }
+
+        .batch-actions {
+            position: relative;
+            left: auto;
+            bottom: auto;
+            transform: none;
+            min-width: auto;
+            margin-top: 2rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .inspection-header {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            p {
+                font-size: 0.875rem;
+            }
+        }
+
+        .statistics-section {
+            .stat-card {
+                .stat-value {
+                    font-size: 1.25rem;
+                }
+            }
+        }
+
+        ::ng-deep .p-dialog {
+            width: 95vw !important;
+            max-width: none !important;
+        }
+    }
+}
+
+// Loading states
+::ng-deep .p-button[data-pc-section="loadingicon"] {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+    .inspection-list-container {
+        .inspection-header .filters-section {
+            .field {
+                input,
+                ::ng-deep .p-dropdown,
+                ::ng-deep .p-calendar {
+                    background: rgba(255, 255, 255, 0.1);
+                    color: white;
+
+                    &::placeholder {
+                        color: rgba(255, 255, 255, 0.7);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Custom scrollbar
+.inspection-list-container {
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-border) var(--surface-ground);
+
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: var(--surface-ground);
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--surface-border);
+        border-radius: 3px;
+
+        &:hover {
+            background: var(--surface-hover);
+        }
+    }
+}
+
+// Focus management
+.inspection-list-container {
+    *:focus {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 2px;
+    }
+}

@@ -1,79 +1,400 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { AuthService } from 'src/app/demo/services/auth.service';
+import { catchError, Observable, tap } from 'rxjs';
 import { BaseService } from './base.service';
-import {
-    ApiResponse,
-    ExternalInspection,
-    InspectionCriteria,
-} from '../interfaces/slaughter.interface';
+import { MessageService } from 'primeng/api';
 import { CacheService } from 'src/app/demo/services/cache.service';
+import { AuthService } from 'src/app/demo/services/auth.service';
+import { GLOBAL } from 'src/app/demo/services/GLOBAL';
+
+export interface ExternalInspection {
+    _id?: string;
+    recepcion: string;
+    numero: string;
+    especie?: any;
+    sexo?: 'Macho' | 'Hembra' | 'Pendiente';
+    edad?: number;
+    peso?: number;
+    temperatura?: number;
+    frecuenciaCardiaca?: number;
+    frecuenciaRespiratoria?: number;
+    horaChequeo?: Date;
+    estadoGeneral?: string;
+    lesionesVisibles?: string;
+    resultado: 'Pendiente' | 'Apto' | 'Devolución' | 'Cuarentena' | 'Comisión';
+    motivoDictamen?: string;
+    fotografias?: string[];
+    veterinarioResponsable?: string;
+    createdBy: string;
+    updatedBy?: string;
+    deletedBy?: string;
+    deletedAt?: Date;
+}
+
+export interface InspectionSummary {
+    total: number;
+    pendientes: number;
+    aptas: number;
+    devolucion: number;
+    cuarentena: number;
+    comision: number;
+    porcentajeCompletado: number;
+}
+
+export interface InspectionStatistics {
+    general: any;
+    filtered?: any;
+}
 
 @Injectable({
     providedIn: 'root',
 })
 export class ExternalInspectionService extends BaseService<ExternalInspection> {
     constructor(
-        protected override http: HttpClient,
-        protected override cacheService: CacheService,
-        protected override auth: AuthService
+        http: HttpClient,
+        messageService: MessageService,
+        cacheService: CacheService,
+        auth: AuthService
     ) {
-        super('process/external-inspection');
+        super('external-inspections');
     }
 
-    createInspection(data: {
-        receptionId: string;
-        animalId: string;
-        resultadoInspeccion: 'APTO' | 'NO_APTO' | 'CONDICIONAL';
-        observaciones?: string;
-        criteriosEvaluacion: InspectionCriteria[];
-    }): Observable<ApiResponse<ExternalInspection>> {
-        return this.http.post<ApiResponse<ExternalInspection>>(
-            `${this.url}${this.endpoint}`,
-            data,
-            {
-                headers: this.getHeaders(),
-            }
-        );
+    // Extended CRUD operations
+    getInspections(queryParams: any = {}): Observable<ExternalInspection[]> {
+        const cacheKey = `${this.endpoint}_filtered_${JSON.stringify(
+            queryParams
+        )}`;
+        const cachedData =
+            this.cacheService.get<ExternalInspection[]>(cacheKey);
+
+        if (cachedData) {
+            return new Observable((observer) => {
+                observer.next(cachedData);
+                observer.complete();
+            });
+        }
+
+        // Construir los parámetros correctamente
+        let params: any = {};
+
+        // Parámetros de paginación y ordenamiento
+        if (queryParams.page) params.page = queryParams.page;
+        if (queryParams.limit) params.limit = queryParams.limit;
+        if (queryParams.sort) params.sort = queryParams.sort;
+        if (queryParams.populate) params.populate = queryParams.populate;
+
+        // Filtros como JSON string
+        if (
+            queryParams.filters &&
+            Object.keys(queryParams.filters).length > 0
+        ) {
+            params.filters = JSON.stringify(queryParams.filters);
+        }
+
+        console.log('Parámetros enviados al servicio:', params);
+
+        return this.http
+            .get<ExternalInspection[]>(
+                `${GLOBAL.url_zoosanitario}${this.endpoint}`,
+                {
+                    headers: this.getHeaders(),
+                    params,
+                }
+            )
+            .pipe(
+                tap((data) =>
+                    this.cacheService.set(cacheKey, data, this.cacheExpiry)
+                ),
+                catchError((error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error al obtener las inspecciones',
+                    });
+                    throw error;
+                })
+            );
+    }
+
+    getInspectionByNumber(numero: string): Observable<ExternalInspection> {
+        const cacheKey = `${this.endpoint}_number_${numero}`;
+        const cachedData = this.cacheService.get<ExternalInspection>(cacheKey);
+
+        if (cachedData) {
+            return new Observable((observer) => {
+                observer.next(cachedData);
+                observer.complete();
+            });
+        }
+
+        return this.http
+            .get<ExternalInspection>(
+                `${GLOBAL.url_zoosanitario}${this.endpoint}/numero/${numero}`,
+                {
+                    headers: this.getHeaders(),
+                }
+            )
+            .pipe(
+                tap((data) =>
+                    this.cacheService.set(cacheKey, data, this.cacheExpiry)
+                ),
+                catchError((error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error al obtener la inspección por número',
+                    });
+                    throw error;
+                })
+            );
     }
 
     getInspectionsByReception(
         receptionId: string
-    ): Observable<ApiResponse<ExternalInspection[]>> {
-        return this.http.get<ApiResponse<ExternalInspection[]>>(
-            `${this.url}${this.endpoint}/by-reception/${receptionId}`,
-            {
-                headers: this.getHeaders(),
-            }
-        );
-    }
+    ): Observable<ExternalInspection[]> {
+        const cacheKey = `${this.endpoint}_reception_${receptionId}`;
+        const cachedData =
+            this.cacheService.get<ExternalInspection[]>(cacheKey);
 
-    updateInspectionResult(
-        inspectionId: string,
-        data: {
-            resultadoInspeccion: 'APTO' | 'NO_APTO' | 'CONDICIONAL';
-            observaciones?: string;
-            criteriosEvaluacion?: InspectionCriteria[];
+        if (cachedData) {
+            return new Observable((observer) => {
+                observer.next(cachedData);
+                observer.complete();
+            });
         }
-    ): Observable<ApiResponse<ExternalInspection>> {
-        return this.http.put<ApiResponse<ExternalInspection>>(
-            `${this.url}${this.endpoint}/${inspectionId}/result`,
-            data,
-            {
-                headers: this.getHeaders(),
-            }
-        );
+
+        return this.http
+            .get<ExternalInspection[]>(
+                `${GLOBAL.url_zoosanitario}${this.endpoint}/recepcion/${receptionId}`,
+                {
+                    headers: this.getHeaders(),
+                }
+            )
+            .pipe(
+                tap((data) =>
+                    this.cacheService.set(cacheKey, data, this.cacheExpiry)
+                ),
+                catchError((error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error al obtener las inspecciones por recepción',
+                    });
+                    throw error;
+                })
+            );
     }
 
-    generateInspectionReport(
-        inspectionId: string
-    ): Observable<ApiResponse<any>> {
-        return this.http.get<ApiResponse<any>>(
-            `${this.url}${this.endpoint}/${inspectionId}/report`,
-            {
+    // Specialized methods
+    createForcedInspection(
+        data: Partial<ExternalInspection>,
+        files: File[] = [],
+        justification: string
+    ): Observable<ExternalInspection> {
+        const formData = new FormData();
+        formData.append('data', JSON.stringify(data));
+        formData.append('justification', justification);
+
+        files.forEach((file) => {
+            formData.append('fotografias', file);
+        });
+
+        return this.http
+            .post<ExternalInspection>(
+                `${GLOBAL.url_zoosanitario}${this.endpoint}/forzada`,
+                formData,
+                { headers: this.getFormDataHeaders() }
+            )
+            .pipe(
+                tap(() => {
+                    this.cacheService.clearByPrefix(this.endpoint);
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Inspección forzada creada correctamente',
+                    });
+                }),
+                catchError((error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error al crear inspección forzada',
+                    });
+                    throw error;
+                })
+            );
+    }
+
+    updateInspectionWithFiles(
+        id: string,
+        data: Partial<ExternalInspection>,
+        files: File[] = []
+    ): Observable<ExternalInspection> {
+        const formData = new FormData();
+        formData.append('data', JSON.stringify(data));
+
+        files.forEach((file) => {
+            formData.append('fotografias', file);
+        });
+
+        return this.http
+            .put<ExternalInspection>(
+                `${GLOBAL.url_zoosanitario}${this.endpoint}/${id}`,
+                formData,
+                { headers: this.getFormDataHeaders() }
+            )
+            .pipe(
+                tap(() => {
+                    this.cacheService.clearByPrefix(this.endpoint);
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Inspección actualizada correctamente',
+                    });
+                }),
+                catchError((error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error al actualizar inspección',
+                    });
+                    throw error;
+                })
+            );
+    }
+
+    deleteInspectionWithJustification(
+        id: string,
+        justification: string
+    ): Observable<void> {
+        return this.http
+            .delete<void>(`${GLOBAL.url_zoosanitario}${this.endpoint}/${id}`, {
                 headers: this.getHeaders(),
-            }
-        );
+                body: { justification },
+            })
+            .pipe(
+                tap(() => {
+                    this.cacheService.clearByPrefix(this.endpoint);
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Inspección eliminada correctamente',
+                    });
+                }),
+                catchError((error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error al eliminar inspección',
+                    });
+                    throw error;
+                })
+            );
+    }
+
+    updateInspectionsBatch(
+        inspectionIds: string[],
+        updateData: Partial<ExternalInspection>
+    ): Observable<ExternalInspection[]> {
+        return this.http
+            .put<ExternalInspection[]>(
+                `${GLOBAL.url_zoosanitario}${this.endpoint}/actualizar/lote`,
+                { inspectionIds, updateData },
+                { headers: this.getHeaders() }
+            )
+            .pipe(
+                tap(() => {
+                    this.cacheService.clearByPrefix(this.endpoint);
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Inspecciones actualizadas en lote correctamente',
+                    });
+                }),
+                catchError((error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error al actualizar inspecciones en lote',
+                    });
+                    throw error;
+                })
+            );
+    }
+
+    getStatistics(filters: any = {}): Observable<InspectionStatistics> {
+        const cacheKey = `${this.endpoint}_stats_${JSON.stringify(filters)}`;
+        const cachedData =
+            this.cacheService.get<InspectionStatistics>(cacheKey);
+
+        if (cachedData) {
+            return new Observable((observer) => {
+                observer.next(cachedData);
+                observer.complete();
+            });
+        }
+
+        // Construir parámetros correctamente para estadísticas
+        let params: any = {};
+
+        // Filtros como JSON string si existen
+        if (filters && Object.keys(filters).length > 0) {
+            params.filters = JSON.stringify(filters);
+        }
+
+        console.log('Parámetros de estadísticas enviados:', params);
+
+        return this.http
+            .get<InspectionStatistics>(
+                `${GLOBAL.url_zoosanitario}${this.endpoint}/estadisticas`,
+                {
+                    headers: this.getHeaders(),
+                    params,
+                }
+            )
+            .pipe(
+                tap((data) =>
+                    this.cacheService.set(cacheKey, data, this.cacheExpiry)
+                ),
+                catchError((error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error al obtener estadísticas',
+                    });
+                    throw error;
+                })
+            );
+    }
+
+    getReceptionSummary(receptionId: string): Observable<InspectionSummary> {
+        const cacheKey = `${this.endpoint}_summary_${receptionId}`;
+        const cachedData = this.cacheService.get<InspectionSummary>(cacheKey);
+
+        if (cachedData) {
+            return new Observable((observer) => {
+                observer.next(cachedData);
+                observer.complete();
+            });
+        }
+
+        return this.http
+            .get<InspectionSummary>(
+                `${GLOBAL.url_zoosanitario}${this.endpoint}/recepcion/${receptionId}/resumen`,
+                { headers: this.getHeaders() }
+            )
+            .pipe(
+                tap((data) =>
+                    this.cacheService.set(cacheKey, data, this.cacheExpiry)
+                ),
+                catchError((error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error al obtener resumen de recepción',
+                    });
+                    throw error;
+                })
+            );
     }
 }

@@ -1,0 +1,689 @@
+<!-- src/app/components/external-inspection-form/external-inspection-form.component.html -->
+<p-dialog
+    [(visible)]="visible"
+    [header]="dialogTitle"
+    [modal]="true"
+    [style]="{ width: '90vw', maxWidth: '1200px', height: '90vh' }"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="inspection-form-dialog"
+    (onHide)="onDialogHide()"
+>
+    <div class="inspection-form-container">
+        <form [formGroup]="inspectionForm" (ngSubmit)="onSubmit()">
+            <!-- Información General -->
+            <p-panel header="Información General" styleClass="mb-3">
+                <div class="grid">
+                    <div class="col-12 md:col-4">
+                        <div class="field">
+                            <label for="numero" class="font-semibold">
+                                Número de Inspección *
+                            </label>
+                            <input
+                                type="text"
+                                pInputText
+                                id="numero"
+                                formControlName="numero"
+                                placeholder="Número único de inspección"
+                                styleClass="w-full"
+                                [class.ng-invalid]="
+                                    inspectionForm.get('numero')?.invalid &&
+                                    inspectionForm.get('numero')?.touched
+                                "
+                            />
+                            <small
+                                class="p-error"
+                                *ngIf="
+                                    inspectionForm.get('numero')?.invalid &&
+                                    inspectionForm.get('numero')?.touched
+                                "
+                            >
+                                El número de inspección es requerido
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-4">
+                        <div class="field">
+                            <label for="especie" class="font-semibold">
+                                Especie
+                            </label>
+                            <p-dropdown
+                                appendTo="body"
+                                id="especie"
+                                formControlName="especie"
+                                [options]="speciesOptions"
+                                optionLabel="label"
+                                optionValue="value"
+                                placeholder="Seleccionar especie"
+                                styleClass="w-full"
+                            >
+                                <ng-template let-option pTemplate="item">
+                                    <div class="flex align-items-center gap-2">
+                                        <i
+                                            [class]="
+                                                getSpeciesIcon(option.label)
+                                            "
+                                        ></i>
+                                        <span>{{ option.label }}</span>
+                                    </div>
+                                </ng-template>
+                            </p-dropdown>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-4">
+                        <div class="field">
+                            <label for="sexo" class="font-semibold">
+                                Sexo
+                            </label>
+                            <p-selectButton
+                                appendTo="body"
+                                id="sexo"
+                                formControlName="sexo"
+                                [options]="sexOptions"
+                                optionLabel="label"
+                                optionValue="value"
+                                styleClass="w-full"
+                            >
+                            </p-selectButton>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-4">
+                        <div class="field">
+                            <label for="edad" class="font-semibold">
+                                Edad (años)
+                            </label>
+                            <p-inputNumber
+                                id="edad"
+                                formControlName="edad"
+                                placeholder="Edad en años"
+                                [min]="0"
+                                [max]="30"
+                                suffix=" años"
+                                styleClass="w-full"
+                            >
+                            </p-inputNumber>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-4">
+                        <div class="field">
+                            <label for="peso" class="font-semibold">
+                                Peso (kg)
+                            </label>
+                            <p-inputNumber
+                                id="peso"
+                                formControlName="peso"
+                                placeholder="Peso en kilogramos"
+                                [min]="0"
+                                [max]="2000"
+                                [minFractionDigits]="1"
+                                [maxFractionDigits]="2"
+                                suffix=" kg"
+                                styleClass="w-full"
+                            >
+                            </p-inputNumber>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-4">
+                        <div class="field">
+                            <label for="horaChequeo" class="font-semibold">
+                                Fecha y Hora de Chequeo
+                            </label>
+                            <p-calendar
+                                appendTo="body"
+                                id="horaChequeo"
+                                formControlName="horaChequeo"
+                                placeholder="Fecha y hora de inspección"
+                                [showTime]="true"
+                                [showIcon]="true"
+                                [dateFormat]="'dd/mm/yy'"
+                                styleClass="w-full"
+                            >
+                            </p-calendar>
+                        </div>
+                    </div>
+                </div>
+            </p-panel>
+
+            <!-- Signos Vitales -->
+            <p-panel header="Signos Vitales" styleClass="mb-3">
+                <div class="grid">
+                    <div class="col-12 md:col-4">
+                        <div class="field">
+                            <label for="temperatura" class="font-semibold">
+                                Temperatura (°C)
+                            </label>
+                            <p-inputNumber
+                                id="temperatura"
+                                formControlName="temperatura"
+                                placeholder="Temperatura corporal"
+                                [min]="35"
+                                [max]="45"
+                                mode="decimal"
+                                [minFractionDigits]="1"
+                                [maxFractionDigits]="1"
+                                suffix=" °C"
+                                styleClass="w-full"
+                                [class.ng-invalid]="
+                                    inspectionForm.get('temperatura')
+                                        ?.invalid &&
+                                    inspectionForm.get('temperatura')?.touched
+                                "
+                            >
+                            </p-inputNumber>
+                            <div class="temp-indicator mt-2">
+                                <small
+                                    [class]="
+                                        getTemperatureClass(
+                                            inspectionForm.get('temperatura')
+                                                ?.value
+                                        )
+                                    "
+                                >
+                                    {{
+                                        getTemperatureStatus(
+                                            inspectionForm.get("temperatura")
+                                                ?.value
+                                        )
+                                    }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-4">
+                        <div class="field">
+                            <label
+                                for="frecuenciaCardiaca"
+                                class="font-semibold"
+                            >
+                                Frecuencia Cardíaca (bpm)
+                            </label>
+                            <p-inputNumber
+                                id="frecuenciaCardiaca"
+                                formControlName="frecuenciaCardiaca"
+                                placeholder="Latidos por minuto"
+                                [min]="30"
+                                [max]="200"
+                                suffix=" bpm"
+                                styleClass="w-full"
+                            >
+                            </p-inputNumber>
+                            <div class="hr-indicator mt-2">
+                                <small
+                                    [class]="
+                                        getHeartRateClass(
+                                            inspectionForm.get(
+                                                'frecuenciaCardiaca'
+                                            )?.value
+                                        )
+                                    "
+                                >
+                                    {{
+                                        getHeartRateStatus(
+                                            inspectionForm.get(
+                                                "frecuenciaCardiaca"
+                                            )?.value
+                                        )
+                                    }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-4">
+                        <div class="field">
+                            <label
+                                for="frecuenciaRespiratoria"
+                                class="font-semibold"
+                            >
+                                Frecuencia Respiratoria (rpm)
+                            </label>
+                            <p-inputNumber
+                                id="frecuenciaRespiratoria"
+                                formControlName="frecuenciaRespiratoria"
+                                placeholder="Respiraciones por minuto"
+                                [min]="5"
+                                [max]="80"
+                                suffix=" rpm"
+                                styleClass="w-full"
+                            >
+                            </p-inputNumber>
+                            <div class="rr-indicator mt-2">
+                                <small
+                                    [class]="
+                                        getRespiratoryRateClass(
+                                            inspectionForm.get(
+                                                'frecuenciaRespiratoria'
+                                            )?.value
+                                        )
+                                    "
+                                >
+                                    {{
+                                        getRespiratoryRateStatus(
+                                            inspectionForm.get(
+                                                "frecuenciaRespiratoria"
+                                            )?.value
+                                        )
+                                    }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </p-panel>
+
+            <!-- Estado General y Observaciones -->
+            <p-panel header="Estado General y Observaciones" styleClass="mb-3">
+                <div class="grid">
+                    <div class="col-12">
+                        <div class="field">
+                            <label for="estadoGeneral" class="font-semibold">
+                                Estado General del Animal
+                            </label>
+                            <textarea
+                                pInputTextarea
+                                id="estadoGeneral"
+                                formControlName="estadoGeneral"
+                                placeholder="Describa el estado general del animal (postura, comportamiento, alerta, etc.)"
+                                rows="3"
+                                maxlength="1000"
+                                styleClass="w-full"
+                            >
+                            </textarea>
+                            <div class="flex justify-content-end mt-2">
+                                <small class="text-600">
+                                    {{
+                                        inspectionForm.get("estadoGeneral")
+                                            ?.value?.length || 0
+                                    }}/1000 caracteres
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="field">
+                            <label for="lesionesVisibles" class="font-semibold">
+                                Lesiones Visibles
+                            </label>
+                            <textarea
+                                pInputTextarea
+                                id="lesionesVisibles"
+                                formControlName="lesionesVisibles"
+                                placeholder="Describa cualquier lesión, herida, anomalía o condición visible"
+                                rows="3"
+                                maxlength="1000"
+                                styleClass="w-full"
+                            >
+                            </textarea>
+                            <div class="flex justify-content-end mt-2">
+                                <small class="text-600">
+                                    {{
+                                        inspectionForm.get("lesionesVisibles")
+                                            ?.value?.length || 0
+                                    }}/1000 caracteres
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </p-panel>
+
+            <!-- Resultado y Dictamen -->
+            <p-panel header="Resultado y Dictamen" styleClass="mb-3">
+                <div class="grid">
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="resultado" class="font-semibold">
+                                Resultado de Inspección *
+                            </label>
+                            <p-dropdown
+                                appendTo="body"
+                                id="resultado"
+                                formControlName="resultado"
+                                [options]="resultOptions"
+                                optionLabel="label"
+                                optionValue="value"
+                                placeholder="Seleccionar resultado"
+                                styleClass="w-full"
+                                [class.ng-invalid]="
+                                    inspectionForm.get('resultado')?.invalid &&
+                                    inspectionForm.get('resultado')?.touched
+                                "
+                            >
+                                <ng-template let-option pTemplate="item">
+                                    <div class="flex align-items-center gap-2">
+                                        <i
+                                            [class]="
+                                                getResultIcon(option.value)
+                                            "
+                                            [style.color]="
+                                                getResultColor(option.value)
+                                            "
+                                        ></i>
+                                        <span>{{ option.label }}</span>
+                                    </div>
+                                </ng-template>
+                            </p-dropdown>
+                            <small
+                                class="p-error"
+                                *ngIf="
+                                    inspectionForm.get('resultado')?.invalid &&
+                                    inspectionForm.get('resultado')?.touched
+                                "
+                            >
+                                El resultado es requerido
+                            </small>
+                        </div>
+                    </div>
+                    <!--
+                     <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label
+                                for="veterinarioResponsable"
+                                class="font-semibold"
+                            >
+                                Veterinario Responsable
+                            </label>
+                            <input
+                                type="text"
+                                pInputText
+                                id="veterinarioResponsable"
+                                formControlName="veterinarioResponsable"
+                                placeholder="Nombre del veterinario responsable"
+                                styleClass="w-full"
+                            />
+                        </div>
+                    </div>
+                    -->
+
+                    <div
+                        class="col-12"
+                        *ngIf="
+                            inspectionForm.get('resultado')?.value &&
+                            inspectionForm.get('resultado')?.value !== 'Apto'
+                        "
+                    >
+                        <div class="field">
+                            <label for="motivoDictamen" class="font-semibold">
+                                Motivo del Dictamen *
+                            </label>
+                            <textarea
+                                pInputTextarea
+                                id="motivoDictamen"
+                                formControlName="motivoDictamen"
+                                placeholder="Explique detalladamente el motivo del dictamen"
+                                rows="4"
+                                maxlength="2000"
+                                styleClass="w-full"
+                                [class.ng-invalid]="
+                                    inspectionForm.get('motivoDictamen')
+                                        ?.invalid &&
+                                    inspectionForm.get('motivoDictamen')
+                                        ?.touched
+                                "
+                            >
+                            </textarea>
+                            <div
+                                class="flex justify-content-between align-items-center mt-2"
+                            >
+                                <small
+                                    class="p-error"
+                                    *ngIf="
+                                        inspectionForm.get('motivoDictamen')
+                                            ?.invalid &&
+                                        inspectionForm.get('motivoDictamen')
+                                            ?.touched
+                                    "
+                                >
+                                    El motivo del dictamen es requerido para
+                                    este resultado
+                                </small>
+                                <small class="text-600">
+                                    {{
+                                        inspectionForm.get("motivoDictamen")
+                                            ?.value?.length || 0
+                                    }}/2000 caracteres
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </p-panel>
+
+            <!-- Fotografías -->
+            <p-panel header="Fotografías" styleClass="mb-3">
+                <div class="photos-section">
+                    <!-- Uploader -->
+                    <div class="upload-section mb-4">
+                        <p-fileUpload
+                            mode="basic"
+                            chooseLabel="Seleccionar Fotografías"
+                            accept="image/*"
+                            [multiple]="true"
+                            [maxFileSize]="maxFileSize"
+                            [auto]="false"
+                            (onSelect)="onPhotosSelected($event)"
+                            styleClass="w-full"
+                        >
+                        </p-fileUpload>
+
+                        <div class="upload-info mt-2">
+                            <small class="text-600">
+                                <i class="pi pi-info-circle mr-1"></i>
+                                Máximo {{ maxPhotos }} fotos. Tamaño máximo: 5MB
+                                por foto. Formatos: JPG, PNG, WebP
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Fotografías Existentes -->
+                    <div
+                        class="existing-photos"
+                        *ngIf="existingPhotos.length > 0"
+                    >
+                        <h6 class="text-900 mb-3">
+                            Fotografías Actuales ({{ existingPhotos.length }})
+                        </h6>
+                        <div class="grid">
+                            <div
+                                class="col-12 md:col-3"
+                                *ngFor="
+                                    let photo of existingPhotos;
+                                    let i = index
+                                "
+                            >
+                                <div class="photo-card existing">
+                                    <img
+                                        [src]="photo"
+                                        [alt]="'Fotografía ' + (i + 1)"
+                                        class="photo-thumbnail"
+                                        (click)="openPhotoViewer(photo)"
+                                    />
+                                    <div class="photo-actions">
+                                        <p-button
+                                            icon="pi pi-eye"
+                                            severity="info"
+                                            [text]="true"
+                                            size="small"
+                                            (onClick)="openPhotoViewer(photo)"
+                                            pTooltip="Ver imagen"
+                                        >
+                                        </p-button>
+                                        <p-button
+                                            icon="pi pi-trash"
+                                            severity="danger"
+                                            [text]="true"
+                                            size="small"
+                                            (onClick)="removeExistingPhoto(i)"
+                                            pTooltip="Eliminar"
+                                        >
+                                        </p-button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fotografías Nuevas -->
+                    <div class="new-photos" *ngIf="newPhotos.length > 0">
+                        <h6 class="text-900 mb-3">
+                            Nuevas Fotografías ({{ newPhotos.length }})
+                        </h6>
+                        <div class="grid">
+                            <div
+                                class="col-12 md:col-3"
+                                *ngFor="let photo of newPhotos; let i = index"
+                            >
+                                <div class="photo-card new">
+                                    <div class="photo-preview">
+                                        <i
+                                            class="pi pi-image text-4xl text-primary"
+                                        ></i>
+                                        <div class="photo-name">
+                                            {{ photo.name }}
+                                        </div>
+                                        <div class="photo-size">
+                                            {{ formatFileSize(photo.size) }}
+                                        </div>
+                                    </div>
+                                    <div class="photo-actions">
+                                        <p-button
+                                            icon="pi pi-times"
+                                            severity="danger"
+                                            [text]="true"
+                                            size="small"
+                                            (onClick)="removeNewPhoto(i)"
+                                            pTooltip="Eliminar"
+                                        >
+                                        </p-button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estado Vacío -->
+                    <div
+                        class="empty-photos text-center p-4"
+                        *ngIf="
+                            existingPhotos.length === 0 &&
+                            newPhotos.length === 0
+                        "
+                    >
+                        <i class="pi pi-camera text-4xl text-400 mb-2"></i>
+                        <p class="text-600">No hay fotografías adjuntas</p>
+                        <small class="text-500">
+                            Las fotografías ayudan a documentar el estado del
+                            animal
+                        </small>
+                    </div>
+                </div>
+            </p-panel>
+
+            <!-- Justificación (solo para crear nuevos) -->
+            <p-panel
+                header="Justificación"
+                *ngIf="!inspectionId"
+                styleClass="mb-3"
+            >
+                <div class="field">
+                    <label for="justificacion" class="font-semibold">
+                        Justificación para Crear Inspección *
+                    </label>
+                    <textarea
+                        pInputTextarea
+                        id="justificacion"
+                        [(ngModel)]="justification"
+                        [ngModelOptions]="{ standalone: true }"
+                        placeholder="Explique por qué es necesario crear esta inspección manualmente"
+                        rows="3"
+                        maxlength="500"
+                        styleClass="w-full"
+                        [class.ng-invalid]="!justification && submitted"
+                    >
+                    </textarea>
+                    <div
+                        class="flex justify-content-between align-items-center mt-2"
+                    >
+                        <small
+                            class="p-error"
+                            *ngIf="!justification && submitted"
+                        >
+                            La justificación es requerida para crear nuevas
+                            inspecciones
+                        </small>
+                        <small class="text-600">
+                            {{ justification?.length || 0 }}/500 caracteres
+                        </small>
+                    </div>
+                </div>
+            </p-panel>
+        </form>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div class="flex justify-content-between align-items-center">
+            <div>
+                <p-button
+                    label="Cancelar"
+                    icon="pi pi-times"
+                    severity="secondary"
+                    [outlined]="true"
+                    (onClick)="onCancel()"
+                >
+                </p-button>
+            </div>
+            <div class="flex gap-2">
+                <p-button
+                    label="Guardar y Continuar"
+                    icon="pi pi-save"
+                    severity="info"
+                    [outlined]="true"
+                    (onClick)="saveAndContinue()"
+                    [disabled]="inspectionForm.invalid || submitting"
+                    *ngIf="!inspectionId"
+                >
+                </p-button>
+                <p-button
+                    [label]="
+                        inspectionId
+                            ? 'Actualizar Inspección'
+                            : 'Crear Inspección'
+                    "
+                    [icon]="inspectionId ? 'pi pi-check' : 'pi pi-plus'"
+                    [loading]="submitting"
+                    (onClick)="onSubmit()"
+                    [disabled]="!canSubmit()"
+                >
+                </p-button>
+            </div>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<!-- Visor de Fotografías -->
+<p-dialog
+    [(visible)]="showPhotoViewer"
+    [modal]="true"
+    [style]="{ width: '90vw', height: '90vh' }"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="photo-viewer-dialog"
+>
+    <img
+        [src]="selectedPhoto"
+        alt="Fotografía de inspección"
+        class="photo-viewer-image"
+    />
+</p-dialog>
+
+<!-- Toast para notificaciones -->
+<p-toast></p-toast>

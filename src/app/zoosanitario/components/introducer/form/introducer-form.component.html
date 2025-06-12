@@ -22,6 +22,7 @@
 
             <div class="grid">
                 <!-- Campos para Persona Natural -->
+                <!-- Campos para Persona Natural -->
                 <ng-container *ngIf="isNaturalPerson">
                     <div class="col-12 md:col-6">
                         <div class="field">
@@ -61,16 +62,6 @@
                                         "
                                     />
                                 </span>
-                                <button
-                                    *ngIf="nameFromConsult"
-                                    pButton
-                                    type="button"
-                                    icon="pi pi-pencil"
-                                    class="p-button-text p-button-sm"
-                                    (click)="editarNombreManual()"
-                                    pTooltip="Editar manualmente"
-                                    tooltipPosition="top"
-                                ></button>
                             </div>
                             <small
                                 class="p-error"
@@ -84,10 +75,7 @@
                     <div class="col-12 md:col-6">
                         <div class="field">
                             <label for="idNumber" class="required">
-                                Cédula / RUC
-                                <small style="font-weight: normal">
-                                    (10 dígitos: cédula, 13 dígitos: RUC)
-                                </small>
+                                Cédula
                             </label>
                             <span class="p-input-icon-right w-full">
                                 <i
@@ -100,7 +88,7 @@
                                     id="idNumber"
                                     formControlName="idNumber"
                                     class="w-full"
-                                    placeholder="Ej: 1712345678 o 1712345678001"
+                                    placeholder="Ej: 1712345678"
                                     [class.p-invalid]="
                                         form.get('idNumber')?.invalid &&
                                         form.get('idNumber')?.touched
@@ -117,7 +105,7 @@
                                 class="p-info"
                                 *ngIf="
                                     !getFieldError('idNumber') &&
-                                    form.get('idNumber')?.value?.length >= 10
+                                    form.get('idNumber')?.value?.length === 10
                                 "
                                 style="
                                     color: #007ad9;
@@ -125,11 +113,84 @@
                                     margin-top: 4px;
                                 "
                             >
-                                {{
-                                    form.get("idNumber")?.value?.length === 10
-                                        ? "Consultando cédula..."
-                                        : "Consultando RUC..."
-                                }}
+                                Consultando cédula...
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Nuevo campo RUC para persona natural -->
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="rucNatural">
+                                RUC (Opcional)
+                                <small
+                                    *ngIf="dataFromConsult['numeroRuc']"
+                                    style="color: #007ad9; font-weight: normal"
+                                >
+                                    (Obtenido automáticamente)
+                                </small>
+                            </label>
+                            <span class="p-input-icon-right w-full">
+                                <i
+                                    class="pi pi-spin pi-spinner"
+                                    *ngIf="consultingRuc"
+                                    style="color: #007ad9"
+                                ></i>
+                                <input
+                                    pInputText
+                                    id="rucNatural"
+                                    formControlName="rucNatural"
+                                    class="w-full"
+                                    placeholder="Ej: 1712345678001"
+                                    [class.p-invalid]="
+                                        form.get('rucNatural')?.invalid &&
+                                        form.get('rucNatural')?.touched
+                                    "
+                                />
+                            </span>
+                            <small
+                                class="p-error"
+                                *ngIf="getFieldError('rucNatural')"
+                            >
+                                {{ getFieldError("rucNatural") }}
+                            </small>
+                            <small
+                                class="p-info"
+                                *ngIf="
+                                    !getFieldError('rucNatural') &&
+                                    form.get('rucNatural')?.value?.length === 13
+                                "
+                                style="
+                                    color: #007ad9;
+                                    display: block;
+                                    margin-top: 4px;
+                                "
+                            >
+                                Consultando RUC...
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Campo para indicar preferencia de facturación -->
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label for="billingPreference">Facturar a:</label>
+                            <p-selectButton
+                                formControlName="billingPreference"
+                                [options]="billingOptions"
+                                [disabled]="!form.get('rucNatural')?.value"
+                            >
+                            </p-selectButton>
+                            <small
+                                class="p-info"
+                                *ngIf="!form.get('rucNatural')?.value"
+                                style="
+                                    color: #6c757d;
+                                    display: block;
+                                    margin-top: 4px;
+                                "
+                            >
+                                Ingrese un RUC para habilitar esta opción
                             </small>
                         </div>
                     </div>
@@ -140,8 +201,14 @@
                     <div class="col-12">
                         <div class="field">
                             <label for="companyName" class="required"
-                                >Razón Social</label
-                            >
+                                >Razón Social
+                                <small
+                                    *ngIf="dataFromConsult['razonSocial']"
+                                    style="color: #007ad9; font-weight: normal"
+                                >
+                                    (Obtenido automáticamente)
+                                </small>
+                            </label>
                             <input
                                 pInputText
                                 id="companyName"
@@ -163,7 +230,15 @@
 
                     <div class="col-12 md:col-6">
                         <div class="field">
-                            <label for="ruc" class="required">RUC</label>
+                            <label for="ruc" class="required"
+                                >RUC
+                                <small
+                                    *ngIf="dataFromConsult['numeroRuc']"
+                                    style="color: #007ad9; font-weight: normal"
+                                >
+                                    (Obtenido automáticamente)
+                                </small>
+                            </label>
                             <input
                                 pInputText
                                 id="ruc"
@@ -183,9 +258,7 @@
 
                     <div class="col-12 md:col-6">
                         <div class="field">
-                            <label for="idNumber" class="required"
-                                >Cédula Representante</label
-                            >
+                            <label for="idNumber">Cédula Representante</label>
                             <span class="p-input-icon-right w-full">
                                 <i
                                     class="pi pi-spin pi-spinner"
@@ -215,14 +288,17 @@
 
                     <div class="col-12">
                         <div class="field">
-                            <label for="legalRepresentative" class="required">
+                            <label for="legalRepresentative">
                                 Representante Legal
+
+                                <!-- Botón para editar manualmente
                                 <small
                                     *ngIf="nameFromConsult"
                                     style="color: #007ad9; font-weight: normal"
                                 >
                                     (Obtenido automáticamente)
                                 </small>
+                                -->
                             </label>
                             <div class="p-inputgroup w-full">
                                 <span
@@ -251,7 +327,8 @@
                                         "
                                     />
                                 </span>
-                                <button
+                                <!-- 
+                                      <button
                                     *ngIf="nameFromConsult"
                                     pButton
                                     type="button"
@@ -261,6 +338,7 @@
                                     pTooltip="Editar manualmente"
                                     tooltipPosition="top"
                                 ></button>
+                                -->
                             </div>
                             <small
                                 class="p-error"
@@ -302,7 +380,15 @@
 
                 <div class="col-12 md:col-6">
                     <div class="field">
-                        <label for="phone">Teléfono</label>
+                        <label for="phone"
+                            >Teléfono
+                            <small
+                                *ngIf="dataFromConsult['telefonoTrabajo']"
+                                style="color: #007ad9; font-weight: normal"
+                            >
+                                (Obtenido automáticamente)
+                            </small>
+                        </label>
                         <span class="p-input-icon-left w-full">
                             <i class="pi pi-phone"></i>
                             <input
@@ -325,7 +411,15 @@
 
                 <div class="col-12 md:col-6">
                     <div class="field">
-                        <label for="email">Email</label>
+                        <label for="email"
+                            >Email
+                            <small
+                                *ngIf="dataFromConsult['email']"
+                                style="color: #007ad9; font-weight: normal"
+                            >
+                                (Obtenido automáticamente)
+                            </small>
+                        </label>
                         <span class="p-input-icon-left w-full">
                             <i class="pi pi-envelope"></i>
                             <input
@@ -348,7 +442,15 @@
 
                 <div class="col-12">
                     <div class="field">
-                        <label for="address">Dirección</label>
+                        <label for="address"
+                            >Dirección
+                            <small
+                                *ngIf="dataFromConsult['direccionCorta']"
+                                style="color: #007ad9; font-weight: normal"
+                            >
+                                (Obtenido automáticamente)
+                            </small>
+                        </label>
                         <span class="p-input-icon-left w-full">
                             <i class="pi pi-map-marker"></i>
                             <input
