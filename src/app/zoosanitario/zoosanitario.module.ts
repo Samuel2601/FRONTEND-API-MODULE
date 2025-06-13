@@ -31,6 +31,8 @@ import { IntroducerDetailComponent } from './components/introducer/detail/introd
 import { ReceptionComponent } from './components/reception/reception.component';
 import { ReceptionListComponent } from './components/reception/list/reception-list.component';
 import { ExternalInspectionListComponent } from './components/external-inspection/external-inspection-list.component';
+import { SlaughterProcessListComponent } from './components/slaughter/list/slaughter-process-list.component';
+import { SlaughterProcessFormComponent } from './components/slaughter/form/slaughter-process-form.component';
 
 // Rutas del módulo
 const routes: Routes = [
@@ -74,7 +76,7 @@ const routes: Routes = [
                 data: { title: 'Recepción' },
             },
             {
-                path: 'list-reception',
+                path: 'listar-reception',
                 component: ReceptionListComponent,
                 data: { title: 'Recepción Listado' },
             },
@@ -87,6 +89,19 @@ const routes: Routes = [
                 path: 'external-inspection/:inspectionNumber',
                 component: ExternalInspectionListComponent,
                 data: { title: 'Inspecciones Externas' },
+            },
+            {
+                path: 'slaughter-process',
+                component: SlaughterProcessListComponent,
+            },
+            //SlaughterProcessFormComponent
+            {
+                path: 'slaughter-process/new',
+                component: SlaughterProcessFormComponent,
+            },
+            {
+                path: 'slaughter-process/:id',
+                component: SlaughterProcessFormComponent,
             },
         ],
     },

@@ -1,4 +1,3 @@
-// src/app/components/external-inspection-list/external-inspection-list.component.ts
 import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
@@ -14,6 +13,7 @@ import {
 import { ExternalInspectionFormComponent } from './form/external-inspection-form.component';
 import { ActivatedRoute } from '@angular/router';
 import { AnimalTypeService } from '../../services/animal-type.service';
+import { IonSplitPane } from '@ionic/angular/standalone';
 
 interface InspectionFilters {
     resultado?: string;
@@ -70,7 +70,7 @@ interface AdaptedStatistics {
 @Component({
     selector: 'app-external-inspection-list',
     standalone: true,
-    imports: [ImportsModule, ExternalInspectionFormComponent],
+    imports: [IonSplitPane, ImportsModule, ExternalInspectionFormComponent],
     templateUrl: './external-inspection-list.component.html',
     styleUrls: ['./external-inspection-list.component.scss'],
     providers: [ConfirmationService],

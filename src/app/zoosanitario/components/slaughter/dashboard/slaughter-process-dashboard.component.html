@@ -1,0 +1,580 @@
+<!-- src/app/components/slaughter-process-dashboard/slaughter-process-dashboard.component.html -->
+<div class="dashboard-container">
+    <!-- Header del Dashboard -->
+    <div class="dashboard-header">
+        <div class="flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-2">
+                    Dashboard de Procesos de Faenamiento
+                </h1>
+                <p class="text-white opacity-90">
+                    Análisis y métricas en tiempo real
+                </p>
+            </div>
+            <div class="flex gap-2">
+                <p-button
+                    icon="pi pi-download"
+                    label="Exportar"
+                    severity="secondary"
+                    [outlined]="true"
+                    (onClick)="exportDashboard()"
+                >
+                </p-button>
+                <p-button
+                    icon="pi pi-refresh"
+                    severity="secondary"
+                    [outlined]="true"
+                    (onClick)="refreshDashboard()"
+                    [loading]="loading"
+                >
+                </p-button>
+            </div>
+        </div>
+
+        <!-- Filtros del Dashboard -->
+        <div class="dashboard-filters">
+            <div class="grid">
+                <div class="col-12 md:col-3">
+                    <div class="field">
+                        <label class="font-semibold text-white"
+                            >Rango de Fechas</label
+                        >
+                        <p-calendar
+                            [(ngModel)]="dateRange"
+                            [selectionMode]="'range'"
+                            [showIcon]="true"
+                            placeholder="Seleccionar período"
+                            styleClass="w-full"
+                            (onSelect)="onDateRangeChange()"
+                        >
+                        </p-calendar>
+                    </div>
+                </div>
+                <div class="col-12 md:col-3">
+                    <div class="field">
+                        <label class="font-semibold text-white">Estado</label>
+                        <p-multiSelect
+                            [(ngModel)]="selectedStates"
+                            [options]="stateOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Todos los estados"
+                            styleClass="w-full"
+                            display="chip"
+                            (onChange)="onFiltersChange()"
+                        >
+                        </p-multiSelect>
+                    </div>
+                </div>
+                <div class="col-12 md:col-3">
+                    <div class="field">
+                        <label class="font-semibold text-white"
+                            >Introductor</label
+                        >
+                        <p-multiSelect
+                            [(ngModel)]="selectedIntroducers"
+                            [options]="introducerOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Todos los introductores"
+                            styleClass="w-full"
+                            [filter]="true"
+                            display="chip"
+                            (onChange)="onFiltersChange()"
+                        >
+                        </p-multiSelect>
+                    </div>
+                </div>
+                <div class="col-12 md:col-3">
+                    <div class="field">
+                        <label class="font-semibold text-white"
+                            >Agrupación</label
+                        >
+                        <p-dropdown
+                            [(ngModel)]="selectedGroupBy"
+                            [options]="groupByOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            styleClass="w-full"
+                            (onChange)="onFiltersChange()"
+                        >
+                        </p-dropdown>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Métricas Principales -->
+    <div class="main-metrics mb-4" *ngIf="statistics">
+        <div class="grid">
+            <div class="col-12 lg:col-3">
+                <div class="metric-card total">
+                    <div class="metric-content">
+                        <div class="metric-value">
+                            {{ statistics.total }}
+                        </div>
+                        <div class="metric-label">Total de Procesos</div>
+                        <div class="metric-trend">
+                            <i class="pi pi-arrow-up text-green-500"></i>
+                            <span class="text-green-500">+5.2%</span>
+                        </div>
+                    </div>
+                    <div class="metric-icon">
+                        <i class="pi pi-list text-blue-500"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 lg:col-3">
+                <div class="metric-card completion">
+                    <div class="metric-content">
+                        <div class="metric-value">
+                            {{ statistics.completionRate.toFixed(1) }}%
+                        </div>
+                        <div class="metric-label">Tasa de Finalización</div>
+                        <div class="metric-trend">
+                            <i class="pi pi-arrow-up text-green-500"></i>
+                            <span class="text-green-500">+2.1%</span>
+                        </div>
+                    </div>
+                    <div class="metric-icon">
+                        <i class="pi pi-check-circle text-green-500"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 lg:col-3">
+                <div class="metric-card payment">
+                    <div class="metric-content">
+                        <div class="metric-value">
+                            {{ statistics.paymentRate.toFixed(1) }}%
+                        </div>
+                        <div class="metric-label">Tasa de Pago</div>
+                        <div class="metric-trend">
+                            <i class="pi pi-arrow-down text-red-500"></i>
+                            <span class="text-red-500">-1.3%</span>
+                        </div>
+                    </div>
+                    <div class="metric-icon">
+                        <i class="pi pi-dollar text-yellow-500"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 lg:col-3">
+                <div class="metric-card inspections">
+                    <div class="metric-content">
+                        <div class="metric-value">
+                            {{ statistics.averages.inspections.toFixed(1) }}
+                        </div>
+                        <div class="metric-label">Promedio Inspecciones</div>
+                        <div class="metric-trend">
+                            <i class="pi pi-minus text-gray-500"></i>
+                            <span class="text-gray-500">0.0%</span>
+                        </div>
+                    </div>
+                    <div class="metric-icon">
+                        <i class="pi pi-search text-purple-500"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos Principales -->
+    <div class="main-charts mb-4">
+        <div class="grid">
+            <!-- Distribución por Estados -->
+            <div class="col-12 lg:col-6">
+                <p-panel
+                    header="Distribución por Estados"
+                    styleClass="chart-panel"
+                >
+                    <div class="chart-container">
+                        <p-chart
+                            type="doughnut"
+                            [data]="stateChartData"
+                            [options]="chartOptions"
+                            width="100%"
+                            height="300px"
+                        ></p-chart>
+                    </div>
+                </p-panel>
+            </div>
+
+            <!-- Tendencia Temporal -->
+            <div class="col-12 lg:col-6">
+                <p-panel header="Tendencia Temporal" styleClass="chart-panel">
+                    <div class="chart-container">
+                        <p-chart
+                            type="line"
+                            [data]="timeSeriesData"
+                            [options]="timeSeriesOptions"
+                            width="100%"
+                            height="300px"
+                        ></p-chart>
+                    </div>
+                </p-panel>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos Secundarios -->
+    <div class="secondary-charts mb-4">
+        <div class="grid">
+            <!-- Por Tipo de Introductor -->
+            <div class="col-12 lg:col-4">
+                <p-panel
+                    header="Por Tipo de Introductor"
+                    styleClass="chart-panel"
+                >
+                    <div class="chart-container">
+                        <p-chart
+                            type="pie"
+                            [data]="introducerTypeData"
+                            [options]="pieChartOptions"
+                            width="100%"
+                            height="250px"
+                        ></p-chart>
+                    </div>
+                </p-panel>
+            </div>
+
+            <!-- Rendimiento Mensual -->
+            <div class="col-12 lg:col-8">
+                <p-panel header="Rendimiento Mensual" styleClass="chart-panel">
+                    <div class="chart-container">
+                        <p-chart
+                            type="bar"
+                            [data]="monthlyPerformanceData"
+                            [options]="barChartOptions"
+                            width="100%"
+                            height="250px"
+                        ></p-chart>
+                    </div>
+                </p-panel>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tablas de Análisis -->
+    <div class="analysis-tables">
+        <div class="grid">
+            <!-- Top Introductores -->
+            <div class="col-12 lg:col-6">
+                <p-panel header="Top Introductores" styleClass="table-panel">
+                    <p-table
+                        [value]="topIntroducers"
+                        styleClass="p-datatable-sm"
+                        [paginator]="false"
+                        [rows]="10"
+                    >
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th>Introductor</th>
+                                <th>Procesos</th>
+                                <th>Tasa Éxito</th>
+                                <th>Tendencia</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template
+                            pTemplate="body"
+                            let-introducer
+                            let-i="rowIndex"
+                        >
+                            <tr>
+                                <td>
+                                    <div class="flex align-items-center">
+                                        <div class="rank-badge">
+                                            {{ i + 1 }}
+                                        </div>
+                                        <div class="ml-2">
+                                            <div class="font-semibold">
+                                                {{ introducer.name }}
+                                            </div>
+                                            <div class="text-sm text-600">
+                                                {{ introducer.type }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="font-bold">{{
+                                        introducer.processCount
+                                    }}</span>
+                                </td>
+                                <td>
+                                    <div class="flex align-items-center">
+                                        <span class="mr-2"
+                                            >{{ introducer.successRate }}%</span
+                                        >
+                                        <p-progressBar
+                                            [value]="introducer.successRate"
+                                            [style]="{
+                                                width: '60px',
+                                                height: '8px'
+                                            }"
+                                            [showValue]="false"
+                                        ></p-progressBar>
+                                    </div>
+                                </td>
+                                <td>
+                                    <p-tag
+                                        [value]="
+                                            introducer.trend > 0
+                                                ? '+' + introducer.trend + '%'
+                                                : introducer.trend + '%'
+                                        "
+                                        [severity]="
+                                            introducer.trend > 0
+                                                ? 'success'
+                                                : introducer.trend < 0
+                                                ? 'danger'
+                                                : 'secondary'
+                                        "
+                                        [icon]="
+                                            introducer.trend > 0
+                                                ? 'pi pi-arrow-up'
+                                                : introducer.trend < 0
+                                                ? 'pi pi-arrow-down'
+                                                : 'pi pi-minus'
+                                        "
+                                    ></p-tag>
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </p-panel>
+            </div>
+
+            <!-- Análisis de Tiempo -->
+            <div class="col-12 lg:col-6">
+                <p-panel
+                    header="Análisis de Tiempos Promedio"
+                    styleClass="table-panel"
+                >
+                    <div class="time-analysis">
+                        <div class="time-metric">
+                            <div class="time-label">
+                                Tiempo Promedio por Estado
+                            </div>
+                            <div class="time-bars">
+                                <div
+                                    class="time-bar"
+                                    *ngFor="let stage of timeAnalysis"
+                                >
+                                    <div
+                                        class="flex justify-content-between align-items-center mb-2"
+                                    >
+                                        <span class="font-semibold">{{
+                                            stage.name
+                                        }}</span>
+                                        <span class="text-600"
+                                            >{{ stage.avgTime }} días</span
+                                        >
+                                    </div>
+                                    <p-progressBar
+                                        [value]="stage.percentage"
+                                        [style]="{ height: '8px' }"
+                                        [showValue]="false"
+                                    ></p-progressBar>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p-divider></p-divider>
+
+                        <div class="efficiency-metrics">
+                            <h5 class="mb-3">Métricas de Eficiencia</h5>
+                            <div class="grid">
+                                <div class="col-6">
+                                    <div class="efficiency-item">
+                                        <label>Ciclo Completo:</label>
+                                        <span class="font-bold text-primary"
+                                            >12.3 días</span
+                                        >
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="efficiency-item">
+                                        <label>Tiempo en Cola:</label>
+                                        <span class="font-bold text-orange-500"
+                                            >2.1 días</span
+                                        >
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="efficiency-item">
+                                        <label>Procesamiento:</label>
+                                        <span class="font-bold text-green-500"
+                                            >8.7 días</span
+                                        >
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="efficiency-item">
+                                        <label>Finalización:</label>
+                                        <span class="font-bold text-blue-500"
+                                            >1.5 días</span
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </p-panel>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas y Notificaciones -->
+    <div class="alerts-section mb-4" *ngIf="alerts.length > 0">
+        <p-panel header="Alertas y Notificaciones" styleClass="alerts-panel">
+            <div class="alerts-grid">
+                <div
+                    class="alert-item"
+                    *ngFor="let alert of alerts"
+                    [class]="'alert-' + alert.severity"
+                >
+                    <div class="alert-icon">
+                        <i [class]="alert.icon"></i>
+                    </div>
+                    <div class="alert-content">
+                        <div class="alert-title">{{ alert.title }}</div>
+                        <div class="alert-message">{{ alert.message }}</div>
+                        <div class="alert-time">
+                            {{ alert.timestamp | date : "dd/MM/yyyy HH:mm" }}
+                        </div>
+                    </div>
+                    <div class="alert-actions">
+                        <p-button
+                            icon="pi pi-times"
+                            severity="secondary"
+                            [text]="true"
+                            size="small"
+                            (onClick)="dismissAlert(alert)"
+                        ></p-button>
+                    </div>
+                </div>
+            </div>
+        </p-panel>
+    </div>
+
+    <!-- Resumen de KPIs -->
+    <div class="kpi-summary">
+        <p-panel
+            header="Indicadores Clave de Rendimiento (KPIs)"
+            styleClass="kpi-panel"
+        >
+            <div class="grid">
+                <div class="col-12 md:col-3">
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <h5>Procesos por Día</h5>
+                            <i class="pi pi-calendar text-blue-500"></i>
+                        </div>
+                        <div class="kpi-value">
+                            {{ dailyKPIs.processesPerDay.toFixed(1) }}
+                        </div>
+                        <div class="kpi-comparison">
+                            <span class="text-600">vs mes anterior:</span>
+                            <span
+                                [class]="
+                                    dailyKPIs.processesPerDayTrend > 0
+                                        ? 'text-green-500'
+                                        : 'text-red-500'
+                                "
+                            >
+                                {{
+                                    dailyKPIs.processesPerDayTrend > 0
+                                        ? "+"
+                                        : ""
+                                }}{{
+                                    dailyKPIs.processesPerDayTrend.toFixed(1)
+                                }}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 md:col-3">
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <h5>Tiempo Promedio</h5>
+                            <i class="pi pi-clock text-orange-500"></i>
+                        </div>
+                        <div class="kpi-value">
+                            {{ dailyKPIs.averageTime.toFixed(1) }}d
+                        </div>
+                        <div class="kpi-comparison">
+                            <span class="text-600">vs mes anterior:</span>
+                            <span
+                                [class]="
+                                    dailyKPIs.averageTimeTrend < 0
+                                        ? 'text-green-500'
+                                        : 'text-red-500'
+                                "
+                            >
+                                {{ dailyKPIs.averageTimeTrend > 0 ? "+" : ""
+                                }}{{ dailyKPIs.averageTimeTrend.toFixed(1) }}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 md:col-3">
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <h5>Satisfacción</h5>
+                            <i class="pi pi-star text-yellow-500"></i>
+                        </div>
+                        <div class="kpi-value">
+                            {{ dailyKPIs.satisfaction.toFixed(1) }}/10
+                        </div>
+                        <div class="kpi-comparison">
+                            <span class="text-600">vs mes anterior:</span>
+                            <span
+                                [class]="
+                                    dailyKPIs.satisfactionTrend > 0
+                                        ? 'text-green-500'
+                                        : 'text-red-500'
+                                "
+                            >
+                                {{ dailyKPIs.satisfactionTrend > 0 ? "+" : ""
+                                }}{{ dailyKPIs.satisfactionTrend.toFixed(1) }}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 md:col-3">
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <h5>Eficiencia</h5>
+                            <i class="pi pi-chart-line text-green-500"></i>
+                        </div>
+                        <div class="kpi-value">
+                            {{ dailyKPIs.efficiency.toFixed(1) }}%
+                        </div>
+                        <div class="kpi-comparison">
+                            <span class="text-600">vs mes anterior:</span>
+                            <span
+                                [class]="
+                                    dailyKPIs.efficiencyTrend > 0
+                                        ? 'text-green-500'
+                                        : 'text-red-500'
+                                "
+                            >
+                                {{ dailyKPIs.efficiencyTrend > 0 ? "+" : ""
+                                }}{{ dailyKPIs.efficiencyTrend.toFixed(1) }}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </p-panel>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" *ngIf="loading">
+    <p-progressSpinner styleClass="w-4rem h-4rem"></p-progressSpinner>
+</div>
+
+<!-- Toast para notificaciones -->
+<p-toast></p-toast>

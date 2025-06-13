@@ -645,8 +645,8 @@ export class ReceptionComponent implements OnInit, OnDestroy {
 
                     // Navegar al dashboard o a la vista de la recepción
                     this.router.navigate([
-                        '/zoosanitario/workflow',
-                        reception.data.slaughterProcess._id,
+                        '/zoosanitario/workflow/external-inspection/',
+                        reception.data.slaughterProcess.numeroOrden,
                     ]);
                 },
                 error: (error) => {

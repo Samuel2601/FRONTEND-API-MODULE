@@ -1,0 +1,734 @@
+<!-- src/app/components/slaughter-process-details/slaughter-process-details.component.html -->
+<div
+    class="process-details-container"
+    *ngIf="processData; else loadingTemplate"
+>
+    <!-- Información Principal -->
+    <div class="process-header mb-4">
+        <div class="flex justify-content-between align-items-start">
+            <div class="process-title">
+                <h2 class="text-2xl font-bold text-primary mb-2">
+                    Proceso {{ processData.numeroOrden }}
+                </h2>
+                <div class="flex align-items-center gap-3">
+                    <p-tag
+                        [value]="processData.estado"
+                        [severity]="getStateSeverity(processData.estado)"
+                        [icon]="getStateIcon(processData.estado)"
+                        styleClass="text-lg"
+                    >
+                    </p-tag>
+                    <span class="text-600">
+                        ID: {{ processData._id?.slice(-8) }}
+                    </span>
+                </div>
+            </div>
+            <div class="process-actions">
+                <p-button
+                    icon="pi pi-refresh"
+                    severity="secondary"
+                    [outlined]="true"
+                    (onClick)="refresh()"
+                    [loading]="loading"
+                    pTooltip="Actualizar datos"
+                >
+                </p-button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información General -->
+    <div class="grid">
+        <div class="col-12 lg:col-8">
+            <!-- Datos del Proceso -->
+            <p-panel header="Información del Proceso" styleClass="mb-4">
+                <div class="grid">
+                    <div class="col-12 md:col-6">
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                <label>Número de Orden:</label>
+                                <span class="font-bold text-primary">
+                                    {{ processData.numeroOrden }}
+                                </span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Estado Actual:</label>
+                                <p-tag
+                                    [value]="processData.estado"
+                                    [severity]="
+                                        getStateSeverity(processData.estado)
+                                    "
+                                    [icon]="getStateIcon(processData.estado)"
+                                >
+                                </p-tag>
+                            </div>
+                            <div class="detail-item">
+                                <label>Fecha de Creación:</label>
+                                <span>
+                                    {{
+                                        processData.createdAt
+                                            | date : "dd/MM/yyyy HH:mm"
+                                    }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 md:col-6">
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                <label>Creado por:</label>
+                                <span>{{
+                                    processData.createdBy || "N/A"
+                                }}</span>
+                            </div>
+                            <div
+                                class="detail-item"
+                                *ngIf="processData.updatedAt"
+                            >
+                                <label>Última Actualización:</label>
+                                <span>
+                                    {{
+                                        processData.updatedAt
+                                            | date : "dd/MM/yyyy HH:mm"
+                                    }}
+                                </span>
+                            </div>
+                            <div
+                                class="detail-item"
+                                *ngIf="processData.updatedBy"
+                            >
+                                <label>Actualizado por:</label>
+                                <span>{{ processData.updatedBy }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </p-panel>
+
+            <!-- Información del Introductor -->
+            <p-panel header="Introductor" styleClass="mb-4">
+                <div class="introducer-card" *ngIf="introducerData">
+                    <div class="flex justify-content-between align-items-start">
+                        <div class="introducer-info flex-1">
+                            <div class="grid">
+                                <div class="col-12 md:col-6">
+                                    <div class="detail-group">
+                                        <div class="detail-item">
+                                            <label>Nombre:</label>
+                                            <span class="font-bold">
+                                                {{ introducerData.name }}
+                                            </span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <label>Tipo de Persona:</label>
+                                            <p-tag
+                                                [value]="
+                                                    introducerData.personType
+                                                "
+                                                [severity]="
+                                                    introducerData.personType ===
+                                                    'Natural'
+                                                        ? 'info'
+                                                        : 'warning'
+                                                "
+                                            >
+                                            </p-tag>
+                                        </div>
+                                        <div class="detail-item">
+                                            <label>Documento:</label>
+                                            <span>
+                                                {{
+                                                    introducerData.idNumber ||
+                                                        introducerData.ruc ||
+                                                        "N/A"
+                                                }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 md:col-6">
+                                    <div class="detail-group">
+                                        <div
+                                            class="detail-item"
+                                            *ngIf="introducerData.email"
+                                        >
+                                            <label>Email:</label>
+                                            <span>{{
+                                                introducerData.email
+                                            }}</span>
+                                        </div>
+                                        <div
+                                            class="detail-item"
+                                            *ngIf="introducerData.phone"
+                                        >
+                                            <label>Teléfono:</label>
+                                            <span>{{
+                                                introducerData.phone
+                                            }}</span>
+                                        </div>
+                                        <div
+                                            class="detail-item"
+                                            *ngIf="introducerData.address"
+                                        >
+                                            <label>Dirección:</label>
+                                            <span>{{
+                                                introducerData.address
+                                            }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="introducer-actions">
+                            <p-button
+                                icon="pi pi-eye"
+                                severity="info"
+                                [text]="true"
+                                pTooltip="Ver perfil completo"
+                                (onClick)="viewIntroducerProfile()"
+                            >
+                            </p-button>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="!introducerData" class="text-center p-4 text-600">
+                    <i class="pi pi-user text-3xl mb-2 block"></i>
+                    <p>Información del introductor no disponible</p>
+                </div>
+            </p-panel>
+
+            <!-- Información de Recepción -->
+            <p-panel header="Recepción" styleClass="mb-4">
+                <div class="reception-card" *ngIf="receptionData">
+                    <div class="grid">
+                        <div class="col-12 md:col-6">
+                            <div class="detail-group">
+                                <div class="detail-item">
+                                    <label>Fecha y Hora:</label>
+                                    <span>
+                                        {{
+                                            receptionData.fechaHoraRecepcion
+                                                | date : "dd/MM/yyyy HH:mm"
+                                        }}
+                                    </span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Estado:</label>
+                                    <p-tag
+                                        [value]="receptionData.estado"
+                                        [severity]="
+                                            getReceptionStateSeverity(
+                                                receptionData.estado
+                                            )
+                                        "
+                                    >
+                                    </p-tag>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Prioridad:</label>
+                                    <p-rating
+                                        [ngModel]="receptionData.prioridad"
+                                        [readonly]="true"
+                                        [stars]="5"
+                                        [cancel]="false"
+                                    >
+                                    </p-rating>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-6">
+                            <div
+                                class="detail-group"
+                                *ngIf="receptionData.animalHealthCertificate"
+                            >
+                                <div class="detail-item">
+                                    <label>Certificado CZPM:</label>
+                                    <span class="font-bold">
+                                        {{
+                                            receptionData
+                                                .animalHealthCertificate
+                                                .numeroCZPM
+                                        }}
+                                    </span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Total Productos:</label>
+                                    <span>{{
+                                        receptionData.animalHealthCertificate
+                                            .totalProductos
+                                    }}</span>
+                                </div>
+                                <div
+                                    class="detail-item"
+                                    *ngIf="
+                                        receptionData.animalHealthCertificate
+                                            .origen
+                                    "
+                                >
+                                    <label>Origen:</label>
+                                    <span>{{
+                                        receptionData.animalHealthCertificate
+                                            .origen
+                                    }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <p-button
+                            label="Ver Detalles de Recepción"
+                            icon="pi pi-external-link"
+                            severity="info"
+                            [outlined]="true"
+                            size="small"
+                            (onClick)="viewReceptionDetails()"
+                        >
+                        </p-button>
+                    </div>
+                </div>
+                <div *ngIf="!receptionData" class="text-center p-4 text-600">
+                    <i class="pi pi-inbox text-3xl mb-2 block"></i>
+                    <p>No hay recepción asociada</p>
+                </div>
+            </p-panel>
+        </div>
+
+        <div class="col-12 lg:col-4">
+            <!-- Resumen Estadístico -->
+            <p-panel header="Resumen" styleClass="mb-4">
+                <div class="summary-stats" *ngIf="summaryData">
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="pi pi-search text-blue-500"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value">
+                                {{ summaryData.inspecciones.total }}
+                            </div>
+                            <div class="stat-label">Inspecciones</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="pi pi-dollar text-green-500"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value">
+                                {{
+                                    summaryData.facturacion.tieneFactura
+                                        ? "1"
+                                        : "0"
+                                }}
+                            </div>
+                            <div class="stat-label">Facturas</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="pi pi-cog text-orange-500"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value">
+                                {{ summaryData.faenamientos.total }}
+                            </div>
+                            <div class="stat-label">Faenamientos</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="pi pi-truck text-purple-500"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value">
+                                {{ summaryData.despachos.total }}
+                            </div>
+                            <div class="stat-label">Despachos</div>
+                        </div>
+                    </div>
+                </div>
+            </p-panel>
+
+            <!-- Acciones Rápidas -->
+            <p-panel header="Acciones" styleClass="mb-4">
+                <div class="quick-actions">
+                    <p-button
+                        label="Editar Proceso"
+                        icon="pi pi-pencil"
+                        severity="warning"
+                        styleClass="w-full mb-2"
+                        (onClick)="editProcess()"
+                        *ngIf="canEditProcess()"
+                    >
+                    </p-button>
+
+                    <p-splitButton
+                        label="Cambiar Estado"
+                        icon="pi pi-cog"
+                        [model]="stateActions"
+                        severity="info"
+                        styleClass="w-full mb-2"
+                        *ngIf="stateActions.length > 0"
+                    >
+                    </p-splitButton>
+
+                    <p-button
+                        label="Ver Historial"
+                        icon="pi pi-history"
+                        severity="secondary"
+                        [outlined]="true"
+                        styleClass="w-full mb-2"
+                        (onClick)="viewAuditHistory()"
+                    >
+                    </p-button>
+
+                    <p-button
+                        label="Generar Reporte"
+                        icon="pi pi-file-pdf"
+                        severity="help"
+                        [outlined]="true"
+                        styleClass="w-full mb-2"
+                        (onClick)="generateReport()"
+                    >
+                    </p-button>
+                </div>
+            </p-panel>
+
+            <!-- Progreso del Proceso -->
+            <p-panel header="Progreso" styleClass="mb-4">
+                <div class="process-progress">
+                    <div class="progress-steps">
+                        <div
+                            class="progress-step"
+                            [class.active]="isStepActive('Iniciado')"
+                            [class.completed]="isStepCompleted('Iniciado')"
+                        >
+                            <div class="step-circle">
+                                <i class="pi pi-play"></i>
+                            </div>
+                            <div class="step-label">Iniciado</div>
+                        </div>
+
+                        <div
+                            class="progress-step"
+                            [class.active]="isStepActive('PreFaenamiento')"
+                            [class.completed]="
+                                isStepCompleted('PreFaenamiento')
+                            "
+                        >
+                            <div class="step-circle">
+                                <i class="pi pi-clock"></i>
+                            </div>
+                            <div class="step-label">Pre-Faenamiento</div>
+                        </div>
+
+                        <div
+                            class="progress-step"
+                            [class.active]="isStepActive('Pagado')"
+                            [class.completed]="isStepCompleted('Pagado')"
+                        >
+                            <div class="step-circle">
+                                <i class="pi pi-dollar"></i>
+                            </div>
+                            <div class="step-label">Pagado</div>
+                        </div>
+
+                        <div
+                            class="progress-step"
+                            [class.active]="isStepActive('EnProceso')"
+                            [class.completed]="isStepCompleted('EnProceso')"
+                        >
+                            <div class="step-circle">
+                                <i class="pi pi-cog"></i>
+                            </div>
+                            <div class="step-label">En Proceso</div>
+                        </div>
+
+                        <div
+                            class="progress-step"
+                            [class.active]="isStepActive('Finalizado')"
+                            [class.completed]="isStepCompleted('Finalizado')"
+                        >
+                            <div class="step-circle">
+                                <i class="pi pi-check"></i>
+                            </div>
+                            <div class="step-label">Finalizado</div>
+                        </div>
+                    </div>
+                </div>
+            </p-panel>
+        </div>
+    </div>
+
+    <!-- Secciones Expandibles -->
+    <div class="expandable-sections">
+        <!-- Inspecciones Externas -->
+        <p-accordion styleClass="mb-4">
+            <p-accordionTab
+                header="Inspecciones Externas"
+                [selected]="true"
+                [cache]="false"
+            >
+                <ng-template pTemplate="header">
+                    <div
+                        class="flex align-items-center justify-content-between w-full mr-3"
+                    >
+                        <span class="font-semibold">Inspecciones Externas</span>
+                        <p-tag
+                            [value]="inspectionsData.length.toString()"
+                            severity="info"
+                        ></p-tag>
+                    </div>
+                </ng-template>
+
+                <div
+                    class="inspections-grid"
+                    *ngIf="inspectionsData.length > 0; else noInspections"
+                >
+                    <div class="grid">
+                        <div
+                            class="col-12 md:col-6 lg:col-4"
+                            *ngFor="let inspection of inspectionsData"
+                        >
+                            <p-card styleClass="inspection-summary-card">
+                                <div
+                                    class="flex justify-content-between align-items-start mb-3"
+                                >
+                                    <h5 class="m-0">{{ inspection.numero }}</h5>
+                                    <p-tag
+                                        [value]="inspection.resultado"
+                                        [severity]="
+                                            getInspectionResultSeverity(
+                                                inspection.resultado
+                                            )
+                                        "
+                                    >
+                                    </p-tag>
+                                </div>
+                                <div class="inspection-info">
+                                    <div class="detail-item">
+                                        <label>Especie:</label>
+                                        <span>{{
+                                            getSpeciesName(inspection.especie)
+                                        }}</span>
+                                    </div>
+                                    <div
+                                        class="detail-item"
+                                        *ngIf="inspection.horaChequeo"
+                                    >
+                                        <label>Fecha:</label>
+                                        <span>{{
+                                            inspection.horaChequeo
+                                                | date : "dd/MM/yyyy"
+                                        }}</span>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <p-button
+                                        label="Ver Detalles"
+                                        icon="pi pi-eye"
+                                        severity="info"
+                                        [text]="true"
+                                        size="small"
+                                        (onClick)="
+                                            viewInspectionDetails(inspection)
+                                        "
+                                    >
+                                    </p-button>
+                                </div>
+                            </p-card>
+                        </div>
+                    </div>
+                </div>
+
+                <ng-template #noInspections>
+                    <div class="text-center p-4 text-600">
+                        <i class="pi pi-search text-4xl mb-3 block"></i>
+                        <p>No hay inspecciones externas asociadas</p>
+                        <p-button
+                            label="Crear Inspección"
+                            icon="pi pi-plus"
+                            (onClick)="createInspection()"
+                        >
+                        </p-button>
+                    </div>
+                </ng-template>
+            </p-accordionTab>
+
+            <!-- Facturación -->
+            <p-accordionTab header="Facturación">
+                <ng-template pTemplate="header">
+                    <div
+                        class="flex align-items-center justify-content-between w-full mr-3"
+                    >
+                        <span class="font-semibold">Facturación</span>
+                        <p-tag
+                            [value]="invoicesData.length.toString()"
+                            [severity]="
+                                invoicesData.length > 0 ? 'success' : 'warning'
+                            "
+                        ></p-tag>
+                    </div>
+                </ng-template>
+
+                <div
+                    class="invoices-section"
+                    *ngIf="invoicesData.length > 0; else noInvoices"
+                >
+                    <div class="grid">
+                        <div
+                            class="col-12 md:col-6"
+                            *ngFor="let invoice of invoicesData"
+                        >
+                            <p-card styleClass="invoice-card">
+                                <div
+                                    class="flex justify-content-between align-items-start mb-3"
+                                >
+                                    <h5 class="m-0">
+                                        {{ invoice.invoiceNumber }}
+                                    </h5>
+                                    <p-tag
+                                        [value]="invoice.status"
+                                        [severity]="
+                                            getInvoiceStatusSeverity(
+                                                invoice.status
+                                            )
+                                        "
+                                    >
+                                    </p-tag>
+                                </div>
+                                <div class="invoice-info">
+                                    <div class="detail-item">
+                                        <label>Monto Total:</label>
+                                        <span class="font-bold text-green-600">
+                                            ${{
+                                                invoice.totalAmount
+                                                    | number : "1.2-2"
+                                            }}
+                                        </span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <label>Fecha de Emisión:</label>
+                                        <span>{{
+                                            invoice.issueDate
+                                                | date : "dd/MM/yyyy"
+                                        }}</span>
+                                    </div>
+                                    <div
+                                        class="detail-item"
+                                        *ngIf="invoice.dueDate"
+                                    >
+                                        <label>Fecha de Vencimiento:</label>
+                                        <span>{{
+                                            invoice.dueDate
+                                                | date : "dd/MM/yyyy"
+                                        }}</span>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <p-button
+                                        label="Ver Factura"
+                                        icon="pi pi-eye"
+                                        severity="info"
+                                        [text]="true"
+                                        size="small"
+                                        (onClick)="viewInvoiceDetails(invoice)"
+                                    >
+                                    </p-button>
+                                </div>
+                            </p-card>
+                        </div>
+                    </div>
+                </div>
+
+                <ng-template #noInvoices>
+                    <div class="text-center p-4 text-600">
+                        <i class="pi pi-dollar text-4xl mb-3 block"></i>
+                        <p>No hay facturas generadas</p>
+                        <p-button
+                            label="Generar Factura"
+                            icon="pi pi-plus"
+                            (onClick)="createInvoice()"
+                        >
+                        </p-button>
+                    </div>
+                </ng-template>
+            </p-accordionTab>
+
+            <!-- Faenamientos -->
+            <p-accordionTab header="Faenamientos">
+                <ng-template pTemplate="header">
+                    <div
+                        class="flex align-items-center justify-content-between w-full mr-3"
+                    >
+                        <span class="font-semibold">Faenamientos</span>
+                        <p-tag
+                            [value]="slaughteringsData.length.toString()"
+                            severity="info"
+                        ></p-tag>
+                    </div>
+                </ng-template>
+
+                <div
+                    class="slaughterings-section"
+                    *ngIf="slaughteringsData.length > 0; else noSlaughterings"
+                >
+                    <!-- Contenido de faenamientos -->
+                    <p>Sección de faenamientos en desarrollo</p>
+                </div>
+
+                <ng-template #noSlaughterings>
+                    <div class="text-center p-4 text-600">
+                        <i class="pi pi-cog text-4xl mb-3 block"></i>
+                        <p>No hay faenamientos registrados</p>
+                    </div>
+                </ng-template>
+            </p-accordionTab>
+
+            <!-- Despachos -->
+            <p-accordionTab header="Despachos">
+                <ng-template pTemplate="header">
+                    <div
+                        class="flex align-items-center justify-content-between w-full mr-3"
+                    >
+                        <span class="font-semibold">Despachos</span>
+                        <p-tag
+                            [value]="dispatchesData.length.toString()"
+                            severity="info"
+                        ></p-tag>
+                    </div>
+                </ng-template>
+
+                <div
+                    class="dispatches-section"
+                    *ngIf="dispatchesData.length > 0; else noDispatches"
+                >
+                    <!-- Contenido de despachos -->
+                    <p>Sección de despachos en desarrollo</p>
+                </div>
+
+                <ng-template #noDispatches>
+                    <div class="text-center p-4 text-600">
+                        <i class="pi pi-truck text-4xl mb-3 block"></i>
+                        <p>No hay despachos registrados</p>
+                    </div>
+                </ng-template>
+            </p-accordionTab>
+        </p-accordion>
+    </div>
+</div>
+
+<!-- Loading Template -->
+<ng-template #loadingTemplate>
+    <div class="loading-container">
+        <div class="text-center p-5">
+            <p-progressSpinner
+                styleClass="w-4rem h-4rem"
+                strokeWidth="4"
+            ></p-progressSpinner>
+            <p class="text-600 mt-3">Cargando detalles del proceso...</p>
+        </div>
+    </div>
+</ng-template>
+
+<!-- Toast para notificaciones -->
+<p-toast></p-toast>

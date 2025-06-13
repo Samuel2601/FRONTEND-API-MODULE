@@ -11,7 +11,7 @@ import { MessageService } from 'primeng/api';
 })
 export abstract class BaseService<T> {
     protected readonly url = GLOBAL.url_zoosanitario;
-    protected readonly cacheExpiry = 5 * 60 * 1000; // 5 minutos
+    protected readonly cacheExpiry = 0; //5 * 60 * 1000; // 5 minutos
     protected http = inject(HttpClient);
     protected cacheService = inject(CacheService);
     protected auth = inject(AuthService);

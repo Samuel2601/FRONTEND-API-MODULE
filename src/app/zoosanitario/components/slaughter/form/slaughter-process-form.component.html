@@ -1,0 +1,461 @@
+<!-- src/app/components/slaughter-process-form/slaughter-process-form.component.html -->
+<p-dialog
+    [(visible)]="visible"
+    [header]="
+        isEditMode
+            ? 'Editar Proceso de Faenamiento'
+            : 'Nuevo Proceso de Faenamiento'
+    "
+    [modal]="true"
+    [style]="{ width: '90vw', maxWidth: '1000px' }"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    (onHide)="onDialogHide()"
+    styleClass="process-form-dialog"
+>
+    <form [formGroup]="processForm" (ngSubmit)="onSubmit()">
+        <!-- Información Básica -->
+        <p-panel header="Información Básica" styleClass="mb-4">
+            <div class="grid">
+                <div class="col-12 md:col-6">
+                    <div class="field">
+                        <label for="numeroOrden" class="font-semibold required">
+                            Número de Orden
+                        </label>
+                        <input
+                            type="text"
+                            pInputText
+                            id="numeroOrden"
+                            formControlName="numeroOrden"
+                            placeholder="Ingrese el número de orden"
+                            styleClass="w-full"
+                            [class.ng-invalid]="isFieldInvalid('numeroOrden')"
+                        />
+                        <small
+                            class="p-error"
+                            *ngIf="isFieldInvalid('numeroOrden')"
+                        >
+                            {{ getFieldError("numeroOrden") }}
+                        </small>
+                    </div>
+                </div>
+                <div class="col-12 md:col-6">
+                    <div class="field">
+                        <label for="estado" class="font-semibold required">
+                            Estado
+                        </label>
+                        <p-dropdown
+                            id="estado"
+                            formControlName="estado"
+                            [options]="stateOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Seleccione el estado"
+                            styleClass="w-full"
+                            [class.ng-invalid]="isFieldInvalid('estado')"
+                        >
+                        </p-dropdown>
+                        <small class="p-error" *ngIf="isFieldInvalid('estado')">
+                            {{ getFieldError("estado") }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </p-panel>
+
+        <!-- Información del Introductor -->
+        <p-panel header="Información del Introductor" styleClass="mb-4">
+            <div class="grid">
+                <div class="col-12">
+                    <div class="field">
+                        <label for="introductor" class="font-semibold required">
+                            Introductor
+                        </label>
+                        <p-dropdown
+                            id="introductor"
+                            formControlName="introductor"
+                            [options]="introducerOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Seleccione el introductor"
+                            styleClass="w-full"
+                            [filter]="true"
+                            filterBy="label"
+                            [class.ng-invalid]="isFieldInvalid('introductor')"
+                            (onChange)="onIntroducerChange($event)"
+                        >
+                            <ng-template
+                                pTemplate="selectedItem"
+                                let-selectedOption
+                            >
+                                <div
+                                    class="flex align-items-center"
+                                    *ngIf="selectedOption"
+                                >
+                                    <div>
+                                        <div class="font-semibold">
+                                            {{ selectedOption.label }}
+                                        </div>
+                                        <div class="text-sm text-600">
+                                            {{ selectedOption.type }} -
+                                            {{ selectedOption.document }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </ng-template>
+                            <ng-template pTemplate="item" let-option>
+                                <div class="flex align-items-center">
+                                    <div>
+                                        <div class="font-semibold">
+                                            {{ option.label }}
+                                        </div>
+                                        <div class="text-sm text-600">
+                                            {{ option.type }} -
+                                            {{ option.document }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </p-dropdown>
+                        <small
+                            class="p-error"
+                            *ngIf="isFieldInvalid('introductor')"
+                        >
+                            {{ getFieldError("introductor") }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del Introductor Seleccionado -->
+            <div class="introducer-details" *ngIf="selectedIntroducerDetails">
+                <p-divider></p-divider>
+                <h5 class="mb-3">Detalles del Introductor</h5>
+                <div class="grid">
+                    <div class="col-12 md:col-4">
+                        <div class="detail-item">
+                            <label>Tipo de Persona:</label>
+                            <span>{{
+                                selectedIntroducerDetails.personType
+                            }}</span>
+                        </div>
+                    </div>
+                    <div class="col-12 md:col-4">
+                        <div class="detail-item">
+                            <label>Documento:</label>
+                            <span>{{
+                                selectedIntroducerDetails.idNumber ||
+                                    selectedIntroducerDetails.ruc ||
+                                    "N/A"
+                            }}</span>
+                        </div>
+                    </div>
+                    <div class="col-12 md:col-4">
+                        <div class="detail-item">
+                            <label>Teléfono:</label>
+                            <span>{{
+                                selectedIntroducerDetails.phone || "N/A"
+                            }}</span>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="detail-item">
+                            <label>Dirección:</label>
+                            <span>{{
+                                selectedIntroducerDetails.address || "N/A"
+                            }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </p-panel>
+
+        <!-- Información de Recepción -->
+        <p-panel header="Información de Recepción" styleClass="mb-4">
+            <div class="grid">
+                <div class="col-12 md:col-6">
+                    <div class="field">
+                        <label for="recepcion" class="font-semibold">
+                            Recepción Asociada
+                        </label>
+                        <p-dropdown
+                            id="recepcion"
+                            formControlName="recepcion"
+                            [options]="receptionOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Seleccione la recepción"
+                            styleClass="w-full"
+                            [filter]="true"
+                            filterBy="label"
+                            (onChange)="onReceptionChange($event)"
+                        >
+                            <ng-template pTemplate="item" let-option>
+                                <div>
+                                    <div class="font-semibold">
+                                        {{ option.label }}
+                                    </div>
+                                    <div class="text-sm text-600">
+                                        Estado: {{ option.estado }} | Fecha:
+                                        {{ option.fecha | date : "dd/MM/yyyy" }}
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </p-dropdown>
+                    </div>
+                </div>
+                <div class="col-12 md:col-6">
+                    <div class="field">
+                        <label for="prioridad" class="font-semibold">
+                            Prioridad
+                        </label>
+                        <p-inputNumber
+                            id="prioridad"
+                            formControlName="prioridad"
+                            placeholder="Nivel de prioridad (1-10)"
+                            styleClass="w-full"
+                            [min]="1"
+                            [max]="10"
+                            [showButtons]="true"
+                            buttonLayout="horizontal"
+                        >
+                        </p-inputNumber>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detalles de la Recepción -->
+            <div class="reception-details" *ngIf="selectedReceptionDetails">
+                <p-divider></p-divider>
+                <h5 class="mb-3">Detalles de la Recepción</h5>
+                <div class="grid">
+                    <div class="col-12 md:col-3">
+                        <div class="detail-item">
+                            <label>Estado:</label>
+                            <p-tag
+                                [value]="selectedReceptionDetails.estado"
+                                [severity]="
+                                    getReceptionStateSeverity(
+                                        selectedReceptionDetails.estado
+                                    )
+                                "
+                            ></p-tag>
+                        </div>
+                    </div>
+                    <div class="col-12 md:col-3">
+                        <div class="detail-item">
+                            <label>Fecha de Recepción:</label>
+                            <span>{{
+                                selectedReceptionDetails.fechaHoraRecepcion
+                                    | date : "dd/MM/yyyy HH:mm"
+                            }}</span>
+                        </div>
+                    </div>
+                    <div class="col-12 md:col-3">
+                        <div class="detail-item">
+                            <label>Número CZPM:</label>
+                            <span>{{
+                                selectedReceptionDetails.animalHealthCertificate
+                                    ?.numeroCZPM || "N/A"
+                            }}</span>
+                        </div>
+                    </div>
+                    <div class="col-12 md:col-3">
+                        <div class="detail-item">
+                            <label>Total Productos:</label>
+                            <span>{{
+                                selectedReceptionDetails.animalHealthCertificate
+                                    ?.totalProductos || 0
+                            }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </p-panel>
+
+        <!-- Inspecciones Externas -->
+        <p-panel header="Inspecciones Externas" styleClass="mb-4">
+            <div class="grid">
+                <div class="col-12">
+                    <div class="field">
+                        <label class="font-semibold">
+                            Inspecciones Asociadas
+                        </label>
+                        <p-multiSelect
+                            formControlName="inspeccionesExternas"
+                            [options]="externalInspectionOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Seleccione las inspecciones"
+                            styleClass="w-full"
+                            [filter]="true"
+                            filterBy="label"
+                            display="chip"
+                        >
+                            <ng-template pTemplate="item" let-option>
+                                <div class="flex align-items-center">
+                                    <div>
+                                        <div class="font-semibold">
+                                            {{ option.label }}
+                                        </div>
+                                        <div class="text-sm text-600">
+                                            Estado: {{ option.resultado }} |
+                                            Especie: {{ option.especie }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </p-multiSelect>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Inspecciones Seleccionadas -->
+            <div
+                class="selected-inspections"
+                *ngIf="selectedInspections.length > 0"
+            >
+                <p-divider></p-divider>
+                <h5 class="mb-3">
+                    Inspecciones Seleccionadas ({{
+                        selectedInspections.length
+                    }})
+                </h5>
+                <div class="grid">
+                    <div
+                        class="col-12 md:col-6 lg:col-4"
+                        *ngFor="let inspection of selectedInspections"
+                    >
+                        <p-card styleClass="inspection-card">
+                            <div
+                                class="flex justify-content-between align-items-start mb-2"
+                            >
+                                <span class="font-bold">{{
+                                    inspection.numero
+                                }}</span>
+                                <p-tag
+                                    [value]="inspection.resultado"
+                                    [severity]="
+                                        getInspectionResultSeverity(
+                                            inspection.resultado
+                                        )
+                                    "
+                                ></p-tag>
+                            </div>
+                            <div class="inspection-details">
+                                <div class="text-sm mb-1">
+                                    <strong>Especie:</strong>
+                                    {{ inspection.especie || "N/A" }}
+                                </div>
+                                <div class="text-sm">
+                                    <strong>ID:</strong>
+                                    {{ inspection._id?.slice(-6) }}
+                                </div>
+                            </div>
+                        </p-card>
+                    </div>
+                </div>
+            </div>
+        </p-panel>
+
+        <!-- Observaciones -->
+        <p-panel header="Observaciones" styleClass="mb-4">
+            <div class="grid">
+                <div class="col-12">
+                    <div class="field">
+                        <label for="observaciones" class="font-semibold">
+                            Observaciones Generales
+                        </label>
+                        <textarea
+                            pInputTextarea
+                            id="observaciones"
+                            formControlName="observaciones"
+                            rows="4"
+                            placeholder="Ingrese observaciones sobre el proceso"
+                            styleClass="w-full"
+                        ></textarea>
+                    </div>
+                </div>
+            </div>
+        </p-panel>
+
+        <!-- Información de Auditoría -->
+        <p-panel
+            header="Información de Auditoría"
+            *ngIf="isEditMode && processData"
+            styleClass="mb-4"
+        >
+            <div class="grid">
+                <div class="col-12 md:col-6">
+                    <div class="detail-item">
+                        <label>Creado por:</label>
+                        <span>{{ processData.createdBy || "N/A" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Fecha de creación:</label>
+                        <span>{{
+                            processData.createdAt
+                                ? (processData.createdAt
+                                  | date : "dd/MM/yyyy HH:mm")
+                                : "N/A"
+                        }}</span>
+                    </div>
+                </div>
+                <div class="col-12 md:col-6">
+                    <div class="detail-item">
+                        <span>{{
+                            processData.updatedAt
+                                ? (processData.updatedAt
+                                  | date : "dd/MM/yyyy HH:mm")
+                                : "N/A"
+                        }}</span>
+                    </div>
+                    <div class="detail-item" *ngIf="processData.updatedBy">
+                        <label>Actualizado por:</label>
+                        <span>{{ processData.updatedBy }}</span>
+                    </div>
+                </div>
+            </div>
+        </p-panel>
+    </form>
+
+    <ng-template pTemplate="footer">
+        <div class="flex justify-content-between align-items-center">
+            <div>
+                <p-button
+                    label="Limpiar"
+                    icon="pi pi-refresh"
+                    severity="secondary"
+                    [outlined]="true"
+                    (onClick)="resetForm()"
+                    [disabled]="loading"
+                >
+                </p-button>
+            </div>
+            <div class="flex gap-2">
+                <p-button
+                    label="Cancelar"
+                    icon="pi pi-times"
+                    severity="secondary"
+                    [outlined]="true"
+                    (onClick)="onCancel()"
+                    [disabled]="loading"
+                >
+                </p-button>
+                <p-button
+                    [label]="isEditMode ? 'Actualizar' : 'Crear'"
+                    [icon]="isEditMode ? 'pi pi-check' : 'pi pi-plus'"
+                    severity="primary"
+                    (onClick)="onSubmit()"
+                    [loading]="loading"
+                    [disabled]="processForm.invalid"
+                >
+                </p-button>
+            </div>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<!-- Toast para notificaciones -->
+<p-toast></p-toast>

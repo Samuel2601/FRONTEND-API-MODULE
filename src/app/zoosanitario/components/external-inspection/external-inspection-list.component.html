@@ -214,12 +214,17 @@
                     <td>
                         <div class="species-info">
                             <div class="font-semibold">
-                                {{
-                                    inspection.especie.species +
-                                        "(" +
-                                        inspection.especie.category +
-                                        ")" || "N/A"
-                                }}
+                                <ng-container *ngIf="inspection.especie"
+                                    >{{
+                                        inspection.especie.species +
+                                            "(" +
+                                            inspection.especie.category +
+                                            ")" || "N/A"
+                                    }}
+                                </ng-container>
+                                <ng-container *ngIf="!inspection.especie"
+                                    >Pendiente</ng-container
+                                >
                             </div>
                             <div class="text-sm text-600">
                                 {{ inspection.sexo || "Pendiente" }}
@@ -419,7 +424,9 @@
                         <label>Fecha/Hora:</label>
                         <span>{{
                             selectedInspection.horaChequeo
-                                | date : "dd/MM/yyyy HH:mm" || "N/A"
+                                ? (selectedInspection.horaChequeo
+                                  | date : "dd/MM/yyyy HH:mm")
+                                : "N/A"
                         }}</span>
                     </div>
                 </div>

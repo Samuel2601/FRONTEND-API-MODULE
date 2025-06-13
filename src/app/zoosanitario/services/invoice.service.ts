@@ -10,15 +10,17 @@ import {
     RateCalculationResponse,
 } from '../interfaces/slaughter.interface';
 import { CacheService } from 'src/app/demo/services/cache.service';
+import { MessageService } from 'primeng/api';
 
 @Injectable({
     providedIn: 'root',
 })
 export class InvoiceService extends BaseService<Invoice> {
     constructor(
-        protected override http: HttpClient,
-        protected override cacheService: CacheService,
-        protected override auth: AuthService
+        http: HttpClient,
+        messageService: MessageService,
+        cacheService: CacheService,
+        auth: AuthService
     ) {
         super('invoices');
     }
@@ -129,6 +131,18 @@ export class InvoiceService extends BaseService<Invoice> {
     getBillingStatistics(): Observable<ApiResponse<any>> {
         return this.http.get<ApiResponse<any>>(
             `${this.url}${this.endpoint}/statistics/billing`,
+            {
+                headers: this.getHeaders(),
+            }
+        );
+    }
+
+    postInvoiceSlaughterProcesses(
+        slaughterProcessId: string
+    ): Observable<ApiResponse<any>> {
+        return this.http.post<ApiResponse<any>>(
+            `${this.url}${this.endpoint}/slaughter-process/${slaughterProcessId}`,
+            {},
             {
                 headers: this.getHeaders(),
             }

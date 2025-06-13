@@ -1,0 +1,492 @@
+// src/app/components/slaughter-process-list/slaughter-process-list.component.scss
+
+.process-list-container {
+    min-height: 100vh;
+
+    .process-header {
+        background: linear-gradient(
+            135deg,
+            var(--primary-500) 0%,
+            var(--primary-700) 100%
+        );
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+
+        h1 {
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .platform-info {
+            .p-tag {
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+            }
+        }
+
+        .filters-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            backdrop-filter: blur(10px);
+
+            .field {
+                margin-bottom: 1rem;
+
+                label {
+                    display: block;
+                    margin-bottom: 0.5rem;
+                    font-weight: 600;
+                }
+
+                .p-inputtext,
+                .p-dropdown,
+                .p-calendar {
+                    width: 100%;
+
+                    :deep(.p-inputtext) {
+                        background: rgba(255, 255, 255, 0.9);
+                        border: 1px solid rgba(255, 255, 255, 0.3);
+
+                        &:focus {
+                            border-color: var(--primary-300);
+                            box-shadow: 0 0 0 0.2rem
+                                rgba(var(--primary-500-rgb), 0.2);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .statistics-section {
+        .stat-card {
+            background: var(--surface-card);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--surface-border);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+
+            &::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: var(--accent-color, var(--primary-500));
+            }
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            }
+
+            .stat-value {
+                font-size: 2.5rem;
+                font-weight: 700;
+                color: var(--text-color);
+                margin-bottom: 0.5rem;
+                line-height: 1;
+            }
+
+            .stat-label {
+                font-size: 0.875rem;
+                color: var(--text-color-secondary);
+                font-weight: 500;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            &.total {
+                --accent-color: var(--blue-500);
+            }
+
+            &.initiated {
+                --accent-color: var(--cyan-500);
+            }
+
+            &.pre-slaughter {
+                --accent-color: var(--yellow-500);
+            }
+
+            &.paid {
+                --accent-color: var(--green-500);
+            }
+
+            &.in-process {
+                --accent-color: var(--orange-500);
+            }
+
+            &.finished {
+                --accent-color: var(--teal-500);
+            }
+        }
+    }
+
+    .processes-table-container {
+        background: var(--surface-card);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--surface-border);
+
+        :deep(.p-datatable) {
+            .p-datatable-header {
+                background: transparent;
+                border: none;
+                padding: 0 0 1rem 0;
+            }
+
+            .p-datatable-thead > tr > th {
+                background: var(--surface-50);
+                color: var(--text-color);
+                font-weight: 600;
+                padding: 1rem;
+                border: 1px solid var(--surface-border);
+
+                &:first-child {
+                    border-top-left-radius: 8px;
+                }
+
+                &:last-child {
+                    border-top-right-radius: 8px;
+                }
+            }
+
+            .p-datatable-tbody > tr {
+                transition: background-color 0.2s ease;
+
+                &:hover {
+                    background: var(--surface-hover) !important;
+                }
+
+                > td {
+                    padding: 1rem;
+                    border: 1px solid var(--surface-border);
+                    vertical-align: top;
+
+                    .process-number {
+                        .font-bold {
+                            color: var(--primary-600);
+                            font-size: 1.1rem;
+                        }
+                    }
+
+                    .introducer-info,
+                    .reception-info,
+                    .inspections-summary,
+                    .billing-info {
+                        .font-semibold {
+                            color: var(--text-color);
+                            margin-bottom: 0.25rem;
+                        }
+
+                        .text-600 {
+                            font-size: 0.875rem;
+                        }
+                    }
+
+                    .vital-signs {
+                        .text-sm {
+                            margin-bottom: 0.25rem;
+                            padding: 0.25rem 0.5rem;
+                            background: var(--surface-100);
+                            border-radius: 4px;
+                            display: inline-block;
+                            margin-right: 0.5rem;
+                            font-family: "Courier New", monospace;
+                        }
+                    }
+                }
+            }
+
+            .p-datatable-emptymessage {
+                td {
+                    padding: 3rem !important;
+                    text-align: center;
+
+                    .pi-inbox {
+                        color: var(--text-color-secondary);
+                        margin-bottom: 1rem;
+                    }
+
+                    p {
+                        color: var(--text-color-secondary);
+                        margin-bottom: 1.5rem;
+                    }
+                }
+            }
+        }
+    }
+
+    .batch-actions {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        min-width: 300px;
+
+        :deep(.p-card) {
+            background: var(--surface-card);
+            border: 1px solid var(--surface-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            border-radius: 12px;
+
+            .p-card-body {
+                padding: 1rem 1.5rem;
+            }
+        }
+
+        .font-semibold {
+            color: var(--text-color);
+        }
+    }
+}
+
+// Estados específicos para tags
+:deep(.p-tag) {
+    &.p-tag-success {
+        background: var(--green-100);
+        color: var(--green-800);
+        border: 1px solid var(--green-200);
+    }
+
+    &.p-tag-info {
+        background: var(--blue-100);
+        color: var(--blue-800);
+        border: 1px solid var(--blue-200);
+    }
+
+    &.p-tag-warning {
+        background: var(--yellow-100);
+        color: var(--yellow-800);
+        border: 1px solid var(--yellow-200);
+    }
+
+    &.p-tag-danger {
+        background: var(--red-100);
+        color: var(--red-800);
+        border: 1px solid var(--red-200);
+    }
+
+    &.p-tag-secondary {
+        background: var(--surface-200);
+        color: var(--surface-700);
+        border: 1px solid var(--surface-300);
+    }
+}
+
+// Botones de acción
+.flex.gap-2 {
+    :deep(.p-button) {
+        &.p-button-text {
+            &:hover {
+                background: var(--surface-hover);
+            }
+        }
+
+        &.p-button-info.p-button-text:hover {
+            background: var(--blue-50);
+            color: var(--blue-600);
+        }
+
+        &.p-button-warning.p-button-text:hover {
+            background: var(--yellow-50);
+            color: var(--yellow-600);
+        }
+
+        &.p-button-danger.p-button-text:hover {
+            background: var(--red-50);
+            color: var(--red-600);
+        }
+
+        &.p-button-secondary.p-button-text:hover {
+            background: var(--surface-100);
+            color: var(--surface-700);
+        }
+    }
+}
+
+// Diálogos
+:deep(.p-dialog) {
+    .p-dialog-header {
+        background: var(--surface-card);
+        border-bottom: 1px solid var(--surface-border);
+        border-radius: 12px 12px 0 0;
+    }
+
+    .p-dialog-content {
+        background: var(--surface-card);
+        border-radius: 0 0 12px 12px;
+    }
+
+    .p-dialog-footer {
+        background: var(--surface-card);
+        border-top: 1px solid var(--surface-border);
+        border-radius: 0 0 12px 12px;
+    }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+    .process-list-container {
+        .process-header {
+            padding: 1rem;
+            margin-bottom: 1rem;
+
+            .flex.justify-content-between {
+                flex-direction: column;
+                gap: 1rem;
+
+                .flex.gap-2 {
+                    width: 100%;
+                    justify-content: stretch;
+
+                    .p-button {
+                        flex: 1;
+                    }
+                }
+            }
+
+            .filters-section {
+                padding: 1rem;
+
+                .grid > .col-12 {
+                    padding: 0.5rem;
+                }
+            }
+        }
+
+        .statistics-section {
+            .grid > .col-12 {
+                padding: 0.25rem;
+            }
+
+            .stat-card {
+                padding: 1rem;
+
+                .stat-value {
+                    font-size: 2rem;
+                }
+
+                .stat-label {
+                    font-size: 0.75rem;
+                }
+            }
+        }
+
+        .processes-table-container {
+            padding: 0.5rem;
+            margin: 0.5rem;
+
+            :deep(.p-datatable) {
+                font-size: 0.875rem;
+
+                .p-datatable-thead > tr > th,
+                .p-datatable-tbody > tr > td {
+                    padding: 0.5rem;
+                }
+            }
+        }
+
+        .batch-actions {
+            position: relative;
+            bottom: auto;
+            left: auto;
+            transform: none;
+            margin: 1rem;
+            min-width: auto;
+        }
+    }
+}
+
+@media (max-width: 576px) {
+    .process-list-container {
+        .process-header {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .filters-section {
+                .grid > .col-12 {
+                    padding: 0.25rem;
+                }
+            }
+        }
+
+        .statistics-section {
+            .stat-card {
+                .stat-value {
+                    font-size: 1.5rem;
+                }
+            }
+        }
+    }
+}
+
+// Theme adjustments
+:host-context(.theme-dark) {
+    .process-list-container {
+        .process-header {
+            background: linear-gradient(
+                135deg,
+                var(--primary-600) 0%,
+                var(--primary-800) 100%
+            );
+        }
+
+        .statistics-section {
+            .stat-card {
+                background: var(--surface-900);
+                border-color: var(--surface-700);
+
+                &:hover {
+                    background: var(--surface-800);
+                }
+            }
+        }
+
+        .processes-table-container {
+            background: var(--surface-900);
+            border-color: var(--surface-700);
+        }
+    }
+}
+
+// Animaciones
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.process-list-container {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+.stat-card {
+    animation: fadeInUp 0.3s ease-out;
+    animation-fill-mode: both;
+
+    @for $i from 1 through 6 {
+        &:nth-child(#{$i}) {
+            animation-delay: #{$i * 0.1}s;
+        }
+    }
+}
