@@ -1,474 +1,533 @@
-:host {
-  --primary-color: var(--primary-color);
-  --surface-card: var(--surface-card);
-  --surface-border: var(--surface-border);
-  --text-color: var(--text-color);
-  --text-color-secondary: var(--text-color-secondary);
-  --border-radius: var(--border-radius);
-  --transition-duration: var(--transition-duration);
-}
-
+// rate-form.component.scss
 .rate-form {
-  .form-tabs {
+    background: var(--surface-ground);
+
+    // Form Tabs Styling
+    ::ng-deep .form-tabs {
+        .p-tabview-nav {
+            background: var(--surface-card);
+            border-bottom: 1px solid var(--surface-border);
+            border-radius: 6px 6px 0 0;
+            overflow-x: auto;
+
+            .p-tabview-nav-link {
+                padding: 1rem 1.5rem;
+                color: var(--text-color-secondary);
+                border: none;
+                border-radius: 0;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                min-width: 180px;
+                justify-content: center;
+
+                &:hover {
+                    background: var(--surface-hover);
+                    color: var(--text-color);
+                }
+
+                .p-tabview-left-icon {
+                    font-size: 1.1rem;
+                }
+            }
+
+            .p-highlight .p-tabview-nav-link {
+                background: var(--primary-color);
+                color: var(--primary-color-text);
+                font-weight: 600;
+
+                &:hover {
+                    background: var(--primary-color);
+                }
+            }
+        }
+
+        .p-tabview-panels {
+            background: var(--surface-card);
+            border-radius: 0 0 6px 6px;
+            border: 1px solid var(--surface-border);
+            border-top: none;
+
+            .p-tabview-panel {
+                padding: 2rem;
+            }
+        }
+    }
+
+    // Grid and Field Styling
+    .grid {
+        margin: 0;
+
+        .col-12,
+        .col-md-6 {
+            padding: 0.75rem;
+        }
+    }
+
     .field {
-      margin-bottom: 1.5rem;
+        margin-bottom: 1.5rem;
 
-      label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
-        color: var(--text-color);
-      }
+        label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
 
-      .help-text {
-        display: block;
-        margin-top: 0.25rem;
-        color: var(--text-color-secondary);
-        font-size: 0.875rem;
-      }
+            &::after {
+                content: " *";
+                color: var(--red-500);
+                display: none;
+            }
 
-      .p-error {
-        display: block;
-        margin-top: 0.25rem;
-        color: var(--red-500);
-        font-size: 0.875rem;
-      }
-    }
-  }
-
-  .applicability-section {
-    .section-header {
-      margin-bottom: 2rem;
-      text-align: center;
-
-      h3 {
-        color: var(--text-color);
-        margin: 0 0 0.5rem 0;
-        font-size: 1.25rem;
-      }
-
-      p {
-        color: var(--text-color-secondary);
-        margin: 0;
-      }
-    }
-
-    .rule-builder {
-      background: var(--surface-section);
-      border: 1px solid var(--surface-border);
-      border-radius: var(--border-radius);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .rules-list {
-      .rule-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 1rem;
-        background: var(--surface-overlay);
-        border: 1px solid var(--surface-border);
-        border-radius: var(--border-radius);
-        margin-bottom: 0.75rem;
-
-        &:last-child {
-          margin-bottom: 0;
+            &[for="code"]::after,
+            &[for="name"]::after,
+            &[for="type"]::after,
+            &[for="status"]::after,
+            &[for="priority"]::after,
+            &[for="effectiveFrom"]::after {
+                display: inline;
+            }
         }
 
-        .rule-content {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          flex: 1;
+        ::ng-deep .p-inputtext,
+        ::ng-deep .p-dropdown,
+        ::ng-deep .p-calendar,
+        ::ng-deep .p-inputnumber {
+            width: 100%;
+            border-radius: 6px;
+            transition: all 0.2s ease;
 
-          .rule-field {
-            background: var(--blue-100);
-            color: var(--blue-700);
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.875rem;
-            font-weight: 600;
-          }
-
-          .rule-operator {
-            background: var(--purple-100);
-            color: var(--purple-700);
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.875rem;
-            font-weight: 600;
-          }
-
-          .rule-value {
-            background: var(--green-100);
-            color: var(--green-700);
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.875rem;
-            font-weight: 600;
-          }
-
-          .rule-logic {
-            background: var(--orange-100);
-            color: var(--orange-700);
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.875rem;
-            font-weight: 600;
-          }
+            &:focus {
+                box-shadow: 0 0 0 2px var(--primary-color-text);
+                border-color: var(--primary-color);
+            }
         }
 
-        .rule-actions {
-          margin-left: 1rem;
+        ::ng-deep textarea {
+            border-radius: 6px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+
+            &:focus {
+                box-shadow: 0 0 0 2px var(--primary-color-text);
+                border-color: var(--primary-color);
+            }
         }
-      }
+
+        .help-text {
+            display: block;
+            color: var(--text-color-secondary);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            font-style: italic;
+        }
+
+        .p-error {
+            display: block;
+            color: var(--red-500);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            font-weight: 500;
+        }
     }
 
-    .empty-rules {
-      text-align: center;
-      padding: 2rem 1rem;
-      color: var(--text-color-secondary);
+    // Applicability Rules Section
+    .applicability-section {
+        .section-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--surface-border);
 
-      .pi {
-        font-size: 2rem;
-        margin-bottom: 1rem;
-      }
+            h3 {
+                color: var(--text-color);
+                margin: 0 0 0.5rem 0;
+                font-size: 1.5rem;
+                font-weight: 600;
+            }
 
-      p {
-        margin: 0;
-      }
+            p {
+                color: var(--text-color-secondary);
+                margin: 0;
+                font-size: 1rem;
+            }
+        }
+
+        .rule-builder {
+            background: var(--surface-section);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--surface-border);
+
+            .grid {
+                align-items: end;
+
+                .col-12,
+                .col-md-2,
+                .col-md-3,
+                .col-md-4 {
+                    padding: 0.5rem;
+                }
+            }
+
+            ::ng-deep .p-dropdown,
+            ::ng-deep .p-inputtext {
+                height: 42px;
+            }
+
+            ::ng-deep .p-button {
+                height: 42px;
+                border-radius: 6px;
+                font-weight: 600;
+            }
+        }
+
+        .rules-list {
+            .rule-item {
+                background: var(--surface-card);
+                border: 1px solid var(--surface-border);
+                border-radius: 8px;
+                padding: 1rem 1.5rem;
+                margin-bottom: 0.75rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                transition: all 0.2s ease;
+
+                &:hover {
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                    transform: translateY(-1px);
+                }
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+
+                .rule-content {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    flex: 1;
+                    flex-wrap: wrap;
+
+                    .rule-field {
+                        background: var(--blue-100);
+                        color: var(--blue-800);
+                        padding: 0.25rem 0.75rem;
+                        border-radius: 12px;
+                        font-weight: 600;
+                        font-size: 0.85rem;
+                    }
+
+                    .rule-operator {
+                        background: var(--orange-100);
+                        color: var(--orange-800);
+                        padding: 0.25rem 0.75rem;
+                        border-radius: 12px;
+                        font-weight: 600;
+                        font-size: 0.85rem;
+                    }
+
+                    .rule-value {
+                        background: var(--green-100);
+                        color: var(--green-800);
+                        padding: 0.25rem 0.75rem;
+                        border-radius: 12px;
+                        font-weight: 600;
+                        font-size: 0.85rem;
+                        font-family: "Courier New", monospace;
+                    }
+
+                    .rule-logic {
+                        background: var(--purple-100);
+                        color: var(--purple-800);
+                        padding: 0.25rem 0.75rem;
+                        border-radius: 12px;
+                        font-weight: 600;
+                        font-size: 0.85rem;
+                    }
+                }
+
+                .rule-actions {
+                    margin-left: 1rem;
+                }
+            }
+        }
+
+        .empty-rules {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-color-secondary);
+            background: var(--surface-section);
+            border-radius: 8px;
+            border: 2px dashed var(--surface-border);
+
+            .pi {
+                font-size: 2rem;
+                margin-bottom: 1rem;
+                color: var(--surface-400);
+            }
+
+            p {
+                margin: 0;
+                font-size: 1rem;
+            }
+        }
     }
-  }
 
-  .json-preview {
-    h3 {
-      margin: 0 0 1rem 0;
-      color: var(--text-color);
+    // JSON Preview
+    .json-preview {
+        h3 {
+            color: var(--text-color);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        pre {
+            background: var(--surface-ground);
+            border: 1px solid var(--surface-border);
+            border-radius: 6px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            font-family: "Courier New", monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: var(--text-color);
+            max-height: 400px;
+            overflow-y: auto;
+        }
     }
 
-    pre {
-      background: var(--surface-section);
-      border: 1px solid var(--surface-border);
-      border-radius: var(--border-radius);
-      padding: 1rem;
-      overflow-x: auto;
-      font-family: 'Courier New', monospace;
-      font-size: 0.875rem;
-      line-height: 1.4;
-      margin: 0;
+    // Form Actions
+    .form-actions {
+        background: var(--surface-card);
+        border-top: 1px solid var(--surface-border);
+        padding: 1.5rem 2rem;
+        border-radius: 0 0 6px 6px;
+        margin-top: 2rem;
 
-      code {
-        color: var(--text-color);
-      }
+        ::ng-deep .p-button {
+            border-radius: 6px;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+
+            &.p-button-text {
+                background: transparent;
+            }
+
+            &[type="submit"] {
+                min-width: 140px;
+            }
+        }
     }
-  }
-
-  .form-actions {
-    margin-top: 2rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--surface-border);
-  }
 }
 
-.validation-dialog {
-  .validation-content {
-    .validation-result {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem;
-      border-radius: var(--border-radius);
-      margin-bottom: 1rem;
-
-      &.success {
-        background: var(--green-50);
-        border: 1px solid var(--green-200);
-
-        .pi {
-          color: var(--green-600);
-          font-size: 1.5rem;
-        }
-
-        h4 {
-          color: var(--green-700);
-          margin: 0 0 0.5rem 0;
-        }
-
-        p {
-          color: var(--green-600);
-          margin: 0;
-        }
-      }
-
-      &.error {
-        background: var(--red-50);
-        border: 1px solid var(--red-200);
-
-        .pi {
-          color: var(--red-600);
-          font-size: 1.5rem;
-        }
-
-        h4 {
-          color: var(--red-700);
-          margin: 0 0 0.5rem 0;
-        }
-
-        p {
-          color: var(--red-600);
-          margin: 0;
-        }
-      }
-    }
-
-    .validation-details {
-      h5 {
-        color: var(--text-color);
-        margin: 0 0 0.75rem 0;
-      }
-
-      ul {
-        margin: 0;
-        padding-left: 1.5rem;
-
-        li {
-          color: var(--text-color-secondary);
-          margin-bottom: 0.5rem;
-          font-size: 0.875rem;
-        }
-      }
-    }
-  }
-}
-
-::ng-deep {
-  .p-tabview {
-    .p-tabview-nav {
-      background: var(--surface-section);
-      border-bottom: 1px solid var(--surface-border);
-
-      .p-tabview-nav-link {
-        background: transparent;
-        color: var(--text-color-secondary);
-        border: none;
-        padding: 1rem 1.5rem;
-        border-radius: 0;
-        transition: all var(--transition-duration);
-
-        &:hover {
-          background: var(--surface-hover);
-          color: var(--text-color);
-        }
-
-        .p-tabview-title {
-          font-weight: 500;
-        }
-      }
-
-      .p-highlight .p-tabview-nav-link {
-        background: var(--primary-color);
-        color: white;
-      }
-    }
-
-    .p-tabview-panels {
-      padding: 2rem 1.5rem;
-      background: var(--surface-card);
-    }
-  }
-
-  .p-inputtext,
-  .p-dropdown,
-  .p-calendar,
-  .p-inputnumber,
-  .textarea {
-    border: 1px solid var(--surface-border);
-    border-radius: var(--border-radius);
-
-    &:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 0.2rem var(--primary-100);
-    }
-
-    &:disabled {
-      background: var(--surface-100);
-      color: var(--text-color-secondary);
-    }
-  }
-
-  .p-dropdown {
-    .p-dropdown-label {
-      padding: 0.75rem;
-    }
-
-    .p-dropdown-trigger {
-      width: 2.5rem;
-    }
-  }
-
-  .p-calendar {
-    .p-inputtext {
-      border: none;
-      border-radius: 0;
-      
-      &:focus {
-        box-shadow: none;
-      }
-    }
-
-    .p-datepicker-trigger {
-      background: var(--surface-hover);
-      color: var(--text-color-secondary);
-      border: none;
-      width: 2.5rem;
-    }
-  }
-
-  .p-inputnumber {
-    .p-inputtext {
-      border: none;
-      border-radius: 0;
-      
-      &:focus {
-        box-shadow: none;
-      }
-    }
-
-    .p-inputnumber-button {
-      background: var(--surface-hover);
-      color: var(--text-color-secondary);
-      border: none;
-      width: 2rem;
-    }
-  }
-
-  .p-button {
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--border-radius);
-    font-weight: 600;
-    transition: all var(--transition-duration);
-
-    &.p-button-sm {
-      padding: 0.5rem 1rem;
-      font-size: 0.875rem;
-    }
-
-    &.p-button-text {
-      background: transparent;
-      border: 1px solid transparent;
-
-      &:hover {
-        background: var(--surface-hover);
-      }
-    }
-
-    &.p-button-secondary {
-      background: var(--surface-200);
-      color: var(--text-color);
-      border: 1px solid var(--surface-border);
-
-      &:hover {
-        background: var(--surface-300);
-      }
-    }
-  }
-
-  .p-dialog {
+// Validation Dialog
+::ng-deep .validation-dialog {
     .p-dialog-header {
-      background: var(--surface-section);
-      border-bottom: 1px solid var(--surface-border);
-      padding: 1.25rem 1.5rem;
-
-      .p-dialog-title {
-        font-weight: 600;
-        color: var(--text-color);
-      }
+        background: var(--surface-card);
+        border-bottom: 1px solid var(--surface-border);
     }
 
     .p-dialog-content {
-      padding: 0;
+        background: var(--surface-ground);
     }
-
-    .p-dialog-footer {
-      background: var(--surface-section);
-      border-top: 1px solid var(--surface-border);
-      padding: 1rem 1.5rem;
-    }
-  }
 }
 
+.validation-content {
+    padding: 1.5rem;
+
+    .validation-result {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        border-radius: 8px;
+
+        &.success {
+            background: var(--green-50);
+            border: 1px solid var(--green-200);
+
+            .pi {
+                color: var(--green-600);
+                font-size: 1.5rem;
+            }
+
+            h4 {
+                color: var(--green-800);
+                margin: 0 0 0.5rem 0;
+            }
+
+            p {
+                color: var(--green-700);
+                margin: 0;
+            }
+        }
+
+        &.error {
+            background: var(--red-50);
+            border: 1px solid var(--red-200);
+
+            .pi {
+                color: var(--red-600);
+                font-size: 1.5rem;
+            }
+
+            h4 {
+                color: var(--red-800);
+                margin: 0 0 0.5rem 0;
+            }
+
+            p {
+                color: var(--red-700);
+                margin: 0;
+            }
+        }
+    }
+
+    .validation-details {
+        h5 {
+            color: var(--text-color);
+            margin: 0 0 0.75rem 0;
+            font-weight: 600;
+        }
+
+        ul {
+            margin: 0;
+            padding-left: 1.5rem;
+
+            li {
+                color: var(--text-color-secondary);
+                margin-bottom: 0.5rem;
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+        }
+    }
+}
+
+// Responsive Design
 @media (max-width: 768px) {
-  .rate-form {
-    .form-tabs {
-      .field {
-        margin-bottom: 1rem;
-      }
-    }
+    .rate-form {
+        ::ng-deep .form-tabs {
+            .p-tabview-nav {
+                .p-tabview-nav-link {
+                    min-width: 140px;
+                    padding: 0.75rem 1rem;
+                    font-size: 0.9rem;
+                }
+            }
 
-    .applicability-section {
-      .rule-builder {
-        padding: 1rem;
-
-        .grid .col-12 {
-          margin-bottom: 0.75rem;
+            .p-tabview-panels .p-tabview-panel {
+                padding: 1rem;
+            }
         }
-      }
 
-      .rules-list {
-        .rule-item {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 0.75rem;
-
-          .rule-content {
-            flex-wrap: wrap;
-            gap: 0.5rem;
-          }
-
-          .rule-actions {
-            margin-left: 0;
-            align-self: flex-end;
-          }
+        .grid {
+            .col-md-6,
+            .col-md-3,
+            .col-md-4,
+            .col-md-2 {
+                padding: 0.5rem;
+            }
         }
-      }
-    }
 
-    .form-actions {
-      .flex {
-        flex-direction: column;
-        gap: 0.75rem;
+        .applicability-section {
+            .rule-builder {
+                padding: 1rem;
 
-        .p-button {
-          width: 100%;
+                .grid {
+                    .col-md-2,
+                    .col-md-3,
+                    .col-md-4 {
+                        margin-bottom: 0.5rem;
+                    }
+                }
+            }
+
+            .rules-list .rule-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+
+                .rule-content {
+                    width: 100%;
+                    justify-content: flex-start;
+                }
+
+                .rule-actions {
+                    margin-left: 0;
+                    align-self: flex-end;
+                }
+            }
         }
-      }
+
+        .form-actions {
+            padding: 1rem;
+
+            .flex {
+                flex-direction: column;
+                gap: 0.75rem;
+
+                .p-button {
+                    width: 100%;
+                    justify-content: center;
+                }
+            }
+        }
     }
-  }
 }
 
-@media (max-width: 576px) {
-  .rate-form {
-    .json-preview {
-      pre {
-        font-size: 0.75rem;
-        padding: 0.75rem;
-      }
-    }
-  }
-
-  ::ng-deep {
-    .p-tabview {
-      .p-tabview-nav {
-        .p-tabview-nav-link {
-          padding: 0.75rem 1rem;
-          font-size: 0.875rem;
+// Dark theme adjustments
+[data-theme="dark"] {
+    .applicability-section .rules-list .rule-item .rule-content {
+        .rule-field {
+            background: var(--blue-900);
+            color: var(--blue-100);
         }
-      }
 
-      .p-tabview-panels {
-        padding: 1rem;
-      }
+        .rule-operator {
+            background: var(--orange-900);
+            color: var(--orange-100);
+        }
+
+        .rule-value {
+            background: var(--green-900);
+            color: var(--green-100);
+        }
+
+        .rule-logic {
+            background: var(--purple-900);
+            color: var(--purple-100);
+        }
     }
-  }
+}
+
+// Loading states
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    z-index: 1000;
+
+    .p-progress-spinner {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+[data-theme="dark"] .loading-overlay {
+    background: rgba(0, 0, 0, 0.8);
 }

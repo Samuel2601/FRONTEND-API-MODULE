@@ -1,668 +1,749 @@
-:host {
-  --primary-color: var(--primary-color);
-  --surface-card: var(--surface-card);
-  --surface-section: var(--surface-section);
-  --surface-border: var(--surface-border);
-  --text-color: var(--text-color);
-  --text-color-secondary: var(--text-color-secondary);
-  --border-radius: var(--border-radius);
-  --transition-duration: var(--transition-duration);
-}
-
+// rate-detail-form.component.scss
 .rate-detail-form {
-  .form-tabs {
-    .field {
-      margin-bottom: 1.5rem;
+    background: var(--surface-ground);
 
-      label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
-        color: var(--text-color);
-      }
+    // Form Tabs Styling
+    ::ng-deep .form-tabs {
+        .p-tabview-nav {
+            background: var(--surface-card);
+            border-bottom: 1px solid var(--surface-border);
+            border-radius: 6px 6px 0 0;
+            overflow-x: auto;
 
-      .help-text {
-        display: block;
-        margin-top: 0.25rem;
-        color: var(--text-color-secondary);
-        font-size: 0.875rem;
-      }
+            .p-tabview-nav-link {
+                padding: 1rem 1.5rem;
+                color: var(--text-color-secondary);
+                border: none;
+                border-radius: 0;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                min-width: 180px;
+                justify-content: center;
 
-      .p-error {
-        display: block;
-        margin-top: 0.25rem;
-        color: var(--red-500);
-        font-size: 0.875rem;
-      }
+                &:hover {
+                    background: var(--surface-hover);
+                    color: var(--text-color);
+                }
 
-      .status-toggle {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-top: 0.5rem;
+                .p-tabview-left-icon {
+                    font-size: 1.1rem;
+                }
+            }
 
-        .status-label {
-          font-weight: 500;
-          color: var(--text-color);
+            .p-highlight .p-tabview-nav-link {
+                background: var(--primary-color);
+                color: var(--primary-color-text);
+                font-weight: 600;
+
+                &:hover {
+                    background: var(--primary-color);
+                }
+            }
         }
-      }
+
+        .p-tabview-panels {
+            background: var(--surface-card);
+            border-radius: 0 0 6px 6px;
+            border: 1px solid var(--surface-border);
+            border-top: none;
+
+            .p-tabview-panel {
+                padding: 2rem;
+            }
+        }
     }
 
-    .value-preview {
-      background: var(--surface-section);
-      border: 1px solid var(--surface-border);
-      border-radius: var(--border-radius);
-      padding: 1.5rem;
-      margin-top: 1rem;
+    // Grid and Field Styling
+    .grid {
+        margin: 0;
 
-      h4 {
-        color: var(--text-color);
-        margin: 0 0 1rem 0;
-        font-size: 1rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
+        .col-12,
+        .col-md-6 {
+            padding: 0.75rem;
+        }
+    }
 
-      .preview-content {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
+    .field {
+        margin-bottom: 1.5rem;
 
-        .preview-item {
-          display: flex;
-          flex-direction: column;
-          gap: 0.25rem;
-
-          label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: var(--text-color-secondary);
-            margin: 0;
-          }
-
-          span {
+        label {
+            display: block;
             font-weight: 600;
             color: var(--text-color);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
 
-            &.value {
-              font-size: 1.1rem;
-              color: var(--green-600);
+            &::after {
+                content: " *";
+                color: var(--red-500);
+                display: none;
             }
-          }
+
+            &[for="rate"]::after,
+            &[for="description"]::after,
+            &[for="unit"]::after,
+            &[for="effectiveDate"]::after {
+                display: inline;
+            }
         }
-      }
-    }
-  }
 
-  .formula-section {
-    .section-header {
-      margin-bottom: 2rem;
-      text-align: center;
+        ::ng-deep .p-inputtext,
+        ::ng-deep .p-dropdown,
+        ::ng-deep .p-calendar,
+        ::ng-deep .p-inputnumber {
+            width: 100%;
+            border-radius: 6px;
+            transition: all 0.2s ease;
 
-      h3 {
-        color: var(--text-color);
-        margin: 0 0 0.5rem 0;
-        font-size: 1.25rem;
-      }
-
-      p {
-        color: var(--text-color-secondary);
-        margin: 0;
-      }
-    }
-
-    .formula-builder {
-      background: var(--surface-section);
-      border: 1px solid var(--surface-border);
-      border-radius: var(--border-radius);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-
-      .field {
-        margin-bottom: 1rem;
-
-        label {
-          font-weight: 600;
-          color: var(--text-color);
-          margin-bottom: 0.5rem;
+            &:focus {
+                box-shadow: 0 0 0 2px var(--primary-color-text);
+                border-color: var(--primary-color);
+            }
         }
-      }
 
-      .formula-editor {
-        margin-top: 1rem;
+        ::ng-deep textarea {
+            border-radius: 6px;
+            font-family: inherit;
+            transition: all 0.2s ease;
 
-        label {
-          display: block;
-          margin-bottom: 0.5rem;
-          font-weight: 600;
-          color: var(--text-color);
+            &:focus {
+                box-shadow: 0 0 0 2px var(--primary-color-text);
+                border-color: var(--primary-color);
+            }
+
+            &.font-monospace {
+                font-family: "Courier New", monospace;
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }
         }
 
         .help-text {
-          margin-top: 0.5rem;
-          color: var(--text-color-secondary);
-          font-size: 0.875rem;
-        }
-      }
-
-      .formula-templates {
-        margin-top: 1rem;
-
-        label {
-          display: block;
-          margin-bottom: 1rem;
-          font-weight: 600;
-          color: var(--text-color);
+            display: block;
+            color: var(--text-color-secondary);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            font-style: italic;
         }
 
-        .template-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 1rem;
-
-          .template-item {
-            background: var(--surface-card);
-            border: 2px solid var(--surface-border);
-            border-radius: var(--border-radius);
-            padding: 1rem;
-            cursor: pointer;
-            transition: all var(--transition-duration);
-
-            &:hover {
-              border-color: var(--primary-color);
-              transform: translateY(-2px);
-            }
-
-            &.selected {
-              border-color: var(--primary-color);
-              background: var(--primary-50);
-            }
-
-            h5 {
-              color: var(--text-color);
-              margin: 0 0 0.5rem 0;
-              font-size: 1rem;
-            }
-
-            p {
-              color: var(--text-color-secondary);
-              margin: 0 0 0.75rem 0;
-              font-size: 0.875rem;
-              line-height: 1.3;
-            }
-
-            code {
-              background: var(--surface-100);
-              color: var(--text-color);
-              padding: 0.25rem 0.5rem;
-              border-radius: 4px;
-              font-family: 'Courier New', monospace;
-              font-size: 0.75rem;
-            }
-          }
-        }
-      }
-    }
-
-    .formula-test {
-      background: var(--surface-overlay);
-      border: 1px solid var(--surface-border);
-      border-radius: var(--border-radius);
-      padding: 1.5rem;
-
-      h4 {
-        color: var(--text-color);
-        margin: 0 0 1rem 0;
-        font-size: 1rem;
-      }
-
-      label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
-        color: var(--text-color);
-      }
-
-      .test-actions {
-        display: flex;
-        align-items: end;
-        height: 100%;
-        padding-top: 1.5rem;
-      }
-
-      .test-result {
-        margin-top: 1.5rem;
-        background: var(--surface-card);
-        border: 1px solid var(--surface-border);
-        border-radius: var(--border-radius);
-        padding: 1rem;
-
-        .result-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 1rem;
-
-          h5 {
-            color: var(--text-color);
-            margin: 0;
-            font-size: 1rem;
-          }
-        }
-
-        .result-content {
-          .result-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--green-600);
-            text-align: center;
-            margin-bottom: 0.5rem;
-          }
-
-          .result-error {
-            color: var(--red-600);
-            text-align: center;
+        .p-error {
+            display: block;
+            color: var(--red-500);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
             font-weight: 500;
-            margin-bottom: 0.5rem;
-          }
-
-          .result-details {
-            text-align: center;
-
-            small {
-              color: var(--text-color-secondary);
-              font-size: 0.875rem;
-            }
-          }
         }
-      }
-    }
-  }
-
-  .conditions-section {
-    .section-header {
-      margin-bottom: 2rem;
-      text-align: center;
-
-      h3 {
-        color: var(--text-color);
-        margin: 0 0 0.5rem 0;
-        font-size: 1.25rem;
-      }
-
-      p {
-        color: var(--text-color-secondary);
-        margin: 0;
-      }
     }
 
-    .condition-builder {
-      background: var(--surface-section);
-      border: 1px solid var(--surface-border);
-      border-radius: var(--border-radius);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .conditions-list {
-      .condition-item {
+    // Status and Calculation Type Toggles
+    .status-toggle,
+    .calculation-type {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 1rem;
-        background: var(--surface-overlay);
+        gap: 0.75rem;
+
+        .status-label,
+        .calculation-label {
+            font-weight: 600;
+            color: var(--text-color);
+            transition: all 0.2s ease;
+        }
+
+        ::ng-deep .p-inputswitch {
+            .p-inputswitch-slider {
+                transition: all 0.3s ease;
+            }
+
+            &.p-inputswitch-checked .p-inputswitch-slider {
+                background: var(--primary-color);
+            }
+        }
+    }
+
+    // Value Preview Section
+    .value-preview {
+        background: var(--surface-section);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-top: 1rem;
         border: 1px solid var(--surface-border);
-        border-radius: var(--border-radius);
-        margin-bottom: 0.75rem;
 
-        &:last-child {
-          margin-bottom: 0;
-        }
-
-        .condition-content {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          flex: 1;
-
-          .condition-field {
-            background: var(--blue-100);
-            color: var(--blue-700);
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.875rem;
+        h4 {
+            color: var(--text-color);
+            margin: 0 0 1rem 0;
             font-weight: 600;
-          }
+            font-size: 1.1rem;
+        }
 
-          .condition-operator {
-            background: var(--purple-100);
-            color: var(--purple-700);
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.875rem;
+        .preview-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+
+            .preview-item {
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
+
+                label {
+                    color: var(--text-color-secondary);
+                    font-size: 0.875rem;
+                    font-weight: 600;
+                    margin: 0;
+                }
+
+                span {
+                    color: var(--text-color);
+                    font-weight: 500;
+
+                    &.value {
+                        color: var(--green-600);
+                        font-weight: 600;
+                        font-size: 1.1rem;
+                    }
+                }
+            }
+        }
+    }
+
+    // Formula Test Section
+    .formula-test {
+        background: var(--blue-50);
+        border: 1px solid var(--blue-200);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+
+        h4 {
+            color: var(--blue-800);
+            margin: 0 0 1rem 0;
             font-weight: 600;
-          }
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
 
-          .condition-value {
-            background: var(--green-100);
-            color: var(--green-700);
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.875rem;
-            font-weight: 600;
-          }
-
-          .condition-logic {
-            background: var(--orange-100);
-            color: var(--orange-700);
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.875rem;
-            font-weight: 600;
-          }
+            &::before {
+                content: "🧮";
+                font-size: 1.2rem;
+            }
         }
 
-        .condition-actions {
-          margin-left: 1rem;
-        }
-      }
-    }
+        .grid {
+            margin-bottom: 1rem;
 
-    .empty-conditions {
-      text-align: center;
-      padding: 2rem 1rem;
-      color: var(--text-color-secondary);
+            .col-12,
+            .col-md-3 {
+                padding: 0.5rem;
+            }
 
-      .pi {
-        font-size: 2rem;
-        margin-bottom: 1rem;
-      }
+            label {
+                color: var(--blue-800);
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+                font-size: 0.875rem;
+            }
 
-      p {
-        margin: 0;
-      }
-    }
-  }
+            ::ng-deep .p-inputnumber {
+                .p-inputtext {
+                    border-color: var(--blue-300);
 
-  .form-actions {
-    margin-top: 2rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--surface-border);
-  }
-}
-
-.validation-dialog {
-  .validation-content {
-    .validation-result {
-      display: flex;
-      align-items: flex-start;
-      gap: 1rem;
-      padding: 1rem;
-      border-radius: var(--border-radius);
-      margin-bottom: 1rem;
-
-      &.success {
-        background: var(--green-50);
-        border: 1px solid var(--green-200);
-
-        .pi {
-          color: var(--green-600);
-          font-size: 1.5rem;
-          margin-top: 0.25rem;
-        }
-
-        .result-text {
-          h4 {
-            color: var(--green-700);
-            margin: 0 0 0.5rem 0;
-          }
-
-          p {
-            color: var(--green-600);
-            margin: 0;
-          }
-        }
-      }
-
-      &.error {
-        background: var(--red-50);
-        border: 1px solid var(--red-200);
-
-        .pi {
-          color: var(--red-600);
-          font-size: 1.5rem;
-          margin-top: 0.25rem;
-        }
-
-        .result-text {
-          h4 {
-            color: var(--red-700);
-            margin: 0 0 0.5rem 0;
-          }
-
-          p {
-            color: var(--red-600);
-            margin: 0;
-          }
-        }
-      }
-    }
-
-    .validation-details {
-      h5 {
-        color: var(--text-color);
-        margin: 0 0 0.75rem 0;
-      }
-
-      ul {
-        margin: 0;
-        padding-left: 1.5rem;
-
-        li {
-          color: var(--text-color-secondary);
-          margin-bottom: 0.5rem;
-          font-size: 0.875rem;
-        }
-      }
-    }
-  }
-}
-
-::ng-deep {
-  .p-tabview {
-    .p-tabview-nav {
-      background: var(--surface-section);
-      border-bottom: 1px solid var(--surface-border);
-
-      .p-tabview-nav-link {
-        background: transparent;
-        color: var(--text-color-secondary);
-        border: none;
-        padding: 1rem 1.5rem;
-        border-radius: 0;
-        transition: all var(--transition-duration);
-
-        &:hover {
-          background: var(--surface-hover);
-          color: var(--text-color);
-        }
-
-        .p-tabview-title {
-          font-weight: 500;
-        }
-      }
-
-      .p-highlight .p-tabview-nav-link {
-        background: var(--primary-color);
-        color: white;
-      }
-    }
-
-    .p-tabview-panels {
-      padding: 2rem 1.5rem;
-      background: var(--surface-card);
-    }
-  }
-
-  .p-inputswitch {
-    &.p-inputswitch-checked .p-inputswitch-slider {
-      background: var(--primary-color);
-    }
-  }
-
-  .p-editor {
-    .p-editor-toolbar {
-      background: var(--surface-section);
-      border: 1px solid var(--surface-border);
-      border-bottom: none;
-    }
-
-    .p-editor-content {
-      border: 1px solid var(--surface-border);
-      
-      .ql-editor {
-        background: var(--surface-card);
-        color: var(--text-color);
-        font-family: 'Courier New', monospace;
-      }
-    }
-  }
-
-  .p-multiselect {
-    .p-multiselect-label {
-      padding: 0.75rem;
-    }
-
-    .p-multiselect-trigger {
-      width: 2.5rem;
-    }
-  }
-
-  .p-dialog {
-    .p-dialog-header {
-      background: var(--surface-section);
-      border-bottom: 1px solid var(--surface-border);
-    }
-
-    .p-dialog-content {
-      padding: 1.5rem;
-    }
-  }
-}
-
-@media (max-width: 768px) {
-  .rate-detail-form {
-    .form-tabs {
-      .field {
-        margin-bottom: 1rem;
-      }
-    }
-
-    .formula-section {
-      .formula-builder {
-        padding: 1rem;
-
-        .template-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      .formula-test {
-        padding: 1rem;
-
-        .grid .col-12 {
-          margin-bottom: 1rem;
+                    &:focus {
+                        box-shadow: 0 0 0 2px var(--blue-100);
+                        border-color: var(--blue-500);
+                    }
+                }
+            }
         }
 
         .test-actions {
-          padding-top: 0;
+            margin-bottom: 1rem;
+
+            ::ng-deep .p-button {
+                background: var(--blue-500);
+                border-color: var(--blue-500);
+
+                &:hover {
+                    background: var(--blue-600);
+                    border-color: var(--blue-600);
+                }
+            }
         }
-      }
+
+        .test-result {
+            .result-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1rem;
+
+                h5 {
+                    color: var(--blue-800);
+                    margin: 0;
+                    font-weight: 600;
+                }
+            }
+
+            .result-content {
+                .result-value {
+                    font-size: 2rem;
+                    font-weight: 700;
+                    color: var(--green-600);
+                    text-align: center;
+                    padding: 1rem;
+                    background: var(--green-50);
+                    border: 2px solid var(--green-200);
+                    border-radius: 8px;
+                    margin-bottom: 1rem;
+                }
+
+                .result-error {
+                    color: var(--red-600);
+                    background: var(--red-50);
+                    border: 1px solid var(--red-200);
+                    border-radius: 6px;
+                    padding: 1rem;
+                    font-weight: 500;
+                }
+
+                .result-details {
+                    color: var(--blue-700);
+                    font-size: 0.875rem;
+                    font-style: italic;
+                    text-align: center;
+                }
+            }
+        }
     }
 
+    // Conditions Section
     .conditions-section {
-      .condition-builder {
-        padding: 1rem;
+        .section-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--surface-border);
 
-        .grid .col-12 {
-          margin-bottom: 0.75rem;
+            h3 {
+                color: var(--text-color);
+                margin: 0 0 0.5rem 0;
+                font-size: 1.5rem;
+                font-weight: 600;
+            }
+
+            p {
+                color: var(--text-color-secondary);
+                margin: 0;
+                font-size: 1rem;
+            }
         }
-      }
 
-      .conditions-list {
-        .condition-item {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 0.75rem;
+        .condition-builder {
+            background: var(--surface-section);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--surface-border);
 
-          .condition-content {
-            flex-wrap: wrap;
-            gap: 0.5rem;
-          }
+            .grid {
+                align-items: end;
 
-          .condition-actions {
-            margin-left: 0;
-            align-self: flex-end;
-          }
+                .col-12,
+                .col-md-2,
+                .col-md-3,
+                .col-md-4 {
+                    padding: 0.5rem;
+                }
+            }
+
+            ::ng-deep .p-dropdown,
+            ::ng-deep .p-inputtext {
+                height: 42px;
+            }
+
+            ::ng-deep .p-button {
+                height: 42px;
+                border-radius: 6px;
+                font-weight: 600;
+            }
         }
-      }
+
+        .conditions-list {
+            .condition-item {
+                background: var(--surface-card);
+                border: 1px solid var(--surface-border);
+                border-radius: 8px;
+                padding: 1rem 1.5rem;
+                margin-bottom: 0.75rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                transition: all 0.2s ease;
+
+                &:hover {
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                    transform: translateY(-1px);
+                }
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+
+                .condition-content {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    flex: 1;
+                    flex-wrap: wrap;
+
+                    .condition-field {
+                        background: var(--purple-100);
+                        color: var(--purple-800);
+                        padding: 0.25rem 0.75rem;
+                        border-radius: 12px;
+                        font-weight: 600;
+                        font-size: 0.85rem;
+                    }
+
+                    .condition-operator {
+                        background: var(--orange-100);
+                        color: var(--orange-800);
+                        padding: 0.25rem 0.75rem;
+                        border-radius: 12px;
+                        font-weight: 600;
+                        font-size: 0.85rem;
+                    }
+
+                    .condition-value {
+                        background: var(--cyan-100);
+                        color: var(--cyan-800);
+                        padding: 0.25rem 0.75rem;
+                        border-radius: 12px;
+                        font-weight: 600;
+                        font-size: 0.85rem;
+                        font-family: "Courier New", monospace;
+                    }
+
+                    .condition-logic {
+                        background: var(--indigo-100);
+                        color: var(--indigo-800);
+                        padding: 0.25rem 0.75rem;
+                        border-radius: 12px;
+                        font-weight: 600;
+                        font-size: 0.85rem;
+                    }
+                }
+
+                .condition-actions {
+                    margin-left: 1rem;
+                }
+            }
+        }
+
+        .empty-conditions {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-color-secondary);
+            background: var(--surface-section);
+            border-radius: 8px;
+            border: 2px dashed var(--surface-border);
+
+            .pi {
+                font-size: 2rem;
+                margin-bottom: 1rem;
+                color: var(--surface-400);
+            }
+
+            p {
+                margin: 0;
+                font-size: 1rem;
+            }
+        }
     }
 
+    // Form Actions
     .form-actions {
-      .flex {
-        flex-direction: column;
-        gap: 0.75rem;
+        background: var(--surface-card);
+        border-top: 1px solid var(--surface-border);
+        padding: 1.5rem 2rem;
+        border-radius: 0 0 6px 6px;
+        margin-top: 2rem;
 
-        .p-button {
-          width: 100%;
+        ::ng-deep .p-button {
+            border-radius: 6px;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+
+            &.p-button-text {
+                background: transparent;
+            }
+
+            &[type="submit"] {
+                min-width: 160px;
+            }
         }
-      }
     }
-  }
 }
 
-@media (max-width: 576px) {
-  .rate-detail-form {
-    .value-preview {
-      .preview-content {
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
-      }
+// Validation Dialog
+::ng-deep .validation-dialog {
+    .p-dialog-header {
+        background: var(--surface-card);
+        border-bottom: 1px solid var(--surface-border);
     }
 
-    .formula-section {
-      .template-grid {
-        .template-item {
-          padding: 0.75rem;
-
-          h5 {
-            font-size: 0.875rem;
-          }
-
-          p {
-            font-size: 0.8rem;
-          }
-
-          code {
-            font-size: 0.7rem;
-          }
-        }
-      }
+    .p-dialog-content {
+        background: var(--surface-ground);
     }
-  }
+}
 
-  ::ng-deep {
-    .p-tabview {
-      .p-tabview-nav {
-        .p-tabview-nav-link {
-          padding: 0.75rem 1rem;
-          font-size: 0.875rem;
-        }
-      }
+.validation-content {
+    padding: 1.5rem;
 
-      .p-tabview-panels {
+    .validation-result {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
         padding: 1rem;
-      }
+        border-radius: 8px;
+
+        &.success {
+            background: var(--green-50);
+            border: 1px solid var(--green-200);
+
+            .pi {
+                color: var(--green-600);
+                font-size: 1.5rem;
+            }
+
+            .result-text {
+                h4 {
+                    color: var(--green-800);
+                    margin: 0 0 0.5rem 0;
+                }
+
+                p {
+                    color: var(--green-700);
+                    margin: 0;
+                }
+            }
+        }
+
+        &.error {
+            background: var(--red-50);
+            border: 1px solid var(--red-200);
+
+            .pi {
+                color: var(--red-600);
+                font-size: 1.5rem;
+            }
+
+            .result-text {
+                h4 {
+                    color: var(--red-800);
+                    margin: 0 0 0.5rem 0;
+                }
+
+                p {
+                    color: var(--red-700);
+                    margin: 0;
+                }
+            }
+        }
     }
-  }
+
+    .validation-details {
+        h5 {
+            color: var(--text-color);
+            margin: 0 0 0.75rem 0;
+            font-weight: 600;
+        }
+
+        ul {
+            margin: 0;
+            padding-left: 1.5rem;
+
+            li {
+                color: var(--text-color-secondary);
+                margin-bottom: 0.5rem;
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+        }
+    }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+    .rate-detail-form {
+        ::ng-deep .form-tabs {
+            .p-tabview-nav {
+                .p-tabview-nav-link {
+                    min-width: 140px;
+                    padding: 0.75rem 1rem;
+                    font-size: 0.9rem;
+                }
+            }
+
+            .p-tabview-panels .p-tabview-panel {
+                padding: 1rem;
+            }
+        }
+
+        .grid {
+            .col-md-6,
+            .col-md-3,
+            .col-md-4,
+            .col-md-2 {
+                padding: 0.5rem;
+            }
+        }
+
+        .value-preview .preview-content {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .formula-test {
+            padding: 1rem;
+
+            .grid .col-md-3 {
+                margin-bottom: 0.5rem;
+            }
+
+            .test-result .result-content .result-value {
+                font-size: 1.5rem;
+                padding: 0.75rem;
+            }
+        }
+
+        .conditions-section {
+            .condition-builder {
+                padding: 1rem;
+
+                .grid {
+                    .col-md-2,
+                    .col-md-3,
+                    .col-md-4 {
+                        margin-bottom: 0.5rem;
+                    }
+                }
+            }
+
+            .conditions-list .condition-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+
+                .condition-content {
+                    width: 100%;
+                    justify-content: flex-start;
+                }
+
+                .condition-actions {
+                    margin-left: 0;
+                    align-self: flex-end;
+                }
+            }
+        }
+
+        .form-actions {
+            padding: 1rem;
+
+            .flex {
+                flex-direction: column;
+                gap: 0.75rem;
+
+                .p-button {
+                    width: 100%;
+                    justify-content: center;
+                }
+            }
+        }
+    }
+}
+
+// Dark theme adjustments
+[data-theme="dark"] {
+    .formula-test {
+        background: var(--blue-900);
+        border-color: var(--blue-700);
+
+        h4 {
+            color: var(--blue-100);
+        }
+
+        label {
+            color: var(--blue-200);
+        }
+
+        .test-result .result-content .result-value {
+            background: var(--green-900);
+            border-color: var(--green-700);
+            color: var(--green-300);
+        }
+    }
+
+    .conditions-section .conditions-list .condition-item .condition-content {
+        .condition-field {
+            background: var(--purple-900);
+            color: var(--purple-100);
+        }
+
+        .condition-operator {
+            background: var(--orange-900);
+            color: var(--orange-100);
+        }
+
+        .condition-value {
+            background: var(--cyan-900);
+            color: var(--cyan-100);
+        }
+
+        .condition-logic {
+            background: var(--indigo-900);
+            color: var(--indigo-100);
+        }
+    }
+}
+
+// Loading and animation states
+.form-loading {
+    position: relative;
+
+    &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        z-index: 1000;
+    }
+}
+
+[data-theme="dark"] .form-loading::after {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+// Enhanced input focus states
+::ng-deep .p-inputtext:focus,
+::ng-deep .p-dropdown:focus,
+::ng-deep .p-calendar:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.2);
+}
+
+// Smooth transitions for all interactive elements
+* {
+    transition: box-shadow 0.2s ease, transform 0.2s ease,
+        background-color 0.2s ease, color 0.2s ease;
 }
