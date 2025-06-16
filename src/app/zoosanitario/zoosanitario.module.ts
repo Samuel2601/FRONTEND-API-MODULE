@@ -19,12 +19,8 @@ import { ConfirmationService } from 'primeng/api';
 //import { IntroducerFormComponent } from './components/introducer/form/introducer-form.component';
 //import { IntroducerDetailComponent } from './components/introducer/detail/introducer-detail.component';
 import { ReferenceValuesComponent } from './components/config/reference-values/list/reference-values.component';
-import { RatesComponent } from './components/config/rate/list/rates.component';
 import { RateFormComponent } from './components/config/rate/form/rate-form.component';
 import { ReferenceValueFormComponent } from './components/config/reference-values/form/reference-value-form.component';
-import { ConfigDashboardComponent } from './components/config/dashboard/config-dashboard.component';
-import { RateDetailsComponent } from './components/config/rate-details/list/rate-details.component';
-import { RateDetailFormComponent } from './components/config/rate-details/form/rate-detail-form.component';
 import { IntroducerListComponent } from './components/introducer/list/introducer-list.component';
 import { IntroducerFormComponent } from './components/introducer/form/introducer-form.component';
 import { IntroducerDetailComponent } from './components/introducer/detail/introducer-detail.component';
@@ -33,6 +29,7 @@ import { ReceptionListComponent } from './components/reception/list/reception-li
 import { ExternalInspectionListComponent } from './components/external-inspection/external-inspection-list.component';
 import { SlaughterProcessListComponent } from './components/slaughter/list/slaughter-process-list.component';
 import { SlaughterProcessFormComponent } from './components/slaughter/form/slaughter-process-form.component';
+import { RateListComponent } from './components/config/rate/list/rate-list.component';
 
 // Rutas del módulo
 const routes: Routes = [
@@ -136,7 +133,7 @@ const routes: Routes = [
         children: [
             {
                 path: '',
-                component: ConfigDashboardComponent,
+                component: RateListComponent,
             },
             {
                 path: 'reference-values',
@@ -164,7 +161,7 @@ const routes: Routes = [
                 children: [
                     {
                         path: '',
-                        component: RatesComponent,
+                        component: RateListComponent,
                     },
                     {
                         path: 'new',
@@ -177,27 +174,6 @@ const routes: Routes = [
                     {
                         path: 'view/:id',
                         component: RateFormComponent,
-                    },
-                ],
-            },
-            {
-                path: 'rates-details',
-                children: [
-                    {
-                        path: '',
-                        component: RateDetailsComponent,
-                    },
-                    {
-                        path: 'new',
-                        component: RateDetailFormComponent,
-                    },
-                    {
-                        path: 'edit/:id',
-                        component: RateDetailFormComponent,
-                    },
-                    {
-                        path: 'view/:id',
-                        component: RateDetailsComponent,
                     },
                 ],
             },

@@ -1,0 +1,288 @@
+<div class="grid">
+    <div class="col-12">
+        <div class="card px-6 py-6">
+            <p-toast></p-toast>
+            <p-toolbar styleClass="mb-4 gap-2">
+                <ng-template pTemplate="left">
+                    <div class="my-2">
+                        <button
+                            pButton
+                            pRipple
+                            label="Nuevo"
+                            icon="pi pi-plus"
+                            class="p-button-success mr-2"
+                            (click)="openNew()"
+                        ></button>
+                        <button
+                            pButton
+                            pRipple
+                            label="Eliminar"
+                            icon="pi pi-trash"
+                            class="p-button-danger mr-2"
+                            (click)="deleteSelectedRates()"
+                            [disabled]="!selectedRates || !selectedRates.length"
+                        ></button>
+                        <!-- NUEVO BOTÓN DE REFRESH -->
+                        <button
+                            pButton
+                            pRipple
+                            label="Actualizar"
+                            icon="pi pi-refresh"
+                            class="p-button-info"
+                            (click)="refreshRates()"
+                            [loading]="loading"
+                            pTooltip="Actualizar datos desde el servidor"
+                            tooltipPosition="top"
+                        ></button>
+                    </div>
+                </ng-template>
+
+                <ng-template pTemplate="right">
+                    <button
+                        pButton
+                        pRipple
+                        label="Exportar"
+                        icon="pi pi-upload"
+                        class="p-button-help"
+                        (click)="exportExcel()"
+                    ></button>
+                </ng-template>
+            </p-toolbar>
+
+            <!-- Filtros -->
+            <div class="grid mb-4">
+                <div class="col-12 md:col-3">
+                    <label
+                        for="typeFilter"
+                        class="block text-900 text-xl font-medium mb-2"
+                        >Tipo</label
+                    >
+                    <p-dropdown
+                        id="typeFilter"
+                        [options]="typeOptions"
+                        [(ngModel)]="filters.type"
+                        placeholder="Seleccionar tipo"
+                        [showClear]="true"
+                        (onChange)="onFilterChange()"
+                        styleClass="w-full"
+                    >
+                    </p-dropdown>
+                </div>
+
+                <div class="col-12 md:col-3">
+                    <label
+                        for="personTypeFilter"
+                        class="block text-900 text-xl font-medium mb-2"
+                        >Tipo de Persona</label
+                    >
+                    <p-dropdown
+                        id="personTypeFilter"
+                        [options]="personTypeOptions"
+                        [(ngModel)]="filters.personType"
+                        placeholder="Seleccionar tipo"
+                        [showClear]="true"
+                        (onChange)="onFilterChange()"
+                        styleClass="w-full"
+                    >
+                    </p-dropdown>
+                </div>
+
+                <div class="col-12 md:col-3">
+                    <label
+                        for="statusFilter"
+                        class="block text-900 text-xl font-medium mb-2"
+                        >Estado</label
+                    >
+                    <p-dropdown
+                        id="statusFilter"
+                        [options]="[
+                            { label: 'Activo', value: true },
+                            { label: 'Inactivo', value: false }
+                        ]"
+                        [(ngModel)]="filters.isActive"
+                        placeholder="Seleccionar estado"
+                        [showClear]="true"
+                        (onChange)="onFilterChange()"
+                        styleClass="w-full"
+                    >
+                    </p-dropdown>
+                </div>
+
+                <div class="col-12 md:col-3">
+                    <label
+                        for="clearBtn"
+                        class="block text-900 text-xl font-medium mb-2"
+                        >&nbsp;</label
+                    >
+                    <button
+                        pButton
+                        pRipple
+                        label="Limpiar Filtros"
+                        icon="pi pi-filter-slash"
+                        class="p-button-outlined w-full"
+                        (click)="clearFilters()"
+                    ></button>
+                </div>
+            </div>
+
+            <p-table
+                #dt
+                [value]="rates"
+                [columns]="[]"
+                dataKey="_id"
+                [rows]="rows"
+                [first]="first"
+                [totalRecords]="totalRecords"
+                [loading]="loading"
+                [paginator]="true"
+                [lazy]="true"
+                (onLazyLoad)="onPageChange($event)"
+                [globalFilterFields]="['code', 'description', 'rubroxAtributo']"
+                [rowsPerPageOptions]="[10, 25, 50]"
+                [showCurrentPageReport]="true"
+                currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+                [(selection)]="selectedRates"
+                [selectAll]="false"
+                selectionMode="multiple"
+                [metaKeySelection]="false"
+                responsiveLayout="scroll"
+            >
+                <ng-template pTemplate="caption">
+                    <div
+                        class="flex flex-column md:flex-row md:justify-content-between md:align-items-center"
+                    >
+                        <h5 class="m-0">Gestión de Tarifas</h5>
+                        <span class="block mt-2 md:mt-0 p-input-icon-left">
+                            <i class="pi pi-search"></i>
+                            <input
+                                pInputText
+                                type="text"
+                                [(ngModel)]="globalFilterValue"
+                                (input)="onGlobalFilter($event)"
+                                placeholder="Buscar..."
+                                class="w-full sm:w-auto"
+                            />
+                        </span>
+                    </div>
+                </ng-template>
+
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th style="width: 3rem">
+                            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                        </th>
+                        <th pSortableColumn="type">
+                            Tipo <p-sortIcon field="type"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="rubroxAtributo">
+                            rubroxAtributo
+                            <p-sortIcon field="rubroxAtributo"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="personType">
+                            Tipo Persona
+                            <p-sortIcon field="personType"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="code">
+                            Código <p-sortIcon field="code"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="amount">
+                            Monto <p-sortIcon field="amount"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="isActive">
+                            Estado <p-sortIcon field="isActive"></p-sortIcon>
+                        </th>
+                        <th>Acciones</th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-rate>
+                    <tr>
+                        <td>
+                            <p-tableCheckbox [value]="rate"></p-tableCheckbox>
+                        </td>
+                        <td>
+                            <span class="p-column-title">Tipo</span>
+                            <p-tag
+                                [value]="rate.type"
+                                [severity]="
+                                    rate.type === 'TASA'
+                                        ? 'info'
+                                        : rate.type === 'TARIFA'
+                                        ? 'success'
+                                        : 'warning'
+                                "
+                            >
+                            </p-tag>
+                        </td>
+
+                        <td>
+                            <span class="p-column-title">Rubro x Atributo</span>
+                            {{ rate.rubroxAtributo }}
+                        </td>
+
+                        <td>
+                            <span class="p-column-title">Tipo Persona</span>
+                            {{ rate.personType }}
+                        </td>
+                        <td>
+                            <span class="p-column-title">Código</span>
+                            {{ rate.code }}
+                        </td>
+                        <td>
+                            <span class="p-column-title">Estado</span>
+                            <p-tag
+                                [value]="getStatusText(rate.isActive)"
+                                [severity]="getSeverity(rate.isActive)"
+                            >
+                            </p-tag>
+                        </td>
+                        <td>
+                            <div class="flex">
+                                <button
+                                    pButton
+                                    pRipple
+                                    icon="pi pi-pencil"
+                                    class="p-button-rounded p-button-success mr-2"
+                                    (click)="editRate(rate)"
+                                    pTooltip="Editar"
+                                    tooltipPosition="top"
+                                ></button>
+                                <button
+                                    pButton
+                                    pRipple
+                                    icon="pi pi-trash"
+                                    class="p-button-rounded p-button-warning"
+                                    (click)="deleteRate(rate)"
+                                    pTooltip="Eliminar"
+                                    tooltipPosition="top"
+                                ></button>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+
+            <!-- Modal para crear/editar -->
+            <p-dialog
+                *ngIf="showDialog"
+                [(visible)]="showDialog"
+                [header]="isEditMode ? 'Editar Tarifa' : 'Nueva Tarifa'"
+                [modal]="true"
+                class="p-fluid"
+                [maximizable]="true"
+                [style]="{ width: '600px' }"
+                (onHide)="onDialogHide()"
+            >
+                <app-rate-form
+                    [rate]="selectedRate"
+                    [isEditMode]="isEditMode"
+                    (rateSaved)="onRateSaved()"
+                    (cancel)="onDialogHide()"
+                >
+                </app-rate-form>
+            </p-dialog>
+
+            <p-confirmDialog [style]="{ width: '450px' }"></p-confirmDialog>
+        </div>
+    </div>
+</div>

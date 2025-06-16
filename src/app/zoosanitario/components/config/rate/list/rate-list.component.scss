@@ -1,0 +1,317 @@
+:host {
+    .card {
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+
+        .dark & {
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+        }
+    }
+
+    .p-toolbar {
+        border-radius: 8px;
+        border: none;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+
+        .p-button {
+            border-radius: 6px;
+            font-weight: 600;
+
+            &.p-button-success {
+                background: linear-gradient(45deg, #22c55e, #16a34a);
+                border: none;
+
+                &:hover {
+                    background: linear-gradient(45deg, #16a34a, #15803d);
+                }
+            }
+
+            &.p-button-danger {
+                background: linear-gradient(45deg, #ef4444, #dc2626);
+                border: none;
+
+                &:hover {
+                    background: linear-gradient(45deg, #dc2626, #b91c1c);
+                }
+            }
+
+            &.p-button-help {
+                background: linear-gradient(45deg, #8b5cf6, #7c3aed);
+                border: none;
+
+                &:hover {
+                    background: linear-gradient(45deg, #7c3aed, #6d28d9);
+                }
+            }
+        }
+    }
+
+    .grid {
+        .col-12,
+        .col-3 {
+            padding: 0.5rem;
+
+            label {
+                color: var(--text-color);
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+            }
+
+            .p-dropdown {
+                .p-dropdown-label {
+                    padding: 0.75rem 1rem;
+                }
+            }
+        }
+    }
+
+    .p-table {
+        .p-datatable-header {
+            background: transparent;
+            border: none;
+            padding: 1rem 0;
+
+            h5 {
+                color: var(--text-color);
+                font-weight: 700;
+                font-size: 1.5rem;
+            }
+
+            .p-input-icon-left {
+                input {
+                    border-radius: 25px;
+                    padding-left: 2.5rem;
+                    border: 2px solid var(--surface-border);
+
+                    &:focus {
+                        border-color: var(--primary-color);
+                    }
+                }
+            }
+        }
+
+        .p-datatable-thead {
+            th {
+                background: var(--surface-100);
+                border: none;
+                color: var(--text-color);
+                font-weight: 700;
+                padding: 1rem;
+
+                .dark & {
+                    background: var(--surface-800);
+                }
+
+                &:first-child {
+                    border-radius: 8px 0 0 8px;
+                }
+
+                &:last-child {
+                    border-radius: 0 8px 8px 0;
+                }
+            }
+        }
+
+        .p-datatable-tbody {
+            tr {
+                &:hover {
+                    background: var(--surface-50);
+
+                    .dark & {
+                        background: var(--surface-800);
+                    }
+                }
+
+                td {
+                    border: none;
+                    padding: 1rem;
+                    border-bottom: 1px solid var(--surface-border);
+
+                    .p-column-title {
+                        font-weight: 600;
+                        color: var(--text-color-secondary);
+                        display: none;
+                    }
+
+                    .p-tag {
+                        border-radius: 12px;
+                        font-weight: 600;
+                        padding: 0.25rem 0.75rem;
+                    }
+
+                    .p-button {
+                        &.p-button-rounded {
+                            width: 2.5rem;
+                            height: 2.5rem;
+
+                            &.p-button-success {
+                                background: #22c55e;
+                                border: none;
+
+                                &:hover {
+                                    background: #16a34a;
+                                }
+                            }
+
+                            &.p-button-warning {
+                                background: #f59e0b;
+                                border: none;
+
+                                &:hover {
+                                    background: #d97706;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .p-paginator {
+            border: none;
+            padding: 1rem 0;
+            background: transparent;
+
+            .p-paginator-pages {
+                .p-paginator-page {
+                    border-radius: 50%;
+                    margin: 0 0.125rem;
+
+                    &.p-highlight {
+                        background: var(--primary-color);
+                        color: white;
+                    }
+                }
+            }
+        }
+    }
+
+    .p-dialog {
+        .p-dialog-header {
+            background: var(--surface-0);
+            border-bottom: 1px solid var(--surface-border);
+            border-radius: 12px 12px 0 0;
+
+            .p-dialog-title {
+                font-weight: 700;
+                font-size: 1.25rem;
+                color: var(--text-color);
+            }
+        }
+
+        .p-dialog-content {
+            background: var(--surface-0);
+            padding: 2rem;
+        }
+    }
+
+    // Responsive
+    @media screen and (max-width: 768px) {
+        .p-table {
+            .p-datatable-thead {
+                display: none;
+            }
+
+            .p-datatable-tbody {
+                tr {
+                    border: 1px solid var(--surface-border);
+                    border-radius: 8px;
+                    margin-bottom: 1rem;
+                    display: block;
+                    padding: 1rem;
+
+                    td {
+                        display: block;
+                        border: none;
+                        padding: 0.5rem 0;
+                        text-align: left;
+
+                        .p-column-title {
+                            display: inline-block;
+                            font-weight: 600;
+                            min-width: 120px;
+                            margin-right: 1rem;
+                        }
+
+                        &:first-child {
+                            .p-column-title {
+                                display: none;
+                            }
+                        }
+
+                        &:last-child {
+                            text-align: center;
+                            padding-top: 1rem;
+                            border-top: 1px solid var(--surface-border);
+                            margin-top: 1rem;
+                        }
+                    }
+                }
+            }
+        }
+
+        .p-toolbar {
+            .my-2 {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+
+                .p-button {
+                    width: 100%;
+                }
+            }
+        }
+    }
+
+    @media screen and (max-width: 576px) {
+        .grid {
+            .col-12,
+            .col-3 {
+                padding: 0.25rem;
+            }
+        }
+
+        .p-dialog {
+            width: 95vw !important;
+            max-width: none !important;
+        }
+    }
+}
+
+// Animaciones
+.p-button {
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+}
+
+.p-tag {
+    transition: all 0.2s ease;
+}
+
+.p-datatable-tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+// Mejoras para accesibilidad
+.p-button:focus,
+.p-dropdown:focus,
+input:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+// Variables CSS personalizadas para temas
+:host-context(.light-theme) {
+    --custom-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    --custom-border: rgba(0, 0, 0, 0.12);
+}
+
+:host-context(.dark-theme) {
+    --custom-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    --custom-border: rgba(255, 255, 255, 0.12);
+}
