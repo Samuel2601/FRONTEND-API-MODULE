@@ -80,13 +80,17 @@ export class ConfigDashboardComponent implements OnInit {
     private async loadStats(): Promise<void> {
         try {
             // Cargar tarifas para estadísticas
-            const ratesResponse = await this.rateService.getAll().toPromise();
+            let ratesResponse: any = await this.rateService
+                .getAll()
+                .toPromise();
+            console.log(ratesResponse);
+            ratesResponse = ratesResponse.data.rates;
             if (ratesResponse) {
                 this.statsData.totalRates = ratesResponse.filter(
-                    (rate) => rate.status === 'ACTIVE'
+                    (rate: any) => rate.status == true
                 ).length;
                 this.statsData.inactiveRates = ratesResponse.filter(
-                    (rate) => rate.status !== 'ACTIVE'
+                    (rate: any) => rate.status !== true
                 ).length;
             }
 
@@ -94,6 +98,8 @@ export class ConfigDashboardComponent implements OnInit {
             const refValuesResponse = await this.referenceValueService
                 .getActiveValues()
                 .toPromise();
+
+            console.log(refValuesResponse);
             if (refValuesResponse?.success && refValuesResponse.data) {
                 this.statsData.totalReferenceValues =
                     refValuesResponse.data.length;

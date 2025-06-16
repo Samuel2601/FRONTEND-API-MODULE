@@ -15,7 +15,7 @@ export class ReferenceValueService extends BaseService<ReferenceValue> {
         protected override cacheService: CacheService,
         protected override auth: AuthService
     ) {
-        super('rates/reference-values');
+        super('reference-values');
     }
 
     updateRBU(value: number): Observable<ApiResponse<ReferenceValue>> {
