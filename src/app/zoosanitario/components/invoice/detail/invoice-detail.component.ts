@@ -154,38 +154,40 @@ export class InvoiceDetailComponent implements OnInit {
             rejectLabel: 'Cancelar',
             accept: () => {
                 this.processingAction.set(true);
-                this.invoiceService.issueInvoice(this.invoiceId).subscribe({
-                    next: (response: any) => {
-                        if (response.success !== false) {
-                            this.messageService.add({
-                                severity: 'success',
-                                summary: 'Éxito',
-                                detail: 'Proforma emitida correctamente',
-                                life: 5000,
-                            });
-                            this.loadInvoice();
-                        } else {
+                this.oracleService
+                    .createInvoiceEmiaut(this.invoiceId)
+                    .subscribe({
+                        next: (response: any) => {
+                            if (response.success !== false) {
+                                this.messageService.add({
+                                    severity: 'success',
+                                    summary: 'Éxito',
+                                    detail: 'Proforma emitida correctamente',
+                                    life: 5000,
+                                });
+                                this.loadInvoice();
+                            } else {
+                                this.messageService.add({
+                                    severity: 'error',
+                                    summary: 'Error',
+                                    detail:
+                                        response.message ||
+                                        'Error al emitir la proforma',
+                                    life: 5000,
+                                });
+                            }
+                            this.processingAction.set(false);
+                        },
+                        error: (error) => {
                             this.messageService.add({
                                 severity: 'error',
                                 summary: 'Error',
-                                detail:
-                                    response.message ||
-                                    'Error al emitir la proforma',
+                                detail: 'Error al emitir la proforma',
                                 life: 5000,
                             });
-                        }
-                        this.processingAction.set(false);
-                    },
-                    error: (error) => {
-                        this.messageService.add({
-                            severity: 'error',
-                            summary: 'Error',
-                            detail: 'Error al emitir la proforma',
-                            life: 5000,
-                        });
-                        this.processingAction.set(false);
-                    },
-                });
+                            this.processingAction.set(false);
+                        },
+                    });
             },
         });
     }

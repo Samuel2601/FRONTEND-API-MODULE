@@ -193,7 +193,7 @@
                                 }}</span>
                             </div>
                             <div class="rate-description">
-                                {{ rate.description }}
+                                {{ rate.rubroxAtributo }}
                             </div>
                             <div class="rate-footer">
                                 <span class="rate-type">{{ rate.type }}</span>
@@ -218,13 +218,18 @@
 
                     <div class="items-container">
                         <!-- Lista de items -->
-                        <div class="items-list" *ngIf="items.length > 0">
+                        <div
+                            class="items-list"
+                            *ngIf="items.length > 0"
+                            formArrayName="items"
+                        >
                             <div
                                 *ngFor="
                                     let item of items.controls;
                                     let i = index
                                 "
                                 class="item-card"
+                                [formGroupName]="i"
                             >
                                 <div class="item-header">
                                     <div class="item-number">
@@ -253,9 +258,7 @@
                                         <textarea
                                             pInputTextarea
                                             [id]="'itemDescription_' + i"
-                                            [formControlName]="
-                                                i + '.description'
-                                            "
+                                            formControlName="description"
                                             rows="2"
                                             placeholder="Descripción del item"
                                             [autoResize]="true"
@@ -275,7 +278,7 @@
                                                 )
                                             "
                                         >
-                                            {{ getFieldError("description") }}
+                                            Este campo es requerido
                                         </small>
                                     </div>
 
@@ -289,9 +292,7 @@
                                             </label>
                                             <p-inputNumber
                                                 [id]="'itemQuantity_' + i"
-                                                [formControlName]="
-                                                    i + '.quantity'
-                                                "
+                                                formControlName="quantity"
                                                 [min]="1"
                                                 mode="decimal"
                                                 [showButtons]="true"
@@ -311,7 +312,7 @@
                                                     )
                                                 "
                                             >
-                                                {{ getFieldError("quantity") }}
+                                                Cantidad debe ser mayor a 0
                                             </small>
                                         </div>
 
@@ -324,9 +325,7 @@
                                             </label>
                                             <p-inputNumber
                                                 [id]="'itemUnitPrice_' + i"
-                                                [formControlName]="
-                                                    i + '.unitPrice'
-                                                "
+                                                formControlName="unitPrice"
                                                 mode="currency"
                                                 currency="USD"
                                                 locale="es-EC"
@@ -348,7 +347,8 @@
                                                     )
                                                 "
                                             >
-                                                {{ getFieldError("unitPrice") }}
+                                                Precio debe ser mayor o igual a
+                                                0
                                             </small>
                                         </div>
 
@@ -361,7 +361,7 @@
                                             </label>
                                             <p-inputNumber
                                                 [id]="'itemTotal_' + i"
-                                                [formControlName]="i + '.total'"
+                                                formControlName="total"
                                                 mode="currency"
                                                 currency="USD"
                                                 locale="es-EC"
@@ -408,17 +408,6 @@
                             <label class="field-label">Subtotal</label>
                             <p-inputNumber
                                 formControlName="subtotal"
-                                mode="currency"
-                                currency="USD"
-                                locale="es-EC"
-                                [readonly]="true"
-                            ></p-inputNumber>
-                        </div>
-
-                        <div class="total-field">
-                            <label class="field-label">IVA (12%)</label>
-                            <p-inputNumber
-                                formControlName="taxes"
                                 mode="currency"
                                 currency="USD"
                                 locale="es-EC"

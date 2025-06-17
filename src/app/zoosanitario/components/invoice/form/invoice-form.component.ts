@@ -23,6 +23,7 @@ interface Rate {
     type: 'TASA' | 'TARIFA' | 'SERVICIOS';
     description: string;
     code: string;
+    rubroxAtributo: string;
     position: number;
     unitPrice?: number;
     animalTypes: string[];
@@ -85,13 +86,32 @@ export class InvoiceFormComponent implements OnInit {
 
         forkJoin({
             rates: this.rateService.getAll(),
-            introducers: this.introducerService.getAll(),
+            // Pasar parámetros para obtener todos los introducers
+            introducers: this.introducerService.getAll({
+                limit: 1000,
+                page: 1,
+            }), // o sin paginación
         }).subscribe({
             next: (data: any) => {
                 console.log('Datos cargados:', data);
                 this.rates = data.rates;
-                this.introducers = data.introducers;
-                this.filteredIntroducers = data.introducers;
+
+                // Extraer introducers de la respuesta paginada
+                if (data.introducers?.data?.introducers) {
+                    this.introducers = data.introducers.data.introducers;
+                } else if (Array.isArray(data.introducers)) {
+                    this.introducers = data.introducers;
+                } else {
+                    this.introducers = [];
+                    console.warn(
+                        'Estructura de introducers no reconocida:',
+                        data.introducers
+                    );
+                }
+
+                this.filteredIntroducers = this.introducers;
+
+                console.log('Introducers cargados:', this.introducers);
 
                 this.generateTypeOptionsFromRates();
                 this.setupFormSubscriptions();
@@ -100,7 +120,6 @@ export class InvoiceFormComponent implements OnInit {
                     this.loadInvoice();
                 } else {
                     this.generateInvoiceNumber();
-                    // Establecer tipo por defecto si hay opciones disponibles
                     if (this.typeOptions.length > 0) {
                         this.form
                             .get('type')
@@ -130,17 +149,17 @@ export class InvoiceFormComponent implements OnInit {
             switch (rateType) {
                 case 'TASA':
                     return {
-                        label: 'Inscripción',
-                        value: 'INSCRIPTION',
+                        label: 'Faenamiento',
+                        value: 'SLAUGHTER_SERVICE',
                         rateType: 'TASA',
-                        description: 'Tasas de inscripción y registro',
+                        description: 'Servicios de faenamiento',
                     };
                 case 'TARIFA':
                     return {
-                        label: 'Faenamiento',
-                        value: 'SLAUGHTER_SERVICE',
+                        label: 'Inscripción',
+                        value: 'INSCRIPTION',
                         rateType: 'TARIFA',
-                        description: 'Servicios de faenamiento',
+                        description: 'Tasas de inscripción y registro',
                     };
                 case 'SERVICIOS':
                     return {
@@ -367,18 +386,11 @@ export class InvoiceFormComponent implements OnInit {
         this.calculateTotals();
     }
 
-    private calculateItemTotal(item: FormGroup) {
-        const quantity = item.get('quantity')?.value || 0;
-        const unitPrice = item.get('unitPrice')?.value || 0;
-        const total = quantity * unitPrice;
-        item.get('total')?.setValue(total, { emitEvent: false });
-    }
-
     private calculateTotals() {
         if (this.items.length === 0) {
-            this.form.get('subtotal')?.setValue(0);
-            this.form.get('taxes')?.setValue(0);
-            this.form.get('totalAmount')?.setValue(0);
+            this.form.get('subtotal')?.setValue(0, { emitEvent: false });
+            this.form.get('taxes')?.setValue(0, { emitEvent: false });
+            this.form.get('totalAmount')?.setValue(0, { emitEvent: false });
             this.calculationError = false;
             return;
         }
@@ -408,10 +420,63 @@ export class InvoiceFormComponent implements OnInit {
             )
             .subscribe({
                 next: (response: any) => {
-                    if (response && response.subtotal !== undefined) {
-                        this.form.get('subtotal')?.setValue(response.subtotal);
-                        this.form.get('taxes')?.setValue(response.taxes || 0);
-                        this.form.get('totalAmount')?.setValue(response.total);
+                    console.log('Respuesta de calculo:', response);
+                    if (
+                        response?.success &&
+                        response?.data &&
+                        Array.isArray(response.data)
+                    ) {
+                        // Sumar todos los totalAmount de los items calculados
+                        const subtotal = response.data.reduce(
+                            (sum: number, item: any) => {
+                                return sum + (item.totalAmount || 0);
+                            },
+                            0
+                        );
+
+                        // Actualizar los items del formulario con los datos calculados
+                        // Buscar por rateId en lugar de por índice
+                        this.items.controls.forEach(
+                            (formItem: any, index: number) => {
+                                const rateId = formItem.get('rateId')?.value;
+                                if (rateId) {
+                                    const calculatedItem = response.data.find(
+                                        (item: any) => item.rateId === rateId
+                                    );
+                                    if (calculatedItem) {
+                                        // Usar emitEvent: false para evitar bucle infinito
+                                        formItem
+                                            .get('unitPrice')
+                                            ?.setValue(
+                                                calculatedItem.unitPrice,
+                                                { emitEvent: false }
+                                            );
+                                        formItem
+                                            .get('description')
+                                            ?.setValue(
+                                                calculatedItem.description,
+                                                { emitEvent: false }
+                                            );
+                                        formItem
+                                            .get('total')
+                                            ?.setValue(
+                                                calculatedItem.totalAmount,
+                                                { emitEvent: false }
+                                            );
+                                    }
+                                }
+                            }
+                        );
+
+                        this.form
+                            .get('subtotal')
+                            ?.setValue(subtotal, { emitEvent: false });
+                        this.form
+                            .get('taxes')
+                            ?.setValue(0, { emitEvent: false }); // No manejan IVA
+                        this.form
+                            .get('totalAmount')
+                            ?.setValue(subtotal, { emitEvent: false }); // Total = Subtotal sin IVA
                         this.calculationError = false;
                     } else {
                         this.calculationError = true;
@@ -419,7 +484,7 @@ export class InvoiceFormComponent implements OnInit {
                         this.messageService.add({
                             severity: 'warn',
                             summary: 'Cálculo Manual',
-                            detail: 'No se recibieron datos del servicio de cálculo. Se usó cálculo manual.',
+                            detail: 'No se recibieron datos válidos del servicio de cálculo. Se usó cálculo manual.',
                         });
                     }
                 },
@@ -431,12 +496,20 @@ export class InvoiceFormComponent implements OnInit {
             (sum: number, item: any) => sum + (item.total || 0),
             0
         );
-        const taxes = subtotal * 0.12; // IVA 12%
-        const total = subtotal + taxes;
+        // No calcular IVA ya que no lo manejan
+        const total = subtotal;
 
-        this.form.get('subtotal')?.setValue(subtotal);
-        this.form.get('taxes')?.setValue(taxes);
-        this.form.get('totalAmount')?.setValue(total);
+        this.form.get('subtotal')?.setValue(subtotal, { emitEvent: false });
+        this.form.get('taxes')?.setValue(0, { emitEvent: false });
+        this.form.get('totalAmount')?.setValue(total, { emitEvent: false });
+    }
+
+    private calculateItemTotal(item: FormGroup) {
+        const quantity = item.get('quantity')?.value || 0;
+        const unitPrice = item.get('unitPrice')?.value || 0;
+        const total = quantity * unitPrice;
+        // Usar emitEvent: false para evitar bucle infinito
+        item.get('total')?.setValue(total, { emitEvent: false });
     }
 
     private clearItems() {
@@ -529,7 +602,7 @@ export class InvoiceFormComponent implements OnInit {
     }
 
     getIntroducerDisplayName(introducer: any): string {
-        if (introducer.type === 'Natural') {
+        if (introducer.personType === 'Natural') {
             return introducer.name;
         } else {
             return introducer.companyName || 'Sin nombre';

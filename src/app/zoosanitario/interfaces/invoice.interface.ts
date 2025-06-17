@@ -47,7 +47,7 @@ export interface Introducer {
     email?: string;
     phone?: string;
     address?: string;
-    // Agrega más campos según tu schema de Introducer
+    companyName?: string;
 }
 
 export interface InvoiceFilters {
