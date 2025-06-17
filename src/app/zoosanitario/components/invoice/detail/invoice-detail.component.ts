@@ -1,26 +1,15 @@
 // src/app/demo/components/invoice/invoice-detail/invoice-detail.component.ts
 
 import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
-import { DividerModule } from 'primeng/divider';
-import { TagModule } from 'primeng/tag';
-import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { DialogModule } from 'primeng/dialog';
-import { TimelineModule } from 'primeng/timeline';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { Invoice } from '../../../interfaces/invoice.interface';
 import { InvoiceService } from '../../../services/invoice.service';
-import { Capacitor } from '@capacitor/core';
-import { Filesystem, Directory } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
-import { Printer } from '@awesome-cordova-plugins/printer/ngx';
 import { OracleService } from 'src/app/zoosanitario/services/oracle.service';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
+import { ImportsModule } from 'src/app/demo/services/import';
 
 interface InvoiceEvent {
     status: string;
@@ -33,20 +22,8 @@ interface InvoiceEvent {
 @Component({
     selector: 'app-invoice-detail',
     standalone: true,
-    imports: [
-        CommonModule,
-        ButtonModule,
-        CardModule,
-        DividerModule,
-        TagModule,
-        TableModule,
-        ToastModule,
-        ProgressSpinnerModule,
-        ConfirmDialogModule,
-        DialogModule,
-        TimelineModule,
-    ],
-    providers: [MessageService, ConfirmationService, Printer],
+    imports: [ImportsModule],
+    providers: [MessageService, ConfirmationService],
     templateUrl: './invoice-detail.component.html',
     styleUrls: ['./invoice-detail.component.scss'],
 })
@@ -69,8 +46,7 @@ export class InvoiceDetailComponent implements OnInit {
         private invoiceService: InvoiceService,
         private messageService: MessageService,
         private oracleService: OracleService,
-        private confirmationService: ConfirmationService,
-        private printer: Printer
+        private confirmationService: ConfirmationService
     ) {}
 
     ngOnInit() {
@@ -83,10 +59,10 @@ export class InvoiceDetailComponent implements OnInit {
     loadInvoice() {
         this.loading.set(true);
         this.invoiceService.getById(this.invoiceId).subscribe({
-            next: (invoice: any) => {
-                console.log('Invoice:', invoice.data);
-                this.invoice.set(invoice.data);
-                this.buildTimeline(invoice.data);
+            next: (response: any) => {
+                const invoice = response.data || response;
+                this.invoice.set(invoice);
+                this.buildTimeline(invoice);
                 this.loading.set(false);
             },
             error: (error) => {
@@ -96,8 +72,9 @@ export class InvoiceDetailComponent implements OnInit {
                     severity: 'error',
                     summary: 'Error',
                     detail: 'No se pudo cargar la factura',
+                    life: 5000,
                 });
-                //this.router.navigate(['/zoosanitario/invoices']);
+                this.router.navigate(['/zoosanitario/invoices']);
             },
         });
     }
@@ -109,9 +86,9 @@ export class InvoiceDetailComponent implements OnInit {
         events.push({
             status: 'Creada',
             date: invoice.createdAt as string,
-            icon: 'pi pi-file',
+            icon: 'pi pi-file-plus',
             color: '#607D8B',
-            description: `Factura generada`,
+            description: 'Proforma generada en el sistema',
         });
 
         // Evento de emisión
@@ -121,18 +98,20 @@ export class InvoiceDetailComponent implements OnInit {
                 date: invoice.issueDate as string,
                 icon: 'pi pi-send',
                 color: '#2196F3',
-                description: 'Factura emitida al introductor',
+                description: 'Proforma emitida al introductor',
             });
         }
 
         // Evento de integración Oracle
         if (invoice.oracleIntegration?.issued) {
             events.push({
-                status: 'Oracle',
-                date: invoice.oracleIntegration.issueDate,
+                status: 'Integrada con Oracle',
+                date:
+                    invoice.oracleIntegration.issueDate ||
+                    invoice.oracleIntegration.lastSyncDate,
                 icon: 'pi pi-database',
                 color: '#FF9800',
-                description: `Título: ${invoice.oracleIntegration.titleNumber}`,
+                description: `Título Oracle: ${invoice.oracleIntegration.titleNumber}`,
             });
         }
 
@@ -143,7 +122,7 @@ export class InvoiceDetailComponent implements OnInit {
                 date: invoice.payDate as string,
                 icon: 'pi pi-check-circle',
                 color: '#4CAF50',
-                description: 'Pago confirmado',
+                description: 'Pago confirmado y registrado',
             });
         }
 
@@ -154,7 +133,7 @@ export class InvoiceDetailComponent implements OnInit {
                 date: invoice.updatedAt as string,
                 icon: 'pi pi-times-circle',
                 color: '#F44336',
-                description: 'Factura cancelada',
+                description: 'Proforma cancelada',
             });
         }
 
@@ -162,24 +141,50 @@ export class InvoiceDetailComponent implements OnInit {
     }
 
     back() {
-        this.router.navigate(['/invoices']);
+        this.router.navigate(['/zoosanitario/invoices']);
     }
 
     issueInvoice() {
         this.confirmationService.confirm({
-            message: '¿Está seguro de emitir esta factura?',
+            message:
+                '¿Está seguro de emitir esta proforma? Una vez emitida no podrá ser modificada.',
             header: 'Confirmar Emisión',
             icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Sí, Emitir',
+            rejectLabel: 'Cancelar',
             accept: () => {
                 this.processingAction.set(true);
                 this.invoiceService.issueInvoice(this.invoiceId).subscribe({
                     next: (response: any) => {
-                        if (response.success) {
+                        if (response.success !== false) {
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Éxito',
+                                detail: 'Proforma emitida correctamente',
+                                life: 5000,
+                            });
                             this.loadInvoice();
+                        } else {
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'Error',
+                                detail:
+                                    response.message ||
+                                    'Error al emitir la proforma',
+                                life: 5000,
+                            });
                         }
                         this.processingAction.set(false);
                     },
-                    error: () => this.processingAction.set(false),
+                    error: (error) => {
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Error',
+                            detail: 'Error al emitir la proforma',
+                            life: 5000,
+                        });
+                        this.processingAction.set(false);
+                    },
                 });
             },
         });
@@ -187,19 +192,44 @@ export class InvoiceDetailComponent implements OnInit {
 
     markAsPaid() {
         this.confirmationService.confirm({
-            message: '¿Confirma que esta factura ha sido pagada?',
+            message: '¿Confirma que esta proforma ha sido pagada?',
             header: 'Marcar como Pagada',
             icon: 'pi pi-check-circle',
+            acceptLabel: 'Sí, Confirmar',
+            rejectLabel: 'Cancelar',
             accept: () => {
                 this.processingAction.set(true);
                 this.invoiceService.markAsPaid(this.invoiceId).subscribe({
                     next: (response: any) => {
-                        if (response.success) {
+                        if (response.success !== false) {
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Éxito',
+                                detail: 'Proforma marcada como pagada',
+                                life: 5000,
+                            });
                             this.loadInvoice();
+                        } else {
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'Error',
+                                detail:
+                                    response.message ||
+                                    'Error al marcar como pagada',
+                                life: 5000,
+                            });
                         }
                         this.processingAction.set(false);
                     },
-                    error: () => this.processingAction.set(false),
+                    error: (error) => {
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Error',
+                            detail: 'Error al marcar la proforma como pagada',
+                            life: 5000,
+                        });
+                        this.processingAction.set(false);
+                    },
                 });
             },
         });
@@ -208,20 +238,45 @@ export class InvoiceDetailComponent implements OnInit {
     cancelInvoice() {
         this.confirmationService.confirm({
             message:
-                '¿Está seguro de cancelar esta factura? Esta acción no se puede deshacer.',
-            header: 'Cancelar Factura',
+                '¿Está seguro de cancelar esta proforma? Esta acción no se puede deshacer.',
+            header: 'Cancelar Proforma',
             icon: 'pi pi-times-circle',
             acceptButtonStyleClass: 'p-button-danger',
+            acceptLabel: 'Sí, Cancelar',
+            rejectLabel: 'No',
             accept: () => {
                 this.processingAction.set(true);
                 this.invoiceService.cancelInvoice(this.invoiceId).subscribe({
                     next: (response: any) => {
-                        if (response.success) {
+                        if (response.success !== false) {
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Éxito',
+                                detail: 'Proforma cancelada correctamente',
+                                life: 5000,
+                            });
                             this.loadInvoice();
+                        } else {
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'Error',
+                                detail:
+                                    response.message ||
+                                    'Error al cancelar la proforma',
+                                life: 5000,
+                            });
                         }
                         this.processingAction.set(false);
                     },
-                    error: () => this.processingAction.set(false),
+                    error: (error) => {
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Error',
+                            detail: 'Error al cancelar la proforma',
+                            life: 5000,
+                        });
+                        this.processingAction.set(false);
+                    },
                 });
             },
         });
@@ -248,106 +303,332 @@ export class InvoiceDetailComponent implements OnInit {
         this.oracleService.createInvoiceEmiaut(this.invoiceId).subscribe({
             next: (response) => {
                 if (response.success) {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Proforma integrada con Oracle correctamente',
+                        life: 5000,
+                    });
                     this.showOracleDialog = false;
                     this.loadInvoice();
+                } else {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail:
+                            response.message || 'Error al integrar con Oracle',
+                        life: 5000,
+                    });
                 }
                 this.processingAction.set(false);
             },
-            error: () => this.processingAction.set(false),
+            error: (error) => {
+                console.error('Error de integración Oracle:', error);
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'Error al conectar con Oracle',
+                    life: 5000,
+                });
+                this.processingAction.set(false);
+            },
         });
     }
 
     async downloadPDF() {
+        const invoice = this.invoice();
+        if (!invoice) return;
+
         try {
+            this.processingAction.set(true);
+
+            this.messageService.add({
+                severity: 'info',
+                summary: 'Descargando...',
+                detail: 'Generando archivo PDF',
+                life: 3000,
+            });
+
             const blob = await this.invoiceService
                 .downloadInvoicePDF(this.invoiceId)
                 .toPromise();
-            const invoice = this.invoice();
+
+            if (!blob) {
+                throw new Error('No se pudo generar el PDF');
+            }
+
+            const fileName = `proforma_${invoice.invoiceNumber}.pdf`;
 
             if (Capacitor.isNativePlatform()) {
+                // Plataforma móvil
                 const reader = new FileReader();
                 reader.onloadend = async () => {
-                    const base64 = reader.result as string;
-                    const fileName = `factura_${invoice?.invoiceNumber}.pdf`;
+                    try {
+                        const base64Data = (reader.result as string).split(
+                            ','
+                        )[1];
 
-                    const result = await Filesystem.writeFile({
-                        path: fileName,
-                        data: base64.split(',')[1],
-                        directory: Directory.Documents,
-                    });
+                        const result = await Filesystem.writeFile({
+                            path: fileName,
+                            data: base64Data,
+                            directory: Directory.Documents,
+                            recursive: true,
+                        });
 
-                    await Share.share({
-                        title: `Factura ${invoice?.invoiceNumber}`,
-                        url: result.uri,
-                        dialogTitle: 'Compartir Factura',
-                    });
+                        await Share.share({
+                            title: `Proforma ${invoice.invoiceNumber}`,
+                            text: `Proforma ${invoice.invoiceNumber} - ${invoice.introducer?.name}`,
+                            url: result.uri,
+                            dialogTitle: 'Compartir Proforma',
+                        });
+
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Descarga Exitosa',
+                            detail: 'PDF generado y guardado correctamente',
+                            life: 5000,
+                        });
+                    } catch (error) {
+                        console.error('Error al guardar PDF:', error);
+                        throw error;
+                    }
                 };
-                reader.readAsDataURL(blob!);
+                reader.onerror = () => {
+                    throw new Error('Error al procesar el archivo');
+                };
+                reader.readAsDataURL(blob);
             } else {
-                const url = window.URL.createObjectURL(blob!);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `factura_${invoice?.invoiceNumber}.pdf`;
-                a.click();
-                window.URL.revokeObjectURL(url);
+                // Plataforma web
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                link.style.display = 'none';
+
+                document.body.appendChild(link);
+                link.click();
+
+                // Limpiar después de un momento
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                }, 100);
+
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Descarga Iniciada',
+                    detail: 'El archivo se ha descargado correctamente',
+                    life: 5000,
+                });
             }
         } catch (error) {
+            console.error('Error al descargar PDF:', error);
             this.messageService.add({
                 severity: 'error',
-                summary: 'Error',
-                detail: 'Error al descargar el PDF',
+                summary: 'Error de Descarga',
+                detail: 'No se pudo descargar el archivo PDF. Inténtelo nuevamente.',
+                life: 5000,
             });
+        } finally {
+            this.processingAction.set(false);
         }
     }
 
     async printInvoice() {
-        if (Capacitor.isNativePlatform()) {
-            try {
-                const blob = await this.invoiceService
-                    .downloadInvoicePDF(this.invoiceId)
-                    .toPromise();
-                const reader = new FileReader();
-                reader.onloadend = async () => {
-                    const base64 = reader.result as string;
-                    await this.printer.print(base64);
-                };
-                reader.readAsDataURL(blob!);
-            } catch (error) {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: 'Error al imprimir',
-                });
-            }
-        } else {
-            window.print();
-        }
-    }
-
-    shareInvoice() {
         const invoice = this.invoice();
         if (!invoice) return;
 
-        const text =
-            `Factura ${invoice.invoiceNumber}\n` +
-            `Introductor: ${invoice.introducer?.name}\n` +
-            `Total: $${invoice.totalAmount.toFixed(2)}\n` +
-            `Estado: ${this.getStatusLabel(invoice.status)}`;
+        try {
+            this.processingAction.set(true);
 
-        if (Capacitor.isNativePlatform()) {
-            Share.share({
-                title: `Factura ${invoice.invoiceNumber}`,
-                text: text,
-                dialogTitle: 'Compartir Factura',
-            });
-        } else {
-            navigator.clipboard.writeText(text);
             this.messageService.add({
                 severity: 'info',
-                summary: 'Copiado',
-                detail: 'Información copiada al portapapeles',
+                summary: 'Preparando Impresión...',
+                detail: 'Generando documento para imprimir',
+                life: 3000,
             });
+
+            if (Capacitor.isNativePlatform()) {
+                // En dispositivos móviles, usar el PDF para imprimir
+                const blob = await this.invoiceService
+                    .downloadInvoicePDF(this.invoiceId)
+                    .toPromise();
+
+                if (!blob) {
+                    throw new Error('No se pudo generar el PDF para imprimir');
+                }
+
+                const reader = new FileReader();
+                reader.onloadend = async () => {
+                    try {
+                        const base64Data = reader.result as string;
+
+                        // En dispositivos móviles, esto abrirá las opciones de compartir
+                        // donde el usuario puede seleccionar imprimir
+                        await Share.share({
+                            title: `Imprimir Proforma ${invoice.invoiceNumber}`,
+                            text: `Proforma ${invoice.invoiceNumber}`,
+                            url: base64Data,
+                            dialogTitle: 'Imprimir Proforma',
+                        });
+
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Listo para Imprimir',
+                            detail: 'Seleccione la opción de imprimir desde el menú',
+                            life: 5000,
+                        });
+                    } catch (error) {
+                        throw new Error('Error al preparar la impresión');
+                    }
+                };
+                reader.readAsDataURL(blob);
+            } else {
+                // En navegadores web
+                const blob = await this.invoiceService
+                    .downloadInvoicePDF(this.invoiceId)
+                    .toPromise();
+
+                if (!blob) {
+                    throw new Error('No se pudo generar el PDF para imprimir');
+                }
+
+                const url = window.URL.createObjectURL(blob);
+                const printWindow = window.open(url, '_blank');
+
+                if (printWindow) {
+                    printWindow.onload = () => {
+                        printWindow.print();
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Impresión Iniciada',
+                            detail: 'Se ha abierto el diálogo de impresión',
+                            life: 5000,
+                        });
+                    };
+                } else {
+                    // Fallback: crear link de descarga para imprimir
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.target = '_blank';
+                    link.click();
+                    window.URL.revokeObjectURL(url);
+
+                    this.messageService.add({
+                        severity: 'info',
+                        summary: 'PDF Abierto',
+                        detail: 'Use Ctrl+P para imprimir el documento',
+                        life: 5000,
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error al imprimir:', error);
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error de Impresión',
+                detail: 'No se pudo preparar el documento para imprimir',
+                life: 5000,
+            });
+        } finally {
+            this.processingAction.set(false);
         }
+    }
+
+    async shareInvoice() {
+        const invoice = this.invoice();
+        if (!invoice) return;
+
+        try {
+            this.processingAction.set(true);
+
+            const shareText = this.generateShareText(invoice);
+
+            if (Capacitor.isNativePlatform()) {
+                // Dispositivos móviles - usar Share API nativo
+                await Share.share({
+                    title: `Proforma ${invoice.invoiceNumber}`,
+                    text: shareText,
+                    dialogTitle: 'Compartir Proforma',
+                });
+
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Compartido',
+                    detail: 'Proforma compartida exitosamente',
+                    life: 3000,
+                });
+            } else {
+                // Navegadores web
+                if (navigator.share) {
+                    // Usar Web Share API si está disponible
+                    await navigator.share({
+                        title: `Proforma ${invoice.invoiceNumber}`,
+                        text: shareText,
+                    });
+
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Compartido',
+                        detail: 'Proforma compartida exitosamente',
+                        life: 3000,
+                    });
+                } else {
+                    // Fallback: copiar al portapapeles
+                    await navigator.clipboard.writeText(shareText);
+
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Copiado',
+                        detail: 'Información de la proforma copiada al portapapeles',
+                        life: 5000,
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error al compartir:', error);
+
+            // Fallback: mostrar dialog con la información
+            this.showShareDialog(invoice);
+        } finally {
+            this.processingAction.set(false);
+        }
+    }
+
+    private generateShareText(invoice: Invoice): string {
+        const total = invoice.totalAmount?.toFixed(2) || '0.00';
+        const status = this.getStatusLabel(invoice.status);
+        const date = new Date(invoice.issueDate).toLocaleDateString('es-EC');
+
+        return `🧾 Proforma ${invoice.invoiceNumber}
+        👤 Introductor: ${invoice.introducer?.name || 'N/A'}
+        📅 Fecha: ${date}
+        💰 Total: $${total}
+        📊 Estado: ${status}
+
+        Generado desde el Sistema de Gestión Zoosanitaria`;
+    }
+
+    private showShareDialog(invoice: Invoice) {
+        const shareText = this.generateShareText(invoice);
+
+        this.confirmationService.confirm({
+            message: shareText,
+            header: 'Información de la Proforma',
+            icon: 'pi pi-share-alt',
+            acceptLabel: 'Copiar',
+            rejectLabel: 'Cerrar',
+            accept: () => {
+                navigator.clipboard.writeText(shareText).then(() => {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Copiado',
+                        detail: 'Información copiada al portapapeles',
+                        life: 3000,
+                    });
+                });
+            },
+        });
     }
 
     getSeverity(
@@ -383,6 +664,6 @@ export class InvoiceDetailComponent implements OnInit {
     }
 
     getItemTotal(item: any): number {
-        return item.quantity * item.unitPrice;
+        return (item.quantity || 0) * (item.unitPrice || 0);
     }
 }

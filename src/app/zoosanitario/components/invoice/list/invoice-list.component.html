@@ -170,18 +170,25 @@
                     </div>
                 </td>
                 <td>
-                    <button
-                        pButton
-                        type="button"
-                        icon="pi pi-ellipsis-v"
-                        class="p-button-rounded p-button-text p-button-sm"
-                        (click)="showActionMenu($event, invoice, menu)"
-                    ></button>
-                    <p-menu
-                        #menu
-                        [popup]="true"
-                        [model]="actionMenuItems"
-                    ></p-menu>
+                    <div>
+                        <p-toast />
+                        <p-menu
+                            #menu
+                            [model]="actionMenuItems"
+                            [popup]="true"
+                            appendTo="body"
+                            [style]="{
+                                position: 'absolute',
+                                left: '0',
+                                top: '0'
+                            }"
+                        />
+                        <p-button
+                            icon="pi pi-ellipsis-v"
+                            class="p-button-rounded p-button-text p-button-sm"
+                            (click)="showActionMenu($event, invoice, menu)"
+                        />
+                    </div>
                 </td>
             </tr>
         </ng-template>

@@ -9,6 +9,7 @@ import {
     forkJoin,
     of,
     switchMap,
+    catchError,
 } from 'rxjs';
 import { ImportsModule } from 'src/app/demo/services/import';
 import { Introducer } from 'src/app/zoosanitario/interfaces/invoice.interface';
@@ -16,6 +17,24 @@ import { IntroducerService } from 'src/app/zoosanitario/services/introducer.serv
 import { InvoiceService } from 'src/app/zoosanitario/services/invoice.service';
 import { OracleService } from 'src/app/zoosanitario/services/oracle.service';
 import { RateService } from 'src/app/zoosanitario/services/rate.service';
+
+interface Rate {
+    _id: string;
+    type: 'TASA' | 'TARIFA' | 'SERVICIOS';
+    description: string;
+    code: string;
+    position: number;
+    unitPrice?: number;
+    animalTypes: string[];
+    personType: ('Natural' | 'Jurídica')[];
+}
+
+interface ProformaType {
+    label: string;
+    value: string;
+    rateType: string;
+    description: string;
+}
 
 @Component({
     selector: 'app-invoice-form',
@@ -34,16 +53,11 @@ export class InvoiceFormComponent implements OnInit {
     introducers: Introducer[] = [];
     filteredIntroducers: Introducer[] = [];
     selectedIntroducer: Introducer | null = null;
-    rates: any[] = [];
-    filteredRates: any[] = [];
-
-    typeOptions = [
-        { label: 'Inscripción', value: 'INSCRIPTION' },
-        { label: 'Servicio de Faenamiento', value: 'SLAUGHTER_SERVICE' },
-        { label: 'Servicios Adicionales', value: 'ADDITIONAL_SERVICE' },
-        { label: 'Multa', value: 'FINE' },
-        { label: 'Mixta', value: 'MIXED' },
-    ];
+    rates: Rate[] = [];
+    filteredRates: Rate[] = [];
+    typeOptions: ProformaType[] = [];
+    loadingRates = true;
+    calculationError = false;
 
     constructor(
         private fb: FormBuilder,
@@ -62,22 +76,104 @@ export class InvoiceFormComponent implements OnInit {
         this.invoiceId = this.route.snapshot.paramMap.get('id');
         this.isEditMode = !!this.invoiceId;
 
-        this.loadIntroducers();
-        this.loadRates();
+        // Primero cargar rates para determinar tipos disponibles
+        this.loadInitialData();
+    }
 
-        if (this.isEditMode) {
-            this.loadInvoice();
-        } else {
-            this.generateInvoiceNumber();
+    private loadInitialData() {
+        this.loading = true;
+
+        forkJoin({
+            rates: this.rateService.getAll(),
+            introducers: this.introducerService.getAll(),
+        }).subscribe({
+            next: (data: any) => {
+                console.log('Datos cargados:', data);
+                this.rates = data.rates;
+                this.introducers = data.introducers;
+                this.filteredIntroducers = data.introducers;
+
+                this.generateTypeOptionsFromRates();
+                this.setupFormSubscriptions();
+
+                if (this.isEditMode) {
+                    this.loadInvoice();
+                } else {
+                    this.generateInvoiceNumber();
+                    // Establecer tipo por defecto si hay opciones disponibles
+                    if (this.typeOptions.length > 0) {
+                        this.form
+                            .get('type')
+                            ?.setValue(this.typeOptions[0].value);
+                    }
+                }
+
+                this.loading = false;
+                this.loadingRates = false;
+            },
+            error: (error) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error de Carga',
+                    detail: 'Error al cargar datos iniciales: ' + error.message,
+                });
+                this.loading = false;
+                this.loadingRates = false;
+            },
+        });
+    }
+
+    private generateTypeOptionsFromRates() {
+        const rateTypes = [...new Set(this.rates.map((rate) => rate.type))];
+
+        this.typeOptions = rateTypes.map((rateType) => {
+            switch (rateType) {
+                case 'TASA':
+                    return {
+                        label: 'Inscripción',
+                        value: 'INSCRIPTION',
+                        rateType: 'TASA',
+                        description: 'Tasas de inscripción y registro',
+                    };
+                case 'TARIFA':
+                    return {
+                        label: 'Faenamiento',
+                        value: 'SLAUGHTER_SERVICE',
+                        rateType: 'TARIFA',
+                        description: 'Servicios de faenamiento',
+                    };
+                case 'SERVICIOS':
+                    return {
+                        label: 'Servicios Adicionales',
+                        value: 'ADDITIONAL_SERVICE',
+                        rateType: 'SERVICIOS',
+                        description: 'Servicios adicionales y complementarios',
+                    };
+                default:
+                    return {
+                        label: rateType,
+                        value: rateType,
+                        rateType: rateType,
+                        description: `Servicios de tipo ${rateType}`,
+                    };
+            }
+        });
+
+        // Agregar opción mixta si hay más de un tipo
+        if (this.typeOptions.length > 1) {
+            this.typeOptions.push({
+                label: 'Mixta',
+                value: 'MIXED',
+                rateType: 'ALL',
+                description: 'Combina diferentes tipos de servicios',
+            });
         }
-
-        this.setupFormSubscriptions();
     }
 
     private createForm(): FormGroup {
         return this.fb.group({
             invoiceNumber: ['', Validators.required],
-            type: ['SLAUGHTER_SERVICE', Validators.required],
+            type: ['', Validators.required],
             introducerId: ['', Validators.required],
             introducerSearch: [''],
             items: this.fb.array([]),
@@ -113,56 +209,41 @@ export class InvoiceFormComponent implements OnInit {
         });
     }
 
-    private loadIntroducers() {
-        this.introducerService.getAll().subscribe({
-            next: (introducers: any) => {
-                this.introducers = introducers;
-                this.filteredIntroducers = introducers;
-            },
-            error: (error) => {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: 'Error al cargar introductores: ' + error.message,
-                });
-            },
-        });
-    }
-
-    private loadRates() {
-        this.rateService.getAll().subscribe({
-            next: (rates: any) => {
-                this.rates = rates;
-                this.filteredRates = rates;
-            },
-            error: (error) => {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: 'Error al cargar tarifas: ' + error.message,
-                });
-            },
-        });
-    }
-
     private filterRatesByInvoiceType(invoiceType: string) {
-        let rateType = 'TARIFA';
-
-        switch (invoiceType) {
-            case 'INSCRIPTION':
-                rateType = 'TASA';
-                break;
-            case 'FINE':
-                rateType = 'MULTA';
-                break;
-            case 'ADDITIONAL_SERVICE':
-                rateType = 'SERVICIOS';
-                break;
+        if (!invoiceType || this.rates.length === 0) {
+            this.filteredRates = [];
+            return;
         }
 
-        this.filteredRates = this.rates.filter(
-            (rate) => rate.type === rateType
+        const selectedType = this.typeOptions.find(
+            (t) => t.value === invoiceType
         );
+
+        if (!selectedType) {
+            this.filteredRates = [];
+            return;
+        }
+
+        if (selectedType.rateType === 'ALL') {
+            // Para tipo mixto, mostrar todas las rates
+            this.filteredRates = this.rates.sort(
+                (a, b) => a.position - b.position
+            );
+        } else {
+            // Filtrar por tipo específico
+            this.filteredRates = this.rates
+                .filter((rate) => rate.type === selectedType.rateType)
+                .sort((a, b) => a.position - b.position);
+        }
+
+        // Filtrar por tipo de persona del introductor seleccionado
+        if (this.selectedIntroducer) {
+            this.filteredRates = this.filteredRates.filter((rate) =>
+                rate.personType.includes(
+                    this.selectedIntroducer!.personType as any
+                )
+            );
+        }
     }
 
     private loadInvoice() {
@@ -194,7 +275,9 @@ export class InvoiceFormComponent implements OnInit {
                     this.form
                         .get('introducerSearch')
                         ?.setValue(
-                            this.getIntroducerName(this.selectedIntroducer)
+                            this.getIntroducerDisplayName(
+                                this.selectedIntroducer
+                            )
                         );
                 }
 
@@ -204,7 +287,7 @@ export class InvoiceFormComponent implements OnInit {
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
-                    detail: 'Error al cargar factura: ' + error.message,
+                    detail: 'Error al cargar proforma: ' + error.message,
                 });
                 this.loading = false;
                 this.router.navigate(['/invoices']);
@@ -214,9 +297,9 @@ export class InvoiceFormComponent implements OnInit {
 
     private generateInvoiceNumber() {
         const date = new Date();
-        const number = `FAC-${date.getFullYear()}-${String(
+        const number = `PRF-${date.getFullYear()}-${String(
             date.getTime()
-        ).slice(-4)}`;
+        ).slice(-6)}`;
         this.form.get('invoiceNumber')?.setValue(number);
     }
 
@@ -228,7 +311,7 @@ export class InvoiceFormComponent implements OnInit {
 
         this.filteredIntroducers = this.introducers.filter(
             (introducer: any) =>
-                this.getIntroducerName(introducer)
+                this.getIntroducerDisplayName(introducer)
                     .toLowerCase()
                     .includes(query.toLowerCase()) ||
                 introducer.idNumber.includes(query)
@@ -240,11 +323,14 @@ export class InvoiceFormComponent implements OnInit {
         this.form.get('introducerId')?.setValue(introducer._id);
         this.form
             .get('introducerSearch')
-            ?.setValue(this.getIntroducerName(introducer));
+            ?.setValue(this.getIntroducerDisplayName(introducer));
         this.filteredIntroducers = [];
+
+        // Refiltrar rates por tipo de persona
+        this.filterRatesByInvoiceType(this.form.get('type')?.value);
     }
 
-    addItem(itemData?: any, rate?: any) {
+    addItem(itemData?: any, rate?: Rate) {
         const item = this.fb.group({
             rateId: [itemData?.rateId || rate?._id || null],
             description: [
@@ -256,19 +342,11 @@ export class InvoiceFormComponent implements OnInit {
                 [Validators.required, Validators.min(1)],
             ],
             unitPrice: [
-                itemData?.unitPrice || 0,
+                itemData?.unitPrice || rate?.unitPrice || 0,
                 [Validators.required, Validators.min(0)],
             ],
             total: [{ value: itemData?.total || 0, disabled: true }],
         });
-
-        // Si es un nuevo item con tarifa, calcular el precio unitario
-        if (rate && !itemData) {
-            this.calculateUnitPrice(item, rate._id).subscribe((price) => {
-                item.get('unitPrice')?.setValue(price);
-                this.calculateItemTotal(item);
-            });
-        }
 
         // Recalcular total del item cuando cambien cantidad o precio
         item.get('quantity')?.valueChanges.subscribe(() =>
@@ -280,34 +358,8 @@ export class InvoiceFormComponent implements OnInit {
 
         this.items.push(item);
 
-        if (itemData) {
-            this.calculateItemTotal(item);
-        }
-    }
-
-    private calculateUnitPrice(
-        item: FormGroup,
-        rateId: string
-    ): Observable<number> {
-        return this.oracleService
-            .calculateInvoiceItems([
-                {
-                    rateId,
-                    quantity: item.get('quantity')?.value || 1,
-                },
-            ])
-            .pipe(
-                switchMap((response: any) => {
-                    if (
-                        response &&
-                        response.items &&
-                        response.items.length > 0
-                    ) {
-                        return of(response.items[0].unitPrice);
-                    }
-                    return of(0);
-                })
-            );
+        // Calcular total inicial
+        this.calculateItemTotal(item);
     }
 
     removeItem(index: number) {
@@ -327,33 +379,64 @@ export class InvoiceFormComponent implements OnInit {
             this.form.get('subtotal')?.setValue(0);
             this.form.get('taxes')?.setValue(0);
             this.form.get('totalAmount')?.setValue(0);
+            this.calculationError = false;
             return;
         }
 
-        const itemsToCalculate = this.items.value.map((item: any) => ({
-            rateId: item.rateId,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-        }));
+        const itemsToCalculate = this.items.value
+            .filter((item: any) => item.rateId)
+            .map((item: any) => ({
+                rateId: item.rateId,
+                quantity: item.quantity,
+            }));
 
-        this.oracleService.calculateInvoiceItems(itemsToCalculate).subscribe({
-            next: (response) => {
-                this.form.get('subtotal')?.setValue(response.subtotal);
-                this.form.get('taxes')?.setValue(response.taxes);
-                this.form.get('totalAmount')?.setValue(response.total);
-            },
-            error: (error) => {
-                console.error('Error calculating totals:', error);
-                // Calcular manualmente si falla el servicio
-                const subtotal = this.items.value.reduce(
-                    (sum: number, item: any) => sum + (item.total || 0),
-                    0
-                );
-                this.form.get('subtotal')?.setValue(subtotal);
-                this.form.get('taxes')?.setValue(subtotal * 0.12); // Asumir 12% de impuestos
-                this.form.get('totalAmount')?.setValue(subtotal * 1.12);
-            },
-        });
+        if (itemsToCalculate.length === 0) {
+            // Cálculo manual si no hay items con rateId
+            this.calculateManually();
+            return;
+        }
+
+        this.oracleService
+            .calculateInvoiceItems(itemsToCalculate)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error calculating totals:', error);
+                    this.calculationError = true;
+                    this.calculateManually();
+                    return of(null);
+                })
+            )
+            .subscribe({
+                next: (response: any) => {
+                    if (response && response.subtotal !== undefined) {
+                        this.form.get('subtotal')?.setValue(response.subtotal);
+                        this.form.get('taxes')?.setValue(response.taxes || 0);
+                        this.form.get('totalAmount')?.setValue(response.total);
+                        this.calculationError = false;
+                    } else {
+                        this.calculationError = true;
+                        this.calculateManually();
+                        this.messageService.add({
+                            severity: 'warn',
+                            summary: 'Cálculo Manual',
+                            detail: 'No se recibieron datos del servicio de cálculo. Se usó cálculo manual.',
+                        });
+                    }
+                },
+            });
+    }
+
+    private calculateManually() {
+        const subtotal = this.items.value.reduce(
+            (sum: number, item: any) => sum + (item.total || 0),
+            0
+        );
+        const taxes = subtotal * 0.12; // IVA 12%
+        const total = subtotal + taxes;
+
+        this.form.get('subtotal')?.setValue(subtotal);
+        this.form.get('taxes')?.setValue(taxes);
+        this.form.get('totalAmount')?.setValue(total);
     }
 
     private clearItems() {
@@ -377,7 +460,7 @@ export class InvoiceFormComponent implements OnInit {
             this.messageService.add({
                 severity: 'warn',
                 summary: 'Items Requeridos',
-                detail: 'Debe agregar al menos un item a la factura',
+                detail: 'Debe agregar al menos un item a la proforma',
             });
             return;
         }
@@ -397,7 +480,7 @@ export class InvoiceFormComponent implements OnInit {
                 this.messageService.add({
                     severity: 'success',
                     summary: 'Éxito',
-                    detail: `Factura ${
+                    detail: `Proforma ${
                         this.isEditMode ? 'actualizada' : 'creada'
                     } correctamente`,
                 });
@@ -410,7 +493,7 @@ export class InvoiceFormComponent implements OnInit {
                     detail:
                         `Error al ${
                             this.isEditMode ? 'actualizar' : 'crear'
-                        } factura: ` + error.message,
+                        } proforma: ` + error.message,
                 });
                 this.loading = false;
             },
@@ -445,7 +528,7 @@ export class InvoiceFormComponent implements OnInit {
         return !!(field?.invalid && (field?.dirty || field?.touched));
     }
 
-    getIntroducerName(introducer: any): string {
+    getIntroducerDisplayName(introducer: any): string {
         if (introducer.type === 'Natural') {
             return introducer.name;
         } else {
@@ -471,11 +554,10 @@ export class InvoiceFormComponent implements OnInit {
         return '';
     }
 
-    getIntroducerDisplayName(introducer: any): string {
-        if (introducer.type === 'Natural') {
-            return introducer.name;
-        } else {
-            return introducer.companyName || 'Sin nombre';
-        }
+    getSelectedTypeDescription(): string {
+        const selectedType = this.typeOptions.find(
+            (t) => t.value === this.form.get('type')?.value
+        );
+        return selectedType?.description || '';
     }
 }
