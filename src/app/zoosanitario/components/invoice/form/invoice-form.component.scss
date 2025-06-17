@@ -1,44 +1,74 @@
+@use "sass:map";
+@import "primeng/resources/themes/lara-light-blue/theme.css";
+@import "primeng/resources/primeng.css";
+@import "primeicons/primeicons.css";
 
 .invoice-form-container {
+    padding: 1rem;
+
     .card {
-        background: var(--surface-card);
-        border-radius: var(--border-radius);
-        box-shadow: var(--shadow-1);
-        padding: 0;
-        margin-bottom: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 
-        .card-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--surface-border);
-            background: var(--surface-section);
-            border-radius: var(--border-radius) var(--border-radius) 0 0;
-
-            h3 {
-                color: var(--text-color);
-                font-weight: 600;
-            }
+        &-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            background-color: #f9fafb;
         }
 
-        .card-content {
-            padding: 2rem;
+        &-content {
+            padding: 1.5rem;
         }
     }
 
+    .formgrid.grid {
+        margin-bottom: 1.5rem;
 
-}
+        .field {
+            margin-bottom: 1rem;
 
-::ng-deep .p-inputnumber-input {
-    background: var(--surface-card);
-    color: var(--text-color);
-    border: 1px solid var(--surface-border);
-}
+            label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
 
-::ng-deep .p-calendar .p-inputtext {
-    background: var(--surface-card);
-    color: var(--text-color);
-    border: 1px solid var(--surface-border);
-    &:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem var(--primary-color-text);
+                &.required:after {
+                    content: " *";
+                    color: var(--red-500);
+                }
+            }
+        }
+    }
+
+    .items-list {
+        .item-card {
+            margin-bottom: 1rem;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .p-error {
+        color: var(--red-500);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .ng-invalid {
+        border-color: var(--red-500) !important;
+
+        &:focus {
+            box-shadow: 0 0 0 0.2rem rgba(244, 63, 94, 0.2);
+        }
     }
 }

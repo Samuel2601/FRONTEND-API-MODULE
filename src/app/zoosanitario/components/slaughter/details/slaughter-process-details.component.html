@@ -78,7 +78,10 @@
                             <div class="detail-item">
                                 <label>Creado por:</label>
                                 <span>{{
-                                    processData.createdBy || "N/A"
+                                    processData.createdBy?.name +
+                                        " " +
+                                        processData.createdBy?.last_name ||
+                                        "No disponible"
                                 }}</span>
                             </div>
                             <div
@@ -98,7 +101,12 @@
                                 *ngIf="processData.updatedBy"
                             >
                                 <label>Actualizado por:</label>
-                                <span>{{ processData.updatedBy }}</span>
+                                <span>{{
+                                    processData.updatedBy?.name +
+                                        " " +
+                                        processData.updatedBy?.last_name ||
+                                        "No disponible"
+                                }}</span>
                             </div>
                         </div>
                     </div>

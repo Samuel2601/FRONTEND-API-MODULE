@@ -30,6 +30,9 @@ import { ExternalInspectionListComponent } from './components/external-inspectio
 import { SlaughterProcessListComponent } from './components/slaughter/list/slaughter-process-list.component';
 import { SlaughterProcessFormComponent } from './components/slaughter/form/slaughter-process-form.component';
 import { RateListComponent } from './components/config/rate/list/rate-list.component';
+import { InvoiceListComponent } from './components/invoice/list/invoice-list.component';
+import { InvoiceFormComponent } from './components/invoice/form/invoice-form.component';
+import { InvoiceDetailComponent } from './components/invoice/detail/invoice-detail.component';
 
 // Rutas del módulo
 const routes: Routes = [
@@ -99,6 +102,28 @@ const routes: Routes = [
             {
                 path: 'slaughter-process/:id',
                 component: SlaughterProcessFormComponent,
+            },
+        ],
+    },
+    {
+        path: 'invoices',
+        children: [
+            {
+                path: '',
+                component: InvoiceListComponent,
+                data: { title: 'Facturas' },
+            },
+            {
+                path: 'new',
+                component: InvoiceFormComponent,
+            },
+            {
+                path: 'edit/:id',
+                component: InvoiceFormComponent,
+            },
+            {
+                path: 'view/:id',
+                component: InvoiceDetailComponent,
             },
         ],
     },

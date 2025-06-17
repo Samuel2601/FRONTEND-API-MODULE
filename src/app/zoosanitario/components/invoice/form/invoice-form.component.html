@@ -3,32 +3,26 @@
         <div class="card-header">
             <div class="flex justify-content-between align-items-center">
                 <h3 class="m-0">
-                    {{ isEditMode ? "Editar Factura" : "Nueva Factura" }}
+                    {{ isEditMode ? "Editar Proforma" : "Nueva Proforma" }}
                 </h3>
             </div>
         </div>
 
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="card-content">
-            <!-- Tipo de Factura -->
+            <!-- Tipo de Proforma -->
             <div class="formgrid grid">
                 <div class="field col-12">
-                    <label for="invoiceType" class="required"
-                        >Tipo de Factura</label
-                    >
+                    <label for="type" class="required">Tipo de Proforma</label>
                     <p-selectButton
-                        id="invoiceType"
-                        formControlName="invoiceType"
+                        id="type"
+                        formControlName="type"
                         [options]="typeOptions"
                         optionLabel="label"
                         optionValue="value"
-                        placeholder="Seleccionar"
                     >
                     </p-selectButton>
-                    <small
-                        class="p-error"
-                        *ngIf="isFieldInvalid('invoiceType')"
-                    >
-                        {{ getFieldError("invoiceType") }}
+                    <small class="p-error" *ngIf="isFieldInvalid('type')">
+                        {{ getFieldError("type") }}
                     </small>
                 </div>
             </div>
@@ -37,26 +31,30 @@
             <div class="formgrid grid">
                 <div class="field col-12 md:col-6">
                     <label for="introducerId" class="required"
-                        >Introducer</label
+                        >Introductor</label
                     >
-                    <p-dropdown
+                    <p-autoComplete
                         id="introducerId"
-                        formControlName="introducerId"
-                        [options]="introducers"
-                        optionLabel="displayName"
-                        optionValue="_id"
-                        placeholder="Seleccionar"
-                        [class.ng-invalid]="isFieldInvalid('introducerId')"
+                        inputId="introducerSearch"
+                        [(ngModel)]="introducerSearch"
+                        [ngModelOptions]="{ standalone: true }"
+                        [suggestions]="filteredIntroducers"
+                        (completeMethod)="filterIntroducers($event.query)"
+                        field="name"
+                        [minLength]="1"
+                        placeholder="Buscar introductor..."
+                        [dropdown]="true"
+                        (onSelect)="selectIntroducer($event)"
                     >
                         <ng-template let-introducer pTemplate="item">
                             <div class="flex align-items-center gap-2">
                                 <i
                                     class="pi"
                                     [class.pi-user]="
-                                        introducer.type === 'NATURAL'
+                                        introducer.type === 'Natural'
                                     "
                                     [class.pi-building]="
-                                        introducer.type === 'JURIDICAL'
+                                        introducer.type === 'Jurídica'
                                     "
                                 ></i>
                                 <div>
@@ -66,13 +64,12 @@
                                         }}
                                     </div>
                                     <div class="text-sm text-600">
-                                        {{ introducer.idNumber }} -
-                                        {{ introducer.introducerType }}
+                                        {{ introducer.idNumber }}
                                     </div>
                                 </div>
                             </div>
                         </ng-template>
-                    </p-dropdown>
+                    </p-autoComplete>
                     <small
                         class="p-error"
                         *ngIf="isFieldInvalid('introducerId')"
@@ -82,280 +79,236 @@
                 </div>
 
                 <div class="field col-12 md:col-6">
-                    <label for="introducerSearch" class="required">
-                        Buscar Introducer
-                    </label>
+                    <label for="invoiceNumber" class="required"
+                        >Número de Proforma</label
+                    >
                     <input
-                        type="text"
                         pInputText
-                        id="introducerSearch"
-                        [(ngModel)]="introducerSearch"
-                        placeholder="Buscar por nombre, cédula..."
-                        (keyup.enter)="selectIntroducer(selectedIntroducer)"
+                        id="invoiceNumber"
+                        formControlName="invoiceNumber"
+                        placeholder="Número de Proforma"
+                        [readonly]="isEditMode"
                     />
+                    <small
+                        class="p-error"
+                        *ngIf="isFieldInvalid('invoiceNumber')"
+                    >
+                        {{ getFieldError("invoiceNumber") }}
+                    </small>
+                </div>
+            </div>
+
+            <!-- Tarifas disponibles -->
+            <div class="formgrid grid" *ngIf="filteredRates.length > 0">
+                <div class="field col-12">
+                    <label>Tarifas Disponibles</label>
+                    <div class="flex flex-wrap gap-2">
+                        <p-chip
+                            *ngFor="let rate of filteredRates"
+                            [label]="rate.description"
+                            [styleClass]="'mb-2'"
+                            (click)="addItem(null, rate)"
+                            pTooltip="Click para agregar"
+                            tooltipPosition="top"
+                        >
+                            <span class="font-semibold">{{ rate.code }}</span> -
+                            {{ formatCurrency(rate.unitPrice || 0) }}
+                        </p-chip>
+                    </div>
                 </div>
             </div>
 
             <!-- Items -->
             <div class="formgrid grid">
                 <div class="field col-12">
-                    <label for="items" class="required">Items</label>
+                    <label class="required">Items</label>
                     <div class="items-list">
                         <div
                             *ngFor="let item of items.controls; let i = index"
-                            class="item-card"
+                            class="item-card p-3 border-round border-1 surface-border mb-3"
                         >
-                            <p-panel
-                                [header]="'Item #' + (i + 1)"
-                                [toggleable]="true"
+                            <div
+                                class="flex justify-content-between align-items-center mb-2"
                             >
-                                <div class="grid">
-                                    <div class="col-12 md:col-6">
-                                        <div class="field">
-                                            <label
-                                                [for]="'itemDescription_' + i"
-                                                class="required"
-                                                >Descripción</label
-                                            >
-                                            <textarea
-                                                pInputTextarea
-                                                id="itemDescription_{{ i }}"
-                                                formControlName="description"
-                                                rows="2"
-                                                placeholder="Descripción opcional"
-                                                [class.ng-invalid]="
-                                                    isItemFieldInvalid(
-                                                        i,
-                                                        'description'
-                                                    )
-                                                "
-                                            >
-                                            </textarea>
-                                            <small
-                                                class="p-error"
-                                                *ngIf="
-                                                    isItemFieldInvalid(
-                                                        i,
-                                                        'description'
-                                                    )
-                                                "
-                                            >
-                                                {{
-                                                    getFieldError("description")
-                                                }}
-                                            </small>
-                                        </div>
-                                    </div>
+                                <h4 class="m-0">Item #{{ i + 1 }}</h4>
+                                <p-button
+                                    icon="pi pi-trash"
+                                    severity="danger"
+                                    size="small"
+                                    [text]="true"
+                                    [rounded]="true"
+                                    (onClick)="removeItem(i)"
+                                    pTooltip="Eliminar"
+                                ></p-button>
+                            </div>
 
-                                    <div class="col-12 md:col-6">
-                                        <div class="field">
-                                            <label
-                                                [for]="'itemQuantity_' + i"
-                                                class="required"
-                                                >Cantidad</label
-                                            >
-                                            <p-inputNumber
-                                                id="itemQuantity_{{ i }}"
-                                                formControlName="quantity"
-                                                [min]="1"
-                                                [showButtons]="true"
-                                                buttonLayout="horizontal"
-                                                spinnerMode="horizontal"
-                                                [class.ng-invalid]="
-                                                    isItemFieldInvalid(
-                                                        i,
-                                                        'quantity'
-                                                    )
-                                                "
-                                            >
-                                            </p-inputNumber>
-                                            <small
-                                                class="p-error"
-                                                *ngIf="
-                                                    isItemFieldInvalid(
-                                                        i,
-                                                        'quantity'
-                                                    )
-                                                "
-                                            >
-                                                {{ getFieldError("quantity") }}
-                                            </small>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-12 md:col-6">
-                                        <div class="field">
-                                            <label
-                                                [for]="'itemUnitPrice_' + i"
-                                                class="required"
-                                                >Precio Unitario</label
-                                            >
-                                            <p-inputNumber
-                                                id="itemUnitPrice_{{ i }}"
-                                                formControlName="unitPrice"
-                                                mode="currency"
-                                                currency="USD"
-                                                locale="es-EC"
-                                                [min]="0"
-                                                [step]="0.01"
-                                                placeholder="0.00"
-                                                [class.ng-invalid]="
-                                                    isItemFieldInvalid(
-                                                        i,
-                                                        'unitPrice'
-                                                    )
-                                                "
-                                                [class.ng-invalid]="
-                                                    isItemFieldInvalid(
-                                                        i,
-                                                        'unitPrice'
-                                                    )
-                                                "
-                                            >
-                                            </p-inputNumber>
-                                            <small
-                                                class="p-error"
-                                                *ngIf="
-                                                    isItemFieldInvalid(
-                                                        i,
-                                                        'unitPrice'
-                                                    )
-                                                "
-                                            >
-                                                {{ getFieldError("unitPrice") }}
-                                            </small>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-12 md:col-6">
-                                        <div class="field">
-                                            <label
-                                                [for]="'itemTotal_' + i"
-                                                class="required"
-                                                >Total</label
-                                            >
-                                            <p-inputNumber
-                                                id="itemTotal_{{ i }}"
-                                                formControlName="total"
-                                                mode="currency"
-                                                currency="USD"
-                                                locale="es-EC"
-                                                [min]="0"
-                                                [step]="0.01"
-                                                placeholder="0.00"
-                                                [class.ng-invalid]="
-                                                    isItemFieldInvalid(
-                                                        i,
-                                                        'total'
-                                                    )
-                                                "
-                                            >
-                                            </p-inputNumber>
-                                            <small
-                                                class="p-error"
-                                                *ngIf="
-                                                    isItemFieldInvalid(
-                                                        i,
-                                                        'total'
-                                                    )
-                                                "
-                                            >
-                                                {{ getFieldError("total") }}
-                                            </small>
-                                        </div>
+                            <div class="grid">
+                                <div class="col-12 md:col-6">
+                                    <div class="field">
+                                        <label
+                                            [for]="'itemDescription_' + i"
+                                            class="required"
+                                            >Descripción</label
+                                        >
+                                        <textarea
+                                            pInputTextarea
+                                            [id]="'itemDescription_' + i"
+                                            [formControlName]="
+                                                i + '.description'
+                                            "
+                                            rows="2"
+                                            placeholder="Descripción del item"
+                                            [class.ng-invalid]="
+                                                isItemFieldInvalid(
+                                                    i,
+                                                    'description'
+                                                )
+                                            "
+                                        ></textarea>
+                                        <small
+                                            class="p-error"
+                                            *ngIf="
+                                                isItemFieldInvalid(
+                                                    i,
+                                                    'description'
+                                                )
+                                            "
+                                        >
+                                            {{ getFieldError("description") }}
+                                        </small>
                                     </div>
                                 </div>
 
-                                <div class="flex justify-content-end mt-3">
-                                    <p-button
-                                        icon="pi pi-trash"
-                                        severity="danger"
-                                        size="small"
-                                        [text]="true"
-                                        [rounded]="true"
-                                        (onClick)="removeItem(i)"
-                                        pTooltip="Eliminar"
-                                    >
-                                    </p-button>
+                                <div class="col-12 md:col-2">
+                                    <div class="field">
+                                        <label
+                                            [for]="'itemQuantity_' + i"
+                                            class="required"
+                                            >Cantidad</label
+                                        >
+                                        <p-inputNumber
+                                            [id]="'itemQuantity_' + i"
+                                            [formControlName]="i + '.quantity'"
+                                            [min]="1"
+                                            mode="decimal"
+                                            [showButtons]="true"
+                                            [class.ng-invalid]="
+                                                isItemFieldInvalid(
+                                                    i,
+                                                    'quantity'
+                                                )
+                                            "
+                                        ></p-inputNumber>
+                                        <small
+                                            class="p-error"
+                                            *ngIf="
+                                                isItemFieldInvalid(
+                                                    i,
+                                                    'quantity'
+                                                )
+                                            "
+                                        >
+                                            {{ getFieldError("quantity") }}
+                                        </small>
+                                    </div>
                                 </div>
-                            </p-panel>
+
+                                <div class="col-12 md:col-2">
+                                    <div class="field">
+                                        <label
+                                            [for]="'itemUnitPrice_' + i"
+                                            class="required"
+                                            >P. Unitario</label
+                                        >
+                                        <p-inputNumber
+                                            [id]="'itemUnitPrice_' + i"
+                                            [formControlName]="i + '.unitPrice'"
+                                            mode="currency"
+                                            currency="USD"
+                                            locale="es-EC"
+                                            [min]="0"
+                                            [step]="0.01"
+                                            [class.ng-invalid]="
+                                                isItemFieldInvalid(
+                                                    i,
+                                                    'unitPrice'
+                                                )
+                                            "
+                                        ></p-inputNumber>
+                                        <small
+                                            class="p-error"
+                                            *ngIf="
+                                                isItemFieldInvalid(
+                                                    i,
+                                                    'unitPrice'
+                                                )
+                                            "
+                                        >
+                                            {{ getFieldError("unitPrice") }}
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-2">
+                                    <div class="field">
+                                        <label
+                                            [for]="'itemTotal_' + i"
+                                            class="required"
+                                            >Total</label
+                                        >
+                                        <p-inputNumber
+                                            [id]="'itemTotal_' + i"
+                                            [formControlName]="i + '.total'"
+                                            mode="currency"
+                                            currency="USD"
+                                            locale="es-EC"
+                                            [min]="0"
+                                            [step]="0.01"
+                                            [readonly]="true"
+                                        ></p-inputNumber>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <p-button
+                        label="Agregar Item Manual"
+                        icon="pi pi-plus"
+                        styleClass="p-button-outlined mt-2"
+                        (click)="addItem()"
+                    ></p-button>
                 </div>
             </div>
 
-            <!-- Subtotal -->
+            <!-- Totales -->
             <div class="formgrid grid">
-                <div class="field col-12">
-                    <label for="subtotal" class="required">Subtotal</label>
+                <div class="field col-12 md:col-4">
+                    <label>Subtotal</label>
                     <p-inputNumber
-                        id="subtotal"
                         formControlName="subtotal"
                         mode="currency"
                         currency="USD"
                         locale="es-EC"
-                        [min]="0"
-                        [step]="0.01"
-                        placeholder="0.00"
-                        [class.ng-invalid]="isFieldInvalid('subtotal')"
-                    >
-                    </p-inputNumber>
-                    <small class="p-error" *ngIf="isFieldInvalid('subtotal')">
-                        {{ getFieldError("subtotal") }}
-                    </small>
+                        [readonly]="true"
+                    ></p-inputNumber>
                 </div>
-            </div>
 
-            <!-- Taxes -->
-            <div class="formgrid grid">
-                <div class="field col-12">
-                    <label for="taxes" class="required">Impuestos</label>
+                <div class="field col-12 md:col-4">
+                    <label>Total</label>
                     <p-inputNumber
-                        id="taxes"
-                        formControlName="taxes"
-                        mode="currency"
-                        currency="USD"
-                        locale="es-EC"
-                        [min]="0"
-                        [step]="0.01"
-                        placeholder="0.00"
-                        [class.ng-invalid]="isFieldInvalid('taxes')"
-                    >
-                    </p-inputNumber>
-                    <small class="p-error" *ngIf="isFieldInvalid('taxes')">
-                        {{ getFieldError("taxes") }}
-                    </small>
-                </div>
-            </div>
-
-            <!-- Total -->
-            <div class="formgrid grid">
-                <div class="field col-12">
-                    <label for="totalAmount" class="required">Total</label>
-                    <p-inputNumber
-                        id="totalAmount"
                         formControlName="totalAmount"
                         mode="currency"
                         currency="USD"
                         locale="es-EC"
-                        [min]="0"
-                        [step]="0.01"
-                        placeholder="0.00"
-                        [class.ng-invalid]="isFieldInvalid('totalAmount')"
-                    >
-                    </p-inputNumber>
-                    <small
-                        class="p-error"
-                        *ngIf="isFieldInvalid('totalAmount')"
-                    >
-                        {{ getFieldError("totalAmount") }}
-                    </small>
+                        [readonly]="true"
+                    ></p-inputNumber>
                 </div>
             </div>
 
-            <!-- Due Date -->
+            <!-- Fecha y Notas -->
             <div class="formgrid grid">
-                <div class="field col-12">
+                <div class="field col-12 md:col-6">
                     <label for="dueDate" class="required"
                         >Fecha Vencimiento</label
                     >
@@ -365,18 +318,14 @@
                         dateFormat="dd/mm/yy"
                         [showIcon]="true"
                         [class.ng-invalid]="isFieldInvalid('dueDate')"
-                    >
-                    </p-calendar>
+                    ></p-calendar>
                     <small class="p-error" *ngIf="isFieldInvalid('dueDate')">
                         {{ getFieldError("dueDate") }}
                     </small>
                 </div>
-            </div>
 
-            <!-- Notes -->
-            <div class="formgrid grid">
-                <div class="field col-12">
-                    <label for="notes" class="required">Notas</label>
+                <div class="field col-12 md:col-6">
+                    <label for="notes">Notas</label>
                     <textarea
                         pInputTextarea
                         id="notes"
@@ -384,12 +333,7 @@
                         rows="3"
                         placeholder="Notas adicionales (opcional)"
                         [autoResize]="true"
-                        [class.ng-invalid]="isFieldInvalid('notes')"
-                    >
-                    </textarea>
-                    <small class="p-error" *ngIf="isFieldInvalid('notes')">
-                        {{ getFieldError("notes") }}
-                    </small>
+                    ></textarea>
                 </div>
             </div>
 
@@ -402,17 +346,15 @@
                     severity="secondary"
                     (click)="onCancel()"
                     [disabled]="loading"
-                >
-                </p-button>
+                ></p-button>
 
                 <p-button
                     type="submit"
                     [label]="isEditMode ? 'Actualizar' : 'Crear'"
                     icon="pi pi-check"
                     [loading]="loading"
-                    [disabled]="form.invalid && !loading"
-                >
-                </p-button>
+                    [disabled]="form.invalid || loading"
+                ></p-button>
             </div>
         </form>
     </div>

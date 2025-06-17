@@ -115,7 +115,7 @@ export class SlaughterProcessDetailsComponent implements OnInit, OnDestroy {
 
     loadRelatedData(): void {
         if (!this.processData) return;
-
+        console.log('loadRelatedData', this.processData);
         // Determinar qué datos necesitamos cargar
         const loadRequests: any = {};
 

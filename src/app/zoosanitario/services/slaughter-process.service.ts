@@ -52,8 +52,8 @@ export interface SlaughterProcess {
         | 'EnProceso'
         | 'Finalizado'
         | 'Anulado';
-    createdBy: string | User;
-    updatedBy?: string | User;
+    createdBy: User;
+    updatedBy?: User;
     deletedBy?: string;
     deletedAt?: Date;
     createdAt?: Date;

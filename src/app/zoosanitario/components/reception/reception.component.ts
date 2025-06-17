@@ -196,15 +196,15 @@ export class ReceptionComponent implements OnInit, OnDestroy {
             // === DATOS DE TRANSPORTE ===
             transporte: this.fb.group({
                 temperatura: [
-                    null,
+                    33,
                     [
                         Validators.required,
-                        Validators.min(-10),
-                        Validators.max(50),
+                        Validators.min(-20),
+                        Validators.max(80),
                     ],
                 ],
                 humedadAmbiental: [
-                    null,
+                    65,
                     [
                         Validators.required,
                         Validators.min(0),
@@ -212,10 +212,7 @@ export class ReceptionComponent implements OnInit, OnDestroy {
                     ],
                 ],
                 condicionesHigienicas: ['', Validators.required],
-                condicionAnimales: [
-                    '',
-                    [Validators.required, Validators.maxLength(500)],
-                ],
+                condicionAnimales: ['', [Validators.maxLength(500)]],
                 observaciones: ['', Validators.maxLength(1000)],
                 fechaInspeccion: [new Date(), Validators.required],
             }),
