@@ -265,6 +265,40 @@ export class SlaughterProcessService extends BaseService<SlaughterProcess> {
         throw error;
     }
 
+    /**
+     * Método mejorado para limpiar caché
+     * Incluye limpieza de cachés relacionados
+     */
+    clearCache(): void {
+        // Limpiar caché específico de este servicio
+        this.cacheService.clearByPrefix(this.endpoint);
+
+        // Limpiar cachés relacionados
+        this.cacheService.clearByPrefix('statistics');
+        this.cacheService.clearByPrefix('summary');
+        this.cacheService.clearByPrefix('metrics');
+        this.cacheService.clearByPrefix('audit');
+        this.cacheService.clearByPrefix('search');
+        this.cacheService.clearByPrefix('count');
+        this.cacheService.clearByPrefix('transitions');
+
+        console.log(
+            'Caché limpiado completamente para procesos de faenamiento'
+        );
+    }
+
+    /**
+     * Método para limpiar caché después de operaciones que modifican datos
+     */
+    private clearCacheAfterModification(): void {
+        this.clearCache();
+
+        // También limpiar caché de otros servicios relacionados si es necesario
+        this.cacheService.clearByPrefix('invoice');
+        this.cacheService.clearByPrefix('reception');
+        this.cacheService.clearByPrefix('inspection');
+    }
+
     // ========================================
     // MÉTODOS DE CONSULTA BÁSICOS
     // ========================================
@@ -537,7 +571,7 @@ export class SlaughterProcessService extends BaseService<SlaughterProcess> {
             .pipe(
                 map((response) => this.handleApiResponse(response)),
                 tap(() => {
-                    this.cacheService.clearByPrefix(this.endpoint);
+                    this.clearCacheAfterModification();
                     this.messageService.add({
                         severity: 'success',
                         summary: 'Éxito',
@@ -564,7 +598,7 @@ export class SlaughterProcessService extends BaseService<SlaughterProcess> {
             .pipe(
                 map((response) => this.handleApiResponse(response)),
                 tap(() => {
-                    this.cacheService.clearByPrefix(this.endpoint);
+                    this.clearCacheAfterModification();
                     this.messageService.add({
                         severity: 'success',
                         summary: 'Éxito',
@@ -588,7 +622,7 @@ export class SlaughterProcessService extends BaseService<SlaughterProcess> {
             .pipe(
                 map((response) => this.handleApiResponse(response)),
                 tap(() => {
-                    this.cacheService.clearByPrefix(this.endpoint);
+                    this.clearCacheAfterModification();
                     this.messageService.add({
                         severity: 'success',
                         summary: 'Éxito',
@@ -617,7 +651,7 @@ export class SlaughterProcessService extends BaseService<SlaughterProcess> {
             .pipe(
                 map((response) => this.handleApiResponse(response)),
                 tap(() => {
-                    this.cacheService.clearByPrefix(this.endpoint);
+                    this.clearCacheAfterModification();
                     this.messageService.add({
                         severity: 'success',
                         summary: 'Éxito',
@@ -982,13 +1016,6 @@ export class SlaughterProcessService extends BaseService<SlaughterProcess> {
     }
 
     /**
-     * Limpiar caché específico de este servicio
-     */
-    clearCache(): void {
-        this.cacheService.clearByPrefix(this.endpoint);
-    }
-
-    /**
      * Override del método delete base para requerir justificación
      */
     override delete(id: string): Observable<void> {
@@ -1014,7 +1041,7 @@ export class SlaughterProcessService extends BaseService<SlaughterProcess> {
             .pipe(
                 map((response) => this.handleApiResponse(response)),
                 tap(() => {
-                    this.cacheService.clearByPrefix(this.endpoint);
+                    this.clearCacheAfterModification();
                     this.messageService.add({
                         severity: 'success',
                         summary: 'Éxito',
@@ -1043,7 +1070,7 @@ export class SlaughterProcessService extends BaseService<SlaughterProcess> {
             .pipe(
                 map((response) => this.handleApiResponse(response)),
                 tap(() => {
-                    this.cacheService.clearByPrefix(this.endpoint);
+                    this.clearCacheAfterModification();
                     this.messageService.add({
                         severity: 'success',
                         summary: 'Éxito',

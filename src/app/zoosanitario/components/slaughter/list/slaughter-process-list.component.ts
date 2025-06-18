@@ -191,6 +191,9 @@ export class SlaughterProcessListComponent implements OnInit, OnDestroy {
     searchByOrder(): void {
         if (this.searchOrder.trim()) {
             this.loading = true;
+            // Limpiar caché antes de la búsqueda
+            this.slaughterProcessService.clearCache();
+
             this.slaughterProcessService
                 .getSlaughterProcessByNumber(this.searchOrder.trim())
                 .pipe(
@@ -219,6 +222,9 @@ export class SlaughterProcessListComponent implements OnInit, OnDestroy {
     }
 
     onFilterChange(): void {
+        // Limpiar caché cuando cambien los filtros
+        this.slaughterProcessService.clearCache();
+
         this.currentPage = 0;
         this.loadProcesses({
             first: 0,
@@ -267,9 +273,22 @@ export class SlaughterProcessListComponent implements OnInit, OnDestroy {
     }
 
     refresh(): void {
+        // Limpiar caché completamente antes del refresh
+        this.slaughterProcessService.clearCache();
+
+        // Mostrar mensaje de actualización
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Actualizando',
+            detail: 'Cargando datos actualizados...',
+        });
+
+        // Resetear filtros y estado
         this.searchOrder = '';
         this.filters = {};
         this.selectedProcesses = [];
+
+        // Recargar datos
         this.loadProcesses({
             first: this.currentPage * this.pageSize,
             rows: this.pageSize,

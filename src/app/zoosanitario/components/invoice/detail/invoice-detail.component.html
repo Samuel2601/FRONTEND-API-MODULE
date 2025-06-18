@@ -1,417 +1,575 @@
 <!-- src/app/demo/components/invoice/invoice-detail/invoice-detail.component.html -->
 
-<p-toast></p-toast>
-<p-confirmDialog></p-confirmDialog>
+<!-- Agregar la clase contenedor principal -->
+<div class="invoice-detail-container">
+    <p-toast></p-toast>
+    <p-confirmDialog></p-confirmDialog>
 
-@if (loading()) {
-<div
-    class="flex align-items-center justify-content-center"
-    style="height: 400px"
->
-    <p-progressSpinner></p-progressSpinner>
-</div>
-} @else if (invoice()) {
-<div class="card">
-    <!-- Header -->
+    @if (loading()) {
     <div
-        class="flex flex-wrap align-items-center justify-content-between gap-3 mb-4"
+        class="flex align-items-center justify-content-center"
+        style="height: 400px"
     >
-        <div class="flex align-items-center gap-3">
-            <button
-                pButton
-                icon="pi pi-arrow-left"
-                class="p-button-text p-button-rounded"
-                (click)="back()"
-                pTooltip="Volver al listado"
-            ></button>
-            <h2 class="m-0">Proforma {{ invoice()!.invoiceNumber }}</h2>
-            <p-tag
-                [value]="getStatusLabel(invoice()!.status)"
-                [severity]="getSeverity(invoice()!.status)"
-            >
-            </p-tag>
-        </div>
-
-        <div class="flex gap-2">
-            <button
-                pButton
-                icon="pi pi-download"
-                label="PDF"
-                class="p-button-outlined p-button-sm"
-                (click)="downloadPDF()"
-            ></button>
-            <button
-                pButton
-                icon="pi pi-print"
-                label="Imprimir"
-                class="p-button-outlined p-button-sm"
-                (click)="printInvoice()"
-            ></button>
-            <button
-                pButton
-                icon="pi pi-share-alt"
-                label="Compartir"
-                class="p-button-outlined p-button-sm"
-                (click)="shareInvoice()"
-            ></button>
-        </div>
+        <p-progressSpinner></p-progressSpinner>
     </div>
-
-    <!-- Contenido Principal -->
-    <div class="grid">
-        <!-- Información General -->
-        <div class="col-12 lg:col-8">
-            <p-card>
-                <ng-template pTemplate="header">
-                    <div class="p-3">
-                        <h3 class="m-0">Información General</h3>
-                    </div>
-                </ng-template>
-
-                <div class="grid">
-                    <div class="col-12 md:col-6">
-                        <h4 class="text-primary mb-2">Datos del Introductor</h4>
-                        <div class="mb-2">
-                            <label class="text-600 font-medium">Nombre:</label>
-                            <p class="mt-1 mb-0 font-semibold">
-                                {{ invoice()!.introducer?.name }}
-                            </p>
-                        </div>
-                        <div class="mb-2">
-                            <label class="text-600 font-medium"
-                                >Identificación:</label
-                            >
-                            <p class="mt-1 mb-0">
-                                {{
-                                    invoice()!.introducer?.identificationNumber
-                                }}
-                            </p>
-                        </div>
-                        @if (invoice()!.introducer?.email) {
-                        <div class="mb-2">
-                            <label class="text-600 font-medium">Email:</label>
-                            <p class="mt-1 mb-0">
-                                {{ invoice()!.introducer?.email }}
-                            </p>
-                        </div>
-                        } @if (invoice()!.introducer?.phone) {
-                        <div class="mb-2">
-                            <label class="text-600 font-medium"
-                                >Teléfono:</label
-                            >
-                            <p class="mt-1 mb-0">
-                                {{ invoice()!.introducer?.phone }}
-                            </p>
-                        </div>
-                        }
-                    </div>
-
-                    <div class="col-12 md:col-6">
-                        <h4 class="text-primary mb-2">Fechas</h4>
-                        <div class="mb-2">
-                            <label class="text-600 font-medium"
-                                >Fecha de Emisión:</label
-                            >
-                            <p class="mt-1 mb-0">
-                                {{ invoice()!.issueDate | date : "dd/MM/yyyy" }}
-                            </p>
-                        </div>
-                        @if (invoice()!.dueDate) {
-                        <div class="mb-2">
-                            <label class="text-600 font-medium"
-                                >Fecha de Vencimiento:</label
-                            >
-                            <p class="mt-1 mb-0">
-                                {{ invoice()!.dueDate | date : "dd/MM/yyyy" }}
-                            </p>
-                        </div>
-                        } @if (invoice()!.payDate) {
-                        <div class="mb-2">
-                            <label class="text-600 font-medium"
-                                >Fecha de Pago:</label
-                            >
-                            <p class="mt-1 mb-0 text-green-600 font-semibold">
-                                {{ invoice()!.payDate | date : "dd/MM/yyyy" }}
-                            </p>
-                        </div>
-                        }
-                    </div>
-                </div>
-
-                <p-divider></p-divider>
-
-                <!-- Detalle de Items -->
-                <h4 class="text-primary mb-3">Detalle de Items</h4>
-                <p-table
-                    [value]="invoice()!.items"
-                    styleClass="p-datatable-gridlines p-datatable-sm"
-                    [tableStyle]="{ 'min-width': '100%' }"
-                >
-                    <ng-template pTemplate="header">
-                        <tr>
-                            <th>Descripción</th>
-                            <th class="text-center">Cantidad</th>
-                            <th class="text-right">Precio Unit.</th>
-                            <th class="text-right">Total</th>
-                        </tr>
-                    </ng-template>
-                    <ng-template pTemplate="body" let-item>
-                        <tr>
-                            <td>
-                                <div>
-                                    <span class="font-semibold">{{
-                                        item.rate?.description ||
-                                            item.description
-                                    }}</span>
-                                    @if (item.rate?.code) {
-                                    <p-tag
-                                        severity="secondary"
-                                        [value]="item.rate.code"
-                                        styleClass="ml-2"
-                                    >
-                                    </p-tag>
-                                    }
-                                </div>
-                            </td>
-                            <td class="text-center">{{ item.quantity }}</td>
-                            <td class="text-right">
-                                {{
-                                    item.unitPrice
-                                        | currency : "USD" : "symbol" : "1.2-2"
-                                }}
-                            </td>
-                            <td class="text-right font-semibold">
-                                {{
-                                    item.totalAmount
-                                        | currency : "USD" : "symbol" : "1.2-2"
-                                }}
-                            </td>
-                        </tr>
-                    </ng-template>
-                    <ng-template pTemplate="footer">
-                        <tr>
-                            <td colspan="3" class="text-right font-bold">
-                                Total:
-                            </td>
-                            <td
-                                class="text-right font-bold text-primary text-xl"
-                            >
-                                {{
-                                    invoice()!.totalAmount
-                                        | currency : "USD" : "symbol" : "1.2-2"
-                                }}
-                            </td>
-                        </tr>
-                    </ng-template>
-                </p-table>
-
-                @if (invoice()!.notes) {
-                <p-divider></p-divider>
-                <h4 class="text-primary mb-2">Observaciones</h4>
-                <p class="line-height-3">{{ invoice()!.notes }}</p>
-                }
-            </p-card>
-        </div>
-
-        <!-- Panel Lateral -->
-        <div class="col-12 lg:col-4">
-            <!-- Acciones -->
-            <p-card styleClass="mb-3">
-                <ng-template pTemplate="header">
-                    <div class="p-3">
-                        <h3 class="m-0">Acciones</h3>
-                    </div>
-                </ng-template>
-
-                <div class="flex flex-column gap-2">
-                    @if (invoice()!.status === 'Generated') {
-                    <button
-                        pButton
-                        label="Emitir Proforma"
-                        icon="pi pi-send"
-                        class="w-full"
-                        [loading]="processingAction()"
-                        (click)="issueInvoice()"
-                    ></button>
-                    } @if (invoice()!.status === 'Issued') {
-                    <button
-                        pButton
-                        label="Marcar como Pagada"
-                        icon="pi pi-check"
-                        class="w-full p-button-success"
-                        [loading]="processingAction()"
-                        (click)="markAsPaid()"
-                    ></button>
-
-                    <button
-                        pButton
-                        label="Integrar con Oracle"
-                        icon="pi pi-database"
-                        class="w-full p-button-warning"
-                        [loading]="processingAction()"
-                        (click)="showOracleIntegration()"
-                    ></button>
-                    } @if (invoice()!.status !== 'Cancelled' &&
-                    invoice()!.status !== 'Paid') {
-                    <p-divider></p-divider>
-                    <button
-                        pButton
-                        label="Cancelar Proforma"
-                        icon="pi pi-times"
-                        class="w-full p-button-danger p-button-outlined"
-                        [loading]="processingAction()"
-                        (click)="cancelInvoice()"
-                    ></button>
-                    }
-                </div>
-            </p-card>
-
-            <!-- Timeline -->
-            <p-card>
-                <ng-template pTemplate="header">
-                    <div class="p-3">
-                        <h3 class="m-0">Historial</h3>
-                    </div>
-                </ng-template>
-
-                <p-timeline
-                    [value]="invoiceEvents()"
-                    styleClass="customized-timeline"
-                >
-                    <ng-template pTemplate="marker" let-event>
-                        <span
-                            class="flex w-2rem h-2rem align-items-center justify-content-center text-white border-circle z-1 shadow-1"
-                            [style.backgroundColor]="event.color"
-                        >
-                            <i [class]="event.icon"></i>
-                        </span>
-                    </ng-template>
-                    <ng-template pTemplate="content" let-event>
-                        <p-card styleClass="mt-3">
-                            <h5 class="mt-0 mb-2">{{ event.status }}</h5>
-                            <p class="text-600 mb-1">
-                                {{ event.date | date : "dd/MM/yyyy HH:mm" }}
-                            </p>
-                            @if (event.description) {
-                            <p class="mb-0">{{ event.description }}</p>
-                            }
-                        </p-card>
-                    </ng-template>
-                </p-timeline>
-            </p-card>
-
-            <!-- Información Oracle -->
-            @if (invoice()!.oracleIntegration) {
-            <p-card styleClass="mt-3">
-                <ng-template pTemplate="header">
-                    <div class="p-3">
-                        <h3 class="m-0">Integración Oracle</h3>
-                    </div>
-                </ng-template>
-
-                <div class="flex flex-column gap-2">
-                    @if (invoice()!.oracleIntegration.titleNumber) {
-                    <div>
-                        <label class="text-600 font-medium"
-                            >Número de Título:</label
-                        >
-                        <p class="mt-1 mb-0 font-semibold">
-                            {{ invoice()!.oracleIntegration.titleNumber }}
-                        </p>
-                    </div>
-                    } @if (invoice()!.oracleIntegration.externalId) {
-                    <div>
-                        <label class="text-600 font-medium">ID Externo:</label>
-                        <p class="mt-1 mb-0">
-                            {{ invoice()!.oracleIntegration.externalId }}
-                        </p>
-                    </div>
-                    } @if (invoice()!.oracleIntegration.lastSyncDate) {
-                    <div>
-                        <label class="text-600 font-medium"
-                            >Última Sincronización:</label
-                        >
-                        <p class="mt-1 mb-0">
-                            {{
-                                invoice()!.oracleIntegration.lastSyncDate
-                                    | date : "dd/MM/yyyy HH:mm"
-                            }}
-                        </p>
-                    </div>
-                    }
-                </div>
-            </p-card>
-            }
-        </div>
-    </div>
-</div>
-}
-
-<!-- Dialog de Integración con Oracle -->
-<p-dialog
-    header="Integración con Oracle"
-    [(visible)]="showOracleDialog"
-    [modal]="true"
-    [style]="{ width: '500px' }"
-    [draggable]="false"
->
-    <div class="flex flex-column gap-3">
+    } @else if (invoice()) {
+    <div class="card">
+        <!-- Header -->
         <div
-            class="text-orange-600 flex align-items-center gap-2 p-3 surface-100 border-round"
+            class="flex flex-wrap align-items-center justify-content-between gap-3 mb-4"
         >
-            <i class="pi pi-exclamation-triangle"></i>
-            <span
-                >Esta acción emitirá la proforma en el sistema Oracle
-                F_EMIAUT</span
-            >
-        </div>
+            <div class="flex align-items-center gap-3">
+                <button
+                    pButton
+                    icon="pi pi-arrow-left"
+                    class="p-button-text p-button-rounded"
+                    (click)="back()"
+                    pTooltip="Volver al listado"
+                ></button>
+                <h2 class="m-0">Proforma {{ invoice()!.invoiceNumber }}</h2>
+                <p-tag
+                    [value]="getStatusLabel(invoice()!.status)"
+                    [severity]="getSeverity(invoice()!.status)"
+                >
+                </p-tag>
 
-        @if (oracleIntegrationData) {
-        <div class="surface-50 border-round p-3">
-            <h5 class="mt-0 mb-3">Estado Actual en Oracle</h5>
-            <div class="flex flex-column gap-2">
-                <div class="flex justify-content-between">
-                    <span class="text-600">Estado:</span>
-                    <p-tag
-                        [severity]="
-                            oracleIntegrationData.paid ? 'success' : 'warning'
-                        "
-                        [value]="
-                            oracleIntegrationData.paid ? 'Pagado' : 'Pendiente'
-                        "
-                    >
-                    </p-tag>
-                </div>
-                @if (oracleIntegrationData.titleNumber) {
-                <div class="flex justify-content-between">
-                    <span class="text-600">Título:</span>
-                    <span class="font-semibold">{{
-                        oracleIntegrationData.titleNumber
-                    }}</span>
-                </div>
+                <!-- Estado de Oracle Integration -->
+                @if (isOracleIntegrated()) {
+                <p-tag
+                    [value]="getOracleStatusLabel()"
+                    [severity]="getOracleStatusSeverity()"
+                    icon="pi pi-database"
+                >
+                </p-tag>
                 }
             </div>
+
+            <div class="flex gap-2">
+                <button
+                    pButton
+                    icon="pi pi-refresh"
+                    label="Actualizar"
+                    class="p-button-outlined p-button-sm"
+                    [loading]="refreshing()"
+                    (click)="refreshInvoice()"
+                    pTooltip="Actualizar datos desde la base de datos"
+                ></button>
+                <button
+                    pButton
+                    icon="pi pi-download"
+                    label="PDF"
+                    class="p-button-outlined p-button-sm"
+                    (click)="downloadPDF()"
+                ></button>
+                <button
+                    pButton
+                    icon="pi pi-print"
+                    label="Imprimir"
+                    class="p-button-outlined p-button-sm"
+                    (click)="printInvoice()"
+                ></button>
+                <button
+                    pButton
+                    icon="pi pi-share-alt"
+                    label="Compartir"
+                    class="p-button-outlined p-button-sm"
+                    (click)="shareInvoice()"
+                ></button>
+            </div>
         </div>
-        }
 
-        <p class="text-600">¿Desea proceder con la emisión en Oracle?</p>
+        <!-- Contenido Principal -->
+        <div class="grid">
+            <!-- Información General -->
+            <div class="col-12 lg:col-8">
+                <p-card>
+                    <ng-template pTemplate="header">
+                        <div class="p-3">
+                            <h3 class="m-0">Información General</h3>
+                        </div>
+                    </ng-template>
+
+                    <div class="grid">
+                        <div class="col-12 md:col-6">
+                            <h4 class="text-primary mb-2">
+                                Datos del Introductor
+                            </h4>
+                            <div class="mb-2">
+                                <label class="text-600 font-medium"
+                                    >Nombre:</label
+                                >
+                                <p class="mt-1 mb-0 font-semibold">
+                                    {{ invoice()!.introducer?.name }}
+                                </p>
+                            </div>
+                            <div class="mb-2">
+                                <label class="text-600 font-medium"
+                                    >Identificación:</label
+                                >
+                                <p class="mt-1 mb-0">
+                                    {{
+                                        invoice()!.introducer
+                                            ?.identificationNumber ||
+                                            invoice()!.introducer?.idNumber
+                                    }}
+                                </p>
+                            </div>
+                            @if (invoice()!.introducer?.email) {
+                            <div class="mb-2">
+                                <label class="text-600 font-medium"
+                                    >Email:</label
+                                >
+                                <p class="mt-1 mb-0">
+                                    {{ invoice()!.introducer?.email }}
+                                </p>
+                            </div>
+                            } @if (invoice()!.introducer?.phone) {
+                            <div class="mb-2">
+                                <label class="text-600 font-medium"
+                                    >Teléfono:</label
+                                >
+                                <p class="mt-1 mb-0">
+                                    {{ invoice()!.introducer?.phone }}
+                                </p>
+                            </div>
+                            } @if (invoice()!.introducer?.address) {
+                            <div class="mb-2">
+                                <label class="text-600 font-medium"
+                                    >Dirección:</label
+                                >
+                                <p class="mt-1 mb-0">
+                                    {{ invoice()!.introducer?.address }}
+                                </p>
+                            </div>
+                            }
+                        </div>
+
+                        <div class="col-12 md:col-6">
+                            <h4 class="text-primary mb-2">Fechas</h4>
+                            <div class="mb-2">
+                                <label class="text-600 font-medium"
+                                    >Fecha de Emisión:</label
+                                >
+                                <p class="mt-1 mb-0">
+                                    {{
+                                        invoice()!.issueDate
+                                            | date : "dd/MM/yyyy"
+                                    }}
+                                </p>
+                            </div>
+                            @if (invoice()!.dueDate) {
+                            <div class="mb-2">
+                                <label class="text-600 font-medium"
+                                    >Fecha de Vencimiento:</label
+                                >
+                                <p class="mt-1 mb-0">
+                                    {{
+                                        invoice()!.dueDate | date : "dd/MM/yyyy"
+                                    }}
+                                </p>
+                            </div>
+                            } @if (invoice()!.payDate) {
+                            <div class="mb-2">
+                                <label class="text-600 font-medium"
+                                    >Fecha de Pago:</label
+                                >
+                                <p
+                                    class="mt-1 mb-0 text-green-600 font-semibold"
+                                >
+                                    {{
+                                        invoice()!.payDate | date : "dd/MM/yyyy"
+                                    }}
+                                </p>
+                            </div>
+                            } @if (invoice()!.createdAt) {
+                            <div class="mb-2">
+                                <label class="text-600 font-medium"
+                                    >Fecha de Creación:</label
+                                >
+                                <p class="mt-1 mb-0">
+                                    {{
+                                        invoice()!.createdAt
+                                            | date : "dd/MM/yyyy HH:mm"
+                                    }}
+                                </p>
+                            </div>
+                            }
+                        </div>
+                    </div>
+
+                    <p-divider></p-divider>
+
+                    <!-- Detalle de Items -->
+                    <h4 class="text-primary mb-3">Detalle de Items</h4>
+                    <p-table
+                        [value]="invoice()!.items"
+                        styleClass="p-datatable-gridlines p-datatable-sm"
+                        [tableStyle]="{ 'min-width': '100%' }"
+                    >
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th>Descripción</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-right">Precio Unit.</th>
+                                <th class="text-right">Total</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-item>
+                            <tr>
+                                <td>
+                                    <div>
+                                        <span class="font-semibold">{{
+                                            item.rate?.description ||
+                                                item.description
+                                        }}</span>
+                                        @if (item.rate?.code) {
+                                        <p-tag
+                                            severity="secondary"
+                                            [value]="item.rate.code"
+                                            styleClass="ml-2"
+                                        >
+                                        </p-tag>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="text-center">{{ item.quantity }}</td>
+                                <td class="text-right">
+                                    {{
+                                        item.unitPrice
+                                            | currency
+                                                : "USD"
+                                                : "symbol"
+                                                : "1.2-2"
+                                    }}
+                                </td>
+                                <td class="text-right font-semibold">
+                                    {{
+                                        item.totalAmount
+                                            | currency
+                                                : "USD"
+                                                : "symbol"
+                                                : "1.2-2"
+                                    }}
+                                </td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="footer">
+                            <tr>
+                                <td colspan="3" class="text-right font-bold">
+                                    Total:
+                                </td>
+                                <td
+                                    class="text-right font-bold text-primary text-xl"
+                                >
+                                    {{
+                                        invoice()!.totalAmount
+                                            | currency
+                                                : "USD"
+                                                : "symbol"
+                                                : "1.2-2"
+                                    }}
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+
+                    @if (invoice()!.notes) {
+                    <p-divider></p-divider>
+                    <h4 class="text-primary mb-2">Observaciones</h4>
+                    <p class="line-height-3">{{ invoice()!.notes }}</p>
+                    }
+                </p-card>
+            </div>
+
+            <!-- Panel Lateral -->
+            <div class="col-12 lg:col-4">
+                <!-- Acciones -->
+                <p-card styleClass="mb-3">
+                    <ng-template pTemplate="header">
+                        <div class="p-3">
+                            <h3 class="m-0">Acciones</h3>
+                        </div>
+                    </ng-template>
+
+                    <div class="flex flex-column gap-2">
+                        @if (invoice()!.status === 'Generated') {
+                        <button
+                            pButton
+                            label="Emitir Proforma"
+                            icon="pi pi-send"
+                            class="w-full"
+                            [loading]="processingAction()"
+                            (click)="issueInvoice()"
+                        ></button>
+                        } @if (invoice()!.status === 'Issued') {
+                        <button
+                            pButton
+                            label="Marcar como Pagada"
+                            icon="pi pi-check"
+                            class="w-full p-button-success"
+                            [loading]="processingAction()"
+                            (click)="markAsPaid()"
+                        ></button>
+
+                        @if (!isOracleIntegrated()) {
+                        <button
+                            pButton
+                            label="Integrar con Oracle"
+                            icon="pi pi-database"
+                            class="w-full p-button-warning"
+                            [loading]="processingAction()"
+                            (click)="showOracleIntegration()"
+                        ></button>
+                        } } @if (invoice()!.status !== 'Cancelled' &&
+                        invoice()!.status !== 'Paid') {
+                        <p-divider></p-divider>
+                        <button
+                            pButton
+                            label="Cancelar Proforma"
+                            icon="pi pi-times"
+                            class="w-full p-button-danger p-button-outlined"
+                            [loading]="processingAction()"
+                            (click)="cancelInvoice()"
+                        ></button>
+                        }
+                    </div>
+                </p-card>
+
+                <!-- Información Oracle -->
+                @if (isOracleIntegrated()) {
+                <p-card styleClass="mb-3">
+                    <ng-template pTemplate="header">
+                        <div class="p-3 flex align-items-center gap-2">
+                            <i class="pi pi-database text-primary"></i>
+                            <h3 class="m-0">Integración Oracle</h3>
+                        </div>
+                    </ng-template>
+
+                    <div class="flex flex-column gap-3">
+                        <!-- Número de Título -->
+                        <div class="surface-100 border-round p-3">
+                            <div
+                                class="flex align-items-center justify-content-between mb-2"
+                            >
+                                <label class="text-600 font-medium"
+                                    >Número de Título:</label
+                                >
+                                @if (invoice()!.oracleIntegration?.simulation) {
+                                <p-tag
+                                    severity="warning"
+                                    icon="pi pi-code"
+                                    value="Simulación"
+                                ></p-tag>
+                                } @else {
+                                <p-tag
+                                    severity="success"
+                                    icon="pi pi-check"
+                                    value="Real"
+                                ></p-tag>
+                                }
+                            </div>
+                            <p
+                                class="mt-0 mb-0 font-bold text-2xl text-primary"
+                            >
+                                {{ invoice()!.oracleIntegration?.titleNumber }}
+                            </p>
+                        </div>
+
+                        <!-- Estado de Sincronización -->
+                        @if (invoice()!.oracleIntegration?.syncStatus) {
+                        <div>
+                            <label class="text-600 font-medium"
+                                >Estado de Sincronización:</label
+                            >
+                            <p class="mt-1 mb-0">
+                                <p-tag
+                                    [severity]="getOracleStatusSeverity()"
+                                    [value]="getOracleStatusLabel()"
+                                ></p-tag>
+                            </p>
+                        </div>
+                        }
+
+                        <!-- Fecha de Sincronización -->
+                        @if (invoice()!.oracleIntegration?.syncDate) {
+                        <div>
+                            <label class="text-600 font-medium"
+                                >Fecha de Sincronización:</label
+                            >
+                            <p class="mt-1 mb-0">
+                                {{
+                                    invoice()!.oracleIntegration.syncDate
+                                        | date : "dd/MM/yyyy HH:mm"
+                                }}
+                            </p>
+                        </div>
+                        }
+
+                        <!-- Intentos de Sincronización -->
+                        @if (invoice()!.oracleIntegration?.syncAttempts) {
+                        <div>
+                            <label class="text-600 font-medium"
+                                >Intentos de Sincronización:</label
+                            >
+                            <p class="mt-1 mb-0">
+                                {{ invoice()!.oracleIntegration.syncAttempts }}
+                            </p>
+                        </div>
+                        }
+
+                        <!-- Error de Sincronización -->
+                        @if (invoice()!.oracleIntegration?.lastSyncError) {
+                        <div class="border-left-3 border-red-500 pl-3">
+                            <label class="text-600 font-medium"
+                                >Último Error:</label
+                            >
+                            <p class="mt-1 mb-0 text-red-600">
+                                {{ invoice()!.oracleIntegration.lastSyncError }}
+                            </p>
+                        </div>
+                        }
+
+                        <!-- Datos Oracle -->
+                        @if (invoice()!.oracleIntegration?.oracleData?.ruc) {
+                        <p-divider></p-divider>
+                        <div>
+                            <h5 class="mt-0 mb-2">Datos en Oracle</h5>
+                            <div class="text-sm">
+                                <div class="flex justify-content-between mb-1">
+                                    <span class="text-600">RUC:</span>
+                                    <span>{{
+                                        invoice()!.oracleIntegration.oracleData
+                                            .ruc
+                                    }}</span>
+                                </div>
+                                <div class="flex justify-content-between mb-1">
+                                    <span class="text-600"
+                                        >Código Trámite:</span
+                                    >
+                                    <span>{{
+                                        invoice()!.oracleIntegration.oracleData
+                                            .codTramite
+                                    }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        }
+                    </div>
+                </p-card>
+                }
+            </div>
+
+            <!-- Timeline con clase específica para timeline -->
+            <div class="col-12 timeline-section">
+                <p-card>
+                    <ng-template pTemplate="header">
+                        <div class="p-3">
+                            <h3 class="m-0">Historial</h3>
+                        </div>
+                    </ng-template>
+
+                    <p-timeline
+                        [value]="invoiceEvents()"
+                        styleClass="responsive-timeline"
+                        [layout]="timelineLayout()"
+                        [align]="timelineAlign()"
+                    >
+                        <ng-template pTemplate="marker" let-event>
+                            <span
+                                class="timeline-marker flex w-2rem h-2rem align-items-center justify-content-center text-white border-circle z-1 shadow-1"
+                                [style.backgroundColor]="event.color"
+                            >
+                                <i [class]="event.icon"></i>
+                            </span>
+                        </ng-template>
+                        <ng-template pTemplate="content" let-event>
+                            <p-card styleClass="mt-3 timeline-event-card">
+                                <h5 class="mt-0 mb-2">{{ event.status }}</h5>
+                                <p class="text-600 mb-1">
+                                    {{ event.date | date : "dd/MM/yyyy HH:mm" }}
+                                </p>
+                                @if (event.description) {
+                                <p class="mb-0">{{ event.description }}</p>
+                                }
+                            </p-card>
+                        </ng-template>
+                    </p-timeline>
+                </p-card>
+            </div>
+        </div>
     </div>
+    }
 
-    <ng-template pTemplate="footer">
-        <button
-            pButton
-            label="Cancelar"
-            icon="pi pi-times"
-            class="p-button-text"
-            [disabled]="processingAction()"
-            (click)="showOracleDialog = false"
-        ></button>
-        <button
-            pButton
-            label="Procesar"
-            icon="pi pi-check"
-            [loading]="processingAction()"
-            (click)="processOracleIntegration()"
-        ></button>
-    </ng-template>
-</p-dialog>
+    <!-- Dialog de Integración con Oracle -->
+    <p-dialog
+        header="Integración con Oracle"
+        [(visible)]="showOracleDialog"
+        [modal]="true"
+        [style]="{ width: '500px' }"
+        [draggable]="false"
+    >
+        <div class="flex flex-column gap-3">
+            <div
+                class="text-orange-600 flex align-items-center gap-2 p-3 surface-100 border-round"
+            >
+                <i class="pi pi-exclamation-triangle"></i>
+                <span
+                    >Esta acción emitirá la proforma en el sistema Oracle
+                    F_EMIAUT</span
+                >
+            </div>
+
+            @if (oracleIntegrationData) {
+            <div class="surface-50 border-round p-3">
+                <h5 class="mt-0 mb-3">Estado Actual en Oracle</h5>
+                <div class="flex flex-column gap-2">
+                    <div class="flex justify-content-between">
+                        <span class="text-600">Estado:</span>
+                        <p-tag
+                            [severity]="
+                                oracleIntegrationData.paid
+                                    ? 'success'
+                                    : 'warning'
+                            "
+                            [value]="
+                                oracleIntegrationData.paid
+                                    ? 'Pagado'
+                                    : 'Pendiente'
+                            "
+                        >
+                        </p-tag>
+                    </div>
+                    @if (oracleIntegrationData.titleNumber) {
+                    <div class="flex justify-content-between">
+                        <span class="text-600">Título:</span>
+                        <span class="font-semibold">{{
+                            oracleIntegrationData.titleNumber
+                        }}</span>
+                    </div>
+                    }
+                </div>
+            </div>
+            }
+
+            <p class="text-600">¿Desea proceder con la emisión en Oracle?</p>
+        </div>
+
+        <ng-template pTemplate="footer">
+            <button
+                pButton
+                label="Cancelar"
+                icon="pi pi-times"
+                class="p-button-text"
+                [disabled]="processingAction()"
+                (click)="showOracleDialog = false"
+            ></button>
+            <button
+                pButton
+                label="Procesar"
+                icon="pi pi-check"
+                [loading]="processingAction()"
+                (click)="processOracleIntegration()"
+            ></button>
+        </ng-template>
+    </p-dialog>
+</div>

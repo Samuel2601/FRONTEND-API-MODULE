@@ -85,6 +85,16 @@ export class SlaughterProcessDetailsComponent implements OnInit, OnDestroy {
     loadProcessDetails(): void {
         this.loading = true;
 
+        // Limpiar datos previos
+        this.processData = null;
+        this.summaryData = null;
+        this.introducerData = null;
+        this.receptionData = null;
+        this.inspectionsData = [];
+        this.invoicesData = [];
+        this.slaughteringsData = [];
+        this.dispatchesData = [];
+
         // Primero cargar los datos básicos del proceso
         this.slaughterProcessService
             .getById(this.processId)
@@ -287,6 +297,15 @@ export class SlaughterProcessDetailsComponent implements OnInit, OnDestroy {
     }
 
     refresh(): void {
+        // Limpiar caché específico antes de refrescar
+        this.slaughterProcessService.clearCache();
+
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Actualizando',
+            detail: 'Cargando datos actualizados...',
+        });
+
         this.loadProcessDetails();
     }
 
@@ -315,6 +334,9 @@ export class SlaughterProcessDetailsComponent implements OnInit, OnDestroy {
                         summary: 'Éxito',
                         detail: `Estado cambiado a ${newState}`,
                     });
+
+                    // Recargar datos para reflejar cambios
+                    this.loadSummaryData();
                 },
                 error: (error) => {
                     console.error('Error updating state:', error);
@@ -344,6 +366,9 @@ export class SlaughterProcessDetailsComponent implements OnInit, OnDestroy {
                         summary: 'Éxito',
                         detail: 'Proceso anulado correctamente',
                     });
+
+                    // Recargar datos para reflejar cambios
+                    this.loadSummaryData();
                 },
                 error: (error) => {
                     console.error('Error canceling process:', error);
@@ -403,9 +428,14 @@ export class SlaughterProcessDetailsComponent implements OnInit, OnDestroy {
     createInvoice(): void {
         if (!this.processId) return;
 
+        this.loading = true;
+
         this.invoiceService
             .postInvoiceSlaughterProcesses(this.processId)
-            .pipe(takeUntil(this.destroy$))
+            .pipe(
+                takeUntil(this.destroy$),
+                finalize(() => (this.loading = false))
+            )
             .subscribe({
                 next: (invoice) => {
                     console.log('Factura generada:', invoice);
@@ -414,6 +444,15 @@ export class SlaughterProcessDetailsComponent implements OnInit, OnDestroy {
                         summary: 'Éxito',
                         detail: 'Factura generada correctamente',
                     });
+
+                    // Limpiar caché y recargar datos después de generar factura
+                    this.slaughterProcessService.clearCache();
+                    this.loadProcessDetails();
+
+                    // Emitir evento de proceso actualizado
+                    if (this.processData) {
+                        this.processUpdated.emit(this.processData);
+                    }
                 },
                 error: (error) => {
                     console.error('Error generando factura:', error);

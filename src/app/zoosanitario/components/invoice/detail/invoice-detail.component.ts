@@ -1,6 +1,6 @@
 // src/app/demo/components/invoice/invoice-detail/invoice-detail.component.ts
 
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, HostListener, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { Invoice } from '../../../interfaces/invoice.interface';
@@ -34,6 +34,7 @@ export class InvoiceDetailComponent implements OnInit {
 
     // Estados para acciones
     processingAction = signal(false);
+    refreshing = signal(false);
     showOracleDialog = false;
     oracleIntegrationData: any = null;
 
@@ -47,7 +48,33 @@ export class InvoiceDetailComponent implements OnInit {
         private messageService: MessageService,
         private oracleService: OracleService,
         private confirmationService: ConfirmationService
-    ) {}
+    ) {
+        this.checkScreenSize();
+    }
+
+    // Señal para controlar el layout del timeline
+    timelineLayout = signal<'horizontal' | 'vertical'>('horizontal');
+    timelineAlign = signal<'left' | 'right' | 'alternate' | 'top' | 'bottom'>(
+        'alternate'
+    );
+
+    @HostListener('window:resize', ['$event'])
+    onResize(event: any) {
+        this.checkScreenSize();
+    }
+
+    private checkScreenSize() {
+        const width = window.innerWidth;
+
+        if (width < 992) {
+            // Breakpoint para tablet y móvil
+            this.timelineLayout.set('vertical');
+            this.timelineAlign.set('left');
+        } else {
+            this.timelineLayout.set('horizontal');
+            this.timelineAlign.set('alternate');
+        }
+    }
 
     ngOnInit() {
         this.invoiceId = this.route.snapshot.paramMap.get('id') || '';
@@ -56,18 +83,39 @@ export class InvoiceDetailComponent implements OnInit {
         }
     }
 
-    loadInvoice() {
+    loadInvoice(forceRefresh: boolean = false) {
         this.loading.set(true);
+
+        // Si es refresh forzado, limpiar el cache específico de esta factura
+        if (forceRefresh) {
+            this.invoiceService['cacheService'].remove(
+                `invoices_${this.invoiceId}`
+            );
+            this.refreshing.set(true);
+        }
+
         this.invoiceService.getById(this.invoiceId).subscribe({
             next: (response: any) => {
+                console.log('Invoice data loaded:', response);
                 const invoice = response.data || response;
                 this.invoice.set(invoice);
                 this.buildTimeline(invoice);
                 this.loading.set(false);
+                this.refreshing.set(false);
+
+                if (forceRefresh) {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Actualizado',
+                        detail: 'Datos de la proforma actualizados correctamente',
+                        life: 3000,
+                    });
+                }
             },
             error: (error) => {
                 console.error('Error al cargar factura:', error);
                 this.loading.set(false);
+                this.refreshing.set(false);
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
@@ -77,6 +125,10 @@ export class InvoiceDetailComponent implements OnInit {
                 this.router.navigate(['/zoosanitario/invoices']);
             },
         });
+    }
+
+    refreshInvoice() {
+        this.loadInvoice(true);
     }
 
     buildTimeline(invoice: Invoice) {
@@ -103,15 +155,18 @@ export class InvoiceDetailComponent implements OnInit {
         }
 
         // Evento de integración Oracle
-        if (invoice.oracleIntegration?.issued) {
+        if (invoice.oracleIntegration?.titleNumber) {
+            const isSimulation = invoice.oracleIntegration.simulation;
             events.push({
-                status: 'Integrada con Oracle',
-                date:
-                    invoice.oracleIntegration.issueDate ||
-                    invoice.oracleIntegration.lastSyncDate,
-                icon: 'pi pi-database',
-                color: '#FF9800',
-                description: `Título Oracle: ${invoice.oracleIntegration.titleNumber}`,
+                status: isSimulation
+                    ? 'Simulación Oracle'
+                    : 'Integrada con Oracle',
+                date: invoice.issueDate || invoice.oracleIntegration.syncDate,
+                icon: isSimulation ? 'pi pi-code' : 'pi pi-database',
+                color: isSimulation ? '#9C27B0' : '#FF9800',
+                description: `Título Oracle: ${
+                    invoice.oracleIntegration.titleNumber
+                }${isSimulation ? ' (Simulación)' : ''}`,
             });
         }
 
@@ -138,6 +193,8 @@ export class InvoiceDetailComponent implements OnInit {
         }
 
         this.invoiceEvents.set(events);
+
+        console.log('Invoice events:', events);
     }
 
     back() {
@@ -158,14 +215,16 @@ export class InvoiceDetailComponent implements OnInit {
                     .createInvoiceEmiaut(this.invoiceId)
                     .subscribe({
                         next: (response: any) => {
+                            console.log('Oracle emission response:', response);
                             if (response.success !== false) {
                                 this.messageService.add({
                                     severity: 'success',
                                     summary: 'Éxito',
-                                    detail: 'Proforma emitida correctamente',
+                                    detail: 'Proforma emitida correctamente en Oracle',
                                     life: 5000,
                                 });
-                                this.loadInvoice();
+                                // Forzar recarga para obtener datos actualizados
+                                this.loadInvoice(true);
                             } else {
                                 this.messageService.add({
                                     severity: 'error',
@@ -179,10 +238,11 @@ export class InvoiceDetailComponent implements OnInit {
                             this.processingAction.set(false);
                         },
                         error: (error) => {
+                            console.error('Oracle emission error:', error);
                             this.messageService.add({
                                 severity: 'error',
                                 summary: 'Error',
-                                detail: 'Error al emitir la proforma',
+                                detail: 'Error al emitir la proforma en Oracle',
                                 life: 5000,
                             });
                             this.processingAction.set(false);
@@ -210,7 +270,7 @@ export class InvoiceDetailComponent implements OnInit {
                                 detail: 'Proforma marcada como pagada',
                                 life: 5000,
                             });
-                            this.loadInvoice();
+                            this.loadInvoice(true);
                         } else {
                             this.messageService.add({
                                 severity: 'error',
@@ -257,7 +317,7 @@ export class InvoiceDetailComponent implements OnInit {
                                 detail: 'Proforma cancelada correctamente',
                                 life: 5000,
                             });
-                            this.loadInvoice();
+                            this.loadInvoice(true);
                         } else {
                             this.messageService.add({
                                 severity: 'error',
@@ -312,7 +372,7 @@ export class InvoiceDetailComponent implements OnInit {
                         life: 5000,
                     });
                     this.showOracleDialog = false;
-                    this.loadInvoice();
+                    this.loadInvoice(true);
                 } else {
                     this.messageService.add({
                         severity: 'error',
@@ -335,6 +395,50 @@ export class InvoiceDetailComponent implements OnInit {
                 this.processingAction.set(false);
             },
         });
+    }
+
+    // Métodos auxiliares para mostrar información de Oracle
+    isOracleIntegrated(): boolean {
+        const invoice = this.invoice();
+        return !!invoice?.oracleIntegration?.titleNumber;
+    }
+
+    getOracleStatusSeverity(): 'success' | 'warning' | 'info' | 'secondary' {
+        const invoice = this.invoice();
+        if (!invoice?.oracleIntegration?.titleNumber) return 'secondary';
+
+        if (invoice.oracleIntegration.simulation) return 'warning';
+
+        const syncStatus = invoice.oracleIntegration.syncStatus;
+        switch (syncStatus) {
+            case 'SYNCED':
+                return 'success';
+            case 'PENDING':
+                return 'warning';
+            case 'ERROR':
+                return 'warning';
+            default:
+                return 'info';
+        }
+    }
+
+    getOracleStatusLabel(): string {
+        const invoice = this.invoice();
+        if (!invoice?.oracleIntegration?.titleNumber) return 'No Integrado';
+
+        if (invoice.oracleIntegration.simulation) return 'Simulación';
+
+        const syncStatus = invoice.oracleIntegration.syncStatus;
+        switch (syncStatus) {
+            case 'SYNCED':
+                return 'Sincronizado';
+            case 'PENDING':
+                return 'Pendiente';
+            case 'ERROR':
+                return 'Error';
+            default:
+                return 'Integrado';
+        }
     }
 
     async downloadPDF() {
