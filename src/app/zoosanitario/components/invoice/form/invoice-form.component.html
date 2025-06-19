@@ -262,7 +262,6 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Tarifas Disponibles -->
                 <!-- En la sección de agregar rates, modifica para mostrar compatibilidad -->
                 <div class="rates-section" *ngIf="filteredRates.length > 0">
@@ -307,7 +306,7 @@
                                 <p
                                     class="rate-description text-sm mb-2 line-height-3"
                                 >
-                                    {{ rate.description }}
+                                    {{ rate.rubroxAtributo }}
                                 </p>
 
                                 <div
@@ -316,7 +315,7 @@
                                     <span
                                         class="rate-attribute text-xs text-color-secondary"
                                     >
-                                        {{ rate.rubroxAtributo }}
+                                        {{ rate.description }}
                                     </span>
                                     <p-button
                                         icon="pi pi-plus"

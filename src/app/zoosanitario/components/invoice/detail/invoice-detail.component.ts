@@ -252,47 +252,96 @@ export class InvoiceDetailComponent implements OnInit {
         });
     }
 
-    markAsPaid() {
+    // MÉTODO ACTUALIZADO: Verificar pago en Oracle en lugar de marcado manual
+    checkPaymentInOracle() {
         this.confirmationService.confirm({
-            message: '¿Confirma que esta proforma ha sido pagada?',
-            header: 'Marcar como Pagada',
-            icon: 'pi pi-check-circle',
-            acceptLabel: 'Sí, Confirmar',
+            message:
+                '¿Desea verificar en Oracle si esta proforma ha sido pagada?',
+            header: 'Verificar Pago en Oracle',
+            icon: 'pi pi-search',
+            acceptLabel: 'Sí, Verificar',
             rejectLabel: 'Cancelar',
             accept: () => {
                 this.processingAction.set(true);
-                this.invoiceService.markAsPaid(this.invoiceId).subscribe({
-                    next: (response: any) => {
-                        if (response.success !== false) {
-                            this.messageService.add({
-                                severity: 'success',
-                                summary: 'Éxito',
-                                detail: 'Proforma marcada como pagada',
-                                life: 5000,
-                            });
-                            this.loadInvoice(true);
-                        } else {
+
+                this.messageService.add({
+                    severity: 'info',
+                    summary: 'Consultando Oracle...',
+                    detail: 'Verificando estado de pago en el sistema Oracle',
+                    life: 3000,
+                });
+
+                this.oracleService
+                    .checkPaymentStatusUpdated(this.invoiceId)
+                    .subscribe({
+                        next: (response: any) => {
+                            console.log(
+                                'Oracle payment status response:',
+                                response
+                            );
+
+                            if (response.success) {
+                                const invoiceData = response.data?.invoice;
+                                const statusChanged =
+                                    response.data?.statusChanged;
+
+                                if (invoiceData?.status === 'Paid') {
+                                    // La factura está pagada en Oracle
+                                    this.messageService.add({
+                                        severity: 'success',
+                                        summary: 'Pago Confirmado',
+                                        detail: `La proforma ha sido pagada en Oracle. Fecha de pago: ${new Date(
+                                            invoiceData.payDate
+                                        ).toLocaleDateString('es-EC')}`,
+                                        life: 5000,
+                                    });
+
+                                    // Recargar los datos de la factura desde la base de datos
+                                    this.loadInvoice(true);
+                                } else {
+                                    // La factura aún no está pagada
+                                    this.messageService.add({
+                                        severity: 'warn',
+                                        summary: 'Pago Pendiente',
+                                        detail: 'La proforma aún no ha sido pagada según Oracle',
+                                        life: 5000,
+                                    });
+                                }
+
+                                if (statusChanged) {
+                                    this.messageService.add({
+                                        severity: 'info',
+                                        summary: 'Estado Actualizado',
+                                        detail: 'El estado de la proforma se ha sincronizado con Oracle',
+                                        life: 3000,
+                                    });
+                                }
+                            } else {
+                                this.messageService.add({
+                                    severity: 'error',
+                                    summary: 'Error de Consulta',
+                                    detail:
+                                        response.message ||
+                                        'Error al consultar el estado en Oracle',
+                                    life: 5000,
+                                });
+                            }
+                            this.processingAction.set(false);
+                        },
+                        error: (error) => {
+                            console.error(
+                                'Error al verificar pago en Oracle:',
+                                error
+                            );
                             this.messageService.add({
                                 severity: 'error',
-                                summary: 'Error',
-                                detail:
-                                    response.message ||
-                                    'Error al marcar como pagada',
+                                summary: 'Error de Conexión',
+                                detail: 'No se pudo conectar con Oracle para verificar el pago',
                                 life: 5000,
                             });
-                        }
-                        this.processingAction.set(false);
-                    },
-                    error: (error) => {
-                        this.messageService.add({
-                            severity: 'error',
-                            summary: 'Error',
-                            detail: 'Error al marcar la proforma como pagada',
-                            life: 5000,
-                        });
-                        this.processingAction.set(false);
-                    },
-                });
+                            this.processingAction.set(false);
+                        },
+                    });
             },
         });
     }

@@ -586,6 +586,7 @@ export class IntroducerFormComponent implements OnInit {
         this.loading = true;
         this.introducerService.getById(this.introducerId!).subscribe({
             next: (response: any) => {
+                console.log('Introducer:', response);
                 if (this.introducerTypeOptions.length === 0) {
                     setTimeout(() => this.loadIntroducer(), 500);
                     return;
@@ -599,10 +600,10 @@ export class IntroducerFormComponent implements OnInit {
                     Array.isArray(introducer.cattleTypes)
                 ) {
                     cattleTypeValues = introducer.cattleTypes
-                        .filter((type: any) => type && (type.id || type.value))
-                        .map((type: any) => type.value || type.id || type);
+                        .filter((type: any) => type && (type._id || type.value))
+                        .map((type: any) => type.value || type._id || type);
                 }
-
+                console.log('cattleTypeValues', cattleTypeValues);
                 this.form.patchValue({
                     ...introducer,
                     cattleTypes: cattleTypeValues,
@@ -648,7 +649,7 @@ export class IntroducerFormComponent implements OnInit {
                 });
                 this.router.navigate([
                     '/zoosanitario/introducers/view',
-                    introducer.data.introducer._id,
+                    introducer.data._id,
                 ]);
             },
             error: (error) => {

@@ -22,7 +22,7 @@
                             (click)="deleteSelectedRates()"
                             [disabled]="!selectedRates || !selectedRates.length"
                         ></button>
-                        <!-- NUEVO BOTÓN DE REFRESH -->
+                        <!-- BOTÓN DE REFRESH CORREGIDO -->
                         <button
                             pButton
                             pRipple
@@ -99,7 +99,7 @@
                             { label: 'Activo', value: true },
                             { label: 'Inactivo', value: false }
                         ]"
-                        [(ngModel)]="filters.isActive"
+                        [(ngModel)]="filters.deletedBy"
                         placeholder="Seleccionar estado"
                         [showClear]="true"
                         (onChange)="onFilterChange()"
@@ -137,7 +137,12 @@
                 [paginator]="true"
                 [lazy]="true"
                 (onLazyLoad)="onPageChange($event)"
-                [globalFilterFields]="['code', 'description', 'rubroxAtributo']"
+                [globalFilterFields]="[
+                    'code',
+                    'description',
+                    'rubroxAtributo',
+                    'type'
+                ]"
                 [rowsPerPageOptions]="[10, 25, 50]"
                 [showCurrentPageReport]="true"
                 currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
@@ -171,25 +176,24 @@
                         <th style="width: 3rem">
                             <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                         </th>
-                        <th pSortableColumn="type">
-                            Tipo <p-sortIcon field="type"></p-sortIcon>
-                        </th>
-                        <th pSortableColumn="rubroxAtributo">
-                            rubroxAtributo
-                            <p-sortIcon field="rubroxAtributo"></p-sortIcon>
-                        </th>
-                        <th pSortableColumn="personType">
-                            Tipo Persona
-                            <p-sortIcon field="personType"></p-sortIcon>
-                        </th>
                         <th pSortableColumn="code">
                             Código <p-sortIcon field="code"></p-sortIcon>
                         </th>
-                        <th pSortableColumn="amount">
-                            Monto <p-sortIcon field="amount"></p-sortIcon>
+                        <th pSortableColumn="type">
+                            Tipo <p-sortIcon field="type"></p-sortIcon>
                         </th>
-                        <th pSortableColumn="isActive">
-                            Estado <p-sortIcon field="isActive"></p-sortIcon>
+                        <th pSortableColumn="description">
+                            Descripción
+                            <p-sortIcon field="description"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="rubroxAtributo">
+                            Rubro x Atributo
+                            <p-sortIcon field="rubroxAtributo"></p-sortIcon>
+                        </th>
+                        <th>Tipos de Animal</th>
+                        <th>Tipos de Persona</th>
+                        <th pSortableColumn="deletedBy">
+                            Estado <p-sortIcon field="deletedBy"></p-sortIcon>
                         </th>
                         <th>Acciones</th>
                     </tr>
@@ -199,6 +203,10 @@
                     <tr>
                         <td>
                             <p-tableCheckbox [value]="rate"></p-tableCheckbox>
+                        </td>
+                        <td>
+                            <span class="p-column-title">Código</span>
+                            {{ rate.code }}
                         </td>
                         <td>
                             <span class="p-column-title">Tipo</span>
@@ -214,25 +222,83 @@
                             >
                             </p-tag>
                         </td>
-
+                        <td>
+                            <span class="p-column-title">Descripción</span>
+                            {{ rate.description }}
+                        </td>
                         <td>
                             <span class="p-column-title">Rubro x Atributo</span>
                             {{ rate.rubroxAtributo }}
                         </td>
-
                         <td>
-                            <span class="p-column-title">Tipo Persona</span>
-                            {{ rate.personType }}
+                            <span class="p-column-title">Tipos de Animal</span>
+                            <div
+                                *ngIf="
+                                    rate.animalTypes &&
+                                    rate.animalTypes.length > 0
+                                "
+                            >
+                                <p-tag
+                                    *ngFor="
+                                        let animalType of rate.animalTypes;
+                                        let last = last
+                                    "
+                                    [value]="animalType.species"
+                                    severity="secondary"
+                                    [style]="{
+                                        'margin-right': last ? '0' : '0.25rem',
+                                        'margin-bottom': '0.25rem'
+                                    }"
+                                >
+                                </p-tag>
+                            </div>
+                            <span
+                                *ngIf="
+                                    !rate.animalTypes ||
+                                    rate.animalTypes.length === 0
+                                "
+                                class="text-muted"
+                            >
+                                Sin tipos asignados
+                            </span>
                         </td>
                         <td>
-                            <span class="p-column-title">Código</span>
-                            {{ rate.code }}
+                            <span class="p-column-title">Tipos de Persona</span>
+                            <div
+                                *ngIf="
+                                    rate.personType &&
+                                    rate.personType.length > 0
+                                "
+                            >
+                                <p-tag
+                                    *ngFor="
+                                        let personType of rate.personType;
+                                        let last = last
+                                    "
+                                    [value]="personType"
+                                    severity="info"
+                                    [style]="{
+                                        'margin-right': last ? '0' : '0.25rem',
+                                        'margin-bottom': '0.25rem'
+                                    }"
+                                >
+                                </p-tag>
+                            </div>
+                            <span
+                                *ngIf="
+                                    !rate.personType ||
+                                    rate.personType.length === 0
+                                "
+                                class="text-muted"
+                            >
+                                Sin tipos asignados
+                            </span>
                         </td>
                         <td>
                             <span class="p-column-title">Estado</span>
                             <p-tag
-                                [value]="getStatusText(rate.isActive)"
-                                [severity]="getSeverity(rate.isActive)"
+                                [value]="getStatusText(rate.deletedAt)"
+                                [severity]="getSeverity(rate.deletedAt)"
                             >
                             </p-tag>
                         </td>

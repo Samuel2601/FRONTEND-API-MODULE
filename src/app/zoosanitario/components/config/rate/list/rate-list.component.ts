@@ -35,8 +35,8 @@ export class RateListComponent implements OnInit {
     rows = 10;
     first = 0;
 
-    // Filtros
-    filters: RateFilters = {};
+    // Filtros - Corregido el filtro de status
+    filters: any = {};
     globalFilterValue = '';
 
     // Opciones para dropdowns
@@ -72,9 +72,9 @@ export class RateListComponent implements OnInit {
             .getRatesWithPagination(this.filters, paginationOptions, skipCache)
             .subscribe({
                 next: (response) => {
-                    console.log(response);
-                    this.rates = response.data;
-                    this.totalRecords = response.pagination.totalDocs;
+                    console.log('Respuesta del servidor:', response);
+                    this.rates = response.data || [];
+                    this.totalRecords = response.pagination?.totalDocs || 0;
                     this.loading = false;
                 },
                 error: (error) => {
@@ -85,6 +85,8 @@ export class RateListComponent implements OnInit {
                         detail: 'Error al cargar las tarifas',
                     });
                     this.loading = false;
+                    this.rates = []; // Limpiar en caso de error
+                    this.totalRecords = 0;
                 },
             });
     }
@@ -92,7 +94,19 @@ export class RateListComponent implements OnInit {
     onGlobalFilter(event: Event) {
         const target = event.target as HTMLInputElement;
         this.globalFilterValue = target.value;
-        this.table.filterGlobal(target.value, 'contains');
+
+        // Para paginación lazy, necesitamos aplicar el filtro en el servidor
+        // Resetear a la primera página cuando se aplica un filtro global
+        this.first = 0;
+
+        // Agregar el filtro global a los filtros existentes
+        if (target.value.trim()) {
+            this.filters.search = target.value.trim();
+        } else {
+            delete this.filters.search;
+        }
+
+        this.loadRates();
     }
 
     openNew() {
@@ -112,11 +126,26 @@ export class RateListComponent implements OnInit {
             message: `¿Está seguro de que desea eliminar "${rate.description}"?`,
             header: 'Confirmar eliminación',
             icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Sí',
+            rejectLabel: 'No',
             accept: () => {
                 if (rate._id) {
                     this.rateService.delete(rate._id).subscribe({
                         next: () => {
-                            this.loadRates();
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Éxito',
+                                detail: 'Tarifa eliminada correctamente',
+                            });
+                            this.loadRates(true); // Saltar cache al eliminar
+                        },
+                        error: (error) => {
+                            console.error('Error al eliminar:', error);
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'Error',
+                                detail: 'Error al eliminar la tarifa',
+                            });
                         },
                     });
                 }
@@ -125,23 +154,43 @@ export class RateListComponent implements OnInit {
     }
 
     deleteSelectedRates() {
-        this.confirmationService.confirm({
-            message:
-                '¿Está seguro de que desea eliminar las tarifas seleccionadas?',
-            header: 'Confirmar eliminación',
-            icon: 'pi pi-exclamation-triangle',
-            accept: () => {
-                const deleteObservables = this.selectedRates
-                    .filter((rate) => rate._id)
-                    .map((rate) => this.rateService.delete(rate._id!));
+        if (!this.selectedRates || this.selectedRates.length === 0) {
+            return;
+        }
 
-                if (deleteObservables.length > 0) {
-                    Promise.all(
-                        deleteObservables.map((obs) => obs.toPromise())
-                    ).then(() => {
-                        this.selectedRates = [];
-                        this.loadRates();
-                    });
+        this.confirmationService.confirm({
+            message: `¿Está seguro de que desea eliminar ${this.selectedRates.length} tarifa(s) seleccionada(s)?`,
+            header: 'Confirmar eliminación múltiple',
+            icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Sí',
+            rejectLabel: 'No',
+            accept: () => {
+                const deletePromises = this.selectedRates
+                    .filter((rate) => rate._id)
+                    .map((rate) =>
+                        this.rateService.delete(rate._id!).toPromise()
+                    );
+
+                if (deletePromises.length > 0) {
+                    Promise.all(deletePromises)
+                        .then(() => {
+                            this.selectedRates = [];
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Éxito',
+                                detail: 'Tarifas eliminadas correctamente',
+                            });
+                            this.loadRates(true); // Saltar cache al eliminar
+                        })
+                        .catch((error) => {
+                            console.error('Error al eliminar tarifas:', error);
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'Error',
+                                detail: 'Error al eliminar algunas tarifas',
+                            });
+                            this.loadRates(true); // Refrescar de todas formas
+                        });
                 }
             },
         });
@@ -157,7 +206,14 @@ export class RateListComponent implements OnInit {
         this.showDialog = false;
         this.selectedRate = null;
         this.isEditMode = false;
-        this.loadRates();
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: this.isEditMode
+                ? 'Tarifa actualizada correctamente'
+                : 'Tarifa creada correctamente',
+        });
+        this.loadRates(true); // Saltar cache al guardar
     }
 
     exportExcel() {
@@ -169,43 +225,90 @@ export class RateListComponent implements OnInit {
         });
     }
 
+    // Corregido: usar 'status' en lugar de 'isActive'
     getSeverity(status: boolean): 'success' | 'danger' | 'info' {
-        return status ? 'success' : 'danger';
+        return status ? 'danger' : 'success';
     }
 
     getStatusText(status: boolean): string {
-        return status ? 'Activo' : 'Inactivo';
+        return status ? 'Inactivo' : 'Activo';
     }
 
+    // Método mejorado de refresh
     refreshRates() {
         this.messageService.add({
             severity: 'info',
             summary: 'Actualizando',
-            detail: 'Consultando datos actualizados...',
+            detail: 'Consultando datos actualizados desde el servidor...',
         });
+
+        // Limpiar selecciones
+        this.selectedRates = [];
 
         // Resetear paginación al hacer refresh
         this.first = 0;
+
+        // Limpiar cache específico de rates
+        this.rateService.clearRateCache();
 
         // Cargar datos sin cache
         this.loadRates(true);
     }
 
+    // Método mejorado para manejar cambios de página y ordenamiento
     onPageChange(event: any) {
+        console.log('Page change event:', event);
+
         this.first = event.first;
         this.rows = event.rows;
+
+        // Manejar ordenamiento si está presente
+        if (event.sortField) {
+            const sortOrder = event.sortOrder === 1 ? 'asc' : 'desc';
+            this.filters.sort = { [event.sortField]: sortOrder };
+        } else {
+            delete this.filters.sort;
+        }
+
         this.loadRates();
     }
 
     onFilterChange() {
+        // Resetear a la primera página cuando se cambian filtros
         this.first = 0;
         this.loadRates();
     }
 
     clearFilters() {
+        // Limpiar todos los filtros
         this.filters = {};
         this.globalFilterValue = '';
-        this.table.clear();
-        this.loadRates(true); // También refrescar al limpiar filtros
+
+        // Limpiar el filtro global de la tabla
+        if (this.table) {
+            this.table.clear();
+        }
+
+        // Resetear paginación
+        this.first = 0;
+
+        // Refrescar datos con cache limpio
+        this.refreshRates();
+    }
+
+    // Método auxiliar para formatear arrays de tipos de persona
+    formatPersonTypes(personTypes: string[]): string {
+        if (!personTypes || personTypes.length === 0) {
+            return 'Sin tipos asignados';
+        }
+        return personTypes.join(', ');
+    }
+
+    // Método auxiliar para formatear tipos de animal
+    formatAnimalTypes(animalTypes: any[]): string {
+        if (!animalTypes || animalTypes.length === 0) {
+            return 'Sin tipos asignados';
+        }
+        return animalTypes.map((at) => at.species).join(', ');
     }
 }

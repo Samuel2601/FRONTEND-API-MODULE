@@ -240,7 +240,7 @@ export class InvoiceFormComponent implements OnInit {
             slaughterProcessSearch: [''],
             items: this.fb.array([]),
             subtotal: [{ value: 0, disabled: true }],
-            taxes: [{ value: 0, disabled: true }],
+            //taxes: [{ value: 0, disabled: true }],
             totalAmount: [{ value: 0, disabled: true }],
             dueDate: [null, Validators.required],
             notes: [''],
@@ -297,7 +297,7 @@ export class InvoiceFormComponent implements OnInit {
         }
 
         const selectedType = this.typeOptions.find(
-            (t) => t.value === invoiceType
+            (t) => t.value.toLowerCase() === invoiceType.toLowerCase()
         );
 
         if (!selectedType) {
@@ -305,15 +305,17 @@ export class InvoiceFormComponent implements OnInit {
             return;
         }
 
-        // Filtrar por tipo específico
+        // Filtrar por tipo
         let filteredByType = this.rates.filter(
-            (rate) => rate.type === selectedType.rateType
+            (rate) =>
+                rate.type.toLowerCase() === selectedType.rateType.toLowerCase()
         );
 
-        // NUEVA REGLA: Si hay Slaughter Process seleccionado, no permitir TARIFA
+        // Restricción: Si hay proceso de faenamiento y es tipo TARIFA, bloquear
         if (
             this.selectedSlaughterProcess &&
-            selectedType.rateType === 'TARIFA'
+            (selectedType.rateType === 'TARIFA' ||
+                selectedType.rateType === 'TASA')
         ) {
             this.filteredRates = [];
             this.messageService.add({
@@ -324,44 +326,53 @@ export class InvoiceFormComponent implements OnInit {
             return;
         }
 
-        // Filtrar por tipo de persona del introductor seleccionado
+        // Filtrar por tipo de persona del introductor
         if (this.selectedIntroducer) {
+            const introducerPersonType = this.selectedIntroducer.personType;
             filteredByType = filteredByType.filter((rate) =>
-                rate.personType.includes(
-                    this.selectedIntroducer!.personType as any
-                )
+                rate.personType.includes(introducerPersonType)
             );
 
-            // NUEVA REGLA: Filtrar por animalTypes del introductor
-            if (
-                this.selectedIntroducer.cattleTypes &&
-                this.selectedIntroducer.cattleTypes.length > 0
-            ) {
+            // Filtrar por tipos de animal del introductor
+            if (this.selectedIntroducer.cattleTypes?.length > 0) {
                 const introducerAnimalTypeIds =
-                    this.selectedIntroducer.cattleTypes.map((ct) =>
-                        typeof ct === 'string' ? ct : ct._id
+                    this.selectedIntroducer.cattleTypes.map((ct: any) =>
+                        typeof ct === 'string' ? ct : String(ct._id)
                     );
 
-                filteredByType = filteredByType.filter((rate) => {
-                    return rate.animalTypes.some((animalTypeId) =>
-                        introducerAnimalTypeIds.includes(animalTypeId)
-                    );
-                });
+                filteredByType = filteredByType.filter(
+                    (rate) =>
+                        Array.isArray(rate.animalTypes) &&
+                        rate.animalTypes.some((animalType: any) =>
+                            introducerAnimalTypeIds.includes(
+                                typeof animalType === 'string'
+                                    ? animalType
+                                    : String(animalType._id)
+                            )
+                        )
+                );
             }
         }
 
-        // Si hay Slaughter Process seleccionado, filtrar por sus animalTypes también
+        // Si hay proceso de faenamiento, también filtrar por sus tipos de animal
         if (this.selectedSlaughterProcess) {
             const processAnimalTypes = this.getSlaughterProcessAnimalTypes();
             if (processAnimalTypes.length > 0) {
-                filteredByType = filteredByType.filter((rate) => {
-                    return rate.animalTypes.some((animalTypeId) =>
-                        processAnimalTypes.includes(animalTypeId)
-                    );
-                });
+                filteredByType = filteredByType.filter(
+                    (rate) =>
+                        Array.isArray(rate.animalTypes) &&
+                        rate.animalTypes.some((animalType: any) =>
+                            processAnimalTypes.includes(
+                                typeof animalType === 'string'
+                                    ? animalType
+                                    : String(animalType._id)
+                            )
+                        )
+                );
             }
         }
 
+        // Ordenar por posición
         this.filteredRates = filteredByType.sort(
             (a, b) => a.position - b.position
         );
@@ -420,7 +431,7 @@ export class InvoiceFormComponent implements OnInit {
                     slaughterProcessId:
                         invoice.metadata?.slaughterProcessId || '',
                     subtotal: invoice.subtotal,
-                    taxes: invoice.taxes,
+                    //taxes: invoice.taxes,
                     totalAmount: invoice.totalAmount,
                     dueDate: invoice.dueDate ? new Date(invoice.dueDate) : null,
                     notes: invoice.notes || '',
@@ -558,15 +569,15 @@ export class InvoiceFormComponent implements OnInit {
         if (this.introducerLocked) {
             return;
         }
-
-        this.selectedIntroducer = introducer;
-        this.form.get('introducerId')?.setValue(introducer._id);
+        console.log('selectIntroducer', introducer.value);
+        this.selectedIntroducer = introducer.value;
+        this.form.get('introducerId')?.setValue(introducer.value._id);
         this.form
             .get('introducerSearch')
-            ?.setValue(this.getIntroducerDisplayName(introducer));
+            ?.setValue(this.getIntroducerDisplayName(introducer.value));
         this.filteredIntroducers = [];
 
-        this.filterSlaughterProcessesByIntroducer(introducer._id);
+        this.filterSlaughterProcessesByIntroducer(introducer.value._id);
 
         if (this.selectedSlaughterProcess) {
             const processIntroducerId =
@@ -574,7 +585,7 @@ export class InvoiceFormComponent implements OnInit {
                     ? this.selectedSlaughterProcess.introductor
                     : this.selectedSlaughterProcess.introductor?._id;
 
-            if (processIntroducerId !== introducer._id) {
+            if (processIntroducerId !== introducer.value._id) {
                 this.clearSlaughterProcessSelection();
             }
         }
@@ -586,22 +597,27 @@ export class InvoiceFormComponent implements OnInit {
     selectSlaughterProcess(slaughterProcess: any) {
         console.log('selectSlaughterProcess', slaughterProcess);
         this.selectedSlaughterProcess = slaughterProcess;
-        this.form.get('slaughterProcessId')?.setValue(slaughterProcess._id);
+        this.form
+            .get('slaughterProcessId')
+            ?.setValue(slaughterProcess.value._id);
         this.form
             .get('slaughterProcessSearch')
-            ?.setValue(this.getSlaughterProcessDisplayName(slaughterProcess));
+            ?.setValue(
+                this.getSlaughterProcessDisplayName(slaughterProcess.value)
+            );
         this.filteredSlaughterProcesses = [];
 
         // Auto-seleccionar el introductor del proceso
         const introducerId =
-            typeof slaughterProcess.introductor === 'string'
-                ? slaughterProcess.introductor
-                : slaughterProcess.introductor?._id;
+            typeof slaughterProcess.value.introductor === 'string'
+                ? slaughterProcess.value.introductor
+                : slaughterProcess.value.introductor?._id;
 
         if (introducerId) {
             const introducer = this.introducers.find(
                 (i) => i._id === introducerId
             );
+            console.log('Introducer:', introducer);
             if (introducer) {
                 this.selectedIntroducer = introducer;
                 this.form.get('introducerId')?.setValue(introducer._id);
@@ -644,7 +660,7 @@ export class InvoiceFormComponent implements OnInit {
             this.form
                 .get('notes')
                 ?.setValue(
-                    `Proforma generada para proceso de faenamiento ${slaughterProcess.numeroOrden}`
+                    `Proforma generada para proceso de faenamiento ${slaughterProcess.value.numeroOrden}`
                 );
         }
     }
@@ -734,7 +750,6 @@ export class InvoiceFormComponent implements OnInit {
     private calculateTotals() {
         if (this.items.length === 0) {
             this.form.get('subtotal')?.setValue(0, { emitEvent: false });
-            this.form.get('taxes')?.setValue(0, { emitEvent: false });
             this.form.get('totalAmount')?.setValue(0, { emitEvent: false });
             this.calculationError = false;
             return;
@@ -812,9 +827,6 @@ export class InvoiceFormComponent implements OnInit {
                             .get('subtotal')
                             ?.setValue(subtotal, { emitEvent: false });
                         this.form
-                            .get('taxes')
-                            ?.setValue(0, { emitEvent: false });
-                        this.form
                             .get('totalAmount')
                             ?.setValue(subtotal, { emitEvent: false });
                         this.calculationError = false;
@@ -839,7 +851,7 @@ export class InvoiceFormComponent implements OnInit {
         const total = subtotal;
 
         this.form.get('subtotal')?.setValue(subtotal, { emitEvent: false });
-        this.form.get('taxes')?.setValue(0, { emitEvent: false });
+        // this.form.get('taxes')?.setValue(0, { emitEvent: false });
         this.form.get('totalAmount')?.setValue(total, { emitEvent: false });
     }
 

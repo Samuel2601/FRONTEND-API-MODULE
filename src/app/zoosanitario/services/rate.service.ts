@@ -1,4 +1,4 @@
-// src/app/demo/services/rate.service.ts
+// src/app/zoosanitario/services/rate.service.ts
 
 import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
@@ -84,7 +84,12 @@ export class RateService extends BaseService<Rate> {
             Object.keys(filters).forEach((key) => {
                 const value = filters[key as keyof RateFilters];
                 if (value !== null && value !== undefined) {
-                    httpParams = httpParams.set(key, value.toString());
+                    if (key === 'sort') {
+                        // Manejar ordenamiento como JSON string
+                        httpParams = httpParams.set(key, JSON.stringify(value));
+                    } else {
+                        httpParams = httpParams.set(key, value.toString());
+                    }
                 }
             });
         }
@@ -112,16 +117,12 @@ export class RateService extends BaseService<Rate> {
                     throw error.error;
                 }),
                 // Extraer solo los datos del wrapper ApiResponse
-                // y transformar el observable al tipo correcto
-                // (esto reemplaza el segundo pipe y tap anterior)
-                // Se importa 'map' de 'rxjs/operators'
-                // Si no está importado, agrégalo arriba: import { map } from 'rxjs/operators';
-                map((response: ApiResponse<Rate[]>) => response.data)
+                map((response: ApiResponse<Rate[]>) => response.data || [])
             );
     }
 
     /**
-     * Obtener tarifas con paginación
+     * Obtener tarifas con paginación (MÉTODO PRINCIPAL MEJORADO)
      */
     getRatesWithPagination(
         filters?: RateFilters,
@@ -151,7 +152,12 @@ export class RateService extends BaseService<Rate> {
             Object.keys(filters).forEach((key) => {
                 const value = filters[key as keyof RateFilters];
                 if (value !== null && value !== undefined) {
-                    httpParams = httpParams.set(key, value.toString());
+                    if (key === 'sort') {
+                        // Manejar ordenamiento como JSON string
+                        httpParams = httpParams.set(key, JSON.stringify(value));
+                    } else {
+                        httpParams = httpParams.set(key, value.toString());
+                    }
                 }
             });
         }
@@ -169,6 +175,8 @@ export class RateService extends BaseService<Rate> {
                 );
         }
 
+        console.log('Parámetros enviados al servidor:', httpParams.toString());
+
         return this.http
             .get<PaginatedResponse<Rate>>(
                 `${this.url}${this.endpoint}/paginated`,
@@ -179,6 +187,7 @@ export class RateService extends BaseService<Rate> {
             )
             .pipe(
                 tap((response) => {
+                    console.log('Respuesta del servidor (servicio):', response);
                     // Solo cachear si no se saltó el cache intencionalmente
                     if (!skipCache) {
                         this.cacheService.set(
@@ -190,6 +199,7 @@ export class RateService extends BaseService<Rate> {
                 }),
                 shareReplay(1),
                 catchError((error) => {
+                    console.error('Error en getRatesWithPagination:', error);
                     this.messageService.add({
                         severity: 'error',
                         summary: 'Error',
@@ -311,6 +321,7 @@ export class RateService extends BaseService<Rate> {
      */
     clearRateCache(): void {
         this.cacheService.clearByPrefix(this.endpoint);
+        console.log('Cache de rates limpiado');
     }
 
     /**
@@ -339,6 +350,42 @@ export class RateService extends BaseService<Rate> {
                         severity: 'error',
                         summary: 'Error',
                         detail: 'Error al validar el código',
+                    });
+                    throw error.error;
+                })
+            );
+    }
+
+    /**
+     * Método para exportar datos (placeholder)
+     */
+    exportToExcel(filters?: RateFilters): Observable<Blob> {
+        let httpParams = new HttpParams();
+        if (filters) {
+            Object.keys(filters).forEach((key) => {
+                const value = filters[key as keyof RateFilters];
+                if (value !== null && value !== undefined) {
+                    if (key === 'sort') {
+                        httpParams = httpParams.set(key, JSON.stringify(value));
+                    } else {
+                        httpParams = httpParams.set(key, value.toString());
+                    }
+                }
+            });
+        }
+
+        return this.http
+            .get(`${this.url}${this.endpoint}/export/excel`, {
+                headers: this.getHeaders(),
+                params: httpParams,
+                responseType: 'blob',
+            })
+            .pipe(
+                catchError((error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error al exportar los datos',
                     });
                     throw error.error;
                 })

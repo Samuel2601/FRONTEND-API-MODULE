@@ -291,6 +291,7 @@
                         </div>
                     </ng-template>
 
+                    <!-- Sección completa de acciones en el panel lateral -->
                     <div class="flex flex-column gap-2">
                         @if (invoice()!.status === 'Generated') {
                         <button
@@ -302,13 +303,15 @@
                             (click)="issueInvoice()"
                         ></button>
                         } @if (invoice()!.status === 'Issued') {
+                        <!-- Botón modificado para verificar pago en Oracle -->
                         <button
                             pButton
-                            label="Marcar como Pagada"
-                            icon="pi pi-check"
-                            class="w-full p-button-success"
+                            label="Verificar Pago en Oracle"
+                            icon="pi pi-search"
+                            class="w-full p-button-info"
                             [loading]="processingAction()"
-                            (click)="markAsPaid()"
+                            (click)="checkPaymentInOracle()"
+                            pTooltip="Consultar en Oracle si la proforma ha sido pagada"
                         ></button>
 
                         @if (!isOracleIntegrated()) {
