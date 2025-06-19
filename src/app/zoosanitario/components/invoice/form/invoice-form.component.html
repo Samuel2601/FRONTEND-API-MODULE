@@ -102,6 +102,7 @@
                                 [class.field-error]="
                                     isFieldInvalid('introducerId')
                                 "
+                                [disabled]="introducerLocked"
                             >
                                 <ng-template let-introducer pTemplate="item">
                                     <div class="introducer-item">
@@ -109,32 +110,41 @@
                                             <i
                                                 class="pi"
                                                 [class.pi-user]="
-                                                    introducer.type ===
+                                                    introducer.personType ===
                                                     'Natural'
                                                 "
                                                 [class.pi-building]="
-                                                    introducer.type ===
+                                                    introducer.personType ===
                                                     'Jurídica'
                                                 "
-                                            >
-                                            </i>
+                                            ></i>
                                         </div>
                                         <div class="introducer-info">
                                             <div class="introducer-name">
                                                 {{
-                                                    getIntroducerDisplayName(
-                                                        introducer
-                                                    )
+                                                    introducer.name ||
+                                                        introducer.companyName ||
+                                                        "Sin nombre"
                                                 }}
                                             </div>
                                             <div class="introducer-id">
                                                 {{ introducer.idNumber }} -
-                                                {{ introducer.type }}
+                                                {{ introducer.personType }}
                                             </div>
                                         </div>
                                     </div>
                                 </ng-template>
                             </p-autoComplete>
+                            <small
+                                class="help-text"
+                                *ngIf="
+                                    introducerLocked && selectedSlaughterProcess
+                                "
+                            >
+                                <i class="pi pi-lock"></i>
+                                Introductor seleccionado automáticamente por el
+                                proceso de faenamiento
+                            </small>
                             <small
                                 class="error-message"
                                 *ngIf="isFieldInvalid('introducerId')"
@@ -166,40 +176,289 @@
                                 {{ getFieldError("invoiceNumber") }}
                             </small>
                         </div>
+
+                        <div class="form-field">
+                            <label for="slaughterProcessId" class="field-label"
+                                >Proceso de Faenamiento (Opcional)</label
+                            >
+                            <p-autoComplete
+                                id="slaughterProcessId"
+                                inputId="slaughterProcessSearch"
+                                [(ngModel)]="slaughterProcessSearch"
+                                [ngModelOptions]="{ standalone: true }"
+                                [suggestions]="filteredSlaughterProcesses"
+                                (completeMethod)="
+                                    filterSlaughterProcesses($event.query)
+                                "
+                                field="numeroOrden"
+                                [minLength]="1"
+                                placeholder="Buscar proceso de faenamiento..."
+                                [dropdown]="true"
+                                (onSelect)="selectSlaughterProcess($event)"
+                                (onClear)="clearSlaughterProcessSelection()"
+                                [showClear]="true"
+                            >
+                                <ng-template
+                                    let-slaughterProcess
+                                    pTemplate="item"
+                                >
+                                    <div class="slaughter-process-item">
+                                        <div class="slaughter-process-icon">
+                                            <i class="pi pi-cog"></i>
+                                        </div>
+                                        <div class="slaughter-process-info">
+                                            <div
+                                                class="slaughter-process-number"
+                                            >
+                                                {{
+                                                    slaughterProcess.numeroOrden ||
+                                                        "Sin número"
+                                                }}
+                                            </div>
+                                            <div
+                                                class="slaughter-process-status"
+                                            >
+                                                Estado:
+                                                {{
+                                                    slaughterProcess.estado ||
+                                                        "Desconocido"
+                                                }}
+                                            </div>
+                                        </div>
+                                        <div class="slaughter-process-badge">
+                                            <span
+                                                class="status-badge"
+                                                [ngClass]="
+                                                    'status-' +
+                                                    (slaughterProcess.estado?.toLowerCase() ||
+                                                        'desconocido')
+                                                "
+                                            >
+                                                {{
+                                                    slaughterProcess.estado ||
+                                                        "Desconocido"
+                                                }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </ng-template>
+                            </p-autoComplete>
+                            <small
+                                class="help-text"
+                                *ngIf="selectedSlaughterProcess"
+                            >
+                                <i class="pi pi-info-circle"></i>
+                                Proceso seleccionado:
+                                {{ selectedSlaughterProcess.numeroOrden }} -
+                                {{ selectedSlaughterProcess.estado }}
+                            </small>
+                            <small
+                                class="help-text"
+                                *ngIf="!selectedSlaughterProcess"
+                            >
+                                Puede asociar esta proforma a un proceso de
+                                faenamiento existente
+                            </small>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Tarifas Disponibles -->
-                <div class="form-section" *ngIf="filteredRates.length > 0">
-                    <div class="section-header">
-                        <h3>Tarifas Disponibles</h3>
-                        <p class="section-description">
-                            Haga clic en una tarifa para agregarla
-                        </p>
-                    </div>
-
-                    <div class="rates-grid">
+                <!-- En la sección de agregar rates, modifica para mostrar compatibilidad -->
+                <div class="rates-section" *ngIf="filteredRates.length > 0">
+                    <h4>Tarifas Disponibles</h4>
+                    <div class="grid">
                         <div
+                            class="col-12 md:col-6 lg:col-4"
                             *ngFor="let rate of filteredRates"
-                            class="rate-card"
-                            (click)="addItem(null, rate)"
-                            pTooltip="Click para agregar"
-                            tooltipPosition="top"
                         >
-                            <div class="rate-header">
-                                <span class="rate-code">{{ rate.code }}</span>
-                                <span class="rate-price">{{
-                                    formatCurrency(rate.unitPrice || 0)
-                                }}</span>
-                            </div>
-                            <div class="rate-description">
-                                {{ rate.rubroxAtributo }}
-                            </div>
-                            <div class="rate-footer">
-                                <span class="rate-type">{{ rate.type }}</span>
-                                <i class="pi pi-plus-circle add-icon"></i>
+                            <div
+                                class="rate-card p-3 border-round cursor-pointer"
+                                [class.rate-incompatible]="
+                                    !isRateCompatible(rate)
+                                "
+                                [class.rate-compatible]="isRateCompatible(rate)"
+                                (click)="
+                                    isRateCompatible(rate) &&
+                                        addItem(null, rate)
+                                "
+                                [pTooltip]="
+                                    !isRateCompatible(rate)
+                                        ? getIncompatibilityMessage(rate)
+                                        : rate.description
+                                "
+                                tooltipPosition="top"
+                            >
+                                <div
+                                    class="flex justify-content-between align-items-start mb-2"
+                                >
+                                    <span class="rate-code font-bold">{{
+                                        rate.code
+                                    }}</span>
+                                    <p-badge
+                                        [value]="rate.type"
+                                        [severity]="
+                                            getRateBadgeSeverity(rate.type)
+                                        "
+                                        class="ml-2"
+                                    ></p-badge>
+                                </div>
+
+                                <p
+                                    class="rate-description text-sm mb-2 line-height-3"
+                                >
+                                    {{ rate.description }}
+                                </p>
+
+                                <div
+                                    class="flex justify-content-between align-items-center"
+                                >
+                                    <span
+                                        class="rate-attribute text-xs text-color-secondary"
+                                    >
+                                        {{ rate.rubroxAtributo }}
+                                    </span>
+                                    <p-button
+                                        icon="pi pi-plus"
+                                        [disabled]="!isRateCompatible(rate)"
+                                        size="small"
+                                        severity="success"
+                                        [text]="true"
+                                    ></p-button>
+                                </div>
+
+                                <!-- Mensaje de incompatibilidad -->
+                                <div
+                                    *ngIf="!isRateCompatible(rate)"
+                                    class="mt-2 p-2 bg-red-50 border-round text-xs text-red-600"
+                                >
+                                    <i
+                                        class="pi pi-exclamation-triangle mr-1"
+                                    ></i>
+                                    {{ getIncompatibilityMessage(rate) }}
+                                </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Mensaje cuando no hay rates disponibles -->
+                    <div
+                        *ngIf="filteredRates.length === 0"
+                        class="text-center p-4"
+                    >
+                        <i
+                            class="pi pi-info-circle text-4xl text-color-secondary mb-3"
+                        ></i>
+                        <p class="text-color-secondary">
+                            No hay tarifas disponibles para la configuración
+                            actual
+                        </p>
+                        <small class="text-color-secondary">
+                            Verifica que el introductor tenga tipos de ganado
+                            configurados
+                            <span *ngIf="selectedSlaughterProcess">
+                                y que el proceso de faenamiento sea compatible
+                            </span>
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Sección de información del tipo de factura seleccionado -->
+                <div
+                    *ngIf="selectedInvoiceRateType"
+                    class="invoice-type-info mt-3 p-3 bg-blue-50 border-round"
+                >
+                    <div class="flex align-items-center mb-2">
+                        <i class="pi pi-info-circle text-blue-600 mr-2"></i>
+                        <span class="font-semibold text-blue-800">
+                            Tipo de Factura: {{ selectedInvoiceRateType }}
+                        </span>
+                    </div>
+                    <p class="text-sm text-blue-700 m-0">
+                        Solo se pueden agregar items del tipo
+                        {{ selectedInvoiceRateType }} a esta factura.
+                    </p>
+                </div>
+
+                <!-- Advertencia cuando se selecciona un Slaughter Process -->
+                <div
+                    *ngIf="selectedSlaughterProcess"
+                    class="slaughter-process-warning mt-3 p-3 bg-orange-50 border-round"
+                >
+                    <div class="flex align-items-center mb-2">
+                        <i
+                            class="pi pi-exclamation-triangle text-orange-600 mr-2"
+                        ></i>
+                        <span class="font-semibold text-orange-800">
+                            Proceso de Faenamiento Seleccionado
+                        </span>
+                    </div>
+                    <p class="text-sm text-orange-700 m-0">
+                        Las tarifas de inscripción (TARIFA) no están disponibles
+                        cuando hay un proceso de faenamiento seleccionado. Solo
+                        se pueden usar servicios de faenamiento (TASA) y
+                        servicios adicionales (SERVICIOS).
+                    </p>
+                </div>
+
+                <!-- Información del introductor seleccionado -->
+                <div
+                    *ngIf="selectedIntroducer"
+                    class="introducer-info mt-3 p-3 bg-green-50 border-round"
+                >
+                    <div class="flex justify-content-between align-items-start">
+                        <div>
+                            <div class="flex align-items-center mb-2">
+                                <i class="pi pi-user text-green-600 mr-2"></i>
+                                <span class="font-semibold text-green-800">
+                                    {{
+                                        getIntroducerDisplayName(
+                                            selectedIntroducer
+                                        )
+                                    }}
+                                </span>
+                                <p-badge
+                                    [value]="selectedIntroducer.personType"
+                                    severity="success"
+                                    class="ml-2"
+                                ></p-badge>
+                            </div>
+                            <div class="text-sm text-green-700">
+                                <div>
+                                    <strong>Cédula/RUC:</strong>
+                                    {{
+                                        selectedIntroducer.idNumber ||
+                                            selectedIntroducer.ruc
+                                    }}
+                                </div>
+                                <div
+                                    *ngIf="
+                                        selectedIntroducer.cattleTypes?.length >
+                                        0
+                                    "
+                                >
+                                    <strong>Tipos de Ganado:</strong>
+                                    <span
+                                        *ngFor="
+                                            let cattleType of selectedIntroducer.cattleTypes;
+                                            let last = last
+                                        "
+                                    >
+                                        {{ cattleType.species }}
+                                        <span *ngIf="!last">, </span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <p-button
+                            *ngIf="!introducerLocked"
+                            icon="pi pi-times"
+                            size="small"
+                            severity="danger"
+                            [text]="true"
+                            (click)="clearIntroducerSelection()"
+                            pTooltip="Limpiar selección"
+                        ></p-button>
                     </div>
                 </div>
 

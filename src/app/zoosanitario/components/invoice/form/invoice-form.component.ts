@@ -17,6 +17,10 @@ import { IntroducerService } from 'src/app/zoosanitario/services/introducer.serv
 import { InvoiceService } from 'src/app/zoosanitario/services/invoice.service';
 import { OracleService } from 'src/app/zoosanitario/services/oracle.service';
 import { RateService } from 'src/app/zoosanitario/services/rate.service';
+import {
+    SlaughterProcessService,
+    SlaughterProcess,
+} from 'src/app/zoosanitario/services/slaughter-process.service';
 
 interface Rate {
     _id: string;
@@ -47,18 +51,27 @@ interface ProformaType {
 })
 export class InvoiceFormComponent implements OnInit {
     introducerSearch: string = '';
+    slaughterProcessSearch: string = '';
     form: FormGroup;
     loading = false;
     isEditMode = false;
     invoiceId: string | null = null;
     introducers: Introducer[] = [];
     filteredIntroducers: Introducer[] = [];
-    selectedIntroducer: Introducer | null = null;
+    selectedIntroducer: any | null = null;
+    slaughterProcesses: SlaughterProcess[] = [];
+    filteredSlaughterProcesses: SlaughterProcess[] = [];
+    selectedSlaughterProcess: SlaughterProcess | null = null;
     rates: Rate[] = [];
     filteredRates: Rate[] = [];
     typeOptions: ProformaType[] = [];
     loadingRates = true;
+    loadingSlaughterProcesses = false;
     calculationError = false;
+    introducerLocked = false;
+
+    // Nueva propiedad para controlar el tipo de rate seleccionado en la factura
+    selectedInvoiceRateType: string | null = null;
 
     constructor(
         private fb: FormBuilder,
@@ -66,6 +79,7 @@ export class InvoiceFormComponent implements OnInit {
         private introducerService: IntroducerService,
         private oracleService: OracleService,
         private rateService: RateService,
+        private slaughterProcessService: SlaughterProcessService,
         private route: ActivatedRoute,
         private router: Router,
         private messageService: MessageService
@@ -76,8 +90,6 @@ export class InvoiceFormComponent implements OnInit {
     ngOnInit() {
         this.invoiceId = this.route.snapshot.paramMap.get('id');
         this.isEditMode = !!this.invoiceId;
-
-        // Primero cargar rates para determinar tipos disponibles
         this.loadInitialData();
     }
 
@@ -86,11 +98,15 @@ export class InvoiceFormComponent implements OnInit {
 
         forkJoin({
             rates: this.rateService.getAll(),
-            // Pasar parámetros para obtener todos los introducers
             introducers: this.introducerService.getAll({
                 limit: 1000,
                 page: 1,
-            }), // o sin paginación
+            }),
+            slaughterProcesses:
+                this.slaughterProcessService.getActiveSlaughterProcesses({
+                    limit: 1000,
+                    page: 1,
+                }),
         }).subscribe({
             next: (data: any) => {
                 console.log('Datos cargados:', data);
@@ -99,19 +115,47 @@ export class InvoiceFormComponent implements OnInit {
                 // Extraer introducers de la respuesta paginada
                 if (data.introducers?.data?.introducers) {
                     this.introducers = data.introducers.data.introducers;
+                    this.filteredIntroducers = [...this.introducers];
                 } else if (Array.isArray(data.introducers)) {
                     this.introducers = data.introducers;
+                    this.filteredIntroducers = [...this.introducers];
                 } else {
                     this.introducers = [];
+                    this.filteredIntroducers = [];
                     console.warn(
                         'Estructura de introducers no reconocida:',
                         data.introducers
                     );
                 }
 
+                // Extraer slaughter processes de la respuesta paginada
+                if (data.slaughterProcesses?.docs) {
+                    this.slaughterProcesses = data.slaughterProcesses.docs;
+                    this.filteredSlaughterProcesses = [
+                        ...this.slaughterProcesses,
+                    ];
+                } else if (Array.isArray(data.slaughterProcesses)) {
+                    this.slaughterProcesses = data.slaughterProcesses;
+                    this.filteredSlaughterProcesses = [
+                        ...this.slaughterProcesses,
+                    ];
+                } else {
+                    this.slaughterProcesses = [];
+                    this.filteredSlaughterProcesses = [];
+                    console.warn(
+                        'Estructura de slaughter processes no reconocida:',
+                        data.slaughterProcesses
+                    );
+                }
+
                 this.filteredIntroducers = this.introducers;
+                this.filteredSlaughterProcesses = this.slaughterProcesses;
 
                 console.log('Introducers cargados:', this.introducers);
+                console.log(
+                    'Slaughter Processes cargados:',
+                    this.slaughterProcesses
+                );
 
                 this.generateTypeOptionsFromRates();
                 this.setupFormSubscriptions();
@@ -131,13 +175,17 @@ export class InvoiceFormComponent implements OnInit {
                 this.loadingRates = false;
             },
             error: (error) => {
+                console.error('Error loading initial data:', error);
                 this.messageService.add({
                     severity: 'error',
-                    summary: 'Error de Carga',
-                    detail: 'Error al cargar datos iniciales: ' + error.message,
+                    summary: 'Error',
+                    detail: 'No se pudieron cargar los datos iniciales',
                 });
                 this.loading = false;
-                this.loadingRates = false;
+                this.introducers = [];
+                this.filteredIntroducers = [];
+                this.slaughterProcesses = [];
+                this.filteredSlaughterProcesses = [];
             },
         });
     }
@@ -178,15 +226,8 @@ export class InvoiceFormComponent implements OnInit {
             }
         });
 
-        // Agregar opción mixta si hay más de un tipo
-        if (this.typeOptions.length > 1) {
-            this.typeOptions.push({
-                label: 'Mixta',
-                value: 'MIXED',
-                rateType: 'ALL',
-                description: 'Combina diferentes tipos de servicios',
-            });
-        }
+        // ELIMINADO: No agregar opción mixta según las reglas de negocio
+        // Solo se permite un tipo de rate por factura
     }
 
     private createForm(): FormGroup {
@@ -195,6 +236,8 @@ export class InvoiceFormComponent implements OnInit {
             type: ['', Validators.required],
             introducerId: ['', Validators.required],
             introducerSearch: [''],
+            slaughterProcessId: [''],
+            slaughterProcessSearch: [''],
             items: this.fb.array([]),
             subtotal: [{ value: 0, disabled: true }],
             taxes: [{ value: 0, disabled: true }],
@@ -214,7 +257,17 @@ export class InvoiceFormComponent implements OnInit {
             .get('introducerSearch')
             ?.valueChanges.pipe(debounceTime(300), distinctUntilChanged())
             .subscribe((value) => {
-                this.filterIntroducers(value);
+                if (!this.introducerLocked) {
+                    this.filterIntroducers(value);
+                }
+            });
+
+        // Filtro de procesos de faenamiento
+        this.form
+            .get('slaughterProcessSearch')
+            ?.valueChanges.pipe(debounceTime(300), distinctUntilChanged())
+            .subscribe((value) => {
+                this.filterSlaughterProcesses(value);
             });
 
         // Recalcular totales cuando cambien los items
@@ -226,6 +279,15 @@ export class InvoiceFormComponent implements OnInit {
         this.form.get('type')?.valueChanges.subscribe((type) => {
             this.filterRatesByInvoiceType(type);
         });
+
+        // Cuando cambia el introductor, filtrar procesos de faenamiento
+        this.form
+            .get('introducerId')
+            ?.valueChanges.subscribe((introducerId) => {
+                if (introducerId && !this.introducerLocked) {
+                    this.filterSlaughterProcessesByIntroducer(introducerId);
+                }
+            });
     }
 
     private filterRatesByInvoiceType(invoiceType: string) {
@@ -243,26 +305,106 @@ export class InvoiceFormComponent implements OnInit {
             return;
         }
 
-        if (selectedType.rateType === 'ALL') {
-            // Para tipo mixto, mostrar todas las rates
-            this.filteredRates = this.rates.sort(
-                (a, b) => a.position - b.position
-            );
-        } else {
-            // Filtrar por tipo específico
-            this.filteredRates = this.rates
-                .filter((rate) => rate.type === selectedType.rateType)
-                .sort((a, b) => a.position - b.position);
+        // Filtrar por tipo específico
+        let filteredByType = this.rates.filter(
+            (rate) => rate.type === selectedType.rateType
+        );
+
+        // NUEVA REGLA: Si hay Slaughter Process seleccionado, no permitir TARIFA
+        if (
+            this.selectedSlaughterProcess &&
+            selectedType.rateType === 'TARIFA'
+        ) {
+            this.filteredRates = [];
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Restricción',
+                detail: 'No se pueden usar tarifas de inscripción cuando hay un proceso de faenamiento seleccionado',
+            });
+            return;
         }
 
         // Filtrar por tipo de persona del introductor seleccionado
         if (this.selectedIntroducer) {
-            this.filteredRates = this.filteredRates.filter((rate) =>
+            filteredByType = filteredByType.filter((rate) =>
                 rate.personType.includes(
                     this.selectedIntroducer!.personType as any
                 )
             );
+
+            // NUEVA REGLA: Filtrar por animalTypes del introductor
+            if (
+                this.selectedIntroducer.cattleTypes &&
+                this.selectedIntroducer.cattleTypes.length > 0
+            ) {
+                const introducerAnimalTypeIds =
+                    this.selectedIntroducer.cattleTypes.map((ct) =>
+                        typeof ct === 'string' ? ct : ct._id
+                    );
+
+                filteredByType = filteredByType.filter((rate) => {
+                    return rate.animalTypes.some((animalTypeId) =>
+                        introducerAnimalTypeIds.includes(animalTypeId)
+                    );
+                });
+            }
         }
+
+        // Si hay Slaughter Process seleccionado, filtrar por sus animalTypes también
+        if (this.selectedSlaughterProcess) {
+            const processAnimalTypes = this.getSlaughterProcessAnimalTypes();
+            if (processAnimalTypes.length > 0) {
+                filteredByType = filteredByType.filter((rate) => {
+                    return rate.animalTypes.some((animalTypeId) =>
+                        processAnimalTypes.includes(animalTypeId)
+                    );
+                });
+            }
+        }
+
+        this.filteredRates = filteredByType.sort(
+            (a, b) => a.position - b.position
+        );
+    }
+
+    private getSlaughterProcessAnimalTypes(): string[] {
+        if (!this.selectedSlaughterProcess?.inspeccionesExternas) {
+            return [];
+        }
+
+        const animalTypes: string[] = [];
+        this.selectedSlaughterProcess.inspeccionesExternas.forEach(
+            (inspection: any) => {
+                if (inspection.especie) {
+                    const specieId =
+                        typeof inspection.especie === 'string'
+                            ? inspection.especie
+                            : inspection.especie._id;
+                    if (!animalTypes.includes(specieId)) {
+                        animalTypes.push(specieId);
+                    }
+                }
+            }
+        );
+
+        return animalTypes;
+    }
+
+    private filterSlaughterProcessesByIntroducer(introducerId: string) {
+        if (!introducerId) {
+            this.filteredSlaughterProcesses = this.slaughterProcesses;
+            return;
+        }
+
+        this.filteredSlaughterProcesses = this.slaughterProcesses.filter(
+            (process) => {
+                const processIntroducerId =
+                    typeof process.introductor === 'string'
+                        ? process.introductor
+                        : process.introductor?._id;
+                return processIntroducerId === introducerId;
+            }
+        );
     }
 
     private loadInvoice() {
@@ -275,6 +417,8 @@ export class InvoiceFormComponent implements OnInit {
                     invoiceNumber: invoice.invoiceNumber,
                     type: invoice.type,
                     introducerId: invoice.introducerId,
+                    slaughterProcessId:
+                        invoice.metadata?.slaughterProcessId || '',
                     subtotal: invoice.subtotal,
                     taxes: invoice.taxes,
                     totalAmount: invoice.totalAmount,
@@ -282,11 +426,21 @@ export class InvoiceFormComponent implements OnInit {
                     notes: invoice.notes || '',
                 });
 
-                // Cargar items
+                // Cargar items y determinar el tipo de rate
                 this.clearItems();
-                invoice.items.forEach((item: any) => {
-                    this.addItem(item);
-                });
+                if (invoice.items && invoice.items.length > 0) {
+                    // Obtener el tipo del primer item para establecer el tipo de factura
+                    const firstRate = this.rates.find(
+                        (r) => r._id === invoice.items[0].rateId
+                    );
+                    if (firstRate) {
+                        this.selectedInvoiceRateType = firstRate.type;
+                    }
+
+                    invoice.items.forEach((item: any) => {
+                        this.addItem(item);
+                    });
+                }
 
                 // Cargar introductor
                 if (invoice.introducer) {
@@ -298,6 +452,23 @@ export class InvoiceFormComponent implements OnInit {
                                 this.selectedIntroducer
                             )
                         );
+                }
+
+                // Cargar slaughter process si existe
+                if (invoice.metadata?.slaughterProcessId) {
+                    const slaughterProcess = this.slaughterProcesses.find(
+                        (sp) => sp._id === invoice.metadata.slaughterProcessId
+                    );
+                    if (slaughterProcess) {
+                        this.selectedSlaughterProcess = slaughterProcess;
+                        this.form
+                            .get('slaughterProcessSearch')
+                            ?.setValue(
+                                this.getSlaughterProcessDisplayName(
+                                    slaughterProcess
+                                )
+                            );
+                    }
                 }
 
                 this.loading = false;
@@ -323,21 +494,71 @@ export class InvoiceFormComponent implements OnInit {
     }
 
     filterIntroducers(query: string) {
-        if (!query) {
-            this.filteredIntroducers = this.introducers;
+        if (!query || query.trim() === '') {
+            this.filteredIntroducers = [...this.introducers];
             return;
         }
 
+        const queryLower = query.toLowerCase();
         this.filteredIntroducers = this.introducers.filter(
-            (introducer: any) =>
-                this.getIntroducerDisplayName(introducer)
-                    .toLowerCase()
-                    .includes(query.toLowerCase()) ||
-                introducer.idNumber.includes(query)
+            (introducer: any) => {
+                const nameMatch =
+                    introducer.name?.toLowerCase().includes(queryLower) ||
+                    false;
+                const idMatch = introducer.idNumber?.includes(query) || false;
+                const companyMatch =
+                    introducer.companyName
+                        ?.toLowerCase()
+                        .includes(queryLower) || false;
+
+                return nameMatch || idMatch || companyMatch;
+            }
+        );
+    }
+
+    filterSlaughterProcesses(query: string) {
+        if (!query || query.trim() === '') {
+            if (this.selectedIntroducer) {
+                this.filterSlaughterProcessesByIntroducer(
+                    this.selectedIntroducer._id
+                );
+            } else {
+                this.filteredSlaughterProcesses = [...this.slaughterProcesses];
+            }
+            return;
+        }
+
+        const queryLower = query.toLowerCase();
+        let processesToFilter = this.slaughterProcesses;
+
+        if (this.selectedIntroducer) {
+            processesToFilter = this.slaughterProcesses.filter((process) => {
+                const processIntroducerId =
+                    typeof process.introductor === 'string'
+                        ? process.introductor
+                        : process.introductor?._id;
+                return processIntroducerId === this.selectedIntroducer!._id;
+            });
+        }
+
+        this.filteredSlaughterProcesses = processesToFilter.filter(
+            (process) => {
+                const orderMatch =
+                    process.numeroOrden?.toLowerCase().includes(queryLower) ||
+                    false;
+                const statusMatch =
+                    process.estado?.toLowerCase().includes(queryLower) || false;
+
+                return orderMatch || statusMatch;
+            }
         );
     }
 
     selectIntroducer(introducer: any) {
+        if (this.introducerLocked) {
+            return;
+        }
+
         this.selectedIntroducer = introducer;
         this.form.get('introducerId')?.setValue(introducer._id);
         this.form
@@ -345,11 +566,132 @@ export class InvoiceFormComponent implements OnInit {
             ?.setValue(this.getIntroducerDisplayName(introducer));
         this.filteredIntroducers = [];
 
-        // Refiltrar rates por tipo de persona
+        this.filterSlaughterProcessesByIntroducer(introducer._id);
+
+        if (this.selectedSlaughterProcess) {
+            const processIntroducerId =
+                typeof this.selectedSlaughterProcess.introductor === 'string'
+                    ? this.selectedSlaughterProcess.introductor
+                    : this.selectedSlaughterProcess.introductor?._id;
+
+            if (processIntroducerId !== introducer._id) {
+                this.clearSlaughterProcessSelection();
+            }
+        }
+
+        // Refiltrar rates por tipo de persona y animalTypes
         this.filterRatesByInvoiceType(this.form.get('type')?.value);
     }
 
+    selectSlaughterProcess(slaughterProcess: any) {
+        console.log('selectSlaughterProcess', slaughterProcess);
+        this.selectedSlaughterProcess = slaughterProcess;
+        this.form.get('slaughterProcessId')?.setValue(slaughterProcess._id);
+        this.form
+            .get('slaughterProcessSearch')
+            ?.setValue(this.getSlaughterProcessDisplayName(slaughterProcess));
+        this.filteredSlaughterProcesses = [];
+
+        // Auto-seleccionar el introductor del proceso
+        const introducerId =
+            typeof slaughterProcess.introductor === 'string'
+                ? slaughterProcess.introductor
+                : slaughterProcess.introductor?._id;
+
+        if (introducerId) {
+            const introducer = this.introducers.find(
+                (i) => i._id === introducerId
+            );
+            if (introducer) {
+                this.selectedIntroducer = introducer;
+                this.form.get('introducerId')?.setValue(introducer._id);
+                this.form
+                    .get('introducerSearch')
+                    ?.setValue(this.getIntroducerDisplayName(introducer));
+
+                this.introducerLocked = true;
+                this.form.get('introducerId')?.disable();
+            }
+        }
+
+        // NUEVA REGLA: Si el tipo actual es TARIFA y se selecciona un proceso, cambiar tipo
+        const currentType = this.form.get('type')?.value;
+        const currentTypeOption = this.typeOptions.find(
+            (t) => t.value === currentType
+        );
+
+        if (currentTypeOption?.rateType === 'TARIFA') {
+            // Cambiar a TASA si está disponible
+            const tasaOption = this.typeOptions.find(
+                (t) => t.rateType === 'TASA'
+            );
+            if (tasaOption) {
+                this.form.get('type')?.setValue(tasaOption.value);
+                this.messageService.add({
+                    severity: 'info',
+                    summary: 'Tipo Cambiado',
+                    detail: 'El tipo se cambió automáticamente a Faenamiento debido al proceso seleccionado',
+                });
+            }
+        }
+
+        // Refiltrar rates
+        this.filterRatesByInvoiceType(this.form.get('type')?.value);
+
+        // Agregar nota automática si no hay notas previas
+        const currentNotes = this.form.get('notes')?.value;
+        if (!currentNotes) {
+            this.form
+                .get('notes')
+                ?.setValue(
+                    `Proforma generada para proceso de faenamiento ${slaughterProcess.numeroOrden}`
+                );
+        }
+    }
+
+    clearSlaughterProcessSelection() {
+        this.selectedSlaughterProcess = null;
+        this.form.get('slaughterProcessId')?.setValue('');
+        this.form.get('slaughterProcessSearch')?.setValue('');
+
+        this.introducerLocked = false;
+        this.form.get('introducerId')?.enable();
+
+        // Refiltrar rates sin la restricción de slaughter process
+        this.filterRatesByInvoiceType(this.form.get('type')?.value);
+
+        const currentNotes = this.form.get('notes')?.value;
+        if (
+            currentNotes &&
+            currentNotes.includes(
+                'Proforma generada para proceso de faenamiento'
+            )
+        ) {
+            this.form.get('notes')?.setValue('');
+        }
+    }
+
     addItem(itemData?: any, rate?: Rate) {
+        // NUEVA VALIDACIÓN: Verificar compatibilidad de tipos
+        if (rate && this.items.length > 0) {
+            if (
+                this.selectedInvoiceRateType &&
+                this.selectedInvoiceRateType !== rate.type
+            ) {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Tipo Incompatible',
+                    detail: `No se puede agregar un item de tipo ${rate.type} cuando ya hay items de tipo ${this.selectedInvoiceRateType}`,
+                });
+                return;
+            }
+        }
+
+        // Establecer el tipo de rate de la factura
+        if (rate && !this.selectedInvoiceRateType) {
+            this.selectedInvoiceRateType = rate.type;
+        }
+
         const item = this.fb.group({
             rateId: [itemData?.rateId || rate?._id || null],
             description: [
@@ -367,7 +709,6 @@ export class InvoiceFormComponent implements OnInit {
             total: [{ value: itemData?.total || 0, disabled: true }],
         });
 
-        // Recalcular total del item cuando cambien cantidad o precio
         item.get('quantity')?.valueChanges.subscribe(() =>
             this.calculateItemTotal(item)
         );
@@ -376,13 +717,17 @@ export class InvoiceFormComponent implements OnInit {
         );
 
         this.items.push(item);
-
-        // Calcular total inicial
         this.calculateItemTotal(item);
     }
 
     removeItem(index: number) {
         this.items.removeAt(index);
+
+        // Si no quedan items, resetear el tipo de rate seleccionado
+        if (this.items.length === 0) {
+            this.selectedInvoiceRateType = null;
+        }
+
         this.calculateTotals();
     }
 
@@ -403,7 +748,6 @@ export class InvoiceFormComponent implements OnInit {
             }));
 
         if (itemsToCalculate.length === 0) {
-            // Cálculo manual si no hay items con rateId
             this.calculateManually();
             return;
         }
@@ -426,7 +770,6 @@ export class InvoiceFormComponent implements OnInit {
                         response?.data &&
                         Array.isArray(response.data)
                     ) {
-                        // Sumar todos los totalAmount de los items calculados
                         const subtotal = response.data.reduce(
                             (sum: number, item: any) => {
                                 return sum + (item.totalAmount || 0);
@@ -434,8 +777,6 @@ export class InvoiceFormComponent implements OnInit {
                             0
                         );
 
-                        // Actualizar los items del formulario con los datos calculados
-                        // Buscar por rateId en lugar de por índice
                         this.items.controls.forEach(
                             (formItem: any, index: number) => {
                                 const rateId = formItem.get('rateId')?.value;
@@ -444,7 +785,6 @@ export class InvoiceFormComponent implements OnInit {
                                         (item: any) => item.rateId === rateId
                                     );
                                     if (calculatedItem) {
-                                        // Usar emitEvent: false para evitar bucle infinito
                                         formItem
                                             .get('unitPrice')
                                             ?.setValue(
@@ -473,10 +813,10 @@ export class InvoiceFormComponent implements OnInit {
                             ?.setValue(subtotal, { emitEvent: false });
                         this.form
                             .get('taxes')
-                            ?.setValue(0, { emitEvent: false }); // No manejan IVA
+                            ?.setValue(0, { emitEvent: false });
                         this.form
                             .get('totalAmount')
-                            ?.setValue(subtotal, { emitEvent: false }); // Total = Subtotal sin IVA
+                            ?.setValue(subtotal, { emitEvent: false });
                         this.calculationError = false;
                     } else {
                         this.calculationError = true;
@@ -496,7 +836,6 @@ export class InvoiceFormComponent implements OnInit {
             (sum: number, item: any) => sum + (item.total || 0),
             0
         );
-        // No calcular IVA ya que no lo manejan
         const total = subtotal;
 
         this.form.get('subtotal')?.setValue(subtotal, { emitEvent: false });
@@ -508,7 +847,6 @@ export class InvoiceFormComponent implements OnInit {
         const quantity = item.get('quantity')?.value || 0;
         const unitPrice = item.get('unitPrice')?.value || 0;
         const total = quantity * unitPrice;
-        // Usar emitEvent: false para evitar bucle infinito
         item.get('total')?.setValue(total, { emitEvent: false });
     }
 
@@ -516,6 +854,7 @@ export class InvoiceFormComponent implements OnInit {
         while (this.items.length !== 0) {
             this.items.removeAt(0);
         }
+        this.selectedInvoiceRateType = null;
     }
 
     onSubmit() {
@@ -541,8 +880,18 @@ export class InvoiceFormComponent implements OnInit {
         this.loading = true;
         const formData = this.form.getRawValue();
 
-        // Limpiar campos de búsqueda
         delete formData.introducerSearch;
+        delete formData.slaughterProcessSearch;
+
+        if (formData.slaughterProcessId) {
+            formData.metadata = {
+                slaughterProcessId: formData.slaughterProcessId,
+                version: '1.0',
+                tags: [],
+            };
+        }
+
+        delete formData.slaughterProcessId;
 
         const operation = this.isEditMode
             ? this.invoiceService.update(this.invoiceId!, formData)
@@ -609,6 +958,10 @@ export class InvoiceFormComponent implements OnInit {
         }
     }
 
+    getSlaughterProcessDisplayName(slaughterProcess: SlaughterProcess): string {
+        return `${slaughterProcess.numeroOrden} - ${slaughterProcess.estado}`;
+    }
+
     formatCurrency(amount: number): string {
         return new Intl.NumberFormat('es-EC', {
             style: 'currency',
@@ -632,5 +985,98 @@ export class InvoiceFormComponent implements OnInit {
             (t) => t.value === this.form.get('type')?.value
         );
         return selectedType?.description || '';
+    }
+
+    // NUEVO MÉTODO: Verificar si un rate es compatible con los items actuales
+    isRateCompatible(rate: Rate): boolean {
+        if (this.items.length === 0) {
+            return true;
+        }
+        return (
+            !this.selectedInvoiceRateType ||
+            this.selectedInvoiceRateType === rate.type
+        );
+    }
+
+    // NUEVO MÉTODO: Obtener mensaje de incompatibilidad
+    getIncompatibilityMessage(rate: Rate): string {
+        if (
+            this.selectedInvoiceRateType &&
+            this.selectedInvoiceRateType !== rate.type
+        ) {
+            return `No compatible: esta factura ya contiene items de tipo ${this.selectedInvoiceRateType}`;
+        }
+        return '';
+    }
+
+    // NUEVO MÉTODO: Obtener severidad del badge según tipo de rate
+    getRateBadgeSeverity(
+        rateType: string
+    ): 'success' | 'info' | 'warning' | 'secondary' {
+        switch (rateType) {
+            case 'TASA':
+                return 'success';
+            case 'TARIFA':
+                return 'info';
+            case 'SERVICIOS':
+                return 'warning';
+            default:
+                return 'secondary';
+        }
+    }
+
+    // NUEVO MÉTODO: Limpiar selección de introductor
+    clearIntroducerSelection() {
+        if (this.introducerLocked) {
+            return;
+        }
+
+        this.selectedIntroducer = null;
+        this.form.get('introducerId')?.setValue('');
+        this.form.get('introducerSearch')?.setValue('');
+        this.filteredIntroducers = [...this.introducers];
+
+        // Limpiar slaughter process también
+        this.clearSlaughterProcessSelection();
+
+        // Refiltrar rates
+        this.filterRatesByInvoiceType(this.form.get('type')?.value);
+    }
+
+    // NUEVO MÉTODO: Obtener tipos de animal del introductor
+    getIntroducerAnimalTypes(): string[] {
+        if (!this.selectedIntroducer?.cattleTypes) {
+            return [];
+        }
+
+        return this.selectedIntroducer.cattleTypes.map((ct) =>
+            typeof ct === 'string' ? ct : ct._id
+        );
+    }
+
+    // NUEVO MÉTODO: Verificar si el rate actual es del tipo seleccionado en la factura
+    isCurrentInvoiceRateType(rateType: string): boolean {
+        return (
+            !this.selectedInvoiceRateType ||
+            this.selectedInvoiceRateType === rateType
+        );
+    }
+
+    // NUEVO MÉTODO: Obtener descripción del tipo de factura actual
+    getCurrentInvoiceTypeDescription(): string {
+        if (!this.selectedInvoiceRateType) {
+            return '';
+        }
+
+        switch (this.selectedInvoiceRateType) {
+            case 'TASA':
+                return 'Servicios de Faenamiento';
+            case 'TARIFA':
+                return 'Tasas de Inscripción y Registro';
+            case 'SERVICIOS':
+                return 'Servicios Adicionales y Complementarios';
+            default:
+                return this.selectedInvoiceRateType;
+        }
     }
 }

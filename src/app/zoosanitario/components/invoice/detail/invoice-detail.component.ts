@@ -71,7 +71,7 @@ export class InvoiceDetailComponent implements OnInit {
             this.timelineLayout.set('vertical');
             this.timelineAlign.set('left');
         } else {
-            this.timelineLayout.set('horizontal');
+            this.timelineLayout.set('vertical');
             this.timelineAlign.set('alternate');
         }
     }

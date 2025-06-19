@@ -215,6 +215,17 @@
                 color: var(--text-color-secondary);
                 font-size: 0.85rem;
                 font-style: italic;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+
+                .pi-lock {
+                    color: var(--orange-500);
+                }
+
+                .pi-info-circle {
+                    color: var(--blue-500);
+                }
             }
 
             .error-message {
@@ -253,6 +264,13 @@
         &.field-error {
             border-color: var(--red-500);
             box-shadow: 0 0 0 4px rgba(var(--red-500-rgb), 0.1);
+        }
+
+        &:disabled {
+            background: var(--surface-100);
+            color: var(--text-color-secondary);
+            border-color: var(--surface-400);
+            cursor: not-allowed;
         }
     }
 
@@ -307,8 +325,16 @@
                 border-color: var(--primary-500);
                 box-shadow: 0 0 0 4px rgba(var(--primary-500-rgb), 0.1);
             }
+
+            &:disabled {
+                background: var(--surface-100);
+                color: var(--text-color-secondary);
+                border-color: var(--surface-400);
+                cursor: not-allowed;
+            }
         }
 
+        // Introducer items
         .introducer-item {
             display: flex;
             align-items: center;
@@ -339,6 +365,81 @@
                 .introducer-id {
                     font-size: 0.85rem;
                     color: var(--text-color-secondary);
+                }
+            }
+        }
+
+        // Slaughter Process items
+        .slaughter-process-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+
+            .slaughter-process-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: var(--green-100);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--green-600);
+                font-size: 1.1rem;
+            }
+
+            .slaughter-process-info {
+                flex: 1;
+
+                .slaughter-process-number {
+                    font-weight: 600;
+                    color: var(--text-color);
+                    margin-bottom: 0.25rem;
+                }
+
+                .slaughter-process-status {
+                    font-size: 0.85rem;
+                    color: var(--text-color-secondary);
+                }
+            }
+
+            .slaughter-process-badge {
+                .status-badge {
+                    padding: 0.25rem 0.75rem;
+                    border-radius: var(--border-radius-sm);
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    text-transform: uppercase;
+
+                    &.status-iniciado {
+                        background: var(--blue-100);
+                        color: var(--blue-700);
+                    }
+
+                    &.status-prefaenamiento {
+                        background: var(--yellow-100);
+                        color: var(--yellow-700);
+                    }
+
+                    &.status-pagado {
+                        background: var(--cyan-100);
+                        color: var(--cyan-700);
+                    }
+
+                    &.status-enproceso {
+                        background: var(--orange-100);
+                        color: var(--orange-700);
+                    }
+
+                    &.status-finalizado {
+                        background: var(--green-100);
+                        color: var(--green-700);
+                    }
+
+                    &.status-anulado {
+                        background: var(--red-100);
+                        color: var(--red-700);
+                    }
                 }
             }
         }
@@ -790,4 +891,226 @@
         font-weight: 500;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
+}
+
+// Estilos para las tarjetas de rates
+.rate-card {
+    transition: all 0.2s ease;
+    border: 1px solid #e0e0e0;
+    background: white;
+
+    &:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transform: translateY(-1px);
+    }
+
+    &.rate-compatible {
+        border-color: #22c55e;
+
+        &:hover {
+            border-color: #16a34a;
+            background: #f0fdf4;
+        }
+    }
+
+    &.rate-incompatible {
+        border-color: #ef4444;
+        background: #fef2f2;
+        cursor: not-allowed !important;
+        opacity: 0.7;
+
+        &:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .rate-description,
+        .rate-attribute {
+            color: #dc2626 !important;
+        }
+    }
+}
+
+.rate-code {
+    font-size: 0.9rem;
+    color: #374151;
+}
+
+.rate-description {
+    color: #6b7280;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.rate-attribute {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+// Estilos para las secciones de información
+.invoice-type-info,
+.slaughter-process-warning,
+.introducer-info {
+    border-left: 4px solid;
+    animation: slideIn 0.3s ease-out;
+}
+
+.invoice-type-info {
+    border-left-color: #3b82f6;
+}
+
+.slaughter-process-warning {
+    border-left-color: #f59e0b;
+}
+
+.introducer-info {
+    border-left-color: #10b981;
+}
+
+// Animación para las secciones de información
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+// Estilos para rates section
+.rates-section {
+    margin-top: 1rem;
+
+    h4 {
+        color: #374151;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+
+        &::before {
+            content: "";
+            width: 4px;
+            height: 1.5rem;
+            background: linear-gradient(45deg, #3b82f6, #10b981);
+            margin-right: 0.5rem;
+            border-radius: 2px;
+        }
+    }
+}
+
+// Estilos para el grid de rates
+.rates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+// Estilos para campos bloqueados
+.locked-field {
+    position: relative;
+
+    &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+        pointer-events: none;
+    }
+
+    .p-inputtext,
+    .p-dropdown {
+        background: #f8f9fa !important;
+        color: #6c757d !important;
+    }
+}
+
+// Estilos responsivos
+@media (max-width: 768px) {
+    .rates-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rate-card {
+        margin-bottom: 0.5rem;
+    }
+
+    .invoice-type-info,
+    .slaughter-process-warning,
+    .introducer-info {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+}
+
+// Estilos para badges personalizados
+.p-badge {
+    font-size: 0.75rem;
+    font-weight: 500;
+
+    &.p-badge-success {
+        background: #10b981;
+    }
+
+    &.p-badge-info {
+        background: #3b82f6;
+    }
+
+    &.p-badge-warning {
+        background: #f59e0b;
+    }
+}
+
+// Estilos para mensajes de estado
+.status-message {
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    margin: 0.5rem 0;
+
+    &.success {
+        background: #ecfdf5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+    }
+
+    &.warning {
+        background: #fffbeb;
+        color: #92400e;
+        border: 1px solid #fde68a;
+    }
+
+    &.error {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    &.info {
+        background: #eff6ff;
+        color: #1e40af;
+        border: 1px solid #bfdbfe;
+    }
+}
+
+// Mejoras en la accesibilidad
+.rate-card:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+// Estilos para tooltips personalizados
+.p-tooltip .p-tooltip-text {
+    max-width: 300px;
+    font-size: 0.875rem;
+    line-height: 1.4;
 }
