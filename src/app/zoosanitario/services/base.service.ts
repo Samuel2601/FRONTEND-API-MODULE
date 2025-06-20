@@ -32,11 +32,14 @@ export abstract class BaseService<T> {
         });
     }
 
-    getAll(params?: Record<string, any>): Observable<T[]> {
+    getAll(
+        params?: Record<string, any>,
+        cache: boolean = true
+    ): Observable<T[]> {
         const cacheKey = `${this.endpoint}_all_${JSON.stringify(params)}`;
         const cachedData = this.cacheService.get<T[]>(cacheKey);
 
-        if (cachedData) {
+        if (cachedData && cache) {
             return of(cachedData);
         }
 

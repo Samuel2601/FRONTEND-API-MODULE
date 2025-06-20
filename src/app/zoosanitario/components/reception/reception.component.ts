@@ -153,7 +153,7 @@ export class ReceptionComponent implements OnInit, OnDestroy {
     async loadIntroducer(): Promise<void> {
         this.loading = true;
         this.introducerService
-            .getAll() //{ registrationStatus: 'ACTIVE' }
+            .getAll({}, false) //{ registrationStatus: 'ACTIVE' }
             .pipe(
                 takeUntil(this.destroy$),
                 finalize(() => (this.loading = false))
@@ -642,7 +642,7 @@ export class ReceptionComponent implements OnInit, OnDestroy {
 
                     // Navegar al dashboard o a la vista de la recepción
                     this.router.navigate([
-                        '/zoosanitario/workflow/external-inspection/',
+                        '/zoosanitario/workflow/external-inspection/recepcion/',
                         reception.data.slaughterProcess.numeroOrden,
                     ]);
                 },

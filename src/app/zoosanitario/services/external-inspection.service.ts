@@ -386,7 +386,7 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
 
     updateInspectionsBatch(
         inspectionIds: string[],
-        updateData: Partial<ExternalInspection>
+        updateData: any
     ): Observable<ExternalInspection[]> {
         return this.http
             .put<ExternalInspection[]>(

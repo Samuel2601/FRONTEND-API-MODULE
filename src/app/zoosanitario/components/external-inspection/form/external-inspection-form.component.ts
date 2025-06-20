@@ -21,14 +21,11 @@ interface PhotoFile {
     styleUrls: ['./external-inspection-form.component.scss'],
 })
 export class ExternalInspectionFormComponent implements OnInit {
-    openPhotoViewer(_t370: string) {
-        throw new Error('Method not implemented.');
-    }
     @Input() visible = false;
     @Input() inspectionId: string | null = null;
     @Input() receptionId?: string;
     @Input() processId?: string;
-    @Input() phase: 'recepcion' | 'anteMortem' = 'recepcion';
+    @Input() phase: 'recepcion' | 'anteMortem' = null;
     @Output() visibleChange = new EventEmitter<boolean>();
     @Output() inspectionSaved = new EventEmitter<any>();
     @Output() dialogClosed = new EventEmitter<void>();
@@ -36,6 +33,10 @@ export class ExternalInspectionFormComponent implements OnInit {
     inspectionForm!: FormGroup;
     loading = false;
     submitting = false;
+
+    openPhotoViewer(_t370: string) {
+        throw new Error('Method not implemented.');
+    }
 
     // Datos de referencia para ante mortem
     receptionData: any = null;

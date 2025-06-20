@@ -110,7 +110,7 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
     selectedPhoto = '';
 
     // Fase actual del proceso
-    phase: 'recepcion' | 'anteMortem' = 'anteMortem';
+    phase: 'recepcion' | 'anteMortem' = null;
 
     // Opciones para dropdowns
     resultOptions = [
@@ -543,6 +543,7 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
     onFormDialogClosed(): void {
         this.selectedInspectionId = null;
         this.showFormDialog = false;
+        this.refresh();
     }
 
     getResultSeverity(
