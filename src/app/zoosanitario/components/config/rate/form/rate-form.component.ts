@@ -93,7 +93,7 @@ export class RateFormComponent implements OnInit, OnChanges {
 
     loadAnimalTypes() {
         this.animalTypeService
-            .getAll({ limit: 100, fields: 'species,category', slaughter: true })
+            .getAll({ limit: 100, fields: 'species,category' })
             .subscribe({
                 next: (response: any) => {
                     console.log(response);

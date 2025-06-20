@@ -94,15 +94,78 @@ export interface Reception {
 }
 
 export interface ExternalInspection {
-    _id: string;
+    _id?: string;
+    recepcion: string;
     numero: string;
-    resultado: 'Pendiente' | 'Apto' | 'Devolución' | 'Cuarentena' | 'Comisión';
-    horaChequeo?: Date;
-    especie?: {
-        _id: string;
-        species: string;
-        category: string;
+    especie?: any;
+    sexo?: 'Macho' | 'Hembra' | 'Pendiente';
+    edad?: number;
+    peso?: number;
+
+    // Inspección de Recepción
+    inspeccionRecepcion?: {
+        temperatura?: number;
+        frecuenciaCardiaca?: number;
+        frecuenciaRespiratoria?: number;
+        horaChequeo?: Date;
+        estadoGeneral?: string;
+        lesionesVisibles?: string;
+        caracteristicas?: {
+            tamano?: 'Grande' | 'Mediano' | 'Pequeño';
+            parasito?: boolean;
+            movilidad?: 'Solo' | 'Con Ayuda';
+            destino?: string;
+        };
+        resultado?:
+            | 'Pendiente'
+            | 'Apto'
+            | 'Devolución'
+            | 'Cuarentena'
+            | 'Comisión';
+        motivoDictamen?: string;
+        fotografias?: string[];
+        veterinarioResponsable?: string;
     };
+
+    // Examen Ante Mortem
+    examenAnteMortem?: {
+        temperatura?: number;
+        frecuenciaCardiaca?: number;
+        frecuenciaRespiratoria?: number;
+        horaChequeo?: Date;
+        estadoGeneralOptimo?: boolean;
+        comportamientoNormal?: boolean;
+        lesiones?: boolean;
+        parasito?: boolean;
+        secreciones?: {
+            ocular?: boolean;
+            nasal?: boolean;
+        };
+        signos?: {
+            nervioso?: boolean;
+            respiratorio?: boolean;
+            digestivo?: boolean;
+            vesicular?: boolean;
+        };
+        caracteristicasAnimal?: {
+            color?: string;
+            tamanoCacho?: string;
+        };
+        resultado?:
+            | 'Pendiente'
+            | 'Apto'
+            | 'Devolución'
+            | 'Cuarentena'
+            | 'Comisión';
+        motivoDictamen?: string;
+        fotografias?: string[];
+        veterinarioResponsable?: string;
+    };
+
+    createdBy: string;
+    updatedBy?: string;
+    deletedBy?: string;
+    deletedAt?: Date;
 }
 
 export interface Invoice {

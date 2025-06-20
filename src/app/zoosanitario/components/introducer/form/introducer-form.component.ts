@@ -647,10 +647,17 @@ export class IntroducerFormComponent implements OnInit {
                         this.isEditMode ? 'actualizado' : 'creado'
                     } correctamente`,
                 });
-                this.router.navigate([
-                    '/zoosanitario/introducers/view',
-                    introducer.data.introducer._id ?? introducer.data._id,
-                ]);
+                const id =
+                    introducer?.data?.introducer?._id ?? introducer?.data?._id;
+
+                if (!id) {
+                    console.error(
+                        'No se pudo determinar el ID del introductor'
+                    );
+                    return;
+                }
+
+                this.router.navigate(['/zoosanitario/introducers/view', id]);
             },
             error: (error) => {
                 this.messageService.add({

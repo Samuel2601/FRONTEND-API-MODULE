@@ -28,7 +28,7 @@ import { ReceptionComponent } from './components/reception/reception.component';
 import { ReceptionListComponent } from './components/reception/list/reception-list.component';
 import { ExternalInspectionListComponent } from './components/external-inspection/external-inspection-list.component';
 import { SlaughterProcessListComponent } from './components/slaughter/list/slaughter-process-list.component';
-import { SlaughterProcessFormComponent } from './components/slaughter/form/slaughter-process-form.component';
+//import { SlaughterProcessFormComponent } from './components/slaughter/form/slaughter-process-form.component';
 import { RateListComponent } from './components/config/rate/list/rate-list.component';
 import { InvoiceListComponent } from './components/invoice/list/invoice-list.component';
 import { InvoiceFormComponent } from './components/invoice/form/invoice-form.component';
@@ -81,28 +81,64 @@ const routes: Routes = [
                 component: ReceptionListComponent,
                 data: { title: 'Recepción Listado' },
             },
+
+            // === RUTAS PARA INSPECCIONES EXTERNAS ===
+
+            // Ruta genérica (por defecto recepción)
             {
                 path: 'external-inspection',
+                redirectTo: 'external-inspection/recepcion',
+                pathMatch: 'full',
+            },
+
+            // Rutas específicas por fase
+            {
+                path: 'external-inspection/recepcion',
                 component: ExternalInspectionListComponent,
-                data: { title: 'Inspecciones Externas' },
+                data: {
+                    title: 'Inspecciones de Recepción',
+                    phase: 'recepcion',
+                },
             },
             {
-                path: 'external-inspection/:inspectionNumber',
+                path: 'external-inspection/ante-mortem',
                 component: ExternalInspectionListComponent,
-                data: { title: 'Inspecciones Externas' },
+                data: {
+                    title: 'Exámenes Ante Mortem',
+                    phase: 'anteMortem',
+                },
             },
+
+            // Rutas con ID específico por fase
+            {
+                path: 'external-inspection/recepcion/:receptionId',
+                component: ExternalInspectionListComponent,
+                data: {
+                    title: 'Inspecciones de Recepción',
+                    phase: 'recepcion',
+                },
+            },
+            {
+                path: 'external-inspection/ante-mortem/:processId',
+                component: ExternalInspectionListComponent,
+                data: {
+                    title: 'Exámenes Ante Mortem',
+                    phase: 'anteMortem',
+                },
+            },
+
+            // Búsqueda por número de inspección (mantiene compatibilidad)
+            {
+                path: 'external-inspection/:phase/:inspectionNumber',
+                component: ExternalInspectionListComponent,
+                data: { title: 'Inspección Específica' },
+            },
+
+            // === OTRAS RUTAS ===
             {
                 path: 'slaughter-process',
                 component: SlaughterProcessListComponent,
-            },
-            //SlaughterProcessFormComponent
-            {
-                path: 'slaughter-process/new',
-                component: SlaughterProcessFormComponent,
-            },
-            {
-                path: 'slaughter-process/:id',
-                component: SlaughterProcessFormComponent,
+                data: { title: 'Procesos de Faenamiento' },
             },
         ],
     },

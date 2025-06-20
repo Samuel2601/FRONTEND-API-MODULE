@@ -5,16 +5,36 @@
         <div class="flex justify-content-between align-items-center mb-4">
             <div>
                 <h1 class="text-3xl font-bold text-white mb-2">
-                    Inspecciones Externas
+                    {{ getPhaseTitle() }}
                 </h1>
                 <p class="text-white opacity-90">
                     {{ totalInspections }} inspecciones encontradas
                 </p>
                 <div class="platform-info mt-2">
                     <p-tag
-                        [value]="'Proceso: ' + (processId || 'General')"
-                        severity="info"
+                        [value]="
+                            phase === 'recepcion'
+                                ? 'Proceso: Recepción'
+                                : 'Proceso: Ante Mortem'
+                        "
+                        [severity]="phase === 'recepcion' ? 'info' : 'success'"
                         [rounded]="true"
+                    >
+                    </p-tag>
+                    <p-tag
+                        *ngIf="receptionId"
+                        [value]="'ID Recepción: ' + receptionId"
+                        severity="secondary"
+                        [rounded]="true"
+                        styleClass="ml-2"
+                    >
+                    </p-tag>
+                    <p-tag
+                        *ngIf="processId"
+                        [value]="'ID Proceso: ' + processId"
+                        severity="secondary"
+                        [rounded]="true"
+                        styleClass="ml-2"
                     >
                     </p-tag>
                 </div>
@@ -26,6 +46,7 @@
                     [outlined]="true"
                     (onClick)="refresh()"
                     [loading]="loading"
+                    pTooltip="Actualizar lista"
                 >
                 </p-button>
             </div>
@@ -206,17 +227,17 @@
                     <td>
                         <div class="species-info">
                             <div class="font-semibold">
-                                <ng-container *ngIf="inspection.especie"
-                                    >{{
+                                <ng-container *ngIf="inspection.especie">
+                                    {{
                                         inspection.especie.species +
                                             "(" +
                                             inspection.especie.category +
                                             ")" || "N/A"
                                     }}
                                 </ng-container>
-                                <ng-container *ngIf="!inspection.especie"
-                                    >Pendiente</ng-container
-                                >
+                                <ng-container *ngIf="!inspection.especie">
+                                    Pendiente
+                                </ng-container>
                             </div>
                             <div class="text-sm text-600">
                                 {{ inspection.sexo || "Pendiente" }}
@@ -226,10 +247,60 @@
                     <td>
                         <div class="characteristics">
                             <div *ngIf="inspection.edad" class="text-sm">
-                                Edad: {{ inspection.edad }} años
+                                Edad: {{ inspection.edad }} meses
                             </div>
                             <div *ngIf="inspection.peso" class="text-sm">
                                 Peso: {{ inspection.peso }} kg
+                            </div>
+                            <!-- Mostrar proceso de datos según la fase -->
+                            <div class="text-xs text-500 mt-1">
+                                <span *ngIf="phase === 'recepcion'">
+                                    <i
+                                        class="pi pi-circle-fill"
+                                        [style.color]="
+                                            hasReceptionData(inspection)
+                                                ? '#10b981'
+                                                : '#f59e0b'
+                                        "
+                                    ></i>
+                                    {{
+                                        hasReceptionData(inspection)
+                                            ? "Recepción Completa"
+                                            : "Recepción Pendiente"
+                                    }}
+                                </span>
+                                <span *ngIf="phase === 'anteMortem'">
+                                    <div>
+                                        <i
+                                            class="pi pi-circle-fill"
+                                            [style.color]="
+                                                hasReceptionData(inspection)
+                                                    ? '#10b981'
+                                                    : '#f59e0b'
+                                            "
+                                        ></i>
+                                        {{
+                                            hasReceptionData(inspection)
+                                                ? "Recepción OK"
+                                                : "Sin Recepción"
+                                        }}
+                                    </div>
+                                    <div>
+                                        <i
+                                            class="pi pi-circle-fill"
+                                            [style.color]="
+                                                hasAnteMortemData(inspection)
+                                                    ? '#10b981'
+                                                    : '#f59e0b'
+                                            "
+                                        ></i>
+                                        {{
+                                            hasAnteMortemData(inspection)
+                                                ? "Ante Mortem OK"
+                                                : "Ante Mortem Pendiente"
+                                        }}
+                                    </div>
+                                </span>
                             </div>
                         </div>
                     </td>
@@ -294,15 +365,46 @@
                             "
                         >
                         </p-tag>
+                        <!-- Mostrar indicador adicional para ante mortem -->
+                        <div
+                            *ngIf="
+                                phase === 'anteMortem' &&
+                                hasReceptionData(inspection)
+                            "
+                            class="mt-1"
+                        >
+                            <small class="text-xs text-500">
+                                Recepción:
+                                <span
+                                    [style.color]="
+                                        inspection.inspeccionRecepcion
+                                            ?.resultado === 'Apto'
+                                            ? '#10b981'
+                                            : '#f59e0b'
+                                    "
+                                >
+                                    {{
+                                        inspection.inspeccionRecepcion
+                                            ?.resultado || "Pendiente"
+                                    }}
+                                </span>
+                            </small>
+                        </div>
                     </td>
                     <td>
-                        <div *ngIf="inspection.horaChequeo" class="text-sm">
+                        <div
+                            *ngIf="getInspectionData(inspection)?.horaChequeo"
+                            class="text-sm"
+                        >
                             {{
-                                inspection.horaChequeo
+                                getInspectionData(inspection)?.horaChequeo
                                     | date : "dd/MM/yyyy HH:mm"
                             }}
                         </div>
-                        <div *ngIf="!inspection.horaChequeo" class="text-600">
+                        <div
+                            *ngIf="!getInspectionData(inspection)?.horaChequeo"
+                            class="text-600"
+                        >
                             Sin fecha
                         </div>
                     </td>
@@ -323,7 +425,12 @@
                                 [text]="true"
                                 size="small"
                                 (onClick)="editInspection(inspection)"
-                                pTooltip="Editar"
+                                [disabled]="!canEditInspection(inspection)"
+                                [pTooltip]="
+                                    canEditInspection(inspection)
+                                        ? 'Editar'
+                                        : 'No se puede editar en esta fase'
+                                "
                             >
                             </p-button>
                             <p-button

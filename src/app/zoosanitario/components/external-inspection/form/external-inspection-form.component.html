@@ -1,20 +1,96 @@
 <p-dialog
     [(visible)]="visible"
-    [header]="
-        phase === 'recepcion' ? 'Inspección de Recepción' : 'Examen Ante Mortem'
-    "
+    [header]="getPhaseTitle()"
     [modal]="true"
-    [style]="{ width: '90vw', maxWidth: '1200px' }"
+    [style]="{ width: '95vw', maxWidth: '1400px' }"
     [styleClass]="'inspection-form-dialog'"
     (onHide)="closeDialog()"
 >
     <form [formGroup]="inspectionForm" (ngSubmit)="onSubmit()">
         <div class="inspection-form-container">
-            <!-- Contenido específico por fase -->
-            <ng-container
-                *ngIf="phase === 'recepcion'; else anteMortemTemplate"
-            >
-                <!-- Formulario de Recepción -->
+            <!-- Datos de Referencia (Solo en Ante Mortem) -->
+            <ng-container *ngIf="phase === 'anteMortem' && hasReceptionData()">
+                <p-panel
+                    header="Datos de Recepción (Referencia)"
+                    styleClass="mb-3 reference-panel"
+                >
+                    <div class="grid">
+                        <div class="col-12 md:col-3">
+                            <div class="reference-item">
+                                <label>Número:</label>
+                                <span>{{ currentInspection?.numero }}</span>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-3">
+                            <div class="reference-item">
+                                <label>Especie:</label>
+                                <span>{{
+                                    currentInspection?.especie?.species || "N/A"
+                                }}</span>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-3">
+                            <div class="reference-item">
+                                <label>Sexo:</label>
+                                <span>{{
+                                    currentInspection?.sexo || "N/A"
+                                }}</span>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-3">
+                            <div class="reference-item">
+                                <label>Resultado Recepción:</label>
+                                <p-tag
+                                    [value]="
+                                        receptionData?.resultado || 'Pendiente'
+                                    "
+                                    [severity]="
+                                        receptionData?.resultado === 'Apto'
+                                            ? 'success'
+                                            : 'warning'
+                                    "
+                                ></p-tag>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid mt-3" *ngIf="receptionData">
+                        <div class="col-12 md:col-4">
+                            <div class="reference-item">
+                                <label>Temperatura:</label>
+                                <span>{{
+                                    formatValue(receptionData.temperatura, "°C")
+                                }}</span>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-4">
+                            <div class="reference-item">
+                                <label>Frecuencia Cardíaca:</label>
+                                <span>{{
+                                    formatValue(
+                                        receptionData.frecuenciaCardiaca,
+                                        " lpm"
+                                    )
+                                }}</span>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-4">
+                            <div class="reference-item">
+                                <label>Frecuencia Respiratoria:</label>
+                                <span>{{
+                                    formatValue(
+                                        receptionData.frecuenciaRespiratoria,
+                                        " rpm"
+                                    )
+                                }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </p-panel>
+            </ng-container>
+
+            <!-- Formulario de Recepción -->
+            <ng-container *ngIf="phase === 'recepcion'">
                 <p-panel header="Información General" styleClass="mb-3">
                     <div class="grid">
                         <div class="col-12 md:col-4">
@@ -22,9 +98,13 @@
                                 <label for="numero"
                                     >Número de Inspección *</label
                                 >
-                                <p class="form-control-static">
-                                    {{ inspectionForm.get("numero")?.value }}
-                                </p>
+                                <input
+                                    pInputText
+                                    id="numero"
+                                    formControlName="numero"
+                                    [readonly]="inspectionId !== null"
+                                    placeholder="Se generará automáticamente"
+                                />
                             </div>
                         </div>
 
@@ -39,6 +119,7 @@
                                     optionLabel="label"
                                     optionValue="value"
                                     [showClear]="true"
+                                    placeholder="Seleccionar especie"
                                 ></p-dropdown>
                             </div>
                         </div>
@@ -47,10 +128,11 @@
                             <div class="field">
                                 <label for="sexo">Sexo</label>
                                 <p-selectButton
-                                    appendTo="body"
                                     id="sexo"
                                     formControlName="sexo"
                                     [options]="sexOptions"
+                                    optionLabel="label"
+                                    optionValue="value"
                                 ></p-selectButton>
                             </div>
                         </div>
@@ -64,22 +146,8 @@
                                     mode="decimal"
                                     [min]="0"
                                     [max]="30"
-                                    [class]="{
-                                        'ng-invalid ng-touched':
-                                            inspectionForm.get('edad')
-                                                ?.invalid &&
-                                            inspectionForm.get('edad')?.touched
-                                    }"
+                                    placeholder="0"
                                 ></p-inputNumber>
-                                <small
-                                    *ngIf="
-                                        inspectionForm.get('edad')?.invalid &&
-                                        inspectionForm.get('edad')?.touched
-                                    "
-                                    class="p-error"
-                                >
-                                    Edad debe estar entre 0 y 30 meses
-                                </small>
                             </div>
                         </div>
 
@@ -93,22 +161,8 @@
                                     [min]="0"
                                     [max]="2000"
                                     suffix=" kg"
-                                    [class]="{
-                                        'ng-invalid ng-touched':
-                                            inspectionForm.get('peso')
-                                                ?.invalid &&
-                                            inspectionForm.get('peso')?.touched
-                                    }"
+                                    placeholder="0"
                                 ></p-inputNumber>
-                                <small
-                                    *ngIf="
-                                        inspectionForm.get('peso')?.invalid &&
-                                        inspectionForm.get('peso')?.touched
-                                    "
-                                    class="p-error"
-                                >
-                                    Peso debe estar entre 0 y 2000 kg
-                                </small>
                             </div>
                         </div>
 
@@ -122,15 +176,9 @@
                                     formControlName="temperatura"
                                     mode="decimal"
                                     [min]="35"
-                                    [max]="65"
+                                    [max]="45"
                                     suffix=" °C"
-                                    [class]="{
-                                        'ng-invalid ng-touched':
-                                            inspectionForm.get('temperatura')
-                                                ?.invalid &&
-                                            inspectionForm.get('temperatura')
-                                                ?.touched
-                                    }"
+                                    placeholder="36.5"
                                 ></p-inputNumber>
                                 <small
                                     *ngIf="
@@ -150,17 +198,6 @@
                                         )
                                     }}
                                 </small>
-                                <small
-                                    *ngIf="
-                                        inspectionForm.get('temperatura')
-                                            ?.invalid &&
-                                        inspectionForm.get('temperatura')
-                                            ?.touched
-                                    "
-                                    class="p-error"
-                                >
-                                    Temperatura debe estar entre 35°C y 65°C
-                                </small>
                             </div>
                         </div>
 
@@ -176,15 +213,7 @@
                                     [min]="30"
                                     [max]="200"
                                     suffix=" lpm"
-                                    [class]="{
-                                        'ng-invalid ng-touched':
-                                            inspectionForm.get(
-                                                'frecuenciaCardiaca'
-                                            )?.invalid &&
-                                            inspectionForm.get(
-                                                'frecuenciaCardiaca'
-                                            )?.touched
-                                    }"
+                                    placeholder="70"
                                 ></p-inputNumber>
                                 <small
                                     *ngIf="
@@ -207,17 +236,6 @@
                                         )
                                     }}
                                 </small>
-                                <small
-                                    *ngIf="
-                                        inspectionForm.get('frecuenciaCardiaca')
-                                            ?.invalid &&
-                                        inspectionForm.get('frecuenciaCardiaca')
-                                            ?.touched
-                                    "
-                                    class="p-error"
-                                >
-                                    Frecuencia debe estar entre 30 y 200 lpm
-                                </small>
                             </div>
                         </div>
 
@@ -233,15 +251,7 @@
                                     [min]="5"
                                     [max]="80"
                                     suffix=" rpm"
-                                    [class]="{
-                                        'ng-invalid ng-touched':
-                                            inspectionForm.get(
-                                                'frecuenciaRespiratoria'
-                                            )?.invalid &&
-                                            inspectionForm.get(
-                                                'frecuenciaRespiratoria'
-                                            )?.touched
-                                    }"
+                                    placeholder="20"
                                 ></p-inputNumber>
                                 <small
                                     *ngIf="
@@ -265,19 +275,6 @@
                                         )
                                     }}
                                 </small>
-                                <small
-                                    *ngIf="
-                                        inspectionForm.get(
-                                            'frecuenciaRespiratoria'
-                                        )?.invalid &&
-                                        inspectionForm.get(
-                                            'frecuenciaRespiratoria'
-                                        )?.touched
-                                    "
-                                    class="p-error"
-                                >
-                                    Frecuencia debe estar entre 5 y 80 rpm
-                                </small>
                             </div>
                         </div>
 
@@ -287,13 +284,14 @@
                                 <p-calendar
                                     id="horaChequeo"
                                     formControlName="horaChequeo"
-                                    [timeOnly]="true"
+                                    [showTime]="true"
                                     hourFormat="24"
+                                    [showIcon]="true"
                                 ></p-calendar>
                             </div>
                         </div>
 
-                        <div class="col-12">
+                        <div class="col-12 md:col-6">
                             <div class="field">
                                 <label for="estadoGeneral"
                                     >Estado General</label
@@ -304,17 +302,18 @@
                                     rows="3"
                                     [maxlength]="500"
                                     pInputTextarea
+                                    placeholder="Descripción del estado general del animal"
                                 ></textarea>
-                                <small class="text-color-secondary"
-                                    >{{
+                                <small class="text-color-secondary">
+                                    {{
                                         inspectionForm.get("estadoGeneral")
                                             ?.value?.length || 0
-                                    }}/500</small
-                                >
+                                    }}/500
+                                </small>
                             </div>
                         </div>
 
-                        <div class="col-12">
+                        <div class="col-12 md:col-6">
                             <div class="field">
                                 <label for="lesionesVisibles"
                                     >Lesiones Visibles</label
@@ -325,20 +324,21 @@
                                     rows="3"
                                     [maxlength]="500"
                                     pInputTextarea
+                                    placeholder="Descripción de lesiones visibles"
                                 ></textarea>
-                                <small class="text-color-secondary"
-                                    >{{
+                                <small class="text-color-secondary">
+                                    {{
                                         inspectionForm.get("lesionesVisibles")
                                             ?.value?.length || 0
-                                    }}/500</small
-                                >
+                                    }}/500
+                                </small>
                             </div>
                         </div>
                     </div>
                 </p-panel>
 
                 <p-panel
-                    header="Características"
+                    header="Características del Animal"
                     styleClass="mb-3"
                     formGroupName="caracteristicas"
                 >
@@ -347,18 +347,16 @@
                             <div class="field">
                                 <label for="tamano">Tamaño</label>
                                 <p-selectButton
-                                    appendTo="body"
                                     id="tamano"
                                     formControlName="tamano"
-                                    optionLabel="label"
-                                    optionValue="value"
                                     [options]="[
                                         { label: 'Grande', value: 'Grande' },
                                         { label: 'Mediano', value: 'Mediano' },
                                         { label: 'Pequeño', value: 'Pequeño' }
                                     ]"
-                                >
-                                </p-selectButton>
+                                    optionLabel="label"
+                                    optionValue="value"
+                                ></p-selectButton>
                             </div>
                         </div>
 
@@ -368,14 +366,16 @@
                                     >Presencia de Parásitos</label
                                 >
                                 <p-dropdown
-                                    appendTo="body"
                                     id="parasitos"
                                     formControlName="parasitos"
                                     [options]="[
                                         { label: 'Sí', value: true },
                                         { label: 'No', value: false }
                                     ]"
+                                    optionLabel="label"
+                                    optionValue="value"
                                     [showClear]="true"
+                                    placeholder="Seleccionar"
                                 ></p-dropdown>
                             </div>
                         </div>
@@ -384,7 +384,6 @@
                             <div class="field">
                                 <label for="movilidad">Movilidad</label>
                                 <p-selectButton
-                                    appendTo="body"
                                     id="movilidad"
                                     formControlName="movilidad"
                                     [options]="[
@@ -394,16 +393,17 @@
                                             value: 'Con Ayuda'
                                         }
                                     ]"
-                                >
-                                </p-selectButton>
+                                    optionLabel="label"
+                                    optionValue="value"
+                                ></p-selectButton>
                             </div>
                         </div>
                     </div>
                 </p-panel>
             </ng-container>
 
-            <ng-template #anteMortemTemplate>
-                <!-- Formulario Ante Mortem -->
+            <!-- Formulario Ante Mortem -->
+            <ng-container *ngIf="phase === 'anteMortem'">
                 <p-panel header="Examen Ante Mortem" styleClass="mb-3">
                     <div class="grid">
                         <div class="col-12 md:col-3">
@@ -418,13 +418,7 @@
                                     [min]="35"
                                     [max]="45"
                                     suffix=" °C"
-                                    [class]="{
-                                        'ng-invalid ng-touched':
-                                            inspectionForm.get('temperatura')
-                                                ?.invalid &&
-                                            inspectionForm.get('temperatura')
-                                                ?.touched
-                                    }"
+                                    placeholder="36.5"
                                 ></p-inputNumber>
                                 <small
                                     *ngIf="
@@ -444,17 +438,6 @@
                                         )
                                     }}
                                 </small>
-                                <small
-                                    *ngIf="
-                                        inspectionForm.get('temperatura')
-                                            ?.invalid &&
-                                        inspectionForm.get('temperatura')
-                                            ?.touched
-                                    "
-                                    class="p-error"
-                                >
-                                    Temperatura debe estar entre 35°C y 45°C
-                                </small>
                             </div>
                         </div>
 
@@ -470,15 +453,7 @@
                                     [min]="30"
                                     [max]="200"
                                     suffix=" lpm"
-                                    [class]="{
-                                        'ng-invalid ng-touched':
-                                            inspectionForm.get(
-                                                'frecuenciaCardiaca'
-                                            )?.invalid &&
-                                            inspectionForm.get(
-                                                'frecuenciaCardiaca'
-                                            )?.touched
-                                    }"
+                                    placeholder="70"
                                 ></p-inputNumber>
                                 <small
                                     *ngIf="
@@ -501,17 +476,6 @@
                                         )
                                     }}
                                 </small>
-                                <small
-                                    *ngIf="
-                                        inspectionForm.get('frecuenciaCardiaca')
-                                            ?.invalid &&
-                                        inspectionForm.get('frecuenciaCardiaca')
-                                            ?.touched
-                                    "
-                                    class="p-error"
-                                >
-                                    Frecuencia debe estar entre 30 y 200 lpm
-                                </small>
                             </div>
                         </div>
 
@@ -527,15 +491,7 @@
                                     [min]="5"
                                     [max]="80"
                                     suffix=" rpm"
-                                    [class]="{
-                                        'ng-invalid ng-touched':
-                                            inspectionForm.get(
-                                                'frecuenciaRespiratoria'
-                                            )?.invalid &&
-                                            inspectionForm.get(
-                                                'frecuenciaRespiratoria'
-                                            )?.touched
-                                    }"
+                                    placeholder="20"
                                 ></p-inputNumber>
                                 <small
                                     *ngIf="
@@ -559,19 +515,6 @@
                                         )
                                     }}
                                 </small>
-                                <small
-                                    *ngIf="
-                                        inspectionForm.get(
-                                            'frecuenciaRespiratoria'
-                                        )?.invalid &&
-                                        inspectionForm.get(
-                                            'frecuenciaRespiratoria'
-                                        )?.touched
-                                    "
-                                    class="p-error"
-                                >
-                                    Frecuencia debe estar entre 5 y 80 rpm
-                                </small>
                             </div>
                         </div>
 
@@ -581,8 +524,9 @@
                                 <p-calendar
                                     id="horaChequeo"
                                     formControlName="horaChequeo"
-                                    [timeOnly]="true"
+                                    [showTime]="true"
                                     hourFormat="24"
+                                    [showIcon]="true"
                                 ></p-calendar>
                             </div>
                         </div>
@@ -596,7 +540,10 @@
                                         { label: 'Sí', value: true },
                                         { label: 'No', value: false }
                                     ]"
+                                    optionLabel="label"
+                                    optionValue="value"
                                     [showClear]="true"
+                                    placeholder="Seleccionar"
                                 ></p-dropdown>
                             </div>
                         </div>
@@ -610,7 +557,10 @@
                                         { label: 'Sí', value: true },
                                         { label: 'No', value: false }
                                     ]"
+                                    optionLabel="label"
+                                    optionValue="value"
                                     [showClear]="true"
+                                    placeholder="Seleccionar"
                                 ></p-dropdown>
                             </div>
                         </div>
@@ -624,7 +574,10 @@
                                         { label: 'Sí', value: true },
                                         { label: 'No', value: false }
                                     ]"
+                                    optionLabel="label"
+                                    optionValue="value"
                                     [showClear]="true"
+                                    placeholder="Seleccionar"
                                 ></p-dropdown>
                             </div>
                         </div>
@@ -638,19 +591,27 @@
                                         { label: 'Sí', value: true },
                                         { label: 'No', value: false }
                                     ]"
+                                    optionLabel="label"
+                                    optionValue="value"
                                     [showClear]="true"
+                                    placeholder="Seleccionar"
                                 ></p-dropdown>
                             </div>
                         </div>
+                    </div>
 
+                    <div class="grid mt-3">
                         <div class="col-12">
-                            <p-panel header="Secreciones">
+                            <p-panel
+                                header="Secreciones"
+                                formGroupName="secreciones"
+                            >
                                 <div class="grid">
                                     <div class="col-12 md:col-6">
                                         <div class="field">
                                             <label>Oculares</label>
                                             <p-dropdown
-                                                formControlName="secreciones.ocular"
+                                                formControlName="ocular"
                                                 [options]="[
                                                     {
                                                         label: 'Sí',
@@ -661,7 +622,10 @@
                                                         value: false
                                                     }
                                                 ]"
+                                                optionLabel="label"
+                                                optionValue="value"
                                                 [showClear]="true"
+                                                placeholder="Seleccionar"
                                             ></p-dropdown>
                                         </div>
                                     </div>
@@ -669,7 +633,7 @@
                                         <div class="field">
                                             <label>Nasales</label>
                                             <p-dropdown
-                                                formControlName="secreciones.nasal"
+                                                formControlName="nasal"
                                                 [options]="[
                                                     {
                                                         label: 'Sí',
@@ -680,7 +644,10 @@
                                                         value: false
                                                     }
                                                 ]"
+                                                optionLabel="label"
+                                                optionValue="value"
                                                 [showClear]="true"
+                                                placeholder="Seleccionar"
                                             ></p-dropdown>
                                         </div>
                                     </div>
@@ -689,13 +656,16 @@
                         </div>
 
                         <div class="col-12">
-                            <p-panel header="Signos Clínicos">
+                            <p-panel
+                                header="Signos Clínicos"
+                                formGroupName="signos"
+                            >
                                 <div class="grid">
                                     <div class="col-12 md:col-6 lg:col-3">
                                         <div class="field">
                                             <label>Nerviosos</label>
                                             <p-dropdown
-                                                formControlName="signos.nervioso"
+                                                formControlName="nervioso"
                                                 [options]="[
                                                     {
                                                         label: 'Sí',
@@ -706,7 +676,10 @@
                                                         value: false
                                                     }
                                                 ]"
+                                                optionLabel="label"
+                                                optionValue="value"
                                                 [showClear]="true"
+                                                placeholder="Seleccionar"
                                             ></p-dropdown>
                                         </div>
                                     </div>
@@ -714,7 +687,7 @@
                                         <div class="field">
                                             <label>Respiratorios</label>
                                             <p-dropdown
-                                                formControlName="signos.respiratorio"
+                                                formControlName="respiratorio"
                                                 [options]="[
                                                     {
                                                         label: 'Sí',
@@ -725,7 +698,10 @@
                                                         value: false
                                                     }
                                                 ]"
+                                                optionLabel="label"
+                                                optionValue="value"
                                                 [showClear]="true"
+                                                placeholder="Seleccionar"
                                             ></p-dropdown>
                                         </div>
                                     </div>
@@ -733,7 +709,7 @@
                                         <div class="field">
                                             <label>Digestivos</label>
                                             <p-dropdown
-                                                formControlName="signos.digestivo"
+                                                formControlName="digestivo"
                                                 [options]="[
                                                     {
                                                         label: 'Sí',
@@ -744,7 +720,10 @@
                                                         value: false
                                                     }
                                                 ]"
+                                                optionLabel="label"
+                                                optionValue="value"
                                                 [showClear]="true"
+                                                placeholder="Seleccionar"
                                             ></p-dropdown>
                                         </div>
                                     </div>
@@ -752,7 +731,7 @@
                                         <div class="field">
                                             <label>Vesiculares</label>
                                             <p-dropdown
-                                                formControlName="signos.vesicular"
+                                                formControlName="vesicular"
                                                 [options]="[
                                                     {
                                                         label: 'Sí',
@@ -763,7 +742,10 @@
                                                         value: false
                                                     }
                                                 ]"
+                                                optionLabel="label"
+                                                optionValue="value"
                                                 [showClear]="true"
+                                                placeholder="Seleccionar"
                                             ></p-dropdown>
                                         </div>
                                     </div>
@@ -772,14 +754,18 @@
                         </div>
 
                         <div class="col-12">
-                            <p-panel header="Características del Animal">
+                            <p-panel
+                                header="Características del Animal"
+                                formGroupName="caracteristicasAnimal"
+                            >
                                 <div class="grid">
                                     <div class="col-12 md:col-6">
                                         <div class="field">
                                             <label>Color</label>
                                             <input
                                                 pInputText
-                                                formControlName="caracteristicasAnimal.color"
+                                                formControlName="color"
+                                                placeholder="Color del animal"
                                             />
                                         </div>
                                     </div>
@@ -788,7 +774,8 @@
                                             <label>Tamaño de Cacho</label>
                                             <input
                                                 pInputText
-                                                formControlName="caracteristicasAnimal.tamanoCacho"
+                                                formControlName="tamanoCacho"
+                                                placeholder="Tamaño del cacho"
                                             />
                                         </div>
                                     </div>
@@ -797,126 +784,180 @@
                         </div>
                     </div>
                 </p-panel>
-            </ng-template>
+            </ng-container>
 
-            <!-- Panel común para fotos -->
-            <p-panel header="Fotos" styleClass="mb-3">
+            <!-- Panel de Fotografías (Común para ambas fases) -->
+            <p-panel header="Fotografías" styleClass="mb-3">
                 <div class="photos-section">
+                    <!-- Subida de archivos -->
                     <div class="upload-section mb-4">
                         <p-fileUpload
+                            #fileUpload
                             mode="basic"
                             name="photos"
-                            url="/api/upload"
                             accept="image/*"
-                            chooseLabel="Subir Fotos"
-                            multiple
+                            [multiple]="true"
+                            [maxFileSize]="maxFileSize"
+                            chooseLabel="Seleccionar Fotos"
+                            (onSelect)="onFileSelect($event)"
                         ></p-fileUpload>
-                        <div class="upload-info">
-                            <small
-                                >Puedes subir múltiples fotos (máx. 5MB cada
-                                una)</small
-                            >
+                        <div class="upload-info mt-2">
+                            <small>
+                                Puedes subir hasta {{ maxFiles }} fotos (máx.
+                                5MB cada una). Archivos seleccionados:
+                                {{ selectedFiles.length }}
+                            </small>
                         </div>
                     </div>
 
                     <div class="grid">
-                        <!-- Existing photos placeholder -->
-                        <div class="col-12 md:col-6">
+                        <!-- Fotos existentes -->
+                        <div
+                            class="col-12 md:col-6"
+                            *ngIf="existingPhotos.length > 0"
+                        >
                             <div class="existing-photos">
                                 <h6>Fotos Existentes</h6>
                                 <div class="grid">
                                     <div
                                         class="col-12 sm:col-6 lg:col-4"
-                                        *ngFor="let photo of []"
+                                        *ngFor="let photo of existingPhotos"
                                     >
                                         <div class="photo-card existing">
                                             <img
-                                                [src]="photo.url"
+                                                [src]="photo"
                                                 class="photo-thumbnail"
                                                 alt="Foto de inspección"
                                             />
                                             <div class="photo-actions">
                                                 <p-button
                                                     icon="pi pi-eye"
-                                                    data-pc-severity="info"
+                                                    severity="info"
+                                                    [text]="true"
+                                                    size="small"
+                                                    (onClick)="
+                                                        openPhotoViewer(photo)
+                                                    "
                                                 ></p-button>
                                                 <p-button
                                                     icon="pi pi-trash"
-                                                    data-pc-severity="danger"
+                                                    severity="danger"
+                                                    [text]="true"
+                                                    size="small"
+                                                    (onClick)="
+                                                        removeExistingPhoto(
+                                                            photo
+                                                        )
+                                                    "
                                                 ></p-button>
                                             </div>
-                                        </div>
-                                    </div>
-                                    <div
-                                        class="col-12"
-                                        *ngIf="[]?.length === 0"
-                                    >
-                                        <div
-                                            class="empty-photos p-4 flex flex-column align-items-center justify-content-center gap-2"
-                                        >
-                                            <i
-                                                class="pi pi-camera text-4xl"
-                                            ></i>
-                                            <small
-                                                >No hay fotos existentes</small
-                                            >
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- New photos placeholder -->
-                        <div class="col-12 md:col-6">
+                        <!-- Fotos nuevas -->
+                        <div
+                            class="col-12"
+                            [class.md:col-6]="existingPhotos.length > 0"
+                        >
                             <div class="new-photos">
                                 <h6>Fotos Nuevas</h6>
-                                <div class="grid">
+                                <div
+                                    class="grid"
+                                    *ngIf="
+                                        selectedFiles.length > 0;
+                                        else noNewPhotos
+                                    "
+                                >
                                     <div
                                         class="col-12 sm:col-6 lg:col-4"
-                                        *ngFor="let photo of []"
+                                        *ngFor="
+                                            let photoFile of selectedFiles;
+                                            let i = index
+                                        "
                                     >
                                         <div class="photo-card new">
-                                            <div class="photo-preview">
-                                                <i
-                                                    class="pi pi-image text-4xl"
-                                                ></i>
-                                                <div class="photo-name">
-                                                    {{ photo.name }}
-                                                </div>
-                                                <div class="photo-size">
-                                                    {{ photo.size | fileSize }}
-                                                </div>
+                                            <div
+                                                class="photo-preview"
+                                                *ngIf="
+                                                    photoFile.preview;
+                                                    else filePreview
+                                                "
+                                            >
+                                                <img
+                                                    [src]="photoFile.preview"
+                                                    class="photo-thumbnail"
+                                                    alt="Vista previa"
+                                                />
                                             </div>
+                                            <ng-template #filePreview>
+                                                <div class="file-preview">
+                                                    <i
+                                                        class="pi pi-image text-4xl"
+                                                    ></i>
+                                                    <div class="photo-name">
+                                                        {{ photoFile.name }}
+                                                    </div>
+                                                    <div class="photo-size">
+                                                        {{
+                                                            photoFile.size
+                                                                | fileSize
+                                                        }}
+                                                    </div>
+                                                </div>
+                                            </ng-template>
                                             <div class="photo-actions">
                                                 <p-button
                                                     icon="pi pi-trash"
-                                                    data-pc-severity="danger"
+                                                    severity="danger"
+                                                    [text]="true"
+                                                    size="small"
+                                                    (onClick)="removeFile(i)"
                                                 ></p-button>
                                             </div>
                                         </div>
                                     </div>
-                                    <div
-                                        class="col-12"
-                                        *ngIf="[]?.length === 0"
-                                    >
-                                        <div
-                                            class="empty-photos p-4 flex flex-column align-items-center justify-content-center gap-2"
-                                        >
-                                            <i
-                                                class="pi pi-camera text-4xl"
-                                            ></i>
-                                            <small>No hay fotos nuevas</small>
-                                        </div>
-                                    </div>
                                 </div>
+                                <ng-template #noNewPhotos>
+                                    <div
+                                        class="empty-photos p-4 flex flex-column align-items-center justify-content-center gap-2"
+                                    >
+                                        <i class="pi pi-camera text-4xl"></i>
+                                        <small
+                                            >No hay fotos nuevas
+                                            seleccionadas</small
+                                        >
+                                    </div>
+                                </ng-template>
+                            </div>
+                        </div>
+
+                        <!-- Estado vacío cuando no hay fotos -->
+                        <div
+                            class="col-12"
+                            *ngIf="
+                                existingPhotos.length === 0 &&
+                                selectedFiles.length === 0
+                            "
+                        >
+                            <div
+                                class="empty-photos p-4 flex flex-column align-items-center justify-content-center gap-2"
+                            >
+                                <i class="pi pi-camera text-4xl"></i>
+                                <small
+                                    >No hay fotografías. Haz clic en
+                                    "Seleccionar Fotos" para agregar.</small
+                                >
                             </div>
                         </div>
                     </div>
                 </div>
             </p-panel>
 
-            <!-- Panel común para resultado -->
-            <p-panel header="Resultado" styleClass="mb-3">
+            <!-- Panel de Resultado (Común para ambas fases) -->
+            <p-panel header="Resultado y Dictamen" styleClass="mb-3">
                 <div class="grid">
                     <div class="col-12 md:col-6">
                         <div class="field">
@@ -927,12 +968,7 @@
                                 [options]="resultOptions"
                                 optionLabel="label"
                                 optionValue="value"
-                                [class]="{
-                                    'ng-invalid ng-touched':
-                                        inspectionForm.get('resultado')
-                                            ?.invalid &&
-                                        inspectionForm.get('resultado')?.touched
-                                }"
+                                placeholder="Seleccionar resultado"
                             ></p-dropdown>
                             <small
                                 *ngIf="
@@ -941,12 +977,12 @@
                                 "
                                 class="p-error"
                             >
-                                Resultado es requerido
+                                El resultado es requerido
                             </small>
                         </div>
                     </div>
 
-                    <div class="col-12">
+                    <div class="col-12 md:col-6">
                         <div class="field">
                             <label for="veterinarioResponsable"
                                 >Veterinario Responsable</label
@@ -955,6 +991,7 @@
                                 pInputText
                                 id="veterinarioResponsable"
                                 formControlName="veterinarioResponsable"
+                                placeholder="Nombre del veterinario"
                             />
                         </div>
                     </div>
@@ -962,6 +999,7 @@
                     <div
                         class="col-12"
                         *ngIf="
+                            inspectionForm.get('resultado')?.value &&
                             inspectionForm.get('resultado')?.value !== 'Apto' &&
                             inspectionForm.get('resultado')?.value !==
                                 'Pendiente'
@@ -977,20 +1015,14 @@
                                 rows="4"
                                 [maxlength]="1000"
                                 pInputTextarea
-                                [class]="{
-                                    'ng-invalid ng-touched':
-                                        inspectionForm.get('motivoDictamen')
-                                            ?.invalid &&
-                                        inspectionForm.get('motivoDictamen')
-                                            ?.touched
-                                }"
+                                placeholder="Explicar detalladamente el motivo del dictamen"
                             ></textarea>
-                            <small class="text-color-secondary"
-                                >{{
+                            <small class="text-color-secondary">
+                                {{
                                     inspectionForm.get("motivoDictamen")?.value
                                         ?.length || 0
-                                }}/1000</small
-                            >
+                                }}/1000
+                            </small>
                             <small
                                 *ngIf="
                                     inspectionForm.get('motivoDictamen')
@@ -1000,7 +1032,7 @@
                                 "
                                 class="p-error"
                             >
-                                Motivo del dictamen es requerido para este
+                                El motivo del dictamen es requerido para este
                                 resultado
                             </small>
                         </div>
@@ -1011,7 +1043,7 @@
     </form>
 
     <ng-template pTemplate="footer">
-        <div class="flex justify-content-between">
+        <div class="flex justify-content-between align-items-center">
             <div>
                 <small class="text-color-secondary"
                     >* Campos obligatorios</small
@@ -1021,16 +1053,36 @@
                 <p-button
                     label="Cancelar"
                     icon="pi pi-times"
+                    severity="secondary"
+                    [outlined]="true"
                     (onClick)="onCancel()"
-                    styleClass="p-button-outlined"
                 ></p-button>
                 <p-button
                     [label]="inspectionId ? 'Actualizar' : 'Guardar'"
                     icon="pi pi-check"
                     (onClick)="onSubmit()"
                     [loading]="submitting"
+                    [disabled]="inspectionForm.invalid"
                 ></p-button>
             </div>
         </div>
     </ng-template>
+</p-dialog>
+
+<!-- Visor de Fotografías -->
+<p-dialog
+    [(visible)]="showPhotoViewer"
+    header="Fotografía"
+    [modal]="true"
+    [style]="{ width: '90vw', height: '90vh' }"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="photo-viewer-dialog"
+>
+    <img
+        [src]="selectedPhoto"
+        alt="Fotografía de inspección"
+        class="photo-viewer-image"
+    />
 </p-dialog>

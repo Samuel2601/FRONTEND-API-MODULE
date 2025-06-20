@@ -85,7 +85,6 @@ export class InvoiceDetailComponent implements OnInit {
 
     loadInvoice(forceRefresh: boolean = false) {
         this.loading.set(true);
-
         // Si es refresh forzado, limpiar el cache específico de esta factura
         if (forceRefresh) {
             this.invoiceService['cacheService'].remove(
@@ -123,6 +122,42 @@ export class InvoiceDetailComponent implements OnInit {
                     life: 5000,
                 });
                 this.router.navigate(['/zoosanitario/invoices']);
+            },
+        });
+    }
+
+    calculateInvoice() {
+        this.confirmationService.confirm({
+            message:
+                '¿Está seguro de calcular el total de items de la factura?',
+            header: 'Calcular Total de Items',
+            icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Sí, Calcular',
+            rejectLabel: 'Cancelar',
+            accept: () => {
+                this.processingAction.set(true);
+                this.oracleService.calculateInvoice(this.invoiceId!).subscribe({
+                    next: (response: any) => {
+                        console.log('Total calculado:', response);
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Éxito',
+                            detail: 'Total calculado correctamente',
+                            life: 5000,
+                        });
+                        this.loadInvoice(true);
+                    },
+                    error: (error) => {
+                        console.error('Error al calcular total:', error);
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Error',
+                            detail: 'Error al calcular el total',
+                            life: 5000,
+                        });
+                        this.processingAction.set(false);
+                    },
+                });
             },
         });
     }

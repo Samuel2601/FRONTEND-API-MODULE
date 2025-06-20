@@ -109,6 +109,9 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
     selectedInspectionId: string | null = null;
     selectedPhoto = '';
 
+    // Fase actual del proceso
+    phase: 'recepcion' | 'anteMortem' = 'anteMortem';
+
     // Opciones para dropdowns
     resultOptions = [
         { label: 'Todos', value: '' },
@@ -139,12 +142,31 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
     }
 
     private initializeComponent(): void {
+        // Obtener la fase desde los datos de la ruta
+        this.phase =
+            this.route.snapshot.firstChild?.data['phase'] ||
+            this.route.snapshot.data['phase'] ||
+            'recepcion'; // Valor por defecto
+
+        // Determinar IDs según la fase
+        if (this.phase === 'recepcion') {
+            this.receptionId =
+                this.route.snapshot.paramMap.get('receptionId') || undefined;
+        } else if (this.phase === 'anteMortem') {
+            this.processId =
+                this.route.snapshot.paramMap.get('processId') || undefined;
+        }
+
         this.inspectionNumber =
             this.route.snapshot.paramMap.get('inspectionNumber') || undefined;
-        console.log(
-            'INICIALIZANDO COMPONENTE DE EXTERNAL INSPECTIONS',
-            this.inspectionNumber
-        );
+
+        console.log('INICIALIZANDO COMPONENTE DE EXTERNAL INSPECTIONS', {
+            inspectionNumber: this.inspectionNumber,
+            phase: this.phase,
+            receptionId: this.receptionId,
+            processId: this.processId,
+        });
+
         if (this.inspectionNumber) {
             this.searchBySpecificNumber(this.inspectionNumber);
         } else {
@@ -181,7 +203,6 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
                 },
             });
     }
-    phase: 'recepcion' | 'anteMortem' = 'recepcion';
 
     loadInspections(event?: any, cache: boolean = true): void {
         if (this.isSearchMode) return;
@@ -192,18 +213,23 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
             this.currentPage = Math.floor(event.first / event.rows) + 1;
             this.pageSize = event.rows;
         }
+        console.log(
+            'loadInspections',
+            this.receptionId,
+            this.processId,
+            this.inspectionNumber
+        );
+
+        const inspectionNumber =
+            this.receptionId || this.processId || this.inspectionNumber;
+
+        if (inspectionNumber) {
+            return this.searchBySpecificNumber(inspectionNumber);
+        }
 
         const filters: any = { ...this.filters };
 
-        if (this.receptionId) {
-            filters.recepcion = this.receptionId;
-            this.phase = 'recepcion';
-        }
-        if (this.processId) {
-            filters.proceso = this.processId;
-            this.phase = 'anteMortem';
-        }
-
+        // Limpiar filtros vacíos
         Object.keys(filters).forEach((key) => {
             if (
                 filters[key] === '' ||
@@ -257,13 +283,6 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
 
     loadStatistics(cache: boolean = true): void {
         const filters: any = { ...this.filters };
-
-        if (this.receptionId) {
-            filters.recepcion = this.receptionId;
-        }
-        if (this.processId) {
-            filters.proceso = this.processId;
-        }
 
         Object.keys(filters).forEach((key) => {
             if (
@@ -329,7 +348,7 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
             )
             .subscribe({
                 next: (response: any) => {
-                    console.log('Respuesta de busqueda:', response);
+                    console.log('Respuesta de búsqueda:', response);
                     if (response.data) {
                         if (Array.isArray(response.data)) {
                             this.inspections = response.data;
@@ -585,11 +604,67 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
         return value > 0 ? `${value.toFixed(1)}${unit}` : 'N/A';
     }
 
+    /**
+     * Obtiene los datos de inspección según la fase actual
+     * Si estamos en ante mortem, mostramos esos datos, sino los de recepción
+     */
     getInspectionData(inspection: ExternalInspection): any {
-        if (this.phase === 'recepcion') {
+        if (this.phase === 'anteMortem') {
+            // En ante mortem, preferimos mostrar los datos de ante mortem si existen
+            if (
+                inspection.examenAnteMortem &&
+                Object.keys(inspection.examenAnteMortem).length > 0
+            ) {
+                return inspection.examenAnteMortem;
+            }
+            // Si no hay datos de ante mortem, mostramos los de recepción como referencia
             return inspection.inspeccionRecepcion || {};
         } else {
-            return inspection.examenAnteMortem || {};
+            // En recepción, siempre mostramos los datos de recepción
+            return inspection.inspeccionRecepcion || {};
+        }
+    }
+
+    /**
+     * Verifica si la inspección tiene datos de recepción
+     */
+    hasReceptionData(inspection: ExternalInspection): boolean {
+        return (
+            inspection.inspeccionRecepcion &&
+            Object.keys(inspection.inspeccionRecepcion).length > 0 &&
+            inspection.inspeccionRecepcion.resultado !== 'Pendiente'
+        );
+    }
+
+    /**
+     * Verifica si la inspección tiene datos de ante mortem
+     */
+    hasAnteMortemData(inspection: ExternalInspection): boolean {
+        return (
+            inspection.examenAnteMortem &&
+            Object.keys(inspection.examenAnteMortem).length > 0 &&
+            inspection.examenAnteMortem.resultado !== 'Pendiente'
+        );
+    }
+
+    /**
+     * Obtiene el título de la fase para mostrar en la UI
+     */
+    getPhaseTitle(): string {
+        return this.phase === 'recepcion'
+            ? 'Inspecciones de Recepción'
+            : 'Exámenes Ante Mortem';
+    }
+
+    /**
+     * Verifica si se puede editar la inspección según la fase
+     */
+    canEditInspection(inspection: ExternalInspection): boolean {
+        if (this.phase === 'recepcion') {
+            return true; // Siempre se puede editar la recepción
+        } else {
+            // Para ante mortem, debe existir al menos la inspección de recepción
+            return this.hasReceptionData(inspection);
         }
     }
 }

@@ -17,7 +17,7 @@ import {
     PaginatedResponse,
 } from 'src/app/zoosanitario/services/slaughter-process.service';
 import { ImportsModule } from 'src/app/demo/services/import';
-import { SlaughterProcessFormComponent } from '../form/slaughter-process-form.component';
+//import { SlaughterProcessFormComponent } from '../form/slaughter-process-form.component';
 import { SlaughterProcessDashboardComponent } from '../dashboard/slaughter-process-dashboard.component';
 import { SlaughterProcessDetailsComponent } from '../details/slaughter-process-details.component';
 import { TableLazyLoadEvent } from 'primeng/table';
@@ -38,7 +38,7 @@ interface ProcessFilters {
     standalone: true,
     imports: [
         ImportsModule,
-        SlaughterProcessFormComponent,
+        //SlaughterProcessFormComponent,
         SlaughterProcessDashboardComponent,
         SlaughterProcessDetailsComponent,
     ],
@@ -453,7 +453,7 @@ export class SlaughterProcessListComponent implements OnInit, OnDestroy {
 
     viewSummary(process: SlaughterProcess): void {
         if (!process._id) return;
-
+        console.log('viewSummary', process);
         this.slaughterProcessService
             .getSlaughterProcessSummary(process._id)
             .pipe(takeUntil(this.destroy$))

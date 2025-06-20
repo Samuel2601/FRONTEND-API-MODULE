@@ -1,7 +1,7 @@
 ::ng-deep .inspection-form-dialog {
     .p-dialog-content {
         padding: 0;
-        max-height: 80vh;
+        max-height: 85vh;
         overflow-y: auto;
     }
 
@@ -33,6 +33,9 @@
         padding: 1.5rem 2rem;
         border-top: 1px solid var(--surface-border);
         background: var(--surface-card);
+        position: sticky;
+        bottom: 0;
+        z-index: 1000;
     }
 }
 
@@ -40,12 +43,51 @@
     padding: 2rem;
     background: var(--surface-ground);
 
+    // Panel de referencia para ante mortem
+    .reference-panel {
+        ::ng-deep .p-panel-header {
+            background: linear-gradient(
+                135deg,
+                var(--blue-500) 0%,
+                var(--blue-600) 100%
+            );
+            color: white;
+            font-weight: 600;
+        }
+
+        .reference-item {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 0.75rem;
+            padding: 0.5rem;
+            background: rgba(var(--blue-500-rgb), 0.05);
+            border-radius: 6px;
+            border-left: 3px solid var(--blue-500);
+
+            label {
+                font-weight: 600;
+                color: var(--text-color-secondary);
+                font-size: 0.8rem;
+                margin-bottom: 0.25rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            span {
+                color: var(--text-color);
+                font-weight: 500;
+                font-size: 0.95rem;
+            }
+        }
+    }
+
     // Panel Styles
     ::ng-deep .p-panel {
         border-radius: 12px;
         overflow: hidden;
         border: 1px solid var(--surface-border);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
 
         .p-panel-header {
             background: var(--surface-section);
@@ -103,6 +145,12 @@
             &.ng-invalid.ng-touched {
                 border-color: var(--red-500);
                 background: rgba(var(--red-500-rgb), 0.05);
+            }
+
+            &[readonly] {
+                background: var(--surface-100);
+                color: var(--text-color-secondary);
+                cursor: not-allowed;
             }
         }
 
@@ -244,6 +292,7 @@
                     border-radius: 8px;
                     font-weight: 500;
                     transition: all 0.3s ease;
+                    padding: 0.75rem;
 
                     &:first-child {
                         border-top-right-radius: 0;
@@ -289,25 +338,31 @@
             border-radius: 12px;
             font-size: 0.8rem;
             font-weight: 500;
+            margin-top: 0.25rem;
+            display: inline-block;
 
             &.normal {
                 background: rgba(var(--green-500-rgb), 0.1);
                 color: var(--green-700);
+                border: 1px solid rgba(var(--green-500-rgb), 0.3);
             }
 
             &.warning {
                 background: rgba(var(--orange-500-rgb), 0.1);
                 color: var(--orange-700);
+                border: 1px solid rgba(var(--orange-500-rgb), 0.3);
             }
 
             &.danger {
                 background: rgba(var(--red-500-rgb), 0.1);
                 color: var(--red-700);
+                border: 1px solid rgba(var(--red-500-rgb), 0.3);
             }
 
             &.info {
                 background: rgba(var(--blue-500-rgb), 0.1);
                 color: var(--blue-700);
+                border: 1px solid rgba(var(--blue-500-rgb), 0.3);
             }
         }
     }
@@ -315,6 +370,17 @@
     // Photos Section
     .photos-section {
         .upload-section {
+            text-align: center;
+            padding: 1rem;
+            border: 2px dashed var(--surface-border);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+
+            &:hover {
+                border-color: var(--primary-color);
+                background: rgba(var(--primary-color-rgb), 0.02);
+            }
+
             ::ng-deep p-fileupload {
                 .p-fileupload-choose {
                     background: var(--primary-color);
@@ -335,13 +401,14 @@
             }
 
             .upload-info {
-                text-align: center;
-                padding: 1rem;
+                margin-top: 0.5rem;
+                padding: 0.5rem;
                 background: rgba(var(--blue-500-rgb), 0.05);
-                border-radius: 8px;
+                border-radius: 6px;
 
                 small {
                     color: var(--text-color-secondary);
+                    font-size: 0.85rem;
                 }
             }
         }
@@ -350,11 +417,12 @@
         .new-photos {
             h6 {
                 color: var(--text-color);
-                font-weight: 600;
+                font-weight: 700;
                 padding-bottom: 0.5rem;
                 border-bottom: 2px solid var(--primary-color);
                 display: inline-block;
                 margin-bottom: 1rem;
+                font-size: 1.1rem;
             }
         }
 
@@ -365,6 +433,7 @@
             border: 2px solid var(--surface-border);
             transition: all 0.3s ease;
             position: relative;
+            height: 220px;
 
             &:hover {
                 border-color: var(--primary-color);
@@ -375,7 +444,7 @@
             &.existing {
                 .photo-thumbnail {
                     width: 100%;
-                    height: 200px;
+                    height: 180px;
                     object-fit: cover;
                     cursor: pointer;
                     transition: all 0.3s ease;
@@ -388,7 +457,24 @@
 
             &.new {
                 .photo-preview {
-                    height: 200px;
+                    height: 180px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center;
+                    padding: 1rem;
+
+                    .photo-thumbnail {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                        border-radius: 8px;
+                    }
+                }
+
+                .file-preview {
+                    height: 180px;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
@@ -412,6 +498,7 @@
                         margin-bottom: 0.5rem;
                         font-size: 0.9rem;
                         word-break: break-word;
+                        line-height: 1.2;
                     }
 
                     .photo-size {
@@ -474,22 +561,17 @@
             border: 2px dashed var(--surface-border);
             border-radius: 12px;
             color: var(--text-color-secondary);
+            text-align: center;
+            min-height: 200px;
 
             .pi-camera {
                 color: var(--text-color-secondary);
+                opacity: 0.7;
             }
-        }
-    }
 
-    // Justification Panel
-    ::ng-deep .p-panel:has([formcontrolname="justificacion"]) {
-        .p-panel-header {
-            background: linear-gradient(
-                135deg,
-                var(--orange-500) 0%,
-                var(--orange-600) 100%
-            );
-            color: white;
+            small {
+                font-size: 0.9rem;
+            }
         }
     }
 }
@@ -599,6 +681,24 @@
         opacity: 0.6;
         transform: none !important;
         box-shadow: none !important;
+        cursor: not-allowed;
+    }
+}
+
+// Loading indicator for file upload
+.uploading-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    z-index: 1000;
+
+    .pi-spin {
+        animation: spin 1s linear infinite;
     }
 }
 
@@ -647,9 +747,27 @@
 
         .photos-section {
             .photo-card {
+                height: 180px;
+
                 &.existing .photo-thumbnail,
-                &.new .photo-preview {
-                    height: 150px;
+                &.new .photo-preview,
+                &.new .file-preview {
+                    height: 140px;
+                }
+            }
+        }
+
+        .reference-panel {
+            .reference-item {
+                margin-bottom: 0.5rem;
+                padding: 0.4rem;
+
+                label {
+                    font-size: 0.75rem;
+                }
+
+                span {
+                    font-size: 0.9rem;
                 }
             }
         }
@@ -677,8 +795,11 @@
             }
 
             .photo-card {
+                height: 160px;
+
                 &.existing .photo-thumbnail,
-                &.new .photo-preview {
+                &.new .photo-preview,
+                &.new .file-preview {
                     height: 120px;
                 }
             }
@@ -719,18 +840,33 @@
         }
 
         .photos-section {
-            .upload-info {
-                background: rgba(var(--blue-500-rgb), 0.1);
+            .upload-section {
+                border-color: var(--surface-border);
+
+                &:hover {
+                    border-color: var(--primary-color);
+                }
+
+                .upload-info {
+                    background: rgba(var(--blue-500-rgb), 0.1);
+                }
             }
 
             .photo-card {
-                &.new .photo-preview {
+                &.new .file-preview {
                     background: linear-gradient(
                         135deg,
                         rgba(var(--primary-color-rgb), 0.1) 0%,
                         rgba(var(--primary-color-rgb), 0.15) 100%
                     );
                 }
+            }
+        }
+
+        .reference-panel {
+            .reference-item {
+                background: rgba(var(--blue-500-rgb), 0.1);
+                border-left-color: var(--blue-400);
             }
         }
     }
@@ -764,5 +900,19 @@
         &:hover {
             background: var(--surface-hover);
         }
+    }
+}
+
+// Animations para indicadores
+.vital-indicator-enter {
+    opacity: 0;
+    transform: translateY(-5px);
+    animation: fadeInUp 0.3s ease forwards;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

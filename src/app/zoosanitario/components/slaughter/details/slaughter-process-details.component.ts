@@ -24,6 +24,7 @@ import {
     User,
 } from 'src/app/zoosanitario/services/slaughter-process.service';
 import { InvoiceService } from 'src/app/zoosanitario/services/invoice.service';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-slaughter-process-details',
@@ -37,6 +38,7 @@ export class SlaughterProcessDetailsComponent implements OnInit, OnDestroy {
     private readonly slaughterProcessService = inject(SlaughterProcessService);
     private readonly invoiceService = inject(InvoiceService);
     private readonly messageService = inject(MessageService);
+    constructor(private router: Router) {}
 
     @Input() processId!: string;
     @Output() processUpdated = new EventEmitter<SlaughterProcess>();
@@ -255,7 +257,7 @@ export class SlaughterProcessDetailsComponent implements OnInit, OnDestroy {
 
     loadSummaryData(): void {
         if (!this.processData?._id) return;
-
+        console.log('loadSummaryData', this.processData);
         this.slaughterProcessService
             .getSlaughterProcessSummary(this.processData._id)
             .pipe(takeUntil(this.destroy$))
@@ -402,19 +404,47 @@ export class SlaughterProcessDetailsComponent implements OnInit, OnDestroy {
     }
 
     viewInspectionDetails(inspection: ExternalInspection): void {
-        this.messageService.add({
-            severity: 'info',
-            summary: 'Información',
-            detail: `Ver detalles de inspección ${inspection.numero} en desarrollo`,
-        });
+        console.log('viewInspectionDetails', inspection);
+
+        if (!inspection || !inspection.numero) {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Inspección inválida o sin número.',
+            });
+            return;
+        }
+
+        // Redirige según la fase pendiente
+        if (inspection.inspeccionRecepcion?.resultado === 'Pendiente') {
+            // Fase: Recepción
+            this.router.navigate([
+                '/zoosanitario/workflow/external-inspection/recepcion',
+                inspection.numero,
+            ]);
+        } else if (inspection.examenAnteMortem?.resultado === 'Pendiente') {
+            // Fase: Ante Mortem
+            this.router.navigate([
+                '/zoosanitario/workflow/external-inspection/ante-mortem',
+                inspection.numero,
+            ]);
+        } else {
+            // Fase: Ante Mortem
+            this.router.navigate([
+                '/zoosanitario/workflow/external-inspection/ante-mortem',
+                inspection.numero,
+            ]);
+            // No hay fases pendientes
+            this.messageService.add({
+                severity: 'info',
+                summary: 'Sin acciones pendientes',
+                detail: 'Esta inspección no tiene fases pendientes.',
+            });
+        }
     }
 
     viewInvoiceDetails(invoice: Invoice): void {
-        this.messageService.add({
-            severity: 'info',
-            summary: 'Información',
-            detail: `Ver detalles de factura ${invoice.invoiceNumber} en desarrollo`,
-        });
+        this.router.navigate(['/zoosanitario/invoices/view/', invoice._id]);
     }
 
     createInspection(): void {

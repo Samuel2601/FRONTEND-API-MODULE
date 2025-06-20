@@ -1,0 +1,211 @@
+<p-dialog
+    header="Detalles de Recepción"
+    [(visible)]="showDetailsDialog"
+    [modal]="true"
+    [style]="{ width: '90vw', maxWidth: '800px' }"
+    [draggable]="false"
+    [resizable]="false"
+>
+    <div class="reception-details" *ngIf="selectedReception">
+        <!-- Información General -->
+        <p-panel header="Información General" styleClass="mb-3">
+            <div class="grid">
+                <div class="col-12 md:col-6">
+                    <div class="detail-item">
+                        <label>Fecha de Recepción:</label>
+                        <span>{{
+                            selectedReception.fechaHoraRecepcion
+                                | date : "dd/MM/yyyy HH:mm"
+                        }}</span>
+                    </div>
+                </div>
+                <div class="col-12 md:col-6">
+                    <div class="detail-item">
+                        <label>Estado:</label>
+                        <p-tag
+                            [value]="selectedReception.estado"
+                            [severity]="
+                                getEstadoSeverity(selectedReception.estado)
+                            "
+                        >
+                        </p-tag>
+                    </div>
+                </div>
+                <div class="col-12 md:col-6">
+                    <div class="detail-item">
+                        <label>Prioridad:</label>
+                        <span>{{ selectedReception.prioridad || 0 }}/10</span>
+                    </div>
+                </div>
+                <div
+                    class="col-12 md:col-6"
+                    *ngIf="selectedReception.fechaProgramada"
+                >
+                    <div class="detail-item">
+                        <label>Fecha Programada:</label>
+                        <span>{{
+                            selectedReception.fechaProgramada
+                                | date : "dd/MM/yyyy HH:mm"
+                        }}</span>
+                    </div>
+                </div>
+            </div>
+        </p-panel>
+
+        <!-- Certificado Zoosanitario -->
+        <p-panel header="Certificado Zoosanitario" styleClass="mb-3">
+            <div class="grid">
+                <div class="col-12 md:col-6">
+                    <div class="detail-item">
+                        <label>Número CZPM:</label>
+                        <span>{{
+                            selectedReception.animalHealthCertificate
+                                ?.numeroCZPM || "N/A"
+                        }}</span>
+                    </div>
+                </div>
+                <div class="col-12 md:col-6">
+                    <div class="detail-item">
+                        <label>Autorizado A:</label>
+                        <span>{{
+                            selectedReception.animalHealthCertificate
+                                ?.autorizadoA || "N/A"
+                        }}</span>
+                    </div>
+                </div>
+                <div class="col-12 md:col-6">
+                    <div class="detail-item">
+                        <label>Código Área Origen:</label>
+                        <span>{{
+                            selectedReception.animalHealthCertificate
+                                ?.codigoAreaOrigen || "N/A"
+                        }}</span>
+                    </div>
+                </div>
+                <div class="col-12 md:col-6">
+                    <div class="detail-item">
+                        <label>Código Área Destino:</label>
+                        <span>{{
+                            selectedReception.animalHealthCertificate
+                                ?.codigoAreaDestino || "N/A"
+                        }}</span>
+                    </div>
+                </div>
+                <div class="col-12 md:col-6">
+                    <div class="detail-item">
+                        <label>Vehículo:</label>
+                        <span>{{
+                            selectedReception.animalHealthCertificate
+                                ?.vehiculo || "N/A"
+                        }}</span>
+                    </div>
+                </div>
+                <div class="col-12 md:col-6">
+                    <div class="detail-item">
+                        <label>Total Productos:</label>
+                        <span>{{
+                            selectedReception.animalHealthCertificate
+                                ?.totalProductos || 0
+                        }}</span>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="detail-item">
+                        <label>Válido Hasta:</label>
+                        <span>{{
+                            selectedReception.animalHealthCertificate
+                                ?.validoHasta | date : "dd/MM/yyyy HH:mm"
+                        }}</span>
+                    </div>
+                </div>
+            </div>
+        </p-panel>
+
+        <!-- Condiciones de Transporte -->
+        <p-panel header="Condiciones de Transporte" styleClass="mb-3">
+            <div class="grid">
+                <div class="col-12 md:col-4">
+                    <div class="detail-item">
+                        <label>Temperatura:</label>
+                        <span
+                            >{{
+                                selectedReception.transporte?.temperatura ||
+                                    "N/A"
+                            }}°C</span
+                        >
+                    </div>
+                </div>
+                <div class="col-12 md:col-4">
+                    <div class="detail-item">
+                        <label>Humedad Ambiental:</label>
+                        <span
+                            >{{
+                                selectedReception.transporte
+                                    ?.humedadAmbiental || "N/A"
+                            }}%</span
+                        >
+                    </div>
+                </div>
+                <div class="col-12 md:col-4">
+                    <div class="detail-item">
+                        <label>Condiciones Higiénicas:</label>
+                        <p-tag
+                            [value]="
+                                selectedReception.transporte
+                                    ?.condicionesHigienicas || 'N/A'
+                            "
+                            [severity]="
+                                getCondicionesSeverity(
+                                    selectedReception.transporte
+                                        ?.condicionesHigienicas
+                                )
+                            "
+                        >
+                        </p-tag>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="detail-item">
+                        <label>Condición de Animales:</label>
+                        <p class="m-0">
+                            {{
+                                selectedReception.transporte
+                                    ?.condicionAnimales || "N/A"
+                            }}
+                        </p>
+                    </div>
+                </div>
+                <div
+                    class="col-12"
+                    *ngIf="selectedReception.transporte?.observaciones"
+                >
+                    <div class="detail-item">
+                        <label>Observaciones de Transporte:</label>
+                        <p class="m-0">
+                            {{ selectedReception.transporte.observaciones }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </p-panel>
+
+        <!-- Observaciones Generales -->
+        <p-panel
+            header="Observaciones Generales"
+            *ngIf="selectedReception.observaciones"
+        >
+            <p class="m-0">{{ selectedReception.observaciones }}</p>
+        </p-panel>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <p-button
+            icon="pi pi-times"
+            label="Cerrar"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="showDetailsDialog = false"
+        >
+        </p-button>
+    </ng-template>
+</p-dialog>

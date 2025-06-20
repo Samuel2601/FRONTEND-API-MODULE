@@ -359,16 +359,6 @@
             <!-- Acciones Rápidas -->
             <p-panel header="Acciones" styleClass="mb-4">
                 <div class="quick-actions">
-                    <p-button
-                        label="Editar Proceso"
-                        icon="pi pi-pencil"
-                        severity="warning"
-                        styleClass="w-full mb-2"
-                        (onClick)="editProcess()"
-                        *ngIf="canEditProcess()"
-                    >
-                    </p-button>
-
                     <p-splitButton
                         label="Cambiar Estado"
                         icon="pi pi-cog"
@@ -503,10 +493,24 @@
                                 >
                                     <h5 class="m-0">{{ inspection.numero }}</h5>
                                     <p-tag
-                                        [value]="inspection.resultado"
+                                        [value]="
+                                            inspection.examenAnteMortem
+                                                .resultado !== 'Pendiente'
+                                                ? inspection.examenAnteMortem
+                                                      .resultado + '-EM'
+                                                : inspection.inspeccionRecepcion
+                                                      .resultado + '-RR'
+                                        "
                                         [severity]="
                                             getInspectionResultSeverity(
-                                                inspection.resultado
+                                                inspection.examenAnteMortem
+                                                    .resultado !== 'Pendiente'
+                                                    ? inspection
+                                                          .examenAnteMortem
+                                                          .resultado
+                                                    : inspection
+                                                          .inspeccionRecepcion
+                                                          .resultado
                                             )
                                         "
                                     >
@@ -521,13 +525,38 @@
                                     </div>
                                     <div
                                         class="detail-item"
-                                        *ngIf="inspection.horaChequeo"
+                                        *ngIf="
+                                            inspection.examenAnteMortem
+                                                .resultado !== 'Pendiente'
+                                                ? inspection.examenAnteMortem
+                                                      .horaChequeo
+                                                : inspection.inspeccionRecepcion
+                                                      .horaChequeo
+                                        "
                                     >
                                         <label>Fecha:</label>
                                         <span>{{
-                                            inspection.horaChequeo
-                                                | date : "dd/MM/yyyy"
+                                            inspection.examenAnteMortem
+                                                .resultado !== "Pendiente"
+                                                ? inspection.examenAnteMortem
+                                                      .horaChequeo
+                                                : (inspection
+                                                      .inspeccionRecepcion
+                                                      .horaChequeo
+                                                  | date : "dd/MM/yyyy")
                                         }}</span>
+                                        <span>
+                                            {{
+                                                inspection.examenAnteMortem
+                                                    .resultado !== "Pendiente"
+                                                    ? inspection
+                                                          .examenAnteMortem
+                                                          .horaChequeo
+                                                    : inspection
+                                                          .inspeccionRecepcion
+                                                          .horaChequeo
+                                            }}</span
+                                        >
                                     </div>
                                 </div>
                                 <div class="mt-3">

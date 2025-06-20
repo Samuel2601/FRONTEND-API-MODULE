@@ -293,6 +293,22 @@
 
                     <!-- Sección completa de acciones en el panel lateral -->
                     <div class="flex flex-column gap-2">
+                        ´
+                        <!-- Boton para solicitar calcular el total de items -->
+                        <button
+                            *ngIf="
+                                !invoice()!.totalAmount ||
+                                invoice()!.totalAmount === 0
+                            "
+                            pButton
+                            label="Calcular Total de Items"
+                            icon="pi pi-calculator"
+                            class="w-full p-button-info"
+                            [loading]="processingAction()"
+                            (click)="calculateInvoice()"
+                            pTooltip="Calcular el total de items de la factura"
+                        ></button>
+
                         @if (invoice()!.status === 'Generated') {
                         <button
                             pButton
