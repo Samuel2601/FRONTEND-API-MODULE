@@ -15,16 +15,67 @@ export interface ExternalInspection {
     sexo?: 'Macho' | 'Hembra' | 'Pendiente';
     edad?: number;
     peso?: number;
-    temperatura?: number;
-    frecuenciaCardiaca?: number;
-    frecuenciaRespiratoria?: number;
-    horaChequeo?: Date;
-    estadoGeneral?: string;
-    lesionesVisibles?: string;
-    resultado: 'Pendiente' | 'Apto' | 'Devolución' | 'Cuarentena' | 'Comisión';
-    motivoDictamen?: string;
-    fotografias?: string[];
-    veterinarioResponsable?: string;
+
+    // Inspección de Recepción
+    inspeccionRecepcion?: {
+        temperatura?: number;
+        frecuenciaCardiaca?: number;
+        frecuenciaRespiratoria?: number;
+        horaChequeo?: Date;
+        estadoGeneral?: string;
+        lesionesVisibles?: string;
+        caracteristicas?: {
+            tamano?: 'Grande' | 'Mediano' | 'Pequeño';
+            parasito?: boolean;
+            movilidad?: 'Solo' | 'Con Ayuda';
+            destino?: string;
+        };
+        resultado?:
+            | 'Pendiente'
+            | 'Apto'
+            | 'Devolución'
+            | 'Cuarentena'
+            | 'Comisión';
+        motivoDictamen?: string;
+        fotografias?: string[];
+        veterinarioResponsable?: string;
+    };
+
+    // Examen Ante Mortem
+    examenAnteMortem?: {
+        temperatura?: number;
+        frecuenciaCardiaca?: number;
+        frecuenciaRespiratoria?: number;
+        horaChequeo?: Date;
+        estadoGeneralOptimo?: boolean;
+        comportamientoNormal?: boolean;
+        lesiones?: boolean;
+        parasito?: boolean;
+        secreciones?: {
+            ocular?: boolean;
+            nasal?: boolean;
+        };
+        signos?: {
+            nervioso?: boolean;
+            respiratorio?: boolean;
+            digestivo?: boolean;
+            vesicular?: boolean;
+        };
+        caracteristicasAnimal?: {
+            color?: string;
+            tamanoCacho?: string;
+        };
+        resultado?:
+            | 'Pendiente'
+            | 'Apto'
+            | 'Devolución'
+            | 'Cuarentena'
+            | 'Comisión';
+        motivoDictamen?: string;
+        fotografias?: string[];
+        veterinarioResponsable?: string;
+    };
+
     createdBy: string;
     updatedBy?: string;
     deletedBy?: string;
@@ -42,7 +93,8 @@ export interface InspectionSummary {
 }
 
 export interface InspectionStatistics {
-    general: any;
+    recepcionStats: any;
+    anteMortemStats: any;
     filtered?: any;
 }
 
@@ -60,18 +112,22 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
     }
 
     // Extended CRUD operations
-    getInspections(queryParams: any = {}): Observable<ExternalInspection[]> {
+    getInspections(
+        queryParams: any = {},
+        cache: boolean = true
+    ): Observable<ExternalInspection[]> {
         const cacheKey = `${this.endpoint}_filtered_${JSON.stringify(
             queryParams
         )}`;
         const cachedData =
             this.cacheService.get<ExternalInspection[]>(cacheKey);
-
-        if (cachedData) {
-            return new Observable((observer) => {
-                observer.next(cachedData);
-                observer.complete();
-            });
+        if (cache) {
+            if (cachedData) {
+                return new Observable((observer) => {
+                    observer.next(cachedData);
+                    observer.complete();
+                });
+            }
         }
 
         // Construir los parámetros correctamente
@@ -189,10 +245,11 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
     createForcedInspection(
         data: Partial<ExternalInspection>,
         files: File[] = [],
-        justification: string
+        justification: string,
+        phase: 'recepcion' | 'anteMortem' = 'recepcion'
     ): Observable<ExternalInspection> {
         const formData = new FormData();
-        formData.append('data', JSON.stringify(data));
+        formData.append('data', JSON.stringify({ ...data, phase }));
         formData.append('justification', justification);
 
         files.forEach((file) => {
@@ -228,10 +285,11 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
     updateInspectionWithFiles(
         id: string,
         data: Partial<ExternalInspection>,
-        files: File[] = []
+        files: File[] = [],
+        phase: 'recepcion' | 'anteMortem' = 'recepcion'
     ): Observable<ExternalInspection> {
         const formData = new FormData();
-        formData.append('data', JSON.stringify(data));
+        formData.append('data', JSON.stringify({ ...data, phase }));
 
         files.forEach((file) => {
             formData.append('fotografias', file);
@@ -261,6 +319,40 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
                     throw error;
                 })
             );
+    }
+
+    // Nuevos métodos específicos para cada fase
+
+    getReceptionInspections(
+        receptionId: string
+    ): Observable<ExternalInspection[]> {
+        return this.http.get<ExternalInspection[]>(
+            `${GLOBAL.url_zoosanitario}${this.endpoint}/recepcion/${receptionId}`,
+            { headers: this.getHeaders() }
+        );
+    }
+
+    getAnteMortemInspections(
+        processId: string
+    ): Observable<ExternalInspection[]> {
+        return this.http.get<ExternalInspection[]>(
+            `${GLOBAL.url_zoosanitario}${this.endpoint}/proceso/${processId}/ante-mortem`,
+            { headers: this.getHeaders() }
+        );
+    }
+
+    getReceptionSummary(receptionId: string): Observable<InspectionSummary> {
+        return this.http.get<InspectionSummary>(
+            `${GLOBAL.url_zoosanitario}${this.endpoint}/recepcion/${receptionId}/resumen`,
+            { headers: this.getHeaders() }
+        );
+    }
+
+    getAnteMortemSummary(processId: string): Observable<InspectionSummary> {
+        return this.http.get<InspectionSummary>(
+            `${GLOBAL.url_zoosanitario}${this.endpoint}/proceso/${processId}/ante-mortem/resumen`,
+            { headers: this.getHeaders() }
+        );
     }
 
     deleteInspectionWithJustification(
@@ -322,12 +414,15 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
             );
     }
 
-    getStatistics(filters: any = {}): Observable<InspectionStatistics> {
+    getStatistics(
+        filters: any = {},
+        cache: boolean = true
+    ): Observable<InspectionStatistics> {
         const cacheKey = `${this.endpoint}_stats_${JSON.stringify(filters)}`;
         const cachedData =
             this.cacheService.get<InspectionStatistics>(cacheKey);
 
-        if (cachedData) {
+        if (cachedData && cache) {
             return new Observable((observer) => {
                 observer.next(cachedData);
                 observer.complete();
@@ -367,7 +462,7 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
             );
     }
 
-    getReceptionSummary(receptionId: string): Observable<InspectionSummary> {
+    /*getReceptionSummary(receptionId: string): Observable<InspectionSummary> {
         const cacheKey = `${this.endpoint}_summary_${receptionId}`;
         const cachedData = this.cacheService.get<InspectionSummary>(cacheKey);
 
@@ -396,5 +491,5 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
                     throw error;
                 })
             );
-    }
+    }*/
 }

@@ -21,14 +21,6 @@
             </div>
             <div class="flex gap-2">
                 <p-button
-                    icon="pi pi-plus"
-                    label="Nueva Inspección"
-                    severity="success"
-                    (onClick)="openCreateDialog()"
-                    *ngIf="canCreateInspection"
-                >
-                </p-button>
-                <p-button
                     icon="pi pi-refresh"
                     severity="secondary"
                     [outlined]="true"
@@ -243,28 +235,63 @@
                     </td>
                     <td>
                         <div class="vital-signs">
-                            <div *ngIf="inspection.temperatura" class="text-sm">
-                                T: {{ inspection.temperatura }}°C
-                            </div>
                             <div
-                                *ngIf="inspection.frecuenciaCardiaca"
+                                *ngIf="
+                                    getInspectionData(inspection)?.temperatura
+                                "
                                 class="text-sm"
                             >
-                                FC: {{ inspection.frecuenciaCardiaca }} bpm
+                                T:
+                                {{
+                                    getInspectionData(inspection)?.temperatura
+                                }}°C
                             </div>
                             <div
-                                *ngIf="inspection.frecuenciaRespiratoria"
+                                *ngIf="
+                                    getInspectionData(inspection)
+                                        ?.frecuenciaCardiaca
+                                "
                                 class="text-sm"
                             >
-                                FR: {{ inspection.frecuenciaRespiratoria }} rpm
+                                FC:
+                                {{
+                                    getInspectionData(inspection)
+                                        ?.frecuenciaCardiaca
+                                }}
+                                bpm
+                            </div>
+                            <div
+                                *ngIf="
+                                    getInspectionData(inspection)
+                                        ?.frecuenciaRespiratoria
+                                "
+                                class="text-sm"
+                            >
+                                FR:
+                                {{
+                                    getInspectionData(inspection)
+                                        ?.frecuenciaRespiratoria
+                                }}
+                                rpm
                             </div>
                         </div>
                     </td>
                     <td>
                         <p-tag
-                            [value]="inspection.resultado"
-                            [severity]="getResultSeverity(inspection.resultado)"
-                            [icon]="getResultIcon(inspection.resultado)"
+                            [value]="
+                                getInspectionData(inspection)?.resultado ||
+                                'Pendiente'
+                            "
+                            [severity]="
+                                getResultSeverity(
+                                    getInspectionData(inspection)?.resultado
+                                )
+                            "
+                            [icon]="
+                                getResultIcon(
+                                    getInspectionData(inspection)?.resultado
+                                )
+                            "
                         >
                         </p-tag>
                     </td>
@@ -320,13 +347,6 @@
                             <p class="text-600">
                                 No se encontraron inspecciones
                             </p>
-                            <p-button
-                                label="Nueva Inspección"
-                                icon="pi pi-plus"
-                                (onClick)="openCreateDialog()"
-                                *ngIf="canCreateInspection"
-                            >
-                            </p-button>
                         </div>
                     </td>
                 </tr>
@@ -398,9 +418,9 @@
                     <div class="detail-item">
                         <label>Especie:</label>
                         <span>{{
-                            selectedInspection.especie.species +
+                            selectedInspection.especie?.species +
                                 "(" +
-                                selectedInspection.especie.category +
+                                selectedInspection.especie?.category +
                                 ")" || "N/A"
                         }}</span>
                     </div>
@@ -421,11 +441,11 @@
                         <span>{{ selectedInspection.peso || "N/A" }} kg</span>
                     </div>
                     <div class="detail-item">
-                        <label>Fecha/Hora:</label>
+                        <label>Fecha/Hora: </label>
                         <span>{{
-                            selectedInspection.horaChequeo
-                                ? (selectedInspection.horaChequeo
-                                  | date : "dd/MM/yyyy HH:mm")
+                            getInspectionData(selectedInspection)?.horaChequeo
+                                ? (selectedInspection.inspeccionRecepcion
+                                      .horaChequeo | date : "dd/MM/yyyy HH:mm")
                                 : "N/A"
                         }}</span>
                     </div>
@@ -439,7 +459,10 @@
                 <div class="col-12 md:col-4">
                     <div class="vital-card">
                         <div class="vital-value">
-                            {{ selectedInspection.temperatura || "N/A" }}
+                            {{
+                                getInspectionData(selectedInspection)
+                                    ?.temperatura || "N/A"
+                            }}
                         </div>
                         <div class="vital-label">Temperatura (°C)</div>
                     </div>
@@ -447,7 +470,10 @@
                 <div class="col-12 md:col-4">
                     <div class="vital-card">
                         <div class="vital-value">
-                            {{ selectedInspection.frecuenciaCardiaca || "N/A" }}
+                            {{
+                                getInspectionData(selectedInspection)
+                                    ?.frecuenciaCardiaca || "N/A"
+                            }}
                         </div>
                         <div class="vital-label">Frecuencia Cardíaca (bpm)</div>
                     </div>
@@ -456,8 +482,8 @@
                     <div class="vital-card">
                         <div class="vital-value">
                             {{
-                                selectedInspection.frecuenciaRespiratoria ||
-                                    "N/A"
+                                getInspectionData(selectedInspection)
+                                    ?.frecuenciaRespiratoria || "N/A"
                             }}
                         </div>
                         <div class="vital-label">
@@ -476,8 +502,8 @@
                         <label>Estado General:</label>
                         <p>
                             {{
-                                selectedInspection.estadoGeneral ||
-                                    "No especificado"
+                                getInspectionData(selectedInspection)
+                                    ?.estadoGeneral || "No especificado"
                             }}
                         </p>
                     </div>
@@ -487,8 +513,8 @@
                         <label>Lesiones Visibles:</label>
                         <p>
                             {{
-                                selectedInspection.lesionesVisibles ||
-                                    "No especificado"
+                                getInspectionData(selectedInspection)
+                                    ?.lesionesVisibles || "No especificado"
                             }}
                         </p>
                     </div>
@@ -497,19 +523,40 @@
                     <div class="detail-item">
                         <label>Resultado:</label>
                         <p-tag
-                            [value]="selectedInspection.resultado"
-                            [severity]="
-                                getResultSeverity(selectedInspection.resultado)
+                            [value]="
+                                getInspectionData(selectedInspection)
+                                    ?.resultado || 'Pendiente'
                             "
-                            [icon]="getResultIcon(selectedInspection.resultado)"
+                            [severity]="
+                                getResultSeverity(
+                                    getInspectionData(selectedInspection)
+                                        ?.resultado
+                                )
+                            "
+                            [icon]="
+                                getResultIcon(
+                                    getInspectionData(selectedInspection)
+                                        ?.resultado
+                                )
+                            "
                         >
                         </p-tag>
                     </div>
                 </div>
-                <div class="col-12" *ngIf="selectedInspection.motivoDictamen">
+                <div
+                    class="col-12"
+                    *ngIf="
+                        getInspectionData(selectedInspection)?.motivoDictamen
+                    "
+                >
                     <div class="detail-item">
                         <label>Motivo del Dictamen:</label>
-                        <p>{{ selectedInspection.motivoDictamen }}</p>
+                        <p>
+                            {{
+                                getInspectionData(selectedInspection)
+                                    ?.motivoDictamen
+                            }}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -519,15 +566,18 @@
         <p-panel
             header="Fotografías"
             *ngIf="
-                selectedInspection.fotografias &&
-                selectedInspection.fotografias.length > 0
+                getInspectionData(selectedInspection)?.fotografias &&
+                getInspectionData(selectedInspection)?.fotografias.length > 0
             "
         >
             <div class="photos-gallery">
                 <div class="grid">
                     <div
                         class="col-12 md:col-4"
-                        *ngFor="let photo of selectedInspection.fotografias"
+                        *ngFor="
+                            let photo of getInspectionData(selectedInspection)
+                                ?.fotografias
+                        "
                     >
                         <div class="photo-item">
                             <img
@@ -574,6 +624,7 @@
     [inspectionId]="selectedInspectionId"
     [receptionId]="receptionId"
     [processId]="processId"
+    [phase]="phase"
     (inspectionSaved)="onInspectionSaved($event)"
     (dialogClosed)="onFormDialogClosed()"
 >

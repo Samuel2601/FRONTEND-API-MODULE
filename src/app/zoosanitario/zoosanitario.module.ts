@@ -33,6 +33,7 @@ import { RateListComponent } from './components/config/rate/list/rate-list.compo
 import { InvoiceListComponent } from './components/invoice/list/invoice-list.component';
 import { InvoiceFormComponent } from './components/invoice/form/invoice-form.component';
 import { InvoiceDetailComponent } from './components/invoice/detail/invoice-detail.component';
+import { FileSizePipe } from './utils/pipes/filesize.pipe';
 
 // Rutas del módulo
 const routes: Routes = [
@@ -209,7 +210,6 @@ const routes: Routes = [
 @NgModule({
     declarations: [
         // Componentes principales
-
         // Directivas personalizadas
         AutoSaveDirective,
         NumericOnlyDirective,

@@ -70,11 +70,11 @@ export abstract class BaseService<T> {
             );
     }
 
-    getById(id: string): Observable<T> {
+    getById(id: string, cache: boolean = true): Observable<T> {
         const cacheKey = `${this.endpoint}_${id}`;
         const cachedData = this.cacheService.get<T>(cacheKey);
 
-        if (cachedData) {
+        if (cachedData && cache) {
             return of(cachedData);
         }
 

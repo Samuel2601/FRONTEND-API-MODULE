@@ -649,7 +649,7 @@ export class IntroducerFormComponent implements OnInit {
                 });
                 this.router.navigate([
                     '/zoosanitario/introducers/view',
-                    introducer.data._id,
+                    introducer.data.introducer._id ?? introducer.data._id,
                 ]);
             },
             error: (error) => {
