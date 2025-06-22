@@ -39,7 +39,22 @@
                     </p-tag>
                 </div>
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-2 align-items-center">
+                <!-- Switch de Fase -->
+                <div class="phase-switch">
+                    <label class="phase-switch-label text-white font-semibold">
+                        Fase del Proceso
+                    </label>
+                    <p-selectButton
+                        [(ngModel)]="phase"
+                        [options]="phaseOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        (onChange)="onPhaseChange()"
+                        styleClass="phase-toggle"
+                    ></p-selectButton>
+                </div>
+
                 <p-button
                     icon="pi pi-refresh"
                     severity="secondary"
@@ -49,6 +64,38 @@
                     pTooltip="Actualizar lista"
                 >
                 </p-button>
+
+                <p-button
+                    icon="pi pi-plus"
+                    label="Nueva Inspección"
+                    severity="success"
+                    (onClick)="createNewInspection()"
+                    pTooltip="Crear nueva inspección"
+                >
+                </p-button>
+            </div>
+        </div>
+
+        <!-- Progreso de Fases -->
+        <div class="phase-progress mb-4">
+            <div class="flex align-items-center justify-content-center gap-4">
+                <div class="phase-step" [class.active]="phase === 'recepcion'">
+                    <div class="step-circle">
+                        <i class="pi pi-clipboard"></i>
+                    </div>
+                    <span class="step-label">Recepción</span>
+                </div>
+
+                <div class="step-connector">
+                    <i class="pi pi-arrow-right"></i>
+                </div>
+
+                <div class="phase-step" [class.active]="phase === 'anteMortem'">
+                    <div class="step-circle">
+                        <i class="pi pi-heart"></i>
+                    </div>
+                    <span class="step-label">Ante Mortem</span>
+                </div>
             </div>
         </div>
 
@@ -209,10 +256,15 @@
                     <th pSortableColumn="horaChequeo">
                         Fecha <p-sortIcon field="horaChequeo"></p-sortIcon>
                     </th>
+                    <th>Estado del Proceso</th>
                     <th>Acciones</th>
                 </tr>
             </ng-template>
-            <ng-template pTemplate="body" let-inspection>
+            <ng-template
+                pTemplate="body"
+                let-inspection
+                let-rowIndex="rowIndex"
+            >
                 <tr>
                     <td>
                         <div class="inspection-number">
@@ -409,6 +461,42 @@
                         </div>
                     </td>
                     <td>
+                        <!-- Estado del proceso completo -->
+                        <div class="process-status">
+                            <div class="flex align-items-center gap-2">
+                                <p-tag
+                                    value="Recepción"
+                                    [severity]="
+                                        hasReceptionData(inspection)
+                                            ? 'success'
+                                            : 'warning'
+                                    "
+                                    [icon]="
+                                        hasReceptionData(inspection)
+                                            ? 'pi pi-check'
+                                            : 'pi pi-clock'
+                                    "
+                                    styleClass="text-xs"
+                                ></p-tag>
+
+                                <p-tag
+                                    value="Ante Mortem"
+                                    [severity]="
+                                        hasAnteMortemData(inspection)
+                                            ? 'success'
+                                            : 'secondary'
+                                    "
+                                    [icon]="
+                                        hasAnteMortemData(inspection)
+                                            ? 'pi pi-check'
+                                            : 'pi pi-minus'
+                                    "
+                                    styleClass="text-xs"
+                                ></p-tag>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
                         <div class="flex gap-2">
                             <p-button
                                 icon="pi pi-eye"
@@ -424,7 +512,7 @@
                                 severity="warning"
                                 [text]="true"
                                 size="small"
-                                (onClick)="editInspection(inspection)"
+                                (onClick)="editInspection(inspection, rowIndex)"
                                 [disabled]="!canEditInspection(inspection)"
                                 [pTooltip]="
                                     canEditInspection(inspection)
@@ -448,12 +536,19 @@
             </ng-template>
             <ng-template pTemplate="emptymessage">
                 <tr>
-                    <td colspan="7">
+                    <td colspan="8">
                         <div class="text-center p-4">
                             <i class="pi pi-inbox text-4xl text-400 mb-3"></i>
                             <p class="text-600">
-                                No se encontraron inspecciones
+                                No se encontraron inspecciones para la fase
+                                {{ getPhaseTitle() }}
                             </p>
+                            <p-button
+                                label="Crear Primera Inspección"
+                                icon="pi pi-plus"
+                                (onClick)="createNewInspection()"
+                                styleClass="mt-3"
+                            ></p-button>
                         </div>
                     </td>
                 </tr>
@@ -724,7 +819,7 @@
     </ng-template>
 </p-dialog>
 
-<!-- Diálogo de Formulario -->
+<!-- Diálogo de Formulario con Navegación -->
 <app-external-inspection-form
     *ngIf="showFormDialog"
     [(visible)]="showFormDialog"
@@ -732,8 +827,11 @@
     [receptionId]="receptionId"
     [processId]="processId"
     [phase]="phase"
+    [inspectionsList]="inspections"
+    [currentIndex]="currentInspectionIndex"
     (inspectionSaved)="onInspectionSaved($event)"
     (dialogClosed)="onFormDialogClosed()"
+    (navigationChanged)="onNavigationChanged($event)"
 >
 </app-external-inspection-form>
 

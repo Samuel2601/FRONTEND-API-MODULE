@@ -3,6 +3,7 @@ import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ImportsModule } from 'src/app/demo/services/import';
+import { Router } from '@angular/router';
 
 import {
     ExternalInspectionService,
@@ -109,8 +110,17 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
     selectedInspectionId: string | null = null;
     selectedPhoto = '';
 
+    // Navegación entre registros
+    currentInspectionIndex = -1;
+
     // Fase actual del proceso
-    phase: 'recepcion' | 'anteMortem' = null;
+    phase: 'recepcion' | 'anteMortem' = 'recepcion';
+
+    // Opciones para el switch de fases
+    phaseOptions = [
+        { label: 'Recepción', value: 'recepcion', icon: 'pi pi-clipboard' },
+        { label: 'Ante Mortem', value: 'anteMortem', icon: 'pi pi-heart' },
+    ];
 
     // Opciones para dropdowns
     resultOptions = [
@@ -129,6 +139,7 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
         private messageService: MessageService,
         private confirmationService: ConfirmationService,
         private route: ActivatedRoute,
+        private router: Router,
         private animalType: AnimalTypeService
     ) {}
 
@@ -396,6 +407,27 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
         this.loadStatistics();
     }
 
+    onPhaseChange(): void {
+        console.log('Cambiando fase a:', this.phase);
+
+        // Reiniciar los datos
+        this.currentPage = 1;
+        this.selectedInspections = [];
+        this.filters = {};
+        this.searchNumber = '';
+        this.isSearchMode = false;
+
+        // Recargar datos para la nueva fase
+        this.loadInspections(null, false);
+        this.loadStatistics(false);
+
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Fase Cambiada',
+            detail: `Mostrando datos de ${this.getPhaseTitle()}`,
+        });
+    }
+
     refresh(): void {
         this.currentPage = 1;
         this.selectedInspections = [];
@@ -404,23 +436,56 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
         this.loadStatistics(false);
     }
 
+    createNewInspection(): void {
+        this.selectedInspectionId = null;
+        this.currentInspectionIndex = -1;
+        this.showFormDialog = true;
+    }
+
     viewDetails(inspection: ExternalInspection): void {
         this.selectedInspection = inspection;
         this.showDetailsDialog = true;
     }
 
-    editInspection(inspection: ExternalInspection): void {
+    editInspection(inspection: ExternalInspection, index?: number): void {
         console.log('Editando inspección', inspection);
         this.selectedInspectionId = inspection._id || null;
+        this.currentInspectionIndex = index !== undefined ? index : -1;
         this.showFormDialog = true;
         this.showDetailsDialog = false;
     }
 
     editInspectionFromDetails(): void {
         if (this.selectedInspection) {
+            // Buscar el índice de la inspección seleccionada en la lista
+            const index = this.inspections.findIndex(
+                (insp) => insp._id === this.selectedInspection?._id
+            );
             this.selectedInspectionId = this.selectedInspection._id || null;
+            this.currentInspectionIndex = index;
             this.showDetailsDialog = false;
             this.showFormDialog = true;
+        }
+    }
+
+    // Navegación entre registros
+    onNavigationChanged(direction: 'prev' | 'next'): void {
+        if (
+            direction === 'next' &&
+            this.currentInspectionIndex < this.inspections.length - 1
+        ) {
+            this.currentInspectionIndex++;
+        } else if (direction === 'prev' && this.currentInspectionIndex > 0) {
+            this.currentInspectionIndex--;
+        }
+
+        if (
+            this.currentInspectionIndex >= 0 &&
+            this.currentInspectionIndex < this.inspections.length
+        ) {
+            const nextInspection =
+                this.inspections[this.currentInspectionIndex];
+            this.selectedInspectionId = nextInspection._id || null;
         }
     }
 
@@ -542,6 +607,7 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
 
     onFormDialogClosed(): void {
         this.selectedInspectionId = null;
+        this.currentInspectionIndex = -1;
         this.showFormDialog = false;
         this.refresh();
     }

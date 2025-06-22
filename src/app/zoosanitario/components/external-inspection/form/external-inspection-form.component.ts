@@ -1,9 +1,20 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import {
+    Component,
+    Input,
+    Output,
+    EventEmitter,
+    OnInit,
+    OnChanges,
+    SimpleChanges,
+} from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ImportsModule } from 'src/app/demo/services/import';
 import { AnimalTypeService } from 'src/app/zoosanitario/services/animal-type.service';
-import { ExternalInspectionService } from 'src/app/zoosanitario/services/external-inspection.service';
+import {
+    ExternalInspectionService,
+    ExternalInspection,
+} from 'src/app/zoosanitario/services/external-inspection.service';
 import { FileSizePipe } from 'src/app/zoosanitario/utils/pipes/filesize.pipe';
 
 interface PhotoFile {
@@ -20,23 +31,25 @@ interface PhotoFile {
     templateUrl: './external-inspection-form.component.html',
     styleUrls: ['./external-inspection-form.component.scss'],
 })
-export class ExternalInspectionFormComponent implements OnInit {
+export class ExternalInspectionFormComponent implements OnInit, OnChanges {
     @Input() visible = false;
     @Input() inspectionId: string | null = null;
     @Input() receptionId?: string;
     @Input() processId?: string;
     @Input() phase: 'recepcion' | 'anteMortem' = null;
+
+    // Nuevos inputs para navegación
+    @Input() inspectionsList: ExternalInspection[] = [];
+    @Input() currentIndex: number = -1;
+
     @Output() visibleChange = new EventEmitter<boolean>();
     @Output() inspectionSaved = new EventEmitter<any>();
     @Output() dialogClosed = new EventEmitter<void>();
+    @Output() navigationChanged = new EventEmitter<'prev' | 'next'>();
 
     inspectionForm!: FormGroup;
     loading = false;
     submitting = false;
-
-    openPhotoViewer(_t370: string) {
-        throw new Error('Method not implemented.');
-    }
 
     // Datos de referencia para ante mortem
     receptionData: any = null;
@@ -81,6 +94,131 @@ export class ExternalInspectionFormComponent implements OnInit {
         if (this.inspectionId) {
             this.loadInspection();
         }
+    }
+
+    ngOnChanges(changes: SimpleChanges): void {
+        // Cuando cambia el índice de navegación, cargar la nueva inspección
+        if (changes['currentIndex'] && !changes['currentIndex'].firstChange) {
+            this.loadInspectionFromList();
+        }
+
+        // Cuando cambia la lista de inspecciones
+        if (
+            changes['inspectionsList'] &&
+            !changes['inspectionsList'].firstChange
+        ) {
+            this.loadInspectionFromList();
+        }
+
+        // Cuando cambia el inspectionId desde el componente padre
+        if (changes['inspectionId'] && !changes['inspectionId'].firstChange) {
+            if (this.inspectionId) {
+                this.loadInspection();
+            } else {
+                this.resetForm();
+                this.initializeForm();
+            }
+        }
+    }
+
+    // Propiedades para la navegación
+    get showNavigation(): boolean {
+        return this.inspectionsList.length > 0 && this.currentIndex >= 0;
+    }
+
+    get totalInspections(): number {
+        return this.inspectionsList.length;
+    }
+
+    get currentInspectionNumber(): string {
+        if (
+            this.currentIndex >= 0 &&
+            this.currentIndex < this.inspectionsList.length
+        ) {
+            return this.inspectionsList[this.currentIndex]?.numero || '';
+        }
+        return '';
+    }
+
+    // Métodos de navegación
+    canNavigatePrev(): boolean {
+        return this.currentIndex > 0;
+    }
+
+    canNavigateNext(): boolean {
+        return this.currentIndex < this.inspectionsList.length - 1;
+    }
+
+    navigateToInspection(direction: 'prev' | 'next'): void {
+        if (this.inspectionForm.dirty) {
+            this.confirmNavigationWithUnsavedChanges(direction);
+        } else {
+            this.performNavigation(direction);
+        }
+    }
+
+    private confirmNavigationWithUnsavedChanges(
+        direction: 'prev' | 'next'
+    ): void {
+        if (
+            confirm(
+                'Tienes cambios sin guardar. ¿Deseas continuar sin guardar?'
+            )
+        ) {
+            this.performNavigation(direction);
+        }
+    }
+
+    private performNavigation(direction: 'prev' | 'next'): void {
+        this.navigationChanged.emit(direction);
+    }
+
+    private loadInspectionFromList(): void {
+        if (
+            this.currentIndex >= 0 &&
+            this.currentIndex < this.inspectionsList.length
+        ) {
+            const inspection = this.inspectionsList[this.currentIndex];
+            this.currentInspection = inspection;
+            this.inspectionId = inspection._id || null;
+
+            // Resetear el formulario y cargar nuevos datos
+            this.resetFormData();
+            this.fillForm(inspection);
+            this.extractExistingPhotos(inspection);
+
+            // Si estamos en ante mortem, cargar datos de recepción como referencia
+            if (this.phase === 'anteMortem') {
+                this.receptionData = inspection.inspeccionRecepcion;
+            }
+        }
+    }
+
+    returnToList(): void {
+        if (this.inspectionForm.dirty) {
+            if (
+                confirm(
+                    'Tienes cambios sin guardar. ¿Deseas continuar sin guardar?'
+                )
+            ) {
+                this.closeDialog();
+            }
+        } else {
+            this.closeDialog();
+        }
+    }
+
+    getDialogTitle(): string {
+        let baseTitle =
+            this.phase === 'recepcion'
+                ? 'Inspección de Recepción'
+                : 'Examen Ante Mortem';
+
+        if (this.showNavigation) {
+            baseTitle += ` (${this.currentIndex + 1}/${this.totalInspections})`;
+        }
+
+        return baseTitle;
     }
 
     loadAnimalTypes(): void {
@@ -247,6 +385,9 @@ export class ExternalInspectionFormComponent implements OnInit {
             if (inspection.inspeccionRecepcion) {
                 this.inspectionForm.patchValue({
                     ...inspection.inspeccionRecepcion,
+                    horaChequeo: inspection.inspeccionRecepcion.horaChequeo
+                        ? new Date(inspection.inspeccionRecepcion.horaChequeo)
+                        : new Date(),
                     caracteristicas:
                         inspection.inspeccionRecepcion.caracteristicas || {},
                 });
@@ -256,6 +397,9 @@ export class ExternalInspectionFormComponent implements OnInit {
             if (inspection.examenAnteMortem) {
                 this.inspectionForm.patchValue({
                     ...inspection.examenAnteMortem,
+                    horaChequeo: inspection.examenAnteMortem.horaChequeo
+                        ? new Date(inspection.examenAnteMortem.horaChequeo)
+                        : new Date(),
                 });
             }
         }
@@ -350,6 +494,11 @@ export class ExternalInspectionFormComponent implements OnInit {
         if (index > -1) {
             this.existingPhotos.splice(index, 1);
         }
+    }
+
+    openPhotoViewer(photo: string): void {
+        this.selectedPhoto = photo;
+        this.showPhotoViewer = true;
     }
 
     onSubmit(): void {
@@ -477,7 +626,14 @@ export class ExternalInspectionFormComponent implements OnInit {
                         detail: 'Inspección actualizada correctamente',
                     });
                     this.inspectionSaved.emit(response);
-                    this.closeDialog();
+
+                    // Si estamos navegando, no cerramos el diálogo, solo refrescamos
+                    if (this.showNavigation) {
+                        this.markFormAsPristine();
+                        this.submitting = false;
+                    } else {
+                        this.closeDialog();
+                    }
                 },
                 error: (error) => {
                     console.error('Error actualizando inspección:', error);
@@ -504,11 +660,20 @@ export class ExternalInspectionFormComponent implements OnInit {
 
     private resetForm(): void {
         this.inspectionForm.reset();
+        this.resetFormData();
+        this.submitting = false;
+    }
+
+    private resetFormData(): void {
         this.selectedFiles = [];
         this.existingPhotos = [];
         this.receptionData = null;
         this.currentInspection = null;
-        this.submitting = false;
+    }
+
+    private markFormAsPristine(): void {
+        this.inspectionForm.markAsPristine();
+        this.inspectionForm.markAsUntouched();
     }
 
     markFormGroupTouched(): void {

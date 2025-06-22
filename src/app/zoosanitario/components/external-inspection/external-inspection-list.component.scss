@@ -27,6 +27,120 @@
             margin: 0;
         }
 
+        // Switch de fase
+        .phase-switch {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+
+            .phase-switch-label {
+                font-size: 0.9rem;
+                text-align: center;
+                opacity: 0.9;
+            }
+
+            ::ng-deep .phase-toggle {
+                .p-selectbutton {
+                    display: flex;
+                    border-radius: 25px;
+                    overflow: hidden;
+                    background: rgba(255, 255, 255, 0.15);
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+
+                    .p-button {
+                        background: transparent;
+                        border: none;
+                        color: var(--primary-color-text);
+                        font-weight: 600;
+                        padding: 0.75rem 1.5rem;
+                        transition: all 0.3s ease;
+                        border-radius: 0;
+                        font-size: 0.9rem;
+
+                        &:first-child {
+                            border-radius: 25px 0 0 25px;
+                        }
+
+                        &:last-child {
+                            border-radius: 0 25px 25px 0;
+                        }
+
+                        &.p-highlight {
+                            background: rgba(255, 255, 255, 0.9);
+                            color: var(--primary-color);
+                            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+                            transform: scale(1.05);
+                        }
+
+                        &:hover:not(.p-highlight) {
+                            background: rgba(255, 255, 255, 0.1);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Progreso de fases
+        .phase-progress {
+            .phase-step {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 0.5rem;
+                transition: all 0.3s ease;
+
+                .step-circle {
+                    width: 3rem;
+                    height: 3rem;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: rgba(255, 255, 255, 0.2);
+                    border: 2px solid rgba(255, 255, 255, 0.3);
+                    color: var(--primary-color-text);
+                    font-size: 1.2rem;
+                    transition: all 0.3s ease;
+                }
+
+                .step-label {
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    opacity: 0.8;
+                    transition: opacity 0.3s ease;
+                }
+
+                &.active {
+                    .step-circle {
+                        background: rgba(255, 255, 255, 0.9);
+                        color: var(--primary-color);
+                        border-color: rgba(255, 255, 255, 0.9);
+                        box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+                        transform: scale(1.1);
+                    }
+
+                    .step-label {
+                        opacity: 1;
+                        color: var(--primary-color-text);
+                    }
+                }
+            }
+
+            .step-connector {
+                display: flex;
+                align-items: center;
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 1.5rem;
+                margin: 0 2rem;
+
+                .pi {
+                    animation: pulse 2s infinite;
+                }
+            }
+        }
+
         .p-button {
             --p-button-background: rgba(255, 255, 255, 0.2);
             --p-button-border: 1px solid rgba(255, 255, 255, 0.3);
@@ -267,6 +381,21 @@
             }
         }
 
+        // Estado del proceso
+        .process-status {
+            .flex {
+                flex-wrap: wrap;
+            }
+
+            ::ng-deep .p-tag {
+                font-size: 0.7rem;
+                padding: 0.25rem 0.5rem;
+                border-radius: 12px;
+                font-weight: 500;
+                margin-bottom: 0.25rem;
+            }
+        }
+
         ::ng-deep .p-tag {
             font-weight: 600;
             border-radius: 16px;
@@ -291,6 +420,11 @@
             &[data-pc-severity="info"] {
                 background: var(--blue-500);
                 color: white;
+            }
+
+            &[data-pc-severity="secondary"] {
+                background: var(--surface-600);
+                color: var(--surface-0);
             }
         }
     }
@@ -515,6 +649,32 @@
                 gap: 1rem;
             }
 
+            .phase-switch {
+                ::ng-deep .phase-toggle .p-selectbutton .p-button {
+                    padding: 0.5rem 1rem;
+                    font-size: 0.8rem;
+                }
+            }
+
+            .phase-progress {
+                .step-connector {
+                    margin: 0 1rem;
+                    font-size: 1.2rem;
+                }
+
+                .phase-step {
+                    .step-circle {
+                        width: 2.5rem;
+                        height: 2.5rem;
+                        font-size: 1rem;
+                    }
+
+                    .step-label {
+                        font-size: 0.8rem;
+                    }
+                }
+            }
+
             .filters-section {
                 .grid {
                     .col-12 {
@@ -575,6 +735,19 @@
             p {
                 font-size: 0.875rem;
             }
+
+            .phase-progress {
+                .flex {
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 1rem;
+                }
+
+                .step-connector {
+                    transform: rotate(90deg);
+                    margin: 0;
+                }
+            }
         }
 
         .statistics-section {
@@ -589,6 +762,21 @@
             width: 95vw !important;
             max-width: none !important;
         }
+    }
+}
+
+// Animaciones
+@keyframes pulse {
+    0% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.6;
     }
 }
 

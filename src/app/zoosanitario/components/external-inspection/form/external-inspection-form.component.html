@@ -1,11 +1,71 @@
 <p-dialog
     [(visible)]="visible"
-    [header]="getPhaseTitle()"
+    [header]="getDialogTitle()"
     [modal]="true"
     [style]="{ width: '95vw', maxWidth: '1400px' }"
     [styleClass]="'inspection-form-dialog'"
     (onHide)="closeDialog()"
 >
+    <!-- Barra de Navegación -->
+    <div class="navigation-bar" *ngIf="showNavigation">
+        <div
+            class="flex justify-content-between align-items-center p-3 bg-primary-50 border-round mb-3"
+        >
+            <div class="navigation-info">
+                <div class="text-sm font-semibold text-primary">
+                    <i class="pi pi-list mr-2"></i>
+                    Inspección {{ currentIndex + 1 }} de {{ totalInspections }}
+                </div>
+                <div
+                    class="text-xs text-primary-600 mt-1"
+                    *ngIf="currentInspectionNumber"
+                >
+                    Número: {{ currentInspectionNumber }}
+                </div>
+            </div>
+
+            <div class="navigation-controls flex gap-2">
+                <p-button
+                    icon="pi pi-angle-left"
+                    severity="secondary"
+                    [outlined]="true"
+                    size="small"
+                    (onClick)="navigateToInspection('prev')"
+                    [disabled]="!canNavigatePrev()"
+                    pTooltip="Inspección anterior"
+                    tooltipPosition="bottom"
+                >
+                </p-button>
+
+                <p-button
+                    icon="pi pi-angle-right"
+                    severity="secondary"
+                    [outlined]="true"
+                    size="small"
+                    (onClick)="navigateToInspection('next')"
+                    [disabled]="!canNavigateNext()"
+                    pTooltip="Inspección siguiente"
+                    tooltipPosition="bottom"
+                >
+                </p-button>
+
+                <p-divider layout="vertical" styleClass="mx-2"></p-divider>
+
+                <p-button
+                    icon="pi pi-list"
+                    label="Ver Lista"
+                    severity="info"
+                    [outlined]="true"
+                    size="small"
+                    (onClick)="returnToList()"
+                    pTooltip="Volver a la lista"
+                    tooltipPosition="bottom"
+                >
+                </p-button>
+            </div>
+        </div>
+    </div>
+
     <form [formGroup]="inspectionForm" (ngSubmit)="onSubmit()">
         <div class="inspection-form-container">
             <!-- Datos de Referencia (Solo en Ante Mortem) -->
@@ -366,6 +426,7 @@
                                     >Presencia de Parásitos</label
                                 >
                                 <p-dropdown
+                                    appendTo="body"
                                     id="parasitos"
                                     formControlName="parasitos"
                                     [options]="[
@@ -963,6 +1024,7 @@
                         <div class="field">
                             <label for="resultado">Resultado *</label>
                             <p-dropdown
+                                appendTo="body"
                                 id="resultado"
                                 formControlName="resultado"
                                 [options]="resultOptions"
@@ -1057,6 +1119,29 @@
                     [outlined]="true"
                     (onClick)="onCancel()"
                 ></p-button>
+
+                <!-- Navegación en Footer (alternativa) -->
+                <ng-container *ngIf="showNavigation">
+                    <p-divider layout="vertical"></p-divider>
+                    <p-button
+                        icon="pi pi-angle-left"
+                        severity="info"
+                        [outlined]="true"
+                        (onClick)="navigateToInspection('prev')"
+                        [disabled]="!canNavigatePrev()"
+                        pTooltip="Inspección anterior"
+                    ></p-button>
+                    <p-button
+                        icon="pi pi-angle-right"
+                        severity="info"
+                        [outlined]="true"
+                        (onClick)="navigateToInspection('next')"
+                        [disabled]="!canNavigateNext()"
+                        pTooltip="Inspección siguiente"
+                    ></p-button>
+                    <p-divider layout="vertical"></p-divider>
+                </ng-container>
+
                 <p-button
                     [label]="inspectionId ? 'Actualizar' : 'Guardar'"
                     icon="pi pi-check"

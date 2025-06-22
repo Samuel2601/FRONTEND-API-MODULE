@@ -39,6 +39,69 @@
     }
 }
 
+// Barra de navegación
+.navigation-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--surface-card);
+    margin: -2rem -2rem 0 -2rem;
+    padding: 0 2rem;
+
+    .navigation-info {
+        .text-sm {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .text-xs {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+    }
+
+    .navigation-controls {
+        .p-button {
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+
+            &:hover:not(:disabled) {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.2);
+            }
+
+            &:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            &[data-pc-severity="info"] {
+                --p-button-background: var(--blue-500);
+                --p-button-border: 1px solid var(--blue-500);
+                --p-button-color: white;
+
+                &:hover:not(:disabled) {
+                    --p-button-hover-background: var(--blue-600);
+                }
+            }
+        }
+
+        ::ng-deep p-divider {
+            .p-divider-vertical {
+                height: 2rem;
+                margin: 0;
+            }
+        }
+    }
+
+    // Efectos hover para la barra
+    &:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+}
+
 .inspection-form-container {
     padding: 2rem;
     background: var(--surface-ground);
@@ -340,6 +403,7 @@
             font-weight: 500;
             margin-top: 0.25rem;
             display: inline-block;
+            animation: fadeInUp 0.3s ease;
 
             &.normal {
                 background: rgba(var(--green-500-rgb), 0.1);
@@ -371,14 +435,16 @@
     .photos-section {
         .upload-section {
             text-align: center;
-            padding: 1rem;
+            padding: 1.5rem;
             border: 2px dashed var(--surface-border);
             border-radius: 12px;
             transition: all 0.3s ease;
+            background: var(--surface-ground);
 
             &:hover {
                 border-color: var(--primary-color);
                 background: rgba(var(--primary-color-rgb), 0.02);
+                transform: translateY(-2px);
             }
 
             ::ng-deep p-fileupload {
@@ -401,14 +467,16 @@
             }
 
             .upload-info {
-                margin-top: 0.5rem;
-                padding: 0.5rem;
+                margin-top: 1rem;
+                padding: 0.75rem;
                 background: rgba(var(--blue-500-rgb), 0.05);
-                border-radius: 6px;
+                border-radius: 8px;
+                border: 1px solid rgba(var(--blue-500-rgb), 0.1);
 
                 small {
                     color: var(--text-color-secondary);
                     font-size: 0.85rem;
+                    line-height: 1.4;
                 }
             }
         }
@@ -563,6 +631,12 @@
             color: var(--text-color-secondary);
             text-align: center;
             min-height: 200px;
+            transition: all 0.3s ease;
+
+            &:hover {
+                border-color: var(--primary-color);
+                background: rgba(var(--primary-color-rgb), 0.02);
+            }
 
             .pi-camera {
                 color: var(--text-color-secondary);
@@ -736,6 +810,21 @@
         }
     }
 
+    .navigation-bar {
+        margin: -1rem -1rem 0 -1rem;
+        padding: 0 1rem;
+
+        .flex {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+
+            .navigation-controls {
+                justify-content: center;
+            }
+        }
+    }
+
     .inspection-form-container {
         padding: 1rem;
 
@@ -805,6 +894,15 @@
             }
         }
     }
+
+    .navigation-bar {
+        .navigation-controls {
+            .p-button {
+                padding: 0.5rem;
+                font-size: 0.8rem;
+            }
+        }
+    }
 }
 
 // Loading states
@@ -819,6 +917,19 @@
 
     to {
         transform: rotate(360deg);
+    }
+}
+
+// Animaciones
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
@@ -870,6 +981,11 @@
             }
         }
     }
+
+    .navigation-bar {
+        background: var(--surface-section);
+        border-bottom: 1px solid var(--surface-border);
+    }
 }
 
 // Focus management
@@ -903,16 +1019,46 @@
     }
 }
 
-// Animations para indicadores
-.vital-indicator-enter {
-    opacity: 0;
-    transform: translateY(-5px);
-    animation: fadeInUp 0.3s ease forwards;
+// Mejoras de accesibilidad
+.navigation-bar {
+    [role="button"] {
+        &:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+    }
 }
 
-@keyframes fadeInUp {
-    to {
-        opacity: 1;
-        transform: translateY(0);
+// Indicadores de validación mejorados
+.field {
+    &.ng-invalid.ng-touched {
+        .p-inputtext,
+        .p-dropdown,
+        .p-calendar .p-inputtext,
+        .p-inputnumber-input {
+            animation: shake 0.5s ease-in-out;
+        }
+    }
+}
+
+@keyframes shake {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+        transform: translateX(-2px);
+    }
+
+    20%,
+    40%,
+    60%,
+    80% {
+        transform: translateX(2px);
     }
 }
