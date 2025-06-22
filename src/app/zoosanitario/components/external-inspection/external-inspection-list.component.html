@@ -9,6 +9,14 @@
                 </h1>
                 <p class="text-white opacity-90">
                     {{ totalInspections }} inspecciones encontradas
+                    <span *ngIf="isSpecificView()" class="ml-2">
+                        <i class="pi pi-filter text-sm"></i>
+                        Vista específica
+                    </span>
+                    <span *ngIf="showingAllInspections" class="ml-2">
+                        <i class="pi pi-list text-sm"></i>
+                        Vista general
+                    </span>
                 </p>
                 <div class="platform-info mt-2">
                     <p-tag
@@ -39,7 +47,7 @@
                     </p-tag>
                 </div>
             </div>
-            <div class="flex gap-2 align-items-center">
+            <div class="flex gap-2 align-items-center flex-wrap">
                 <!-- Switch de Fase -->
                 <div class="phase-switch">
                     <label class="phase-switch-label text-white font-semibold">
@@ -54,6 +62,19 @@
                         styleClass="phase-toggle"
                     ></p-selectButton>
                 </div>
+
+                <!-- Botón Limpiar Búsqueda -->
+                <p-button
+                    *ngIf="isSpecificView()"
+                    icon="pi pi-filter-slash"
+                    label="Ver Todas"
+                    severity="info"
+                    [outlined]="true"
+                    (onClick)="clearSearch()"
+                    pTooltip="Mostrar todas las inspecciones"
+                    styleClass="clear-search-btn"
+                >
+                </p-button>
 
                 <p-button
                     icon="pi pi-refresh"
@@ -71,6 +92,7 @@
                     severity="success"
                     (onClick)="createNewInspection()"
                     pTooltip="Crear nueva inspección"
+                    styleClass="new-inspection-btn"
                 >
                 </p-button>
             </div>
@@ -539,16 +561,35 @@
                     <td colspan="8">
                         <div class="text-center p-4">
                             <i class="pi pi-inbox text-4xl text-400 mb-3"></i>
-                            <p class="text-600">
-                                No se encontraron inspecciones para la fase
-                                {{ getPhaseTitle() }}
+                            <p class="text-600 mb-3">
+                                <ng-container *ngIf="isSpecificView()">
+                                    No se encontraron inspecciones para
+                                    {{
+                                        receptionId ||
+                                            processId ||
+                                            inspectionNumber
+                                    }}
+                                </ng-container>
+                                <ng-container *ngIf="!isSpecificView()">
+                                    No se encontraron inspecciones para la fase
+                                    {{ getPhaseTitle() }}
+                                </ng-container>
                             </p>
-                            <p-button
-                                label="Crear Primera Inspección"
-                                icon="pi pi-plus"
-                                (onClick)="createNewInspection()"
-                                styleClass="mt-3"
-                            ></p-button>
+                            <div class="flex gap-2 justify-content-center">
+                                <p-button
+                                    *ngIf="isSpecificView()"
+                                    label="Ver Todas las Inspecciones"
+                                    icon="pi pi-list"
+                                    severity="info"
+                                    [outlined]="true"
+                                    (onClick)="clearSearch()"
+                                ></p-button>
+                                <p-button
+                                    label="Crear Primera Inspección"
+                                    icon="pi pi-plus"
+                                    (onClick)="createNewInspection()"
+                                ></p-button>
+                            </div>
                         </div>
                     </td>
                 </tr>

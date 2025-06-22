@@ -3,7 +3,7 @@ import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ImportsModule } from 'src/app/demo/services/import';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 
 import {
     ExternalInspectionService,
@@ -12,7 +12,6 @@ import {
     InspectionStatistics,
 } from '../../services/external-inspection.service';
 import { ExternalInspectionFormComponent } from './form/external-inspection-form.component';
-import { ActivatedRoute } from '@angular/router';
 import { AnimalTypeService } from '../../services/animal-type.service';
 import { IonSplitPane } from '@ionic/angular/standalone';
 
@@ -89,6 +88,9 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
     inspections: ExternalInspection[] = [];
     totalInspections = 0;
     statistics: AdaptedStatistics | null = null;
+
+    // Control de modo de visualización
+    showingAllInspections = false; // Nuevo: controla si mostramos todas o una específica
 
     // Filtros y búsqueda
     filters: InspectionFilters = {};
@@ -171,11 +173,19 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
         this.inspectionNumber =
             this.route.snapshot.paramMap.get('inspectionNumber') || undefined;
 
+        // Determinar si estamos en vista específica o general
+        if (this.receptionId || this.processId || this.inspectionNumber) {
+            this.showingAllInspections = false;
+        } else {
+            this.showingAllInspections = true;
+        }
+
         console.log('INICIALIZANDO COMPONENTE DE EXTERNAL INSPECTIONS', {
             inspectionNumber: this.inspectionNumber,
             phase: this.phase,
             receptionId: this.receptionId,
             processId: this.processId,
+            showingAllInspections: this.showingAllInspections,
         });
 
         if (this.inspectionNumber) {
@@ -216,6 +226,12 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
     }
 
     loadInspections(event?: any, cache: boolean = true): void {
+        // Si estamos mostrando todas las inspecciones, no aplicar filtro por número específico
+        if (this.showingAllInspections) {
+            this.loadAllInspections(event, cache);
+            return;
+        }
+
         if (this.isSearchMode) return;
 
         this.loading = true;
@@ -236,6 +252,18 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
 
         if (inspectionNumber) {
             return this.searchBySpecificNumber(inspectionNumber);
+        }
+
+        // Si no hay número específico, cargar todas
+        this.loadAllInspections(event, cache);
+    }
+
+    private loadAllInspections(event?: any, cache: boolean = true): void {
+        this.loading = true;
+
+        if (event) {
+            this.currentPage = Math.floor(event.first / event.rows) + 1;
+            this.pageSize = event.rows;
         }
 
         const filters: any = { ...this.filters };
@@ -292,6 +320,48 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
             });
     }
 
+    clearSearch(): void {
+        console.log('Limpiando búsqueda y mostrando todas las inspecciones');
+
+        // Limpiar todos los filtros y parámetros de búsqueda
+        this.showingAllInspections = true;
+        this.isSearchMode = false;
+        this.searchNumber = '';
+        this.filters = {};
+        this.currentPage = 1;
+
+        // Limpiar IDs específicos
+        this.receptionId = undefined;
+        this.processId = undefined;
+        this.inspectionNumber = undefined;
+
+        // Limpiar la URL sin recargar la página
+        this.clearUrlParams();
+
+        // Recargar todas las inspecciones
+        this.loadAllInspections(null, false);
+        this.loadStatistics(false);
+
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Búsqueda Limpiada',
+            detail: 'Mostrando todas las inspecciones disponibles',
+        });
+    }
+
+    private clearUrlParams(): void {
+        try {
+            // Obtener la URL actual sin parámetros
+            const url = this.router.url.split('?')[0];
+            const baseUrl = url.split('/').slice(0, -1).join('/'); // Remover el último segmento (ID específico)
+
+            // Navegar a la URL base sin parámetros
+            this.router.navigateByUrl(baseUrl, { replaceUrl: true });
+        } catch (error) {
+            console.warn('No se pudo limpiar la URL:', error);
+        }
+    }
+
     loadStatistics(cache: boolean = true): void {
         const filters: any = { ...this.filters };
 
@@ -305,8 +375,14 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
             }
         });
 
+        // Agregar la fase a los parámetros de estadísticas
+        const statsParams = {
+            ...filters,
+            phase: this.phase,
+        };
+
         this.externalInspectionService
-            .getStatistics(filters, cache)
+            .getStatistics(statsParams, cache)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (response: any) => {
@@ -326,23 +402,37 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
 
     private adaptStatistics(backendStats: any): AdaptedStatistics {
         console.log('Adaptando estadísticas:', backendStats);
+
+        // Determinar qué estadísticas usar según la fase actual
+        let currentStats: any;
+        if (this.phase === 'recepcion') {
+            currentStats = backendStats.recepcionStats || backendStats;
+        } else {
+            currentStats = backendStats.anteMortemStats || backendStats;
+        }
+
+        // Si no tenemos estadísticas específicas de la fase, usar el formato anterior
+        if (!currentStats.total && backendStats.total) {
+            currentStats = backendStats;
+        }
+
         const pendientes =
-            backendStats.total -
-            (backendStats.resultBreakdown.apto +
-                backendStats.resultBreakdown.devolucion +
-                backendStats.resultBreakdown.cuarentena +
-                backendStats.resultBreakdown.comision);
+            currentStats.total -
+            (currentStats.resultBreakdown?.apto || 0) -
+            (currentStats.resultBreakdown?.devolucion || 0) -
+            (currentStats.resultBreakdown?.cuarentena || 0) -
+            (currentStats.resultBreakdown?.comision || 0);
 
         return {
-            total: backendStats.total,
+            total: currentStats.total || 0,
             pendientes: Math.max(0, pendientes),
-            aptas: backendStats.resultBreakdown.apto,
-            devolucion: backendStats.resultBreakdown.devolucion,
-            cuarentena: backendStats.resultBreakdown.cuarentena,
-            comision: backendStats.resultBreakdown.comision,
-            averages: backendStats.averages,
-            speciesBreakdown: backendStats.speciesBreakdown,
-            sexBreakdown: backendStats.sexBreakdown,
+            aptas: currentStats.resultBreakdown?.apto || 0,
+            devolucion: currentStats.resultBreakdown?.devolucion || 0,
+            cuarentena: currentStats.resultBreakdown?.cuarentena || 0,
+            comision: currentStats.resultBreakdown?.comision || 0,
+            averages: currentStats.averages,
+            speciesBreakdown: currentStats.speciesBreakdown,
+            sexBreakdown: currentStats.sexBreakdown,
         };
     }
 
@@ -394,9 +484,11 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
         console.log('Buscando por número', this.searchNumber);
         if (this.searchNumber.trim()) {
             this.isSearchMode = true;
+            this.showingAllInspections = false;
             this.searchBySpecificNumber(this.searchNumber.trim());
         } else {
             this.isSearchMode = false;
+            this.showingAllInspections = true;
             this.loadInspections();
         }
     }
@@ -431,7 +523,12 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
     refresh(): void {
         this.currentPage = 1;
         this.selectedInspections = [];
-        this.isSearchMode = false;
+
+        // Si no estamos mostrando todas, mantener el modo de búsqueda específica
+        if (!this.showingAllInspections) {
+            this.isSearchMode = false;
+        }
+
         this.loadInspections(null, false);
         this.loadStatistics(false);
     }
@@ -718,9 +815,32 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
      * Obtiene el título de la fase para mostrar en la UI
      */
     getPhaseTitle(): string {
-        return this.phase === 'recepcion'
-            ? 'Inspecciones de Recepción'
-            : 'Exámenes Ante Mortem';
+        const baseTitle =
+            this.phase === 'recepcion'
+                ? 'Inspecciones de Recepción'
+                : 'Exámenes Ante Mortem';
+
+        // Si estamos viendo una inspección específica, agregarlo al título
+        if (
+            !this.showingAllInspections &&
+            (this.receptionId || this.processId || this.inspectionNumber)
+        ) {
+            const specificId =
+                this.receptionId || this.processId || this.inspectionNumber;
+            return `${baseTitle} - ${specificId}`;
+        }
+
+        return baseTitle;
+    }
+
+    /**
+     * Indica si estamos en modo de vista específica o general
+     */
+    isSpecificView(): boolean {
+        return (
+            !this.showingAllInspections &&
+            (!!this.receptionId || !!this.processId || !!this.inspectionNumber)
+        );
     }
 
     /**
