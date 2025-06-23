@@ -34,14 +34,16 @@ import { InvoiceListComponent } from './components/invoice/list/invoice-list.com
 import { InvoiceFormComponent } from './components/invoice/form/invoice-form.component';
 import { InvoiceDetailComponent } from './components/invoice/detail/invoice-detail.component';
 import { FileSizePipe } from './utils/pipes/filesize.pipe';
+import { SlaughterDashboardComponent } from './components/dashboard/dashboard.component';
 
 // Rutas del módulo
 const routes: Routes = [
-    /*{
+    {
         path: '',
         component: SlaughterDashboardComponent,
         data: { title: 'Dashboard Veterinario' },
     },
+    /*
     {
         path: 'dashboard',
         component: SlaughterDashboardComponent,

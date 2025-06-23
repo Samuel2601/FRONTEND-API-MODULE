@@ -1,43 +1,162 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
-import { Subject } from 'rxjs';
-import { takeUntil, finalize } from 'rxjs/operators';
-import { MessageService } from 'primeng/api';
 import { ImportsModule } from 'src/app/demo/services/import';
-import {
-    SlaughterProcess,
-    SlaughterProcessDashboard,
-    SlaughterProcessService,
-    SlaughterStatistics,
-} from 'src/app/zoosanitario/services/slaughter-process.service';
-import {
-    InvoiceFinancialSummary,
-    InvoiceService,
-} from 'src/app/zoosanitario/services/invoice.service';
-import {
-    IntroducerService,
-    IntroducerStatistics,
-} from 'src/app/zoosanitario/services/introducer.service';
+import { SlaughterProcessService } from '../../services/slaughter-process.service';
+import { InvoiceService } from '../../services/invoice.service';
+import { IntroducerService } from '../../services/introducer.service';
+import { ExternalInspectionService } from '../../services/external-inspection.service';
+import { RateService } from '../../services/rate.service';
+import { ReceptionService } from '../../services/reception.service';
+import { forkJoin, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
-interface DashboardCard {
-    title: string;
-    value: number;
-    icon: string;
-    color: string;
-    trend?: {
-        value: number;
-        isPositive: boolean;
+interface DashboardData {
+    total: number;
+    withInvoice: number;
+    paidInvoices: number;
+    stateBreakdown: {
+        iniciado: number;
+        preFaenamiento: number;
+        pagado: number;
+        enProceso: number;
+        finalizado: number;
+        anulado: number;
     };
-    route?: string;
+    introducerTypeBreakdown: {
+        natural: number;
+        juridica: number;
+    };
+    averages: {
+        inspections: number;
+        slaughterings: number;
+        dispatches: number;
+    };
+    totalInvoiceAmount: number;
+    completionRate: number;
+    paymentRate: number;
 }
 
-interface AlertNotification {
-    severity: 'error' | 'warn' | 'info';
+interface FinancialSummary {
+    data: {
+        totalInvoices: number;
+        statusBreakdown: {
+            [key: string]: {
+                count: number;
+                amount: number;
+                avgAmount: number;
+            };
+        };
+        totalAmount: number;
+        avgAmount: number;
+        minAmount: number;
+        maxAmount: number;
+    };
+    filters: {
+        dateField: string;
+    };
+}
+
+interface IntroducerStats {
+    success: boolean;
+    message: string;
+    data: {
+        total: number;
+        totalInvoices: number;
+        totalProcesses: number;
+        personTypeBreakdown: {
+            natural: number;
+            juridica: number;
+        };
+        statusBreakdown: {
+            active: number;
+            pending: number;
+            suspended: number;
+            expired: number;
+        };
+        avgInvoicesPerIntroducer: number;
+        avgProcessesPerIntroducer: number;
+    };
+    timestamp: string;
+}
+
+interface InspectionStats {
+    success: boolean;
+    message: string;
+    data: {
+        _id: any;
+        total: number;
+        recepcionStats: {
+            total: number;
+            resultBreakdown: {
+                apto: number;
+                devolucion: number;
+                cuarentena: number;
+                comision: number;
+            };
+        };
+        anteMortemStats: {
+            total: number;
+            resultBreakdown: {
+                apto: number;
+                devolucion: number;
+                cuarentena: number;
+                comision: number;
+            };
+        };
+        averages: {
+            age: number;
+            weight: number;
+            temperature: number;
+        };
+        sexBreakdown: {
+            macho: number;
+            hembra: number;
+        };
+    };
+    timestamp: string;
+}
+
+interface ReceptionStats {
+    success: boolean;
+    message: string;
+    data: {
+        total: number;
+        stateBreakdown: {
+            pendiente: number;
+            procesando: number;
+            completado: number;
+            rechazado: number;
+        };
+        transportAverages: {
+            temperature: number;
+            humidity: number;
+        };
+        hygienicConditionsBreakdown: {
+            optimas: number;
+            aceptables: number;
+            deficientes: number;
+        };
+        avgPriority: number;
+    };
+    timestamp: string;
+}
+
+interface RecentActivity {
+    id: string;
+    title: string;
+    description: string;
+    timestamp: Date;
+    user: string;
+    icon: string;
+    color: string;
+}
+
+interface SystemAlert {
+    id: string;
     title: string;
     message: string;
-    count: number;
-    action?: string;
-    route?: string;
+    severity: 'low' | 'medium' | 'high';
+    timestamp: Date;
+    read: boolean;
 }
 
 @Component({
@@ -50,60 +169,42 @@ interface AlertNotification {
 export class SlaughterDashboardComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
-    // Estados de carga
-    loading = true;
-    dashboardLoading = true;
-    statisticsLoading = true;
-    financialLoading = true;
-    introducerLoading = true;
+    // Data properties
+    loading = false;
+    dashboardData: DashboardData | null = null;
+    statistics: DashboardData | null = null;
+    financialSummary: FinancialSummary | null = null;
+    introducerStats: IntroducerStats | null = null;
+    inspectionStats: InspectionStats | null = null;
+    receptionStats: ReceptionStats | null = null;
 
-    // Datos del dashboard
-    dashboardData: SlaughterProcessDashboard | null = null;
-    statistics: SlaughterStatistics | null = null;
-    financialSummary: InvoiceFinancialSummary | null = null;
-    introducerStats: IntroducerStatistics | null = null;
-
-    // Procesos recientes
-    recentProcesses: SlaughterProcess[] = [];
-    recentProcessesLoading = true;
-
-    // Tarjetas principales
-    mainCards: DashboardCard[] = [];
-
-    // Tarjetas de estado
-    statusCards: DashboardCard[] = [];
-
-    // Alertas y notificaciones
-    alerts: AlertNotification[] = [];
-
-    // Datos para gráficos
-    processStatusChartData: any;
-    revenueChartData: any;
-    animalSpeciesChartData: any;
+    // Chart data
+    processStatesChartData: any;
+    hygienicConditionsChartData: any;
+    financialStatusChartData: any;
     chartOptions: any;
+    barChartOptions: any;
+    financialChartOptions: any;
 
-    // Configuración de colores
-    private colors = {
-        primary: '#3B82F6',
-        success: '#10B981',
-        warning: '#F59E0B',
-        danger: '#EF4444',
-        info: '#06B6D4',
-        secondary: '#6B7280',
-    };
+    // Activity and alerts
+    recentActivities: RecentActivity[] = [];
+    systemAlerts: SystemAlert[] = [];
 
     constructor(
-        public slaughterService: SlaughterProcessService,
+        private slaughterService: SlaughterProcessService,
         private invoiceService: InvoiceService,
         private introducerService: IntroducerService,
-        private messageService: MessageService,
-        private router: Router
+        private inspectionService: ExternalInspectionService,
+        private receptionService: ReceptionService,
+        private rateService: RateService
     ) {
         this.initializeChartOptions();
     }
 
     ngOnInit(): void {
         this.loadDashboardData();
+        this.loadRecentActivity();
+        this.loadSystemAlerts();
     }
 
     ngOnDestroy(): void {
@@ -111,394 +212,50 @@ export class SlaughterDashboardComponent implements OnInit, OnDestroy {
         this.destroy$.complete();
     }
 
-    /**
-     * Cargar todos los datos del dashboard
-     */
-    private loadDashboardData(): void {
+    async loadDashboardData(): Promise<void> {
         this.loading = true;
 
-        // Cargar datos principales en paralelo
-        Promise.all([
-            this.loadSlaughterDashboard(),
-            this.loadStatistics(),
-            this.loadFinancialSummary(),
-            this.loadIntroducerStatistics(),
-            this.loadRecentProcesses(),
-        ]).finally(() => {
-            this.loading = false;
-            this.buildDashboardCards();
-            this.buildCharts();
-            this.buildAlerts();
-        });
-    }
+        forkJoin({
+            dashboardData: this.slaughterService.getStatistics(),
+            statistics: this.slaughterService.getStatistics(),
+            financialSummary: this.invoiceService.getStatistics(),
+            introducerStats: this.introducerService.getStatistics(),
+            inspectionStats: this.inspectionService.getStatistics(),
+            receptionStats: this.receptionService.getStatistics(),
+        })
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (results: any) => {
+                    console.log('Resultados cargados:', results);
 
-    /**
-     * Cargar dashboard de procesos de faenamiento
-     */
-    private loadSlaughterDashboard(): Promise<void> {
-        return new Promise((resolve) => {
-            this.dashboardLoading = true;
-            this.slaughterService
-                .getDashboard()
-                .pipe(
-                    takeUntil(this.destroy$),
-                    finalize(() => {
-                        this.dashboardLoading = false;
-                        resolve();
-                    })
-                )
-                .subscribe({
-                    next: (data) => {
-                        this.dashboardData = data;
-                    },
-                    error: (error) => {
-                        console.error('Error cargando dashboard:', error);
-                        this.messageService.add({
-                            severity: 'error',
-                            summary: 'Error',
-                            detail: 'No se pudo cargar los datos del dashboard',
-                        });
-                    },
-                });
-        });
-    }
+                    this.dashboardData = results.dashboardData;
+                    this.statistics = results.statistics;
+                    this.financialSummary = results.financialSummary;
+                    this.introducerStats = results.introducerStats;
+                    this.inspectionStats = results.inspectionStats;
+                    this.receptionStats = results.receptionStats;
 
-    /**
-     * Cargar estadísticas
-     */
-    private loadStatistics(): Promise<void> {
-        return new Promise((resolve) => {
-            this.statisticsLoading = true;
-            this.slaughterService
-                .getStatistics()
-                .pipe(
-                    takeUntil(this.destroy$),
-                    finalize(() => {
-                        this.statisticsLoading = false;
-                        resolve();
-                    })
-                )
-                .subscribe({
-                    next: (data) => {
-                        this.statistics = data;
-                    },
-                    error: (error) => {
-                        console.error('Error cargando estadísticas:', error);
-                    },
-                });
-        });
-    }
-
-    /**
-     * Cargar resumen financiero
-     */
-    private loadFinancialSummary(): Promise<void> {
-        return new Promise((resolve) => {
-            this.financialLoading = true;
-            const endDate = new Date();
-            const startDate = new Date();
-            startDate.setMonth(startDate.getMonth() - 1);
-
-            this.invoiceService
-                .getFinancialSummary({ startDate, endDate })
-                .pipe(
-                    takeUntil(this.destroy$),
-                    finalize(() => {
-                        this.financialLoading = false;
-                        resolve();
-                    })
-                )
-                .subscribe({
-                    next: (data) => {
-                        this.financialSummary = data;
-                    },
-                    error: (error) => {
-                        console.error(
-                            'Error cargando resumen financiero:',
-                            error
-                        );
-                    },
-                });
-        });
-    }
-
-    /**
-     * Cargar estadísticas de introductores
-     */
-    private loadIntroducerStatistics(): Promise<void> {
-        return new Promise((resolve) => {
-            this.introducerLoading = true;
-            this.introducerService
-                .getStatistics()
-                .pipe(
-                    takeUntil(this.destroy$),
-                    finalize(() => {
-                        this.introducerLoading = false;
-                        resolve();
-                    })
-                )
-                .subscribe({
-                    next: (data) => {
-                        this.introducerStats = data;
-                    },
-                    error: (error) => {
-                        console.error(
-                            'Error cargando estadísticas de introductores:',
-                            error
-                        );
-                    },
-                });
-        });
-    }
-
-    /**
-     * Cargar procesos recientes
-     */
-    private loadRecentProcesses(): Promise<void> {
-        return new Promise((resolve) => {
-            this.recentProcessesLoading = true;
-            this.slaughterService
-                .getAllProcesses({ limit: 5 })
-                .pipe(
-                    takeUntil(this.destroy$),
-                    finalize(() => {
-                        this.recentProcessesLoading = false;
-                        resolve();
-                    })
-                )
-                .subscribe({
-                    next: (response) => {
-                        this.recentProcesses = response.processes;
-                    },
-                    error: (error) => {
-                        console.error(
-                            'Error cargando procesos recientes:',
-                            error
-                        );
-                    },
-                });
-        });
-    }
-
-    /**
-     * Construir tarjetas del dashboard
-     */
-    private buildDashboardCards(): void {
-        if (!this.dashboardData || !this.financialSummary) return;
-
-        this.mainCards = [
-            {
-                title: 'Procesos Totales',
-                value: this.dashboardData.totalProcesses,
-                icon: 'pi pi-list',
-                color: this.colors.primary,
-                route: '/faenamiento/procesos',
-            },
-            {
-                title: 'Procesos Hoy',
-                value: this.dashboardData.todayProcesses,
-                icon: 'pi pi-calendar',
-                color: this.colors.success,
-                route: '/faenamiento/procesos',
-            },
-            {
-                title: 'Ingresos del Mes',
-                value: this.financialSummary.totalAmount,
-                icon: 'pi pi-dollar',
-                color: this.colors.warning,
-                route: '/faenamiento/facturas',
-            },
-            {
-                title: 'Tiempo Promedio',
-                value: Math.round(this.dashboardData.avgProcessingTime),
-                icon: 'pi pi-clock',
-                color: this.colors.info,
-                route: '/faenamiento/estadisticas',
-            },
-        ];
-
-        this.statusCards = [
-            {
-                title: 'En Recepción',
-                value: this.dashboardData.processesByStatus.reception,
-                icon: 'pi pi-inbox',
-                color: this.colors.secondary,
-            },
-            {
-                title: 'Verificando Pagos',
-                value: this.dashboardData.processesByStatus.paymentVerification,
-                icon: 'pi pi-credit-card',
-                color: this.colors.warning,
-            },
-            {
-                title: 'Inspección Externa',
-                value: this.dashboardData.processesByStatus.externalInspection,
-                icon: 'pi pi-search',
-                color: this.colors.info,
-            },
-            {
-                title: 'En Faenamiento',
-                value: this.dashboardData.processesByStatus.slaughter,
-                icon: 'pi pi-cog',
-                color: this.colors.primary,
-            },
-            {
-                title: 'Inspección Interna',
-                value: this.dashboardData.processesByStatus.internalInspection,
-                icon: 'pi pi-shield',
-                color: this.colors.info,
-            },
-            {
-                title: 'Para Despacho',
-                value: this.dashboardData.processesByStatus.dispatch,
-                icon: 'pi pi-send',
-                color: this.colors.success,
-            },
-        ];
-    }
-
-    /**
-     * Construir alertas y notificaciones
-     */
-    private buildAlerts(): void {
-        this.alerts = [];
-
-        if (this.dashboardData?.alertsAndNotifications) {
-            const { alertsAndNotifications } = this.dashboardData;
-
-            if (alertsAndNotifications.pendingPayments > 0) {
-                this.alerts.push({
-                    severity: 'warn',
-                    title: 'Pagos Pendientes',
-                    message:
-                        'Hay procesos con pagos pendientes de verificación',
-                    count: alertsAndNotifications.pendingPayments,
-                    action: 'Ver Detalles',
-                    route: '/faenamiento/pagos-pendientes',
-                });
-            }
-
-            if (alertsAndNotifications.overdueProcesses > 0) {
-                this.alerts.push({
-                    severity: 'error',
-                    title: 'Procesos Vencidos',
-                    message: 'Procesos que exceden el tiempo estimado',
-                    count: alertsAndNotifications.overdueProcesses,
-                    action: 'Revisar',
-                    route: '/faenamiento/procesos?status=overdue',
-                });
-            }
-
-            if (alertsAndNotifications.suspendedProcesses > 0) {
-                this.alerts.push({
-                    severity: 'error',
-                    title: 'Procesos Suspendidos',
-                    message: 'Procesos que requieren atención inmediata',
-                    count: alertsAndNotifications.suspendedProcesses,
-                    action: 'Ver Detalles',
-                    route: '/faenamiento/procesos?status=suspended',
-                });
-            }
-        }
-    }
-
-    /**
-     * Construir gráficos
-     */
-    private buildCharts(): void {
-        this.buildProcessStatusChart();
-        this.buildRevenueChart();
-        this.buildAnimalSpeciesChart();
-    }
-
-    /**
-     * Gráfico de estado de procesos
-     */
-    private buildProcessStatusChart(): void {
-        if (!this.dashboardData) return;
-
-        const { processesByStatus } = this.dashboardData;
-
-        this.processStatusChartData = {
-            labels: [
-                'Recepción',
-                'Verificación',
-                'Inspección Ext.',
-                'Faenamiento',
-                'Inspección Int.',
-                'Despacho',
-                'Completados',
-            ],
-            datasets: [
-                {
-                    data: [
-                        processesByStatus.reception,
-                        processesByStatus.paymentVerification,
-                        processesByStatus.externalInspection,
-                        processesByStatus.slaughter,
-                        processesByStatus.internalInspection,
-                        processesByStatus.dispatch,
-                        processesByStatus.completed,
-                    ],
-                    backgroundColor: [
-                        this.colors.secondary,
-                        this.colors.warning,
-                        this.colors.info,
-                        this.colors.primary,
-                        this.colors.info,
-                        this.colors.success,
-                        this.colors.success,
-                    ],
+                    this.updateChartData();
+                    this.loading = false;
                 },
-            ],
-        };
-    }
+                error: (err) => {
+                    console.error('Error cargando dashboard:', err);
+                    this.loading = false;
 
-    /**
-     * Gráfico de ingresos
-     */
-    private buildRevenueChart(): void {
-        if (!this.statistics) return;
-
-        this.revenueChartData = {
-            labels: this.statistics.revenueByMonth.map((item) => item.month),
-            datasets: [
-                {
-                    label: 'Ingresos',
-                    data: this.statistics.revenueByMonth.map(
-                        (item) => item.revenue
-                    ),
-                    borderColor: this.colors.primary,
-                    backgroundColor: this.colors.primary + '20',
-                    tension: 0.4,
+                    // Crear alerta de error
+                    this.addSystemAlert({
+                        id: Date.now().toString(),
+                        title: 'Error al cargar datos',
+                        message:
+                            'No se pudieron cargar las estadísticas del dashboard. Intente nuevamente.',
+                        severity: 'high',
+                        timestamp: new Date(),
+                        read: false,
+                    });
                 },
-            ],
-        };
+            });
     }
 
-    /**
-     * Gráfico de especies de animales
-     */
-    private buildAnimalSpeciesChart(): void {
-        if (!this.statistics) return;
-
-        this.animalSpeciesChartData = {
-            labels: ['Bovinos', 'Porcinos'],
-            datasets: [
-                {
-                    data: [
-                        this.statistics.animalsBySpecies.bovine,
-                        this.statistics.animalsBySpecies.porcine,
-                    ],
-                    backgroundColor: [this.colors.primary, this.colors.success],
-                },
-            ],
-        };
-    }
-
-    /**
-     * Inicializar opciones de gráficos
-     */
     private initializeChartOptions(): void {
         this.chartOptions = {
             responsive: true,
@@ -509,75 +266,358 @@ export class SlaughterDashboardComponent implements OnInit, OnDestroy {
                 },
             },
         };
-    }
 
-    /**
-     * Navegar a una ruta específica
-     */
-    navigateTo(route: string): void {
-        if (route) {
-            this.router.navigate([route]);
-        }
-    }
-
-    /**
-     * Manejar acción de alerta
-     */
-    handleAlertAction(alert: AlertNotification): void {
-        if (alert.route) {
-            this.navigateTo(alert.route);
-        }
-    }
-
-    /**
-     * Refrescar datos del dashboard
-     */
-    refreshDashboard(): void {
-        this.loadDashboardData();
-        this.messageService.add({
-            severity: 'success',
-            summary: 'Actualizado',
-            detail: 'Dashboard actualizado correctamente',
-        });
-    }
-
-    /**
-     * Obtener clase de severidad para chips
-     */
-    getSeverityClass(status: string): string {
-        const severityMap: { [key: string]: string } = {
-            RECEPTION: 'p-tag-secondary',
-            PAYMENT_VERIFICATION: 'p-tag-warning',
-            EXTERNAL_INSPECTION: 'p-tag-info',
-            SLAUGHTER: 'p-tag-primary',
-            INTERNAL_INSPECTION: 'p-tag-info',
-            DISPATCH: 'p-tag-success',
-            COMPLETED: 'p-tag-success',
-            CANCELLED: 'p-tag-danger',
-            SUSPENDED: 'p-tag-danger',
+        this.barChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                },
+            },
+            plugins: {
+                legend: {
+                    display: false,
+                },
+            },
         };
-        return severityMap[status] || 'p-tag-secondary';
+
+        this.financialChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (context: any) => {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const percentage = (
+                                (value /
+                                    this.financialSummary?.data?.totalAmount ||
+                                    0) * 100
+                            ).toFixed(1);
+                            return `${label}: ${value.toFixed(
+                                2
+                            )} (${percentage}%)`;
+                        },
+                    },
+                },
+            },
+        };
     }
 
-    /**
-     * Formatear números para mostrar
-     */
-    formatNumber(value: number): string {
-        if (value >= 1000000) {
-            return (value / 1000000).toFixed(1) + 'M';
-        } else if (value >= 1000) {
-            return (value / 1000).toFixed(1) + 'K';
+    private updateChartData(): void {
+        // Gráfico de estados de procesos
+        if (this.dashboardData?.stateBreakdown) {
+            const stateBreakdown = this.dashboardData.stateBreakdown;
+            this.processStatesChartData = {
+                labels: [
+                    'Iniciado',
+                    'Pre-Faenamiento',
+                    'En Proceso',
+                    'Finalizado',
+                    'Pagado',
+                    'Anulado',
+                ],
+                datasets: [
+                    {
+                        data: [
+                            stateBreakdown.iniciado,
+                            stateBreakdown.preFaenamiento,
+                            stateBreakdown.enProceso,
+                            stateBreakdown.finalizado,
+                            stateBreakdown.pagado,
+                            stateBreakdown.anulado,
+                        ],
+                        backgroundColor: [
+                            '#007bff',
+                            '#ffc107',
+                            '#17a2b8',
+                            '#28a745',
+                            '#20c997',
+                            '#dc3545',
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                    },
+                ],
+            };
         }
-        return value.toString();
+
+        // Gráfico de condiciones higiénicas
+        if (this.receptionStats?.data?.hygienicConditionsBreakdown) {
+            const hygienicConditions =
+                this.receptionStats.data.hygienicConditionsBreakdown;
+            this.hygienicConditionsChartData = {
+                labels: ['Óptimas', 'Aceptables', 'Deficientes'],
+                datasets: [
+                    {
+                        label: 'Condiciones Higiénicas',
+                        data: [
+                            hygienicConditions.optimas,
+                            hygienicConditions.aceptables,
+                            hygienicConditions.deficientes,
+                        ],
+                        backgroundColor: ['#28a745', '#ffc107', '#dc3545'],
+                        borderColor: ['#1e7e34', '#e0a800', '#c82333'],
+                        borderWidth: 2,
+                    },
+                ],
+            };
+        }
+
+        // Gráfico de estados financieros
+        if (this.financialSummary?.data?.statusBreakdown) {
+            const statusArray = this.getFinancialStatusArray();
+            this.financialStatusChartData = {
+                labels: statusArray.map((item) =>
+                    this.getStatusLabel(item.key)
+                ),
+                datasets: [
+                    {
+                        data: statusArray.map((item) => item.value.amount),
+                        backgroundColor: statusArray.map((item) =>
+                            this.getStatusColor(item.key)
+                        ),
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                    },
+                ],
+            };
+        }
     }
 
-    /**
-     * Formatear moneda
-     */
-    formatCurrency(value: number): string {
-        return new Intl.NumberFormat('es-EC', {
-            style: 'currency',
-            currency: 'USD',
-        }).format(value);
+    loadRecentActivity(): void {
+        // Simulamos actividad reciente basada en los datos
+        this.recentActivities = [
+            {
+                id: '1',
+                title: 'Nuevo proceso iniciado',
+                description: `Se ha iniciado un nuevo proceso de faenamiento`,
+                timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutos atrás
+                user: 'Sistema',
+                icon: 'pi pi-plus-circle',
+                color: '#007bff',
+            },
+            {
+                id: '2',
+                title: 'Inspección completada',
+                description: `Se completó la inspección de recepción`,
+                timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1 hora atrás
+                user: 'Inspector',
+                icon: 'pi pi-check-circle',
+                color: '#28a745',
+            },
+            {
+                id: '3',
+                title: 'Recepción registrada',
+                description: `Se registró una nueva recepción de ganado`,
+                timestamp: new Date(Date.now() - 1000 * 60 * 120), // 2 horas atrás
+                user: 'Operador',
+                icon: 'pi pi-truck',
+                color: '#17a2b8',
+            },
+        ];
+    }
+
+    private loadSystemAlerts(): void {
+        this.systemAlerts = [];
+
+        // Generar alertas basadas en los datos
+        if (this.receptionStats?.data?.stateBreakdown?.pendiente > 0) {
+            this.addSystemAlert({
+                id: 'pending-receptions',
+                title: 'Recepciones pendientes',
+                message: `Hay ${this.receptionStats.data.stateBreakdown.pendiente} recepciones pendientes de procesamiento`,
+                severity: 'medium',
+                timestamp: new Date(),
+                read: false,
+            });
+        }
+
+        if (this.inspectionStats?.data?.averages?.temperature > 38) {
+            this.addSystemAlert({
+                id: 'high-temperature',
+                title: 'Temperatura elevada detectada',
+                message: `La temperatura promedio está en ${this.inspectionStats.data.averages.temperature}°C, superior al rango normal`,
+                severity: 'high',
+                timestamp: new Date(),
+                read: false,
+            });
+        }
+
+        if (this.dashboardData?.completionRate < 50) {
+            this.addSystemAlert({
+                id: 'low-completion',
+                title: 'Baja tasa de completación',
+                message: `La tasa de completación de procesos es del ${this.dashboardData.completionRate}%`,
+                severity: 'medium',
+                timestamp: new Date(),
+                read: false,
+            });
+        }
+    }
+
+    private addSystemAlert(alert: SystemAlert): void {
+        // Evitar duplicados
+        if (!this.systemAlerts.find((a) => a.id === alert.id)) {
+            this.systemAlerts.unshift(alert);
+        }
+    }
+
+    markAlertAsRead(alert: SystemAlert): void {
+        alert.read = true;
+    }
+
+    dismissAlert(alert: SystemAlert): void {
+        const index = this.systemAlerts.findIndex((a) => a.id === alert.id);
+        if (index > -1) {
+            this.systemAlerts.splice(index, 1);
+        }
+    }
+
+    getBadgeSeverity(
+        severity: 'low' | 'medium' | 'high'
+    ): 'info' | 'warning' | 'danger' {
+        switch (severity) {
+            case 'low':
+                return 'info';
+            case 'medium':
+                return 'warning';
+            case 'high':
+                return 'danger';
+            default:
+                return 'info';
+        }
+    }
+
+    // Métodos de utilidad para formateo
+    getCompletionPercentage(): number {
+        if (!this.dashboardData || this.dashboardData.total === 0) return 0;
+        return (
+            (this.dashboardData.stateBreakdown.finalizado /
+                this.dashboardData.total) *
+            100
+        );
+    }
+
+    getPaymentPercentage(): number {
+        if (!this.financialSummary?.data?.statusBreakdown) return 0;
+
+        const statusBreakdown = this.financialSummary.data.statusBreakdown;
+        const paidAmount = statusBreakdown['Paid']?.amount || 0;
+        const totalAmount = this.financialSummary.data.totalAmount || 0;
+
+        return totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0;
+    }
+
+    getPaymentRate(): number {
+        if (!this.financialSummary?.data?.statusBreakdown) return 0;
+
+        const statusBreakdown = this.financialSummary.data.statusBreakdown;
+        const paidCount = statusBreakdown['Paid']?.count || 0;
+        const totalInvoices = this.financialSummary.data.totalInvoices || 0;
+
+        return totalInvoices > 0 ? (paidCount / totalInvoices) * 100 : 0;
+    }
+
+    getFinancialStatusArray(): Array<{ key: string; value: any }> {
+        if (!this.financialSummary?.data?.statusBreakdown) return [];
+
+        return Object.entries(this.financialSummary.data.statusBreakdown)
+            .map(([key, value]) => ({ key, value }))
+            .sort((a, b) => b.value.amount - a.value.amount); // Ordenar por monto descendente
+    }
+
+    getStatusLabel(status: string): string {
+        const statusLabels: { [key: string]: string } = {
+            Issued: 'Emitidas',
+            Paid: 'Pagadas',
+            Pending: 'Pendientes',
+            Cancelled: 'Canceladas',
+            Overdue: 'Vencidas',
+        };
+        return statusLabels[status] || status;
+    }
+
+    getStatusIcon(status: string): string {
+        const statusIcons: { [key: string]: string } = {
+            Issued: 'pi pi-file',
+            Paid: 'pi pi-check-circle',
+            Pending: 'pi pi-clock',
+            Cancelled: 'pi pi-times-circle',
+            Overdue: 'pi pi-exclamation-triangle',
+        };
+        return statusIcons[status] || 'pi pi-circle';
+    }
+
+    getStatusColor(status: string): string {
+        const statusColors: { [key: string]: string } = {
+            Issued: '#17a2b8',
+            Paid: '#28a745',
+            Pending: '#ffc107',
+            Cancelled: '#6c757d',
+            Overdue: '#dc3545',
+        };
+        return statusColors[status] || '#007bff';
+    }
+
+    getStatusPercentage(amount: number): number {
+        const totalAmount = this.financialSummary?.data?.totalAmount || 0;
+        return totalAmount > 0 ? (amount / totalAmount) * 100 : 0;
+    }
+
+    getTotalAnimalsInspected(): number {
+        return this.inspectionStats?.data?.total || 0;
+    }
+
+    getAverageWeight(): number {
+        return this.inspectionStats?.data?.averages?.weight || 0;
+    }
+
+    getAverageTemperature(): number {
+        return this.inspectionStats?.data?.averages?.temperature || 0;
+    }
+
+    // Método para refrescar datos específicos
+    refreshData(section?: string): void {
+        if (section) {
+            // Refrescar sección específica
+            switch (section) {
+                case 'financial':
+                    this.invoiceService
+                        .getStatistics()
+                        .subscribe((data: any) => {
+                            this.financialSummary = data;
+                            this.updateChartData(); // Actualizar gráficos financieros
+                        });
+                    break;
+                case 'processes':
+                    this.slaughterService.getStatistics().subscribe((data) => {
+                        this.dashboardData = data;
+                        this.updateChartData();
+                    });
+                    break;
+                default:
+                    this.loadDashboardData();
+            }
+        } else {
+            this.loadDashboardData();
+        }
+    }
+
+    onMouseEnter(event: MouseEvent) {
+        const element = event.target as HTMLElement;
+        element.style.transform = 'translateY(-2px)';
+        element.style.boxShadow = '0 8px 15px rgba(0,0,0,0.15)';
+    }
+
+    onMouseLeave(event: MouseEvent) {
+        const element = event.target as HTMLElement;
+        element.style.transform = 'translateY(0)';
+        element.style.boxShadow = '0 4px 6px rgba(0,0,0,0.07)';
     }
 }

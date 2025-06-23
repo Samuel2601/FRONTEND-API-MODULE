@@ -120,7 +120,7 @@ export class AppMenuComponent implements OnInit {
                     {
                         label: 'Inicio',
                         icon: 'pi pi-fw pi-home',
-                        routerLink: ['/zoosanitario/dashboard'],
+                        routerLink: ['/zoosanitario/'],
                         visible: permissions.canViewZooSanitario,
                     },
                     {

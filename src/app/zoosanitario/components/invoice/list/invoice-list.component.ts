@@ -103,7 +103,7 @@ export class InvoiceListComponent implements OnInit, OnDestroy {
         const page = this.first / this.rows + 1;
 
         this.invoiceService
-            .getInvoices(this.filters, { page, limit: this.rows })
+            .getInvoices(this.filters, { page, limit: this.rows }, false)
             .subscribe({
                 next: (response: any) => {
                     response = response.data;

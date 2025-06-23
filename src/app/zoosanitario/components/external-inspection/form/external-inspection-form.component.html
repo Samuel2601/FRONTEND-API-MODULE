@@ -886,10 +886,23 @@
                                     >
                                         <div class="photo-card existing">
                                             <img
-                                                [src]="photo"
+                                                [src]="getImageUrl(photo)"
                                                 class="photo-thumbnail"
                                                 alt="Foto de inspección"
+                                                [style.display]="
+                                                    isImageLoading(photo)
+                                                        ? 'none'
+                                                        : 'block'
+                                                "
                                             />
+                                            <div
+                                                class="loading-indicator"
+                                                *ngIf="isImageLoading(photo)"
+                                            >
+                                                <i
+                                                    class="pi pi-spin pi-spinner"
+                                                ></i>
+                                            </div>
                                             <div class="photo-actions">
                                                 <p-button
                                                     icon="pi pi-eye"
@@ -1154,7 +1167,11 @@
     </ng-template>
 </p-dialog>
 
-<!-- Visor de Fotografías -->
+<!-- Visor de Fotografías 
+
+    <img [src]="" alt="Fotografía de inspección" class="photo-viewer-image" /> 
+
+-->
 <p-dialog
     [(visible)]="showPhotoViewer"
     header="Fotografía"
@@ -1166,8 +1183,12 @@
     styleClass="photo-viewer-dialog"
 >
     <img
-        [src]="selectedPhoto"
-        alt="Fotografía de inspección"
-        class="photo-viewer-image"
+        [src]="getImageUrl(selectedPhoto)"
+        class="photo-thumbnail"
+        alt="Foto de inspección"
+        [style.display]="isImageLoading(selectedPhoto) ? 'none' : 'block'"
     />
+    <div class="loading-indicator" *ngIf="isImageLoading(selectedPhoto)">
+        <i class="pi pi-spin pi-spinner"></i>
+    </div>
 </p-dialog>

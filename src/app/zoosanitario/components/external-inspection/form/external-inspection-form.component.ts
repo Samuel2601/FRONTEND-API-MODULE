@@ -58,6 +58,8 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
     // Gestión de archivos
     selectedFiles: PhotoFile[] = [];
     existingPhotos: string[] = [];
+    existingPhotosUrls: Map<string, string> = new Map(); // NUEVA PROPIEDAD
+    loadingImages: Set<string> = new Set(); // NUEVA PROPIEDAD
     maxFileSize = 5 * 1024 * 1024; // 5MB
     maxFiles = 10;
 
@@ -407,6 +409,7 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
 
     extractExistingPhotos(inspection: any): void {
         this.existingPhotos = [];
+        this.existingPhotosUrls.clear(); // Limpiar URLs anteriores
 
         if (
             this.phase === 'recepcion' &&
@@ -421,6 +424,47 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
         ) {
             this.existingPhotos = [...inspection.examenAnteMortem.fotografias];
         }
+
+        // Cargar las URLs de las imágenes
+        this.loadExistingPhotoUrls();
+    }
+
+    // NUEVO MÉTODO para cargar las URLs de las imágenes:
+    private async loadExistingPhotoUrls(): Promise<void> {
+        for (const photoId of this.existingPhotos) {
+            if (
+                !this.existingPhotosUrls.has(photoId) &&
+                !this.loadingImages.has(photoId)
+            ) {
+                this.loadingImages.add(photoId);
+                try {
+                    const imageUrl = await this.inspectionService
+                        .getImage(photoId)
+                        .toPromise();
+                    this.existingPhotosUrls.set(photoId, imageUrl);
+                } catch (error) {
+                    console.error(`Error loading image ${photoId}:`, error);
+                    // Opcional: establecer una imagen de error o placeholder
+                    this.existingPhotosUrls.set(
+                        photoId,
+                        'assets/images/image-error.png'
+                    );
+                } finally {
+                    this.loadingImages.delete(photoId);
+                }
+            }
+        }
+    }
+
+    // REEMPLAZAR el método getImgae por este:
+    getImageUrl(photoId: string): string {
+        const url = this.existingPhotosUrls.get(photoId);
+        return url || 'assets/images/loading.png'; // Imagen placeholder mientras carga
+    }
+
+    // Método para verificar si una imagen está cargando
+    isImageLoading(photoId: string): boolean {
+        return this.loadingImages.has(photoId);
     }
 
     // Gestión de archivos
@@ -762,5 +806,9 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
     getBooleanText(value: boolean | null): string {
         if (value === null || value === undefined) return 'N/A';
         return value ? 'Sí' : 'No';
+    }
+
+    async getImgae(imageId: string): Promise<string> {
+        return await this.inspectionService.getImage(imageId).toPromise();
     }
 }

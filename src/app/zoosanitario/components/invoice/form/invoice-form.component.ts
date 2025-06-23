@@ -315,7 +315,7 @@ export class InvoiceFormComponent implements OnInit {
         if (
             this.selectedSlaughterProcess &&
             (selectedType.rateType === 'TARIFA' ||
-                selectedType.rateType === 'TASA')
+                selectedType.rateType === 'SERVICIOS')
         ) {
             this.filteredRates = [];
             this.messageService.add({
@@ -491,7 +491,7 @@ export class InvoiceFormComponent implements OnInit {
                     detail: 'Error al cargar proforma: ' + error.message,
                 });
                 this.loading = false;
-                this.router.navigate(['/invoices']);
+                this.router.navigate(['/zoosanitario/invoices']);
             },
         });
     }
@@ -918,7 +918,7 @@ export class InvoiceFormComponent implements OnInit {
                         this.isEditMode ? 'actualizada' : 'creada'
                     } correctamente`,
                 });
-                this.router.navigate(['/invoices']);
+                this.router.navigate(['/zoosanitario/invoices']);
             },
             error: (error) => {
                 this.messageService.add({

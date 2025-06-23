@@ -467,6 +467,11 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
             );
     }
 
+    getImage(imageId: string): Observable<string> {
+        // Cambiado nombre del método
+        return this.image(imageId, 'inspecciones-externas'); // Cambiado nombre del método
+    }
+
     /*getReceptionSummary(receptionId: string): Observable<InspectionSummary> {
         const cacheKey = `${this.endpoint}_summary_${receptionId}`;
         const cachedData = this.cacheService.get<InspectionSummary>(cacheKey);

@@ -30,7 +30,8 @@ export class InvoiceService extends BaseService<Invoice> {
      */
     getInvoices(
         filters?: InvoiceFilters,
-        options?: PaginationOptions
+        options?: PaginationOptions,
+        cache: boolean = true
     ): Observable<PaginatedResponse<Invoice>> {
         const cacheKey = `${this.endpoint}_paginated_${JSON.stringify(
             filters
@@ -38,7 +39,7 @@ export class InvoiceService extends BaseService<Invoice> {
         const cachedData =
             this.cacheService.get<PaginatedResponse<Invoice>>(cacheKey);
 
-        if (cachedData) {
+        if (cachedData && cache) {
             return of(cachedData);
         }
 

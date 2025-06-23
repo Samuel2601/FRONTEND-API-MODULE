@@ -22,6 +22,7 @@ dependencies {
     implementation project(':capacitor-geolocation')
     implementation project(':capacitor-network')
     implementation project(':capacitor-preferences')
+    implementation project(':capacitor-share')
     implementation project(':capgo-capacitor-native-biometric')
     implementation project(':codetrix-studio-capacitor-google-auth')
 

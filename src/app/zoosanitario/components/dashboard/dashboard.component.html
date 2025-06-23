@@ -1,689 +1,919 @@
 <div class="dashboard-container">
-    <!-- Header del Dashboard -->
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" *ngIf="loading">
+        <p-progressSpinner strokeWidth="4"></p-progressSpinner>
+        <p>Cargando estadísticas...</p>
+    </div>
+
+    <!-- Dashboard Header -->
     <div class="dashboard-header">
-        <div class="flex justify-content-between align-items-center mb-4">
-            <div>
-                <h1 class="text-3xl font-bold text-900 mb-2">
-                    Dashboard de Faenamiento
-                </h1>
-                <p class="text-600 text-lg">
-                    Gestión y monitoreo de procesos de faenamiento
-                </p>
+        <div class="header-content">
+            <div class="welcome-section">
+                <h1 class="welcome-title">Dashboard de Faenamiento</h1>
+                <p class="welcome-subtitle">Resumen general del sistema</p>
             </div>
-            <div class="flex gap-2">
+            <div class="header-actions">
                 <p-button
                     icon="pi pi-refresh"
-                    label="Actualizar"
+                    severity="secondary"
+                    (onClick)="loadDashboardData()"
                     [loading]="loading"
-                    (onClick)="refreshDashboard()"
+                    pTooltip="Actualizar datos"
                 >
                 </p-button>
                 <p-button
-                    icon="pi pi-plus"
-                    label="Nuevo Proceso"
-                    severity="success"
-                    (onClick)="navigateTo('/faenamiento/procesos/nuevo')"
+                    icon="pi pi-download"
+                    severity="info"
+                    pTooltip="Exportar reporte"
                 >
                 </p-button>
             </div>
         </div>
+
+        <!-- Quick Indicators -->
+        <div class="quick-indicators">
+            <div class="indicator">
+                <i
+                    class="pi pi-chart-line"
+                    style="color: var(--primary-color)"
+                ></i>
+                <div class="indicator-value">
+                    {{ dashboardData?.total || 0 }}
+                </div>
+                <div class="indicator-label">Procesos Totales</div>
+            </div>
+            <div class="indicator">
+                <i class="pi pi-file-check" style="color: #28a745"></i>
+                <div class="indicator-value">
+                    {{ dashboardData?.withInvoice || 0 }}
+                </div>
+                <div class="indicator-label">Con Factura</div>
+            </div>
+            <div class="indicator">
+                <i class="pi pi-money-bill" style="color: #17a2b8"></i>
+                <div class="indicator-value">
+                    {{ dashboardData?.paidInvoices || 0 }}
+                </div>
+                <div class="indicator-label">Facturado</div>
+            </div>
+            <div class="indicator">
+                <i class="pi pi-percentage" style="color: #ffc107"></i>
+                <div class="indicator-value">
+                    {{ dashboardData?.completionRate || 0 | number : "1.1-1" }}%
+                </div>
+                <div class="indicator-label">Completados</div>
+            </div>
+        </div>
     </div>
 
-    <!-- Alertas y Notificaciones -->
-    <div class="alerts-section mb-4" *ngIf="alerts.length > 0">
-        <div class="grid">
-            <div class="col-12" *ngFor="let alert of alerts">
-                <p-message [severity]="alert.severity" styleClass="w-full">
+    <!-- Quick Actions -->
+    <div class="quick-actions-section">
+        <p-card>
+            <ng-template pTemplate="header">
+                <div class="card-header">
+                    <h3 class="card-title">Acciones Rápidas</h3>
+                </div>
+            </ng-template>
+            <div class="quick-actions-grid">
+                <div
+                    class="quick-action-item"
+                    routerLink="/zoosanitario/workflow/reception"
+                >
                     <div
-                        class="flex justify-content-between align-items-center w-full"
+                        class="action-icon"
+                        style="
+                            background: linear-gradient(
+                                135deg,
+                                #667eea 0%,
+                                #764ba2 100%
+                            );
+                        "
                     >
-                        <div class="flex align-items-center gap-3">
-                            <i class="pi pi-exclamation-triangle text-xl"></i>
-                            <div>
-                                <div class="font-semibold">
-                                    {{ alert.title }}
-                                </div>
-                                <div class="text-sm">{{ alert.message }}</div>
-                            </div>
-                            <p-chip
-                                [label]="alert.count.toString()"
-                                styleClass="ml-2"
-                            >
-                            </p-chip>
+                        <i class="pi pi-plus"></i>
+                    </div>
+                    <div class="action-label">Nuevo Proceso</div>
+                </div>
+                <div
+                    class="quick-action-item"
+                    routerLink="/zoosanitario/workflow/listar-reception"
+                >
+                    <div
+                        class="action-icon"
+                        style="
+                            background: linear-gradient(
+                                135deg,
+                                #f093fb 0%,
+                                #f5576c 100%
+                            );
+                        "
+                    >
+                        <i class="pi pi-truck"></i>
+                    </div>
+                    <div class="action-label">Gestionar Recepción</div>
+                </div>
+                <div
+                    class="quick-action-item"
+                    routerLink="/zoosanitario/workflow/external-inspection/recepcion"
+                >
+                    <div
+                        class="action-icon"
+                        style="
+                            background: linear-gradient(
+                                135deg,
+                                #4facfe 0%,
+                                #00f2fe 100%
+                            );
+                        "
+                    >
+                        <i class="pi pi-search"></i>
+                    </div>
+                    <div class="action-label">Inspecciones</div>
+                </div>
+                <div
+                    class="quick-action-item"
+                    routerLink="/zoosanitario/invoices"
+                >
+                    <div
+                        class="action-icon"
+                        style="
+                            background: linear-gradient(
+                                135deg,
+                                #43e97b 0%,
+                                #38f9d7 100%
+                            );
+                        "
+                    >
+                        <i class="pi pi-file-pdf"></i>
+                    </div>
+                    <div class="action-label">Facturación</div>
+                </div>
+            </div>
+        </p-card>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-content">
+        <!-- Statistics Section -->
+        <div class="stats-section">
+            <div class="stats-grid">
+                <!-- Procesos de Faenamiento -->
+                <p-card class="stat-card">
+                    <ng-template pTemplate="header">
+                        <div class="card-header">
+                            <h4 class="card-title">Procesos de Faenamiento</h4>
                         </div>
+                    </ng-template>
+                    <div
+                        class="stat-card-content"
+                        style="display: flex; align-items: center"
+                    >
+                        <div class="stat-icon certificates">
+                            <i class="pi pi-file-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h4>{{ dashboardData?.total || 0 }}</h4>
+                            <p>Procesos Registrados</p>
+                            <div class="stat-breakdown">
+                                <div class="breakdown-item active">
+                                    <i class="pi pi-circle-fill"></i>
+                                    <span
+                                        >Iniciado:
+                                        {{
+                                            dashboardData?.stateBreakdown
+                                                ?.iniciado || 0
+                                        }}</span
+                                    >
+                                </div>
+                                <div class="breakdown-item processed">
+                                    <i class="pi pi-circle-fill"></i>
+                                    <span
+                                        >En Proceso:
+                                        {{
+                                            dashboardData?.stateBreakdown
+                                                ?.enProceso || 0
+                                        }}</span
+                                    >
+                                </div>
+                                <div class="breakdown-item external">
+                                    <i class="pi pi-circle-fill"></i>
+                                    <span
+                                        >Finalizado:
+                                        {{
+                                            dashboardData?.stateBreakdown
+                                                ?.finalizado || 0
+                                        }}</span
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </p-card>
+
+                <!-- Inspecciones -->
+                <p-card class="stat-card">
+                    <ng-template pTemplate="header">
+                        <div class="card-header">
+                            <h4 class="card-title">Inspecciones</h4>
+                        </div>
+                    </ng-template>
+                    <div
+                        class="stat-card-content"
+                        style="display: flex; align-items: center"
+                    >
+                        <div class="stat-icon inspections">
+                            <i class="pi pi-search"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h4>{{ inspectionStats?.data?.total || 0 }}</h4>
+                            <p>Inspecciones Realizadas</p>
+                            <div class="stat-breakdown">
+                                <div class="breakdown-item active">
+                                    <i class="pi pi-circle-fill"></i>
+                                    <span
+                                        >Recepción:
+                                        {{
+                                            inspectionStats?.data
+                                                ?.recepcionStats?.total || 0
+                                        }}</span
+                                    >
+                                </div>
+                                <div class="breakdown-item processed">
+                                    <i class="pi pi-circle-fill"></i>
+                                    <span
+                                        >Ante Mortem:
+                                        {{
+                                            inspectionStats?.data
+                                                ?.anteMortemStats?.total || 0
+                                        }}</span
+                                    >
+                                </div>
+                                <div class="breakdown-item weight">
+                                    <i class="pi pi-circle-fill"></i>
+                                    <span
+                                        >Peso Prom:
+                                        {{
+                                            inspectionStats?.data?.averages
+                                                ?.weight || 0
+                                        }}
+                                        kg</span
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </p-card>
+
+                <!-- Recepciones -->
+                <p-card class="stat-card">
+                    <ng-template pTemplate="header">
+                        <div class="card-header">
+                            <h4 class="card-title">Recepciones</h4>
+                        </div>
+                    </ng-template>
+                    <div
+                        class="stat-card-content"
+                        style="display: flex; align-items: center"
+                    >
+                        <div class="stat-icon processing">
+                            <i class="pi pi-truck"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h4>{{ receptionStats?.data?.total || 0 }}</h4>
+                            <p>Recepciones de Ganado</p>
+                            <div class="stat-breakdown">
+                                <div class="breakdown-item pending">
+                                    <i class="pi pi-circle-fill"></i>
+                                    <span
+                                        >Pendiente:
+                                        {{
+                                            receptionStats?.data?.stateBreakdown
+                                                ?.pendiente || 0
+                                        }}</span
+                                    >
+                                </div>
+                                <div class="breakdown-item processed">
+                                    <i class="pi pi-circle-fill"></i>
+                                    <span
+                                        >Procesando:
+                                        {{
+                                            receptionStats?.data?.stateBreakdown
+                                                ?.procesando || 0
+                                        }}</span
+                                    >
+                                </div>
+                                <div class="breakdown-item active">
+                                    <i class="pi pi-circle-fill"></i>
+                                    <span
+                                        >Completado:
+                                        {{
+                                            receptionStats?.data?.stateBreakdown
+                                                ?.completado || 0
+                                        }}</span
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </p-card>
+
+                <!-- Introductores -->
+                <p-card class="stat-card">
+                    <ng-template pTemplate="header">
+                        <div class="card-header">
+                            <h4 class="card-title">Introductores</h4>
+                        </div>
+                    </ng-template>
+                    <div
+                        class="stat-card-content"
+                        style="display: flex; align-items: center"
+                    >
+                        <div class="stat-icon shipping">
+                            <i class="pi pi-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h4>{{ introducerStats?.data?.total || 0 }}</h4>
+                            <p>Introductores Registrados</p>
+                            <div class="stat-breakdown">
+                                <div class="breakdown-item active">
+                                    <i class="pi pi-circle-fill"></i>
+                                    <span
+                                        >Natural:
+                                        {{
+                                            introducerStats?.data
+                                                ?.personTypeBreakdown
+                                                ?.natural || 0
+                                        }}</span
+                                    >
+                                </div>
+                                <div class="breakdown-item external">
+                                    <i class="pi pi-circle-fill"></i>
+                                    <span
+                                        >Jurídica:
+                                        {{
+                                            introducerStats?.data
+                                                ?.personTypeBreakdown
+                                                ?.juridica || 0
+                                        }}</span
+                                    >
+                                </div>
+                                <div class="breakdown-item pending">
+                                    <i class="pi pi-circle-fill"></i>
+                                    <span
+                                        >Pendientes:
+                                        {{
+                                            introducerStats?.data
+                                                ?.statusBreakdown?.pending || 0
+                                        }}</span
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </p-card>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <div class="charts-grid">
+                <!-- Estados de Procesos Chart -->
+                <p-card>
+                    <ng-template pTemplate="header">
+                        <div class="card-header">
+                            <h4 class="card-title">Estados de Procesos</h4>
+                        </div>
+                    </ng-template>
+                    <div class="chart-container">
+                        <p-chart
+                            type="doughnut"
+                            [data]="processStatesChartData"
+                            [options]="chartOptions"
+                            width="100%"
+                            height="300px"
+                        >
+                        </p-chart>
+                    </div>
+                </p-card>
+
+                <!-- Condiciones Higiénicas Chart -->
+                <p-card>
+                    <ng-template pTemplate="header">
+                        <div class="card-header">
+                            <h4 class="card-title">Condiciones Higiénicas</h4>
+                        </div>
+                    </ng-template>
+                    <div class="chart-container">
+                        <p-chart
+                            type="bar"
+                            [data]="hygienicConditionsChartData"
+                            [options]="barChartOptions"
+                            width="100%"
+                            height="300px"
+                        >
+                        </p-chart>
+                    </div>
+                </p-card>
+            </div>
+        </div>
+
+        <!-- Financial Summary -->
+        <div class="financial-section" *ngIf="financialSummary?.data">
+            <p-card>
+                <ng-template pTemplate="header">
+                    <div class="card-header">
+                        <h4 class="card-title">Resumen Financiero</h4>
                         <p-button
-                            *ngIf="alert.action"
-                            [label]="alert.action"
+                            icon="pi pi-refresh"
                             severity="secondary"
                             size="small"
-                            (onClick)="handleAlertAction(alert)"
+                            (onClick)="refreshData('financial')"
+                            pTooltip="Actualizar datos financieros"
                         >
                         </p-button>
                     </div>
-                </p-message>
-            </div>
-        </div>
-    </div>
+                </ng-template>
 
-    <!-- Tarjetas Principales -->
-    <div class="main-cards mb-5">
-        <div class="grid">
-            <div
-                class="col-12 md:col-6 lg:col-3"
-                *ngFor="let card of mainCards"
-            >
-                <p-card
-                    styleClass="dashboard-card cursor-pointer h-full"
-                    (click)="navigateTo(card.route!)"
+                <!-- Métricas principales -->
+                <div
+                    class="financial-grid"
+                    style="
+                        display: grid;
+                        grid-template-columns: repeat(
+                            auto-fit,
+                            minmax(200px, 1fr)
+                        );
+                        gap: 1rem;
+                        margin-bottom: 1.5rem;
+                    "
                 >
-                    <div class="flex justify-content-between align-items-start">
-                        <div>
-                            <div class="text-600 font-medium mb-2">
-                                {{ card.title }}
-                            </div>
-                            <div class="text-900 font-bold text-2xl">
-                                <span
-                                    *ngIf="
-                                        card.title.includes('Ingresos');
-                                        else normalValue
+                    <div
+                        class="financial-item"
+                        style="
+                            text-align: center;
+                            padding: 1rem;
+                            background: linear-gradient(
+                                135deg,
+                                #f8f9fa 0%,
+                                #e9ecef 100%
+                            );
+                            border-radius: 8px;
+                            border-left: 4px solid var(--primary-color);
+                        "
+                    >
+                        <div
+                            class="financial-label"
+                            style="
+                                font-size: 0.85rem;
+                                color: #6c757d;
+                                margin-bottom: 0.5rem;
+                                text-transform: uppercase;
+                                letter-spacing: 0.5px;
+                            "
+                        >
+                            Total Facturas
+                        </div>
+                        <div
+                            class="financial-value"
+                            style="
+                                font-size: 2rem;
+                                font-weight: bold;
+                                color: #2c3e50;
+                            "
+                        >
+                            {{ financialSummary?.data?.totalInvoices || 0 }}
+                        </div>
+                    </div>
+                    <div
+                        class="financial-item"
+                        style="
+                            text-align: center;
+                            padding: 1rem;
+                            background: linear-gradient(
+                                135deg,
+                                #f8f9fa 0%,
+                                #e9ecef 100%
+                            );
+                            border-radius: 8px;
+                            border-left: 4px solid #28a745;
+                        "
+                    >
+                        <div
+                            class="financial-label"
+                            style="
+                                font-size: 0.85rem;
+                                color: #6c757d;
+                                margin-bottom: 0.5rem;
+                                text-transform: uppercase;
+                                letter-spacing: 0.5px;
+                            "
+                        >
+                            Monto Total
+                        </div>
+                        <div
+                            class="financial-value"
+                            style="
+                                font-size: 2rem;
+                                font-weight: bold;
+                                color: #2c3e50;
+                            "
+                        >
+                            ${{
+                                financialSummary?.data?.totalAmount || 0
+                                    | number : "1.2-2"
+                            }}
+                        </div>
+                    </div>
+                    <div
+                        class="financial-item"
+                        style="
+                            text-align: center;
+                            padding: 1rem;
+                            background: linear-gradient(
+                                135deg,
+                                #f8f9fa 0%,
+                                #e9ecef 100%
+                            );
+                            border-radius: 8px;
+                            border-left: 4px solid #17a2b8;
+                        "
+                    >
+                        <div
+                            class="financial-label"
+                            style="
+                                font-size: 0.85rem;
+                                color: #6c757d;
+                                margin-bottom: 0.5rem;
+                                text-transform: uppercase;
+                                letter-spacing: 0.5px;
+                            "
+                        >
+                            Promedio por Factura
+                        </div>
+                        <div
+                            class="financial-value"
+                            style="
+                                font-size: 2rem;
+                                font-weight: bold;
+                                color: #2c3e50;
+                            "
+                        >
+                            ${{
+                                financialSummary?.data?.avgAmount || 0
+                                    | number : "1.2-2"
+                            }}
+                        </div>
+                    </div>
+                    <div
+                        class="financial-item"
+                        style="
+                            text-align: center;
+                            padding: 1rem;
+                            background: linear-gradient(
+                                135deg,
+                                #f8f9fa 0%,
+                                #e9ecef 100%
+                            );
+                            border-radius: 8px;
+                            border-left: 4px solid #ffc107;
+                        "
+                    >
+                        <div
+                            class="financial-label"
+                            style="
+                                font-size: 0.85rem;
+                                color: #6c757d;
+                                margin-bottom: 0.5rem;
+                                text-transform: uppercase;
+                                letter-spacing: 0.5px;
+                            "
+                        >
+                            Tasa de Pago
+                        </div>
+                        <div
+                            class="financial-value"
+                            style="
+                                font-size: 2rem;
+                                font-weight: bold;
+                                color: #2c3e50;
+                            "
+                        >
+                            {{ getPaymentRate() | number : "1.1-1" }}%
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rango de montos -->
+                <div
+                    class="financial-range"
+                    style="
+                        display: grid;
+                        grid-template-columns: repeat(
+                            auto-fit,
+                            minmax(150px, 1fr)
+                        );
+                        gap: 1rem;
+                        margin-bottom: 1.5rem;
+                    "
+                >
+                    <div
+                        class="range-item"
+                        style="
+                            text-align: center;
+                            padding: 0.75rem;
+                            background: #f8f9fa;
+                            border-radius: 8px;
+                        "
+                    >
+                        <div
+                            class="range-label"
+                            style="
+                                font-size: 0.8rem;
+                                color: #6c757d;
+                                margin-bottom: 0.25rem;
+                            "
+                        >
+                            Monto Mínimo
+                        </div>
+                        <div
+                            class="range-value"
+                            style="
+                                font-size: 1.2rem;
+                                font-weight: 600;
+                                color: #28a745;
+                            "
+                        >
+                            ${{
+                                financialSummary?.data?.minAmount || 0
+                                    | number : "1.2-2"
+                            }}
+                        </div>
+                    </div>
+                    <div
+                        class="range-item"
+                        style="
+                            text-align: center;
+                            padding: 0.75rem;
+                            background: #f8f9fa;
+                            border-radius: 8px;
+                        "
+                    >
+                        <div
+                            class="range-label"
+                            style="
+                                font-size: 0.8rem;
+                                color: #6c757d;
+                                margin-bottom: 0.25rem;
+                            "
+                        >
+                            Monto Máximo
+                        </div>
+                        <div
+                            class="range-value"
+                            style="
+                                font-size: 1.2rem;
+                                font-weight: 600;
+                                color: #dc3545;
+                            "
+                        >
+                            ${{
+                                financialSummary?.data?.maxAmount || 0
+                                    | number : "1.2-2"
+                            }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desglose por estado -->
+                <div
+                    class="status-breakdown"
+                    *ngIf="financialSummary?.data?.statusBreakdown"
+                >
+                    <h5 style="margin-bottom: 1rem; color: #495057">
+                        Desglose por Estado
+                    </h5>
+                    <div class="status-grid" style="display: grid; gap: 1rem">
+                        <div
+                            class="status-item"
+                            *ngFor="let status of getFinancialStatusArray()"
+                            style="
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                padding: 1rem;
+                                background: white;
+                                border-radius: 12px;
+                                border-left: 4px solid var(--primary-color);
+                                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+                                transition: all 0.3s ease;
+                                margin-bottom: 0.75rem;
+                            "
+                            (mouseenter)="onMouseEnter($event)"
+                            (mouseleave)="onMouseLeave($event)"
+                        >
+                            <div class="status-info">
+                                <div
+                                    class="status-name"
+                                    style="
+                                        font-weight: 600;
+                                        color: #2c3e50;
+                                        margin-bottom: 0.25rem;
                                     "
                                 >
-                                    {{ formatCurrency(card.value) }}
-                                </span>
-                                <ng-template #normalValue>
-                                    {{ formatNumber(card.value) }}
-                                    <span
-                                        *ngIf="card.title.includes('Tiempo')"
-                                        class="text-sm font-normal"
-                                    >
-                                        min</span
-                                    >
-                                </ng-template>
+                                    <i
+                                        [class]="getStatusIcon(status.key)"
+                                        [style.color]="
+                                            getStatusColor(status.key)
+                                        "
+                                        style="margin-right: 0.5rem"
+                                    ></i>
+                                    {{ getStatusLabel(status.key) }}
+                                </div>
+                                <div
+                                    class="status-details"
+                                    style="font-size: 0.85rem; color: #6c757d"
+                                >
+                                    {{ status.value.count }} facturas •
+                                    Promedio: ${{
+                                        status.value.avgAmount
+                                            | number : "1.2-2"
+                                    }}
+                                </div>
                             </div>
+
                             <div
-                                class="text-green-500 font-medium mt-2"
-                                *ngIf="card.trend"
+                                class="status-amount"
+                                style="text-align: right"
                             >
-                                <i class="pi pi-arrow-up"></i>
-                                <span>{{ card.trend.value }}%</span>
+                                <div
+                                    class="amount-value"
+                                    style="
+                                        font-size: 1.3rem;
+                                        font-weight: bold;
+                                        color: #2c3e50;
+                                    "
+                                >
+                                    ${{
+                                        status.value.amount | number : "1.2-2"
+                                    }}
+                                </div>
+                                <div
+                                    class="amount-percentage"
+                                    style="font-size: 0.8rem; color: #6c757d"
+                                >
+                                    {{
+                                        getStatusPercentage(status.value.amount)
+                                            | number : "1.1-1"
+                                    }}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráfico de estados financieros -->
+                <div
+                    class="financial-chart"
+                    style="margin-top: 1.5rem"
+                    *ngIf="financialStatusChartData"
+                >
+                    <h5 style="margin-bottom: 1rem; color: #495057">
+                        Distribución por Estado
+                    </h5>
+                    <p-chart
+                        type="pie"
+                        [data]="financialStatusChartData"
+                        [options]="financialChartOptions"
+                        width="100%"
+                        height="300px"
+                    >
+                    </p-chart>
+                </div>
+            </p-card>
+        </div>
+
+        <!-- Activity and Alerts Section -->
+        <div class="activity-alerts-section">
+            <div class="activity-alerts-grid">
+                <!-- Recent Activity -->
+                <p-card>
+                    <ng-template pTemplate="header">
+                        <div class="card-header">
+                            <h4 class="card-title">Actividad Reciente</h4>
+                            <p-button
+                                icon="pi pi-refresh"
+                                severity="secondary"
+                                size="small"
+                                (onClick)="loadRecentActivity()"
+                            >
+                            </p-button>
+                        </div>
+                    </ng-template>
+                    <div class="activity-list">
+                        <div
+                            class="activity-item"
+                            *ngFor="let activity of recentActivities"
+                        >
+                            <div class="activity-icon">
+                                <i
+                                    [class]="activity.icon"
+                                    [style.color]="activity.color"
+                                ></i>
+                            </div>
+                            <div class="activity-content">
+                                <h6 class="activity-title">
+                                    {{ activity.title }}
+                                </h6>
+                                <p class="activity-description">
+                                    {{ activity.description }}
+                                </p>
+                                <div class="activity-meta">
+                                    <span>{{
+                                        activity.timestamp | date : "short"
+                                    }}</span>
+                                    <span>{{ activity.user }}</span>
+                                </div>
                             </div>
                         </div>
                         <div
-                            class="dashboard-icon"
-                            [style.background-color]="card.color + '20'"
-                            [style.color]="card.color"
+                            class="no-activity"
+                            *ngIf="
+                                !recentActivities ||
+                                recentActivities.length === 0
+                            "
                         >
-                            <i [class]="card.icon"></i>
+                            <i class="pi pi-info-circle"></i>
+                            <p>No hay actividad reciente</p>
+                        </div>
+                    </div>
+                </p-card>
+
+                <!-- System Alerts -->
+                <p-card>
+                    <ng-template pTemplate="header">
+                        <div class="card-header">
+                            <h4 class="card-title">Alertas del Sistema</h4>
+                            <p-badge
+                                [value]="systemAlerts?.length || 0"
+                                severity="warning"
+                                *ngIf="systemAlerts?.length"
+                            >
+                            </p-badge>
+                        </div>
+                    </ng-template>
+                    <div class="alerts-list">
+                        <div
+                            class="alert-item"
+                            *ngFor="let alert of systemAlerts"
+                            [class.unread]="!alert.read"
+                        >
+                            <div class="alert-content">
+                                <div class="alert-header">
+                                    <h6 class="alert-title">
+                                        {{ alert.title }}
+                                    </h6>
+                                    <div class="alert-actions">
+                                        <p-button
+                                            icon="pi pi-check"
+                                            severity="success"
+                                            size="small"
+                                            (onClick)="markAlertAsRead(alert)"
+                                            *ngIf="!alert.read"
+                                        >
+                                        </p-button>
+                                        <p-button
+                                            icon="pi pi-times"
+                                            severity="danger"
+                                            size="small"
+                                            (onClick)="dismissAlert(alert)"
+                                        >
+                                        </p-button>
+                                    </div>
+                                </div>
+                                <p class="alert-message">{{ alert.message }}</p>
+                                <div class="alert-meta">
+                                    <span class="alert-time">{{
+                                        alert.timestamp | date : "short"
+                                    }}</span>
+                                    <p-badge
+                                        [value]="alert.severity"
+                                        [severity]="
+                                            getBadgeSeverity(alert.severity)
+                                        "
+                                    >
+                                    </p-badge>
+                                </div>
+                            </div>
+                        </div>
+                        <div
+                            class="no-alerts"
+                            *ngIf="!systemAlerts || systemAlerts.length === 0"
+                        >
+                            <i class="pi pi-check-circle"></i>
+                            <p>No hay alertas pendientes</p>
                         </div>
                     </div>
                 </p-card>
             </div>
         </div>
     </div>
-
-    <!-- Contenido Principal del Dashboard -->
-    <div class="grid">
-        <!-- Estados de Procesos -->
-        <div class="col-12 lg:col-8">
-            <p-card header="Estados de Procesos" styleClass="h-full">
-                <div class="grid" *ngIf="!dashboardLoading; else loadingStatus">
-                    <div
-                        class="col-12 md:col-6 lg:col-4"
-                        *ngFor="let card of statusCards"
-                    >
-                        <div
-                            class="status-card p-3 border-1 border-200 border-round"
-                        >
-                            <div
-                                class="flex justify-content-between align-items-center"
-                            >
-                                <div>
-                                    <div class="text-600 text-sm mb-1">
-                                        {{ card.title }}
-                                    </div>
-                                    <div class="text-900 font-bold text-xl">
-                                        {{ card.value }}
-                                    </div>
-                                </div>
-                                <div
-                                    class="status-icon"
-                                    [style.background-color]="card.color + '20'"
-                                    [style.color]="card.color"
-                                >
-                                    <i [class]="card.icon"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <ng-template #loadingStatus>
-                    <div class="grid">
-                        <div
-                            class="col-12 md:col-6 lg:col-4"
-                            *ngFor="let item of [1, 2, 3, 4, 5, 6]"
-                        >
-                            <p-skeleton
-                                height="80px"
-                                styleClass="border-round"
-                            ></p-skeleton>
-                        </div>
-                    </div>
-                </ng-template>
-            </p-card>
-        </div>
-
-        <!-- Gráfico de Estado de Procesos -->
-        <div class="col-12 lg:col-4">
-            <p-card header="Distribución por Estado" styleClass="h-full">
-                <div
-                    *ngIf="
-                        !loading && processStatusChartData;
-                        else loadingChart
-                    "
-                >
-                    <p-chart
-                        type="doughnut"
-                        [data]="processStatusChartData"
-                        [options]="chartOptions"
-                        height="250px"
-                    >
-                    </p-chart>
-                </div>
-
-                <ng-template #loadingChart>
-                    <p-skeleton
-                        height="250px"
-                        styleClass="border-round"
-                    ></p-skeleton>
-                </ng-template>
-            </p-card>
-        </div>
-
-        <!-- Procesos Recientes -->
-        <div class="col-12 lg:col-8">
-            <p-card header="Procesos Recientes" styleClass="h-full">
-                <div *ngIf="!recentProcessesLoading; else loadingProcesses">
-                    <div
-                        class="recent-process-item"
-                        *ngFor="let process of recentProcesses"
-                    >
-                        <div
-                            class="flex justify-content-between align-items-center p-3 border-bottom-1 border-200"
-                        >
-                            <div class="flex align-items-center gap-3">
-                                <div class="process-avatar">
-                                    <i class="pi pi-file-o"></i>
-                                </div>
-                                <div>
-                                    <div class="font-semibold text-900">
-                                        {{ process.processNumber }}
-                                    </div>
-                                    <div class="text-600 text-sm">
-                                        {{
-                                            process.introducer?.name ||
-                                                process.introducer?.companyName
-                                        }}
-                                    </div>
-                                    <div class="text-600 text-xs">
-                                        {{
-                                            process.createdAt
-                                                | date : "dd/MM/yyyy HH:mm"
-                                        }}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex align-items-center gap-2">
-                                <p-chip
-                                    [label]="
-                                        slaughterService.getStatusLabel(
-                                            process.overallStatus
-                                        )
-                                    "
-                                    [class]="
-                                        getSeverityClass(process.overallStatus)
-                                    "
-                                >
-                                </p-chip>
-                                <p-button
-                                    icon="pi pi-arrow-right"
-                                    severity="secondary"
-                                    size="small"
-                                    [text]="true"
-                                    (onClick)="
-                                        navigateTo(
-                                            '/faenamiento/procesos/' +
-                                                process._id
-                                        )
-                                    "
-                                >
-                                </p-button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div
-                        class="text-center mt-3"
-                        *ngIf="recentProcesses.length === 0"
-                    >
-                        <p class="text-600">No hay procesos recientes</p>
-                    </div>
-
-                    <div
-                        class="text-center mt-3"
-                        *ngIf="recentProcesses.length > 0"
-                    >
-                        <p-button
-                            label="Ver Todos los Procesos"
-                            severity="secondary"
-                            [text]="true"
-                            (onClick)="navigateTo('/faenamiento/procesos')"
-                        >
-                        </p-button>
-                    </div>
-                </div>
-
-                <ng-template #loadingProcesses>
-                    <div *ngFor="let item of [1, 2, 3, 4, 5]">
-                        <div
-                            class="flex align-items-center gap-3 p-3 border-bottom-1 border-200"
-                        >
-                            <p-skeleton shape="circle" size="3rem"></p-skeleton>
-                            <div class="flex-1">
-                                <p-skeleton
-                                    width="60%"
-                                    height="1rem"
-                                    styleClass="mb-2"
-                                ></p-skeleton>
-                                <p-skeleton
-                                    width="40%"
-                                    height="0.8rem"
-                                ></p-skeleton>
-                            </div>
-                            <p-skeleton width="80px" height="2rem"></p-skeleton>
-                        </div>
-                    </div>
-                </ng-template>
-            </p-card>
-        </div>
-
-        <!-- Estadísticas Rápidas -->
-        <div class="col-12 lg:col-4">
-            <p-card header="Estadísticas del Mes" styleClass="h-full">
-                <div
-                    *ngIf="!statisticsLoading && statistics; else loadingStats"
-                >
-                    <div class="statistic-item mb-3">
-                        <div
-                            class="flex justify-content-between align-items-center"
-                        >
-                            <span class="text-600">Animales Procesados</span>
-                            <span class="font-bold text-900">{{
-                                statistics.totalAnimalsProcessed
-                            }}</span>
-                        </div>
-                    </div>
-
-                    <div class="statistic-item mb-3">
-                        <div
-                            class="flex justify-content-between align-items-center"
-                        >
-                            <span class="text-600">Rendimiento Promedio</span>
-                            <span class="font-bold text-900"
-                                >{{
-                                    statistics.avgYield | number : "1.1-1"
-                                }}%</span
-                            >
-                        </div>
-                    </div>
-
-                    <div class="statistic-item mb-3">
-                        <div
-                            class="flex justify-content-between align-items-center"
-                        >
-                            <span class="text-600">Tasa de Decomiso</span>
-                            <span class="font-bold text-900"
-                                >{{
-                                    statistics.confiscationRate
-                                        | number : "1.1-1"
-                                }}%</span
-                            >
-                        </div>
-                    </div>
-
-                    <div class="statistic-item mb-3">
-                        <div
-                            class="flex justify-content-between align-items-center"
-                        >
-                            <span class="text-600">Eficiencia del Proceso</span>
-                            <span class="font-bold text-900"
-                                >{{
-                                    statistics.processEfficiency
-                                        | number : "1.1-1"
-                                }}%</span
-                            >
-                        </div>
-                    </div>
-
-                    <p-divider></p-divider>
-
-                    <div class="text-center">
-                        <p-button
-                            label="Ver Estadísticas Completas"
-                            severity="secondary"
-                            [text]="true"
-                            (onClick)="navigateTo('/faenamiento/estadisticas')"
-                        >
-                        </p-button>
-                    </div>
-                </div>
-
-                <ng-template #loadingStats>
-                    <div *ngFor="let item of [1, 2, 3, 4]" class="mb-3">
-                        <div
-                            class="flex justify-content-between align-items-center"
-                        >
-                            <p-skeleton width="60%" height="1rem"></p-skeleton>
-                            <p-skeleton width="30%" height="1rem"></p-skeleton>
-                        </div>
-                    </div>
-                </ng-template>
-            </p-card>
-        </div>
-
-        <!-- Gráfico de Ingresos -->
-        <div class="col-12 lg:col-6" *ngIf="revenueChartData">
-            <p-card header="Ingresos Mensuales" styleClass="h-full">
-                <div *ngIf="!loading; else loadingRevenue">
-                    <p-chart
-                        type="line"
-                        [data]="revenueChartData"
-                        [options]="chartOptions"
-                        height="300px"
-                    >
-                    </p-chart>
-                </div>
-
-                <ng-template #loadingRevenue>
-                    <p-skeleton
-                        height="300px"
-                        styleClass="border-round"
-                    ></p-skeleton>
-                </ng-template>
-            </p-card>
-        </div>
-
-        <!-- Gráfico de Especies -->
-        <div class="col-12 lg:col-6" *ngIf="animalSpeciesChartData">
-            <p-card header="Distribución por Especies" styleClass="h-full">
-                <div *ngIf="!loading; else loadingSpecies">
-                    <p-chart
-                        type="pie"
-                        [data]="animalSpeciesChartData"
-                        [options]="chartOptions"
-                        height="300px"
-                    >
-                    </p-chart>
-                </div>
-
-                <ng-template #loadingSpecies>
-                    <p-skeleton
-                        height="300px"
-                        styleClass="border-round"
-                    ></p-skeleton>
-                </ng-template>
-            </p-card>
-        </div>
-
-        <!-- Resumen Financiero -->
-        <div class="col-12" *ngIf="financialSummary">
-            <p-card header="Resumen Financiero del Mes" styleClass="h-full">
-                <div *ngIf="!financialLoading; else loadingFinancial">
-                    <div class="grid">
-                        <div class="col-12 md:col-6 lg:col-3">
-                            <div class="financial-metric">
-                                <div class="text-600 text-sm mb-1">
-                                    Total Facturas
-                                </div>
-                                <div class="text-900 font-bold text-xl">
-                                    {{ financialSummary.totalInvoices }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-12 md:col-6 lg:col-3">
-                            <div class="financial-metric">
-                                <div class="text-600 text-sm mb-1">
-                                    Monto Total
-                                </div>
-                                <div class="text-900 font-bold text-xl">
-                                    {{
-                                        formatCurrency(
-                                            financialSummary.totalAmount
-                                        )
-                                    }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-12 md:col-6 lg:col-3">
-                            <div class="financial-metric">
-                                <div class="text-600 text-sm mb-1">Pagado</div>
-                                <div class="text-green-600 font-bold text-xl">
-                                    {{
-                                        formatCurrency(
-                                            financialSummary.totalPaid
-                                        )
-                                    }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-12 md:col-6 lg:col-3">
-                            <div class="financial-metric">
-                                <div class="text-600 text-sm mb-1">
-                                    Pendiente
-                                </div>
-                                <div class="text-orange-600 font-bold text-xl">
-                                    {{
-                                        formatCurrency(
-                                            financialSummary.totalPending
-                                        )
-                                    }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <p-divider></p-divider>
-
-                    <div class="grid">
-                        <div class="col-12 md:col-6">
-                            <h5 class="text-900 mb-3">Por Tipo de Factura</h5>
-                            <div
-                                class="invoice-type-item mb-2"
-                                *ngFor="
-                                    let type of [
-                                        {
-                                            key: 'inscription',
-                                            label: 'Inscripción',
-                                            data: financialSummary.byType
-                                                .inscription
-                                        },
-                                        {
-                                            key: 'slaughterService',
-                                            label: 'Faenamiento',
-                                            data: financialSummary.byType
-                                                .slaughterService
-                                        },
-                                        {
-                                            key: 'additionalService',
-                                            label: 'Servicios Adicionales',
-                                            data: financialSummary.byType
-                                                .additionalService
-                                        },
-                                        {
-                                            key: 'fine',
-                                            label: 'Multas',
-                                            data: financialSummary.byType.fine
-                                        }
-                                    ]
-                                "
-                            >
-                                <div
-                                    class="flex justify-content-between align-items-center"
-                                >
-                                    <span class="text-600">{{
-                                        type.label
-                                    }}</span>
-                                    <div class="text-right">
-                                        <div class="font-bold text-900">
-                                            {{
-                                                formatCurrency(type.data.amount)
-                                            }}
-                                        </div>
-                                        <div class="text-600 text-sm">
-                                            {{ type.data.count }} facturas
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-12 md:col-6">
-                            <h5 class="text-900 mb-3">Por Estado</h5>
-                            <div
-                                class="invoice-status-item mb-2"
-                                *ngFor="
-                                    let status of [
-                                        {
-                                            key: 'paid',
-                                            label: 'Pagadas',
-                                            data: financialSummary.byStatus
-                                                .paid,
-                                            color: 'text-green-600'
-                                        },
-                                        {
-                                            key: 'pending',
-                                            label: 'Pendientes',
-                                            data: financialSummary.byStatus
-                                                .pending,
-                                            color: 'text-orange-600'
-                                        },
-                                        {
-                                            key: 'overdue',
-                                            label: 'Vencidas',
-                                            data: financialSummary.byStatus
-                                                .overdue,
-                                            color: 'text-red-600'
-                                        },
-                                        {
-                                            key: 'partial',
-                                            label: 'Parciales',
-                                            data: financialSummary.byStatus
-                                                .partial,
-                                            color: 'text-blue-600'
-                                        }
-                                    ]
-                                "
-                            >
-                                <div
-                                    class="flex justify-content-between align-items-center"
-                                >
-                                    <span class="text-600">{{
-                                        status.label
-                                    }}</span>
-                                    <div class="text-right">
-                                        <div
-                                            class="font-bold"
-                                            [class]="status.color"
-                                        >
-                                            {{
-                                                formatCurrency(
-                                                    status.data.amount
-                                                )
-                                            }}
-                                        </div>
-                                        <div class="text-600 text-sm">
-                                            {{ status.data.count }} facturas
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <ng-template #loadingFinancial>
-                    <div class="grid">
-                        <div
-                            class="col-12 md:col-6 lg:col-3"
-                            *ngFor="let item of [1, 2, 3, 4]"
-                        >
-                            <p-skeleton
-                                height="60px"
-                                styleClass="border-round"
-                            ></p-skeleton>
-                        </div>
-                    </div>
-                </ng-template>
-            </p-card>
-        </div>
-    </div>
-
-    <!-- Acciones Rápidas -->
-    <div class="quick-actions mt-5">
-        <p-card header="Acciones Rápidas">
-            <div class="grid">
-                <div class="col-12 md:col-6 lg:col-3">
-                    <p-button
-                        label="Nuevo Proceso"
-                        icon="pi pi-plus"
-                        styleClass="w-full"
-                        severity="success"
-                        (onClick)="navigateTo('/faenamiento/procesos/nuevo')"
-                    >
-                    </p-button>
-                </div>
-
-                <div class="col-12 md:col-6 lg:col-3">
-                    <p-button
-                        label="Registrar Introductor"
-                        icon="pi pi-user-plus"
-                        styleClass="w-full"
-                        severity="info"
-                        (onClick)="
-                            navigateTo('/faenamiento/introductores/nuevo')
-                        "
-                    >
-                    </p-button>
-                </div>
-
-                <div class="col-12 md:col-6 lg:col-3">
-                    <p-button
-                        label="Ver Facturas"
-                        icon="pi pi-file"
-                        styleClass="w-full"
-                        [outlined]="true"
-                        (onClick)="navigateTo('/faenamiento/facturas')"
-                    >
-                    </p-button>
-                </div>
-
-                <div class="col-12 md:col-6 lg:col-3">
-                    <p-button
-                        label="Configurar Tarifas"
-                        icon="pi pi-cog"
-                        styleClass="w-full"
-                        [outlined]="true"
-                        (onClick)="navigateTo('/faenamiento/tarifas')"
-                    >
-                    </p-button>
-                </div>
-            </div>
-        </p-card>
-    </div>
 </div>
-
-<!-- Toast para notificaciones -->
-<p-toast></p-toast>

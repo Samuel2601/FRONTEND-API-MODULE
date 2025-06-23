@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { catchError, Observable, of, shareReplay, tap } from 'rxjs';
+import { catchError, map, Observable, of, shareReplay, tap } from 'rxjs';
 import { CacheService } from 'src/app/demo/services/cache.service';
 import { AuthService } from 'src/app/demo/services/auth.service';
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
@@ -173,6 +173,27 @@ export abstract class BaseService<T> {
                         detail: 'Error al eliminar el registro',
                     });
                     throw error.error;
+                })
+            );
+    }
+
+    image(imageId: string, folder: string): Observable<string> {
+        return this.http
+            .get(`${this.url}obtener_imagen/${folder}/${imageId}`, {
+                responseType: 'blob', // Si la API retorna un blob
+            })
+            .pipe(
+                map((blob: Blob) => {
+                    // Convertir blob a URL
+                    return URL.createObjectURL(blob);
+                }),
+                catchError((error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error al obtener la imagen',
+                    });
+                    return of('assets/images/image-error.png'); // Retornar imagen de error
                 })
             );
     }
