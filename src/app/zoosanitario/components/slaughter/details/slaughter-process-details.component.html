@@ -461,11 +461,7 @@
     <div class="expandable-sections">
         <!-- Inspecciones Externas -->
         <p-accordion styleClass="mb-4">
-            <p-accordionTab
-                header="Inspecciones Externas"
-                [selected]="true"
-                [cache]="false"
-            >
+            <p-accordionTab [selected]="true" [cache]="false">
                 <ng-template pTemplate="header">
                     <div
                         class="flex align-items-center justify-content-between w-full mr-3"
@@ -535,26 +531,21 @@
                                         "
                                     >
                                         <label>Fecha:</label>
-                                        <span>{{
-                                            inspection.examenAnteMortem
-                                                .resultado !== "Pendiente"
-                                                ? inspection.examenAnteMortem
-                                                      .horaChequeo
-                                                : (inspection
-                                                      .inspeccionRecepcion
-                                                      .horaChequeo
-                                                  | date : "dd/MM/yyyy")
-                                        }}</span>
+
                                         <span>
                                             {{
                                                 inspection.examenAnteMortem
                                                     .resultado !== "Pendiente"
-                                                    ? inspection
+                                                    ? (inspection
                                                           .examenAnteMortem
                                                           .horaChequeo
-                                                    : inspection
+                                                      | date
+                                                          : "dd/MM/yyyy HH:mm")
+                                                    : (inspection
                                                           .inspeccionRecepcion
                                                           .horaChequeo
+                                                      | date
+                                                          : "dd/MM/yyyy HH:mm")
                                             }}</span
                                         >
                                     </div>
@@ -592,7 +583,7 @@
             </p-accordionTab>
 
             <!-- Facturación -->
-            <p-accordionTab header="Facturación">
+            <p-accordionTab>
                 <ng-template pTemplate="header">
                     <div
                         class="flex align-items-center justify-content-between w-full mr-3"
@@ -692,7 +683,7 @@
             </p-accordionTab>
 
             <!-- Faenamientos -->
-            <p-accordionTab header="Faenamientos">
+            <p-accordionTab>
                 <ng-template pTemplate="header">
                     <div
                         class="flex align-items-center justify-content-between w-full mr-3"
@@ -722,7 +713,7 @@
             </p-accordionTab>
 
             <!-- Despachos -->
-            <p-accordionTab header="Despachos">
+            <p-accordionTab>
                 <ng-template pTemplate="header">
                     <div
                         class="flex align-items-center justify-content-between w-full mr-3"
