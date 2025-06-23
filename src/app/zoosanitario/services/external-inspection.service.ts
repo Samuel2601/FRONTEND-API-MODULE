@@ -111,7 +111,7 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
         super('external-inspections');
     }
 
-    // Extended CRUD operations
+    // Método corregido para obtener inspecciones con manejo de fechas
     getInspections(
         queryParams: any = {},
         cache: boolean = true
@@ -121,13 +121,12 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
         )}`;
         const cachedData =
             this.cacheService.get<ExternalInspection[]>(cacheKey);
-        if (cache) {
-            if (cachedData) {
-                return new Observable((observer) => {
-                    observer.next(cachedData);
-                    observer.complete();
-                });
-            }
+
+        if (cache && cachedData) {
+            return new Observable((observer) => {
+                observer.next(cachedData);
+                observer.complete();
+            });
         }
 
         // Construir los parámetros correctamente
@@ -138,16 +137,20 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
         if (queryParams.limit) params.limit = queryParams.limit;
         if (queryParams.sort) params.sort = queryParams.sort;
         if (queryParams.populate) params.populate = queryParams.populate;
+        if (queryParams.phase) params.phase = queryParams.phase;
 
-        // Filtros como JSON string
+        // Manejar filtros - ahora los filtros ya vienen procesados del componente
         if (
             queryParams.filters &&
             Object.keys(queryParams.filters).length > 0
         ) {
-            params.filters = JSON.stringify(queryParams.filters);
+            // Los filtros ya incluyen dateFrom y dateTo procesados
+            Object.keys(queryParams.filters).forEach((key) => {
+                params[key] = queryParams.filters[key];
+            });
         }
 
-        console.log('Parámetros enviados al servicio:', params);
+        console.log('Parámetros finales enviados al backend:', params);
 
         return this.http
             .get<ExternalInspection[]>(
@@ -162,6 +165,7 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
                     this.cacheService.set(cacheKey, data, this.cacheExpiry)
                 ),
                 catchError((error) => {
+                    console.error('Error en el servicio:', error);
                     this.messageService.add({
                         severity: 'error',
                         summary: 'Error',
@@ -414,44 +418,45 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
             );
     }
 
-    getStatistics(
-        filters: any = {},
-        cache: boolean = true
-    ): Observable<InspectionStatistics> {
+    // Método corregido para obtener estadísticas con fechas
+    getStatistics(filters: any = {}, cache: boolean = true): Observable<any> {
         const cacheKey = `${this.endpoint}_stats_${JSON.stringify(filters)}`;
-        const cachedData =
-            this.cacheService.get<InspectionStatistics>(cacheKey);
+        const cachedData = this.cacheService.get<any>(cacheKey);
 
-        if (cachedData && cache) {
+        if (cache && cachedData) {
             return new Observable((observer) => {
                 observer.next(cachedData);
                 observer.complete();
             });
         }
 
-        // Construir parámetros correctamente para estadísticas
+        // Construir parámetros para estadísticas
         let params: any = {};
 
-        // Filtros como JSON string si existen
-        if (filters && Object.keys(filters).length > 0) {
-            params.filters = JSON.stringify(filters);
-        }
+        // Incluir todos los filtros directamente como parámetros
+        Object.keys(filters).forEach((key) => {
+            if (
+                filters[key] !== undefined &&
+                filters[key] !== null &&
+                filters[key] !== ''
+            ) {
+                params[key] = filters[key];
+            }
+        });
 
         console.log('Parámetros de estadísticas enviados:', params);
 
         return this.http
-            .get<InspectionStatistics>(
-                `${GLOBAL.url_zoosanitario}${this.endpoint}/estadisticas`,
-                {
-                    headers: this.getHeaders(),
-                    params,
-                }
-            )
+            .get<any>(`${GLOBAL.url_zoosanitario}${this.endpoint}/statistics`, {
+                headers: this.getHeaders(),
+                params,
+            })
             .pipe(
                 tap((data) =>
                     this.cacheService.set(cacheKey, data, this.cacheExpiry)
                 ),
                 catchError((error) => {
+                    console.error('Error obteniendo estadísticas:', error);
                     this.messageService.add({
                         severity: 'error',
                         summary: 'Error',

@@ -72,7 +72,41 @@ export class AppMenuComponent implements OnInit {
             canViewFichaReporte: await this.boolPermiss('reporteficha', 'get'),
             canViewAdministracion: await this.boolPermiss('/categoria', 'post'),
             canViewPanelControl: await this.boolPermiss('dashboard', 'get'),
+
             canViewZooSanitario: await this.boolPermiss(
+                '/zoosanitarycertificate',
+                'get'
+            ),
+            // Nuevos permisos para ZooSanitario
+            canViewReception: await this.boolPermiss(
+                '/zoosanitarycertificate',
+                'get'
+            ),
+            canViewExternalInspection: await this.boolPermiss(
+                '/zoosanitarycertificate',
+                'get'
+            ),
+            canViewSlaughterProcess: await this.boolPermiss(
+                '/zoosanitarycertificate',
+                'get'
+            ),
+            canViewInvoices: await this.boolPermiss(
+                '/zoosanitarycertificate',
+                'get'
+            ),
+            canViewIntroducers: await this.boolPermiss(
+                '/zoosanitarycertificate',
+                'get'
+            ),
+            canViewConfig: await this.boolPermiss(
+                '/zoosanitarycertificate',
+                'get'
+            ),
+            canViewReferenceValues: await this.boolPermiss(
+                '/zoosanitarycertificate',
+                'get'
+            ),
+            canViewRates: await this.boolPermiss(
                 '/zoosanitarycertificate',
                 'get'
             ),
@@ -84,27 +118,130 @@ export class AppMenuComponent implements OnInit {
                 visible: permissions.canViewZooSanitario,
                 items: [
                     {
-                        label: 'Certificados',
-                        icon: 'pi pi-fw pi-file-edit',
-                        routerLink: ['/zoosanitario/certificates'],
+                        label: 'Inicio',
+                        icon: 'pi pi-fw pi-home',
+                        routerLink: ['/zoosanitario/dashboard'],
                         visible: permissions.canViewZooSanitario,
                     },
                     {
                         label: 'Flujo de Trabajo',
-                        icon: 'pi pi-fw pi-exclamation-triangle',
-                        routerLink: ['/zoosanitario/workflow'],
+                        icon: 'pi pi-fw pi-sitemap',
                         visible: permissions.canViewZooSanitario,
+                        items: [
+                            {
+                                label: 'Recepción',
+                                icon: 'pi pi-fw pi-clipboard',
+                                routerLink: [
+                                    '/zoosanitario/workflow/reception',
+                                ],
+                                visible: permissions.canViewReception,
+                            },
+                            {
+                                label: 'Lista de Recepciones',
+                                icon: 'pi pi-fw pi-list',
+                                routerLink: [
+                                    '/zoosanitario/workflow/listar-reception',
+                                ],
+                                visible: permissions.canViewReception,
+                            },
+                            {
+                                label: 'Inspección Externa',
+                                icon: 'pi pi-fw pi-search',
+                                visible: permissions.canViewExternalInspection,
+                                items: [
+                                    {
+                                        label: 'Recepción',
+                                        icon: 'pi pi-fw pi-clipboard',
+                                        routerLink: [
+                                            '/zoosanitario/workflow/external-inspection/recepcion',
+                                        ],
+                                        visible:
+                                            permissions.canViewExternalInspection,
+                                    },
+                                    {
+                                        label: 'Ante Mortem',
+                                        icon: 'pi pi-fw pi-heart',
+                                        routerLink: [
+                                            '/zoosanitario/workflow/external-inspection/ante-mortem',
+                                        ],
+                                        visible:
+                                            permissions.canViewExternalInspection,
+                                    },
+                                ],
+                            },
+                            {
+                                label: 'Procesos de Faenamiento',
+                                icon: 'pi pi-fw pi-cog',
+                                routerLink: [
+                                    '/zoosanitario/workflow/slaughter-process',
+                                ],
+                                visible: permissions.canViewSlaughterProcess,
+                            },
+                        ].filter((item) => item.visible !== false),
                     },
                     {
-                        label: 'Inspección Externa',
-                        icon: 'pi pi-fw pi-chart-bar',
-                        routerLink: ['/zoosanitario/external-inspection'],
-                        visible: permissions.canViewZooSanitario,
+                        label: 'Facturas',
+                        icon: 'pi pi-fw pi-file-edit',
+                        visible: permissions.canViewInvoices,
+                        items: [
+                            {
+                                label: 'Lista de Facturas',
+                                icon: 'pi pi-fw pi-list',
+                                routerLink: ['/zoosanitario/invoices'],
+                                visible: permissions.canViewInvoices,
+                            },
+                            {
+                                label: 'Nueva Factura',
+                                icon: 'pi pi-fw pi-plus',
+                                routerLink: ['/zoosanitario/invoices/new'],
+                                visible: permissions.canViewInvoices,
+                            },
+                        ].filter((item) => item.visible !== false),
                     },
                     {
-                        label: 'Inicio',
-                        icon: 'pi pi-fw pi-home',
-                        routerLink: ['/zoosanitario/dashboard'],
+                        label: 'Introductores',
+                        icon: 'pi pi-fw pi-users',
+                        visible: permissions.canViewIntroducers,
+                        items: [
+                            {
+                                label: 'Lista de Introductores',
+                                icon: 'pi pi-fw pi-list',
+                                routerLink: ['/zoosanitario/introducers'],
+                                visible: permissions.canViewIntroducers,
+                            },
+                            {
+                                label: 'Nuevo Introductor',
+                                icon: 'pi pi-fw pi-user-plus',
+                                routerLink: ['/zoosanitario/introducers/new'],
+                                visible: permissions.canViewIntroducers,
+                            },
+                        ].filter((item) => item.visible !== false),
+                    },
+                    {
+                        label: 'Configuración',
+                        icon: 'pi pi-fw pi-cog',
+                        visible: permissions.canViewConfig,
+                        items: [
+                            {
+                                label: 'Valores de Referencia',
+                                icon: 'pi pi-fw pi-chart-line',
+                                routerLink: [
+                                    '/zoosanitario/config/reference-values',
+                                ],
+                                visible: permissions.canViewReferenceValues,
+                            },
+                            {
+                                label: 'Tarifas',
+                                icon: 'pi pi-fw pi-dollar',
+                                routerLink: ['/zoosanitario/config/rate'],
+                                visible: permissions.canViewRates,
+                            },
+                        ].filter((item) => item.visible !== false),
+                    },
+                    {
+                        label: 'Certificados',
+                        icon: 'pi pi-fw pi-file-edit',
+                        routerLink: ['/zoosanitario/certificates'],
                         visible: permissions.canViewZooSanitario,
                     },
                 ].filter((item) => item.visible !== false),

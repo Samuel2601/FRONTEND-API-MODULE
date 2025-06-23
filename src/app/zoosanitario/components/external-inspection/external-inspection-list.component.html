@@ -51,41 +51,15 @@
                 <!-- Switch de Fase -->
                 <div class="phase-switch">
                     <label class="phase-switch-label text-white font-semibold">
-                        Fase del Proceso
+                        {{ getCurrentPhaseLabel() }}
                     </label>
-                    <p-selectButton
-                        [(ngModel)]="phase"
-                        [options]="phaseOptions"
-                        optionLabel="label"
-                        optionValue="value"
+                    <p-inputSwitch
+                        [(ngModel)]="phaseSwitch"
                         (onChange)="onPhaseChange()"
-                        styleClass="phase-toggle"
-                    ></p-selectButton>
+                    ></p-inputSwitch>
                 </div>
 
-                <!-- Botón Limpiar Búsqueda -->
-                <p-button
-                    *ngIf="isSpecificView()"
-                    icon="pi pi-filter-slash"
-                    label="Ver Todas"
-                    severity="info"
-                    [outlined]="true"
-                    (onClick)="clearSearch()"
-                    pTooltip="Mostrar todas las inspecciones"
-                    styleClass="clear-search-btn"
-                >
-                </p-button>
-
-                <p-button
-                    icon="pi pi-refresh"
-                    severity="secondary"
-                    [outlined]="true"
-                    (onClick)="refresh()"
-                    [loading]="loading"
-                    pTooltip="Actualizar lista"
-                >
-                </p-button>
-
+                <!-- Botón Limpiar Búsqueda 
                 <p-button
                     icon="pi pi-plus"
                     label="Nueva Inspección"
@@ -93,6 +67,26 @@
                     (onClick)="createNewInspection()"
                     pTooltip="Crear nueva inspección"
                     styleClass="new-inspection-btn"
+                >
+                </p-button> 
+                -->
+                <p-button
+                    *ngIf="isSpecificView()"
+                    icon="pi pi-filter-slash"
+                    label="Ver Todas"
+                    (onClick)="clearSearch()"
+                    pTooltip="Mostrar todas las inspecciones"
+                    [raised]="true"
+                    severity="info"
+                >
+                </p-button>
+
+                <p-button
+                    icon="pi pi-refresh"
+                    severity="secondary"
+                    (onClick)="refresh()"
+                    [loading]="loading"
+                    pTooltip="Actualizar lista"
                 >
                 </p-button>
             </div>
@@ -186,18 +180,115 @@
                 </div>
                 <div class="col-12 md:col-3">
                     <div class="field">
-                        <label for="dateFilter" class="font-semibold text-white"
-                            >Fecha</label
+                        <label
+                            for="dateFilter"
+                            class="font-semibold text-white"
                         >
+                            Fecha
+                        </label>
+
+                        <!-- Filtros rápidos -->
+                        <div class="mb-2">
+                            <p-dropdown
+                                appendTo="body"
+                                [(ngModel)]="selectedDateFilter"
+                                [options]="dateFilterOptions"
+                                optionLabel="label"
+                                optionValue="value"
+                                placeholder="Filtro rápido"
+                                styleClass="w-full mb-2"
+                                (onChange)="onQuickDateFilter($event.value)"
+                                [showClear]="true"
+                            >
+                            </p-dropdown>
+                        </div>
+
+                        <!-- Calendario principal (fecha única) -->
                         <p-calendar
+                            *ngIf="!showCustomDateRange"
+                            appendTo="body"
                             id="dateFilter"
                             [(ngModel)]="filters.fecha"
-                            placeholder="Filtrar por fecha"
+                            placeholder="Seleccionar fecha"
                             [showIcon]="true"
+                            [showButtonBar]="true"
+                            [showTime]="false"
+                            [dateFormat]="calendarOptions.dateFormat"
+                            [locale]="calendarOptions.locale"
+                            [firstDayOfWeek]="1"
+                            [showOtherMonths]="false"
+                            [selectOtherMonths]="false"
+                            [showWeek]="true"
+                            [maxDate]="new_date"
                             styleClass="w-full"
                             (onSelect)="onFilterChange()"
+                            (onClearClick)="clearDateFilter()"
                         >
+                            <ng-template pTemplate="footer">
+                                <div class="flex justify-content-between">
+                                    <p-button
+                                        label="Hoy"
+                                        styleClass="p-button-text p-button-sm"
+                                        (onClick)="onQuickDateFilter('today')"
+                                    ></p-button>
+                                    <p-button
+                                        label="Limpiar"
+                                        styleClass="p-button-text p-button-sm"
+                                        (onClick)="clearDateFilter()"
+                                    ></p-button>
+                                </div>
+                            </ng-template>
                         </p-calendar>
+
+                        <!-- Rango de fechas (cuando se selecciona "Personalizado") -->
+                        <p-calendar
+                            *ngIf="showCustomDateRange"
+                            appendTo="body"
+                            [(ngModel)]="dateRange"
+                            placeholder="Rango de fechas"
+                            [showIcon]="true"
+                            [showButtonBar]="true"
+                            [selectionMode]="'range'"
+                            [dateFormat]="calendarOptions.dateFormat"
+                            [locale]="calendarOptions.locale"
+                            [firstDayOfWeek]="1"
+                            [showOtherMonths]="false"
+                            [selectOtherMonths]="false"
+                            [showWeek]="true"
+                            [maxDate]="new_date"
+                            styleClass="w-full"
+                            (onSelect)="onDateRangeSelect()"
+                            (onClearClick)="clearDateFilter()"
+                        >
+                            <ng-template pTemplate="footer">
+                                <div class="flex justify-content-between">
+                                    <p-button
+                                        label="Esta semana"
+                                        styleClass="p-button-text p-button-sm"
+                                        (onClick)="
+                                            onQuickDateFilter('thisWeek')
+                                        "
+                                    ></p-button>
+                                    <p-button
+                                        label="Limpiar"
+                                        styleClass="p-button-text p-button-sm"
+                                        (onClick)="clearDateFilter()"
+                                    ></p-button>
+                                </div>
+                            </ng-template>
+                        </p-calendar>
+
+                        <!-- Indicador de filtro activo -->
+                        <div *ngIf="filters.fecha" class="mt-1">
+                            <small class="text-white opacity-75">
+                                <i class="pi pi-calendar mr-1"></i>
+                                Filtrado por:
+                                {{ filters.fecha | date : "dd/MM/yyyy" }}
+                                <span *ngIf="dateRange.length === 2">
+                                    - {{ dateRange[1] | date : "dd/MM/yyyy" }}
+                                </span>
+                            </small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -880,7 +971,7 @@
 <p-confirmDialog></p-confirmDialog>
 
 <!-- Toast para notificaciones -->
-<p-toast></p-toast>
+<p-toast position="bottom-right"></p-toast>
 
 <!-- Visor de Fotografías -->
 <p-dialog

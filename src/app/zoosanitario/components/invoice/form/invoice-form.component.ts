@@ -935,7 +935,7 @@ export class InvoiceFormComponent implements OnInit {
     }
 
     onCancel() {
-        this.router.navigate(['/invoices']);
+        this.router.navigate(['/zoosanitario/invoices']);
     }
 
     private markFormGroupTouched() {

@@ -14,6 +14,7 @@ import {
 import { ExternalInspectionFormComponent } from './form/external-inspection-form.component';
 import { AnimalTypeService } from '../../services/animal-type.service';
 import { IonSplitPane } from '@ionic/angular/standalone';
+import { PrimeNGConfig } from 'primeng/api';
 
 interface InspectionFilters {
     resultado?: string;
@@ -142,12 +143,219 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
         private confirmationService: ConfirmationService,
         private route: ActivatedRoute,
         private router: Router,
-        private animalType: AnimalTypeService
+        private animalType: AnimalTypeService,
+        private primengConfig: PrimeNGConfig
     ) {}
 
     ngOnInit(): void {
         this.initializeComponent();
+        // Configurar idioma español para PrimeNG
+        this.primengConfig.setTranslation({
+            firstDayOfWeek: 1,
+            dayNames: [
+                'Domingo',
+                'Lunes',
+                'Martes',
+                'Miércoles',
+                'Jueves',
+                'Viernes',
+                'Sábado',
+            ],
+            dayNamesShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+            dayNamesMin: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'],
+            monthNames: [
+                'Enero',
+                'Febrero',
+                'Marzo',
+                'Abril',
+                'Mayo',
+                'Junio',
+                'Julio',
+                'Agosto',
+                'Septiembre',
+                'Octubre',
+                'Noviembre',
+                'Diciembre',
+            ],
+            monthNamesShort: [
+                'Ene',
+                'Feb',
+                'Mar',
+                'Abr',
+                'May',
+                'Jun',
+                'Jul',
+                'Ago',
+                'Sep',
+                'Oct',
+                'Nov',
+                'Dic',
+            ],
+            today: 'Hoy',
+            clear: 'Limpiar',
+            dateFormat: 'dd/mm/yy',
+            weekHeader: 'Sem',
+        });
     }
+
+    // Propiedades para el calendario mejorado
+    calendarOptions = {
+        dateFormat: 'dd/mm/yy',
+        showTime: false,
+        showSeconds: false,
+        stepHour: 1,
+        stepMinute: 15,
+        locale: {
+            firstDayOfWeek: 1,
+            dayNames: [
+                'Domingo',
+                'Lunes',
+                'Martes',
+                'Miércoles',
+                'Jueves',
+                'Viernes',
+                'Sábado',
+            ],
+            dayNamesShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+            dayNamesMin: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'],
+            monthNames: [
+                'Enero',
+                'Febrero',
+                'Marzo',
+                'Abril',
+                'Mayo',
+                'Junio',
+                'Julio',
+                'Agosto',
+                'Septiembre',
+                'Octubre',
+                'Noviembre',
+                'Diciembre',
+            ],
+            monthNamesShort: [
+                'Ene',
+                'Feb',
+                'Mar',
+                'Abr',
+                'May',
+                'Jun',
+                'Jul',
+                'Ago',
+                'Sep',
+                'Oct',
+                'Nov',
+                'Dic',
+            ],
+            today: 'Hoy',
+            clear: 'Limpiar',
+            dateFormat: 'dd/mm/yy',
+            weekHeader: 'Sem',
+        },
+    };
+    new_date = new Date();
+    // Opciones de filtro rápido
+    dateFilterOptions = [
+        { label: 'Hoy', value: 'today' },
+        { label: 'Ayer', value: 'yesterday' },
+        { label: 'Esta semana', value: 'thisWeek' },
+        { label: 'Semana pasada', value: 'lastWeek' },
+        { label: 'Este mes', value: 'thisMonth' },
+        { label: 'Mes pasado', value: 'lastMonth' },
+        { label: 'Personalizado', value: 'custom' },
+    ];
+
+    // Métodos corregidos para manejo de fechas
+    onQuickDateFilter(
+        option:
+            | 'today'
+            | 'yesterday'
+            | 'thisWeek'
+            | 'lastWeek'
+            | 'thisMonth'
+            | 'lastMonth'
+            | 'custom'
+    ): void {
+        const today = new Date();
+        let startDate: Date;
+        let endDate: Date;
+
+        switch (option) {
+            case 'today':
+                startDate = new Date(today);
+                endDate = new Date(today);
+                break;
+            case 'yesterday':
+                startDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+                endDate = new Date(startDate);
+                break;
+            case 'thisWeek':
+                const currentDay = today.getDay();
+                const diff = currentDay === 0 ? 6 : currentDay - 1; // Lunes como primer día
+                startDate = new Date(today);
+                startDate.setDate(today.getDate() - diff);
+                endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + 6);
+                break;
+            case 'lastWeek':
+                const lastWeekEnd = new Date(today);
+                lastWeekEnd.setDate(today.getDate() - today.getDay());
+                endDate = new Date(lastWeekEnd);
+                startDate = new Date(lastWeekEnd);
+                startDate.setDate(lastWeekEnd.getDate() - 6);
+                break;
+            case 'thisMonth':
+                startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                endDate = new Date(
+                    today.getFullYear(),
+                    today.getMonth() + 1,
+                    0
+                );
+                break;
+            case 'lastMonth':
+                startDate = new Date(
+                    today.getFullYear(),
+                    today.getMonth() - 1,
+                    1
+                );
+                endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+                break;
+            case 'custom':
+                this.showCustomDateRange = true;
+                this.dateRange = [startDate, endDate];
+                this.filters.fecha = undefined; // Limpiar fecha única cuando usamos rango
+                this.onFilterChange();
+                return;
+            default:
+                return;
+        }
+    }
+
+    onDateRangeSelect(): void {
+        if (this.dateRange && this.dateRange.length === 2) {
+            this.filters.fecha = undefined; // Limpiar fecha única cuando seleccionamos rango
+            this.onFilterChange();
+        }
+    }
+
+    // Método para limpiar fecha única y usar rango
+    onSingleDateSelect(): void {
+        if (this.filters.fecha) {
+            this.dateRange = []; // Limpiar rango cuando seleccionamos fecha única
+            this.onFilterChange();
+        }
+    }
+
+    clearDateFilter(): void {
+        this.filters.fecha = undefined;
+        this.dateRange = [];
+        this.selectedDateFilter = '';
+        this.showCustomDateRange = false;
+        this.onFilterChange();
+    }
+
+    selectedDateFilter = '';
+    showCustomDateRange = false;
+    dateRange: Date[] = [];
 
     ngOnDestroy(): void {
         this.destroy$.next();
@@ -258,15 +466,40 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
         this.loadAllInspections(event, cache);
     }
 
-    private loadAllInspections(event?: any, cache: boolean = true): void {
-        this.loading = true;
+    // Método corregido para construir filtros con fechas
+    private buildDateFilters(): any {
+        const filters: any = { ...this.filters };
 
-        if (event) {
-            this.currentPage = Math.floor(event.first / event.rows) + 1;
-            this.pageSize = event.rows;
+        // Limpiar el filtro de fecha genérico si existe
+        delete filters.fecha;
+
+        // Manejar filtro de fecha única
+        if (this.filters.fecha && !this.dateRange.length) {
+            const startDate = new Date(this.filters.fecha);
+            const endDate = new Date(this.filters.fecha);
+
+            // Configurar inicio del día (00:00:00)
+            startDate.setHours(0, 0, 0, 0);
+            // Configurar final del día (23:59:59)
+            endDate.setHours(23, 59, 59, 999);
+
+            filters.dateFrom = startDate.toISOString();
+            filters.dateTo = endDate.toISOString();
         }
 
-        const filters: any = { ...this.filters };
+        // Manejar rango de fechas
+        if (this.dateRange && this.dateRange.length === 2) {
+            const startDate = new Date(this.dateRange[0]);
+            const endDate = new Date(this.dateRange[1]);
+
+            // Configurar inicio del primer día
+            startDate.setHours(0, 0, 0, 0);
+            // Configurar final del último día
+            endDate.setHours(23, 59, 59, 999);
+
+            filters.dateFrom = startDate.toISOString();
+            filters.dateTo = endDate.toISOString();
+        }
 
         // Limpiar filtros vacíos
         Object.keys(filters).forEach((key) => {
@@ -279,6 +512,21 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
             }
         });
 
+        return filters;
+    }
+
+    // Método corregido para cargar todas las inspecciones
+    private loadAllInspections(event?: any, cache: boolean = true): void {
+        this.loading = true;
+
+        if (event) {
+            this.currentPage = Math.floor(event.first / event.rows) + 1;
+            this.pageSize = event.rows;
+        }
+
+        // Usar el método de construcción de filtros corregido
+        const filters = this.buildDateFilters();
+
         const queryParams: any = {
             page: this.currentPage.toString(),
             limit: this.pageSize.toString(),
@@ -288,8 +536,11 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
         };
 
         if (Object.keys(filters).length > 0) {
-            queryParams.filters = filters;
+            queryParams.filters = filters; // Ya no es JSON string aquí
         }
+
+        console.log('Filtros construidos:', filters);
+        console.log('Query params enviados:', queryParams);
 
         this.externalInspectionService
             .getInspections(queryParams, cache)
@@ -362,24 +613,18 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
         }
     }
 
+    // Método corregido para cargar estadísticas
     loadStatistics(cache: boolean = true): void {
-        const filters: any = { ...this.filters };
-
-        Object.keys(filters).forEach((key) => {
-            if (
-                filters[key] === '' ||
-                filters[key] === null ||
-                filters[key] === undefined
-            ) {
-                delete filters[key];
-            }
-        });
+        // Usar el método de construcción de filtros corregido
+        const filters = this.buildDateFilters();
 
         // Agregar la fase a los parámetros de estadísticas
         const statsParams = {
             ...filters,
             phase: this.phase,
         };
+
+        console.log('Parámetros de estadísticas:', statsParams);
 
         this.externalInspectionService
             .getStatistics(statsParams, cache)
@@ -499,8 +744,23 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
         this.loadStatistics();
     }
 
+    // Propiedad computed para el switch (true = anteMortem, false = recepcion)
+    get phaseSwitch(): boolean {
+        return this.phase === 'anteMortem';
+    }
+
+    set phaseSwitch(value: boolean) {
+        this.phase = value ? 'anteMortem' : 'recepcion';
+    }
+
+    // Método mejorado para manejar el cambio de fase
     onPhaseChange(): void {
         console.log('Cambiando fase a:', this.phase);
+
+        // Asegurar que siempre tengamos un valor válido
+        if (this.phase !== 'recepcion' && this.phase !== 'anteMortem') {
+            this.phase = 'recepcion'; // valor por defecto
+        }
 
         // Reiniciar los datos
         this.currentPage = 1;
@@ -518,6 +778,11 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
             summary: 'Fase Cambiada',
             detail: `Mostrando datos de ${this.getPhaseTitle()}`,
         });
+    }
+
+    // Método auxiliar para obtener el label actual del switch
+    getCurrentPhaseLabel(): string {
+        return this.phase === 'recepcion' ? 'Recepción' : 'Ante Mortem';
     }
 
     refresh(): void {
