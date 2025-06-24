@@ -1,211 +1,789 @@
 <form [formGroup]="rateForm" (ngSubmit)="onSubmit()" class="rate-form">
-    <div class="grid">
-        <!-- Información Básica -->
-        <div class="col-12">
-            <h6 class="section-title">Información Básica</h6>
-        </div>
-
-        <div class="col-12 md:col-6">
-            <label for="code" class="block text-900 text-xl font-medium mb-2">
-                Código <span class="required">*</span>
-            </label>
-            <input
-                id="code"
-                type="text"
-                formControlName="code"
-                pInputText
-                class="w-full"
-                [class.ng-invalid]="isFieldInvalid('code')"
-                placeholder="Ej: TAS001"
-                (blur)="onCodeBlur()"
-                maxlength="20"
-                style="text-transform: uppercase"
-            />
-            <small class="p-error block mt-1" *ngIf="isFieldInvalid('code')">
-                {{ codeErrors }}
-            </small>
-        </div>
-
-        <div class="col-12 md:col-6">
-            <label
-                for="position"
-                class="block text-900 text-xl font-medium mb-2"
-            >
-                Posición <span class="required">*</span>
-            </label>
-            <p-inputNumber
-                id="position"
-                formControlName="position"
-                class="w-full"
-                [class.ng-invalid]="isFieldInvalid('position')"
-                [min]="1"
-                [max]="100"
-                [step]="1"
-                placeholder="Posición en el listado"
-            >
-            </p-inputNumber>
-            <small
-                class="p-error block mt-1"
-                *ngIf="isFieldInvalid('position')"
-            >
-                {{ getFieldError("position") }}
-            </small>
-        </div>
-
-        <div class="col-12">
-            <label
-                for="description"
-                class="block text-900 text-xl font-medium mb-2"
-                >Descripción <span class="required">*</span></label
-            >
-            <textarea
-                id="description"
-                formControlName="description"
-                pInputTextarea
-                class="w-full"
-                rows="3"
-                [class.ng-invalid]="isFieldInvalid('description')"
-                placeholder="Descripción detallada del concepto de cobro"
-                maxlength="1000"
-            >
-            </textarea>
-            <small
-                class="p-error block mt-1"
-                *ngIf="isFieldInvalid('description')"
-            >
-                {{ getFieldError("description") }}
-            </small>
-        </div>
-
-        <div class="col-12">
-            <label
-                for="rubroxAtributo"
-                class="block text-900 text-xl font-medium mb-2"
-            >
-                Rubro x Atributo <span class="required">*</span>
-            </label>
-            <input
-                id="rubroxAtributo"
-                type="text"
-                formControlName="rubroxAtributo"
-                pInputText
-                class="w-full"
-                [class.ng-invalid]="isFieldInvalid('rubroxAtributo')"
-                placeholder="Atributo de rubro"
-            />
-            <small
-                class="p-error block mt-1"
-                *ngIf="isFieldInvalid('rubroxAtributo')"
-            >
-                {{ getFieldError("rubroxAtributo") }}
-            </small>
-        </div>
-
-        <!-- Clasificación -->
-        <div class="col-12">
-            <h6 class="section-title">Clasificación</h6>
-        </div>
-
-        <div class="col-12 md:col-4">
-            <label for="type" class="block text-900 text-xl font-medium mb-2">
-                Tipo <span class="required">*</span>
-            </label>
-            <p-dropdown
-                id="type"
-                formControlName="type"
-                [options]="typeOptions"
-                placeholder="Seleccionar tipo"
-                class="w-full"
-                [class.ng-invalid]="isFieldInvalid('type')"
-            >
-            </p-dropdown>
-            <small class="p-error block mt-1" *ngIf="isFieldInvalid('type')">
-                {{ getFieldError("type") }}
-            </small>
-        </div>
-
-        <div class="col-12 md:col-4">
-            <label
-                for="personType"
-                class="block text-900 text-xl font-medium mb-2"
-            >
-                Tipo de Persona
-            </label>
-            <p-multiSelect
-                id="personType"
-                formControlName="personType"
-                [options]="personTypeOptions"
-                placeholder="Seleccionar tipos"
-                class="w-full"
-                [showHeader]="false"
-                [showToggleAll]="true"
-                (onChange)="onPersonTypeChange($event)"
-            >
-            </p-multiSelect>
-            <small class="text-600 block mt-1">
-                Por defecto se aplica a ambos tipos
-            </small>
-        </div>
-
-        <div class="col-12 md:col-4">
-            <label
-                for="animalTypes"
-                class="block text-900 text-xl font-medium mb-2"
-            >
-                Tipos de Animal <span class="required">*</span>
-            </label>
-            <p-multiSelect
-                id="animalTypes"
-                formControlName="animalTypes"
-                [options]="animalTypeOptions"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Seleccionar animales"
-                class="w-full"
-                [class.ng-invalid]="isFieldInvalid('animalTypes')"
-                [showHeader]="false"
-                [showToggleAll]="true"
-                (onChange)="onAnimalTypesChange($event)"
-            >
-            </p-multiSelect>
-            <small
-                class="p-error block mt-1"
-                *ngIf="isFieldInvalid('animalTypes')"
-            >
-                {{ getFieldError("animalTypes") }}
-            </small>
-        </div>
-
-        <!-- Botones de acción -->
-        <div class="col-12">
-            <div class="flex justify-content-end gap-2 mt-4">
-                <button
-                    type="button"
-                    pButton
-                    pRipple
-                    label="Cancelar"
+    <!-- INFORMACIÓN DE REGISTRO 
+      <div class="flex gap-2">
+                <p-button
                     icon="pi pi-times"
-                    class="p-button-outlined p-button-secondary"
+                    severity="secondary"
+                    [outlined]="true"
                     (click)="onCancel()"
-                    [disabled]="loading"
-                ></button>
-                <button
-                    type="submit"
-                    pButton
-                    pRipple
-                    [label]="isEditMode ? 'Actualizar' : 'Crear'"
-                    [icon]="
-                        loading
-                            ? 'pi pi-spin pi-spinner'
-                            : isEditMode
-                            ? 'pi pi-check'
-                            : 'pi pi-plus'
-                    "
-                    class="p-button-success"
-                    [disabled]="loading"
-                ></button>
+                ></p-button>
+                <p-button
+                    icon="pi pi-check"
+                    severity="success"
+                    [outlined]="true"
+                    (click)="onSubmit()"
+                ></p-button>
+            </div>
+            -->
+    <div class="p-card" *ngIf="isEditMode && rate">
+        <div class="flex justify-content-between align-items-center">
+            <div>
+                <h5 class="m-0">
+                    {{ rate?.code }} - {{ rate?.rubroxAtributo }}
+                </h5>
             </div>
         </div>
+    </div>
+    <p-tabView>
+        <!-- TAB 1: INFORMACIÓN BÁSICA -->
+        <p-tabPanel header="Información Básica" leftIcon="pi pi-info-circle">
+            <div class="grid">
+                <div class="col-12 md:col-6">
+                    <label
+                        for="code"
+                        class="block text-900 text-xl font-medium mb-2"
+                    >
+                        Código <span class="required">*</span>
+                    </label>
+                    <input
+                        id="code"
+                        type="text"
+                        formControlName="code"
+                        pInputText
+                        class="w-full"
+                        [class.ng-invalid]="isFieldInvalid('code')"
+                        placeholder="Ej: TAS001"
+                        (blur)="onCodeBlur()"
+                        maxlength="20"
+                        style="text-transform: uppercase"
+                    />
+                    <small
+                        class="p-error block mt-1"
+                        *ngIf="isFieldInvalid('code')"
+                    >
+                        {{ codeErrors }}
+                    </small>
+                </div>
+
+                <div class="col-12 md:col-6">
+                    <label
+                        for="code_tributo"
+                        class="block text-900 text-xl font-medium mb-2"
+                    >
+                        Código Tributo
+                    </label>
+                    <input
+                        id="code_tributo"
+                        type="text"
+                        formControlName="code_tributo"
+                        pInputText
+                        class="w-full"
+                        placeholder="Código de tributo"
+                        maxlength="20"
+                        style="text-transform: uppercase"
+                    />
+                </div>
+
+                <div class="col-12 md:col-6">
+                    <label
+                        for="position"
+                        class="block text-900 text-xl font-medium mb-2"
+                    >
+                        Posición <span class="required">*</span>
+                    </label>
+                    <p-inputNumber
+                        id="position"
+                        formControlName="position"
+                        class="w-full"
+                        [class.ng-invalid]="isFieldInvalid('position')"
+                        [min]="1"
+                        [max]="100"
+                        [step]="1"
+                        placeholder="Posición en el listado"
+                    >
+                    </p-inputNumber>
+                    <small
+                        class="p-error block mt-1"
+                        *ngIf="isFieldInvalid('position')"
+                    >
+                        {{ getFieldError("position") }}
+                    </small>
+                </div>
+
+                <div class="col-12 md:col-6">
+                    <label
+                        for="status"
+                        class="block text-900 text-xl font-medium mb-2"
+                    >
+                        Estado
+                    </label>
+                    <p-selectButton
+                        appendTo="body"
+                        formControlName="status"
+                        [options]="statusOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        class="w-full"
+                    ></p-selectButton>
+                </div>
+
+                <div class="col-12">
+                    <label
+                        for="description"
+                        class="block text-900 text-xl font-medium mb-2"
+                    >
+                        Descripción <span class="required">*</span>
+                    </label>
+                    <textarea
+                        id="description"
+                        formControlName="description"
+                        pInputTextarea
+                        class="w-full"
+                        rows="3"
+                        [class.ng-invalid]="isFieldInvalid('description')"
+                        placeholder="Descripción detallada del concepto de cobro"
+                        maxlength="1000"
+                    ></textarea>
+                    <small
+                        class="p-error block mt-1"
+                        *ngIf="isFieldInvalid('description')"
+                    >
+                        {{ getFieldError("description") }}
+                    </small>
+                </div>
+
+                <div class="col-12">
+                    <label
+                        for="rubroxAtributo"
+                        class="block text-900 text-xl font-medium mb-2"
+                    >
+                        Rubro x Atributo <span class="required">*</span>
+                    </label>
+                    <input
+                        id="rubroxAtributo"
+                        type="text"
+                        formControlName="rubroxAtributo"
+                        pInputText
+                        class="w-full"
+                        [class.ng-invalid]="isFieldInvalid('rubroxAtributo')"
+                        placeholder="Atributo de rubro"
+                    />
+                    <small
+                        class="p-error block mt-1"
+                        *ngIf="isFieldInvalid('rubroxAtributo')"
+                    >
+                        {{ getFieldError("rubroxAtributo") }}
+                    </small>
+                </div>
+            </div>
+        </p-tabPanel>
+
+        <!-- TAB 2: CLASIFICACIÓN Y TIPOS -->
+        <p-tabPanel header="Clasificación" leftIcon="pi pi-tags">
+            <div class="grid">
+                <div class="col-12 md:col-4">
+                    <label
+                        for="type"
+                        class="block text-900 text-xl font-medium mb-2"
+                    >
+                        Tipo <span class="required">*</span>
+                    </label>
+                    <p-dropdown
+                        appendTo="body"
+                        id="type"
+                        formControlName="type"
+                        [options]="typeOptions"
+                        placeholder="Seleccionar tipo"
+                        class="w-full"
+                        [class.ng-invalid]="isFieldInvalid('type')"
+                    ></p-dropdown>
+                    <small
+                        class="p-error block mt-1"
+                        *ngIf="isFieldInvalid('type')"
+                    >
+                        {{ getFieldError("type") }}
+                    </small>
+                </div>
+
+                <div class="col-12 md:col-4">
+                    <label
+                        for="personType"
+                        class="block text-900 text-xl font-medium mb-2"
+                    >
+                        Tipo de Persona
+                    </label>
+                    <p-multiSelect
+                        appendTo="body"
+                        id="personType"
+                        formControlName="personType"
+                        [options]="personTypeOptions"
+                        placeholder="Seleccionar tipos"
+                        class="w-full"
+                        [showHeader]="false"
+                        [showToggleAll]="true"
+                        (onChange)="onPersonTypeChange($event)"
+                    ></p-multiSelect>
+                    <small class="text-600 block mt-1">
+                        Por defecto se aplica a ambos tipos
+                    </small>
+                </div>
+
+                <div class="col-12 md:col-4">
+                    <label
+                        for="animalTypes"
+                        class="block text-900 text-xl font-medium mb-2"
+                    >
+                        Tipos de Animal <span class="required">*</span>
+                    </label>
+                    <p-multiSelect
+                        appendTo="body"
+                        id="animalTypes"
+                        formControlName="animalTypes"
+                        [options]="animalTypeOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Seleccionar animales"
+                        class="w-full"
+                        [class.ng-invalid]="isFieldInvalid('animalTypes')"
+                        [showHeader]="false"
+                        [showToggleAll]="true"
+                        (onChange)="onAnimalTypesChange($event)"
+                    ></p-multiSelect>
+                    <small
+                        class="p-error block mt-1"
+                        *ngIf="isFieldInvalid('animalTypes')"
+                    >
+                        {{ getFieldError("animalTypes") }}
+                    </small>
+                </div>
+            </div>
+        </p-tabPanel>
+
+        <!-- TAB 3: CONFIGURACIÓN DE CANTIDAD -->
+        <p-tabPanel
+            header="Configuración de Cantidad"
+            leftIcon="pi pi-calculator"
+        >
+            <div formGroupName="quantityConfig" class="grid">
+                <div class="col-12">
+                    <div class="field-checkbox">
+                        <p-checkbox
+                            formControlName="isUnlimited"
+                            binary="true"
+                            id="isUnlimited"
+                        ></p-checkbox>
+                        <label for="isUnlimited" class="ml-2"
+                            >Cantidad ilimitada</label
+                        >
+                    </div>
+                </div>
+
+                <div
+                    class="col-12 md:col-6"
+                    *ngIf="!quantityConfigForm.get('isUnlimited')?.value"
+                >
+                    <label
+                        for="maxQuantity"
+                        class="block text-900 text-xl font-medium mb-2"
+                    >
+                        Cantidad Máxima
+                    </label>
+                    <p-inputNumber
+                        id="maxQuantity"
+                        formControlName="maxQuantity"
+                        class="w-full"
+                        [min]="1"
+                        [step]="1"
+                        placeholder="Cantidad máxima permitida"
+                    ></p-inputNumber>
+                </div>
+
+                <div class="col-12 md:col-6">
+                    <label
+                        for="maxQuantityBasedOnRate"
+                        class="block text-900 text-xl font-medium mb-2"
+                    >
+                        Basado en Rate
+                    </label>
+                    <p-dropdown
+                        appendTo="body"
+                        id="maxQuantityBasedOnRate"
+                        formControlName="maxQuantityBasedOnRate"
+                        [options]="availableRates"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Seleccionar rate de referencia"
+                        class="w-full"
+                        [showClear]="true"
+                    ></p-dropdown>
+                    <small class="text-600 block mt-1">
+                        La cantidad máxima dependerá de otro rate
+                    </small>
+                </div>
+            </div>
+        </p-tabPanel>
+
+        <!-- TAB 4: CONFIGURACIÓN DE FACTURACIÓN -->
+        <p-tabPanel header="Configuración de Facturación" leftIcon="pi pi-file">
+            <div formGroupName="invoiceConfig" class="grid">
+                <div class="col-12 md:col-6">
+                    <div class="field-checkbox">
+                        <p-checkbox
+                            formControlName="allowInvoice"
+                            binary="true"
+                            id="allowInvoice"
+                        ></p-checkbox>
+                        <label for="allowInvoice" class="ml-2"
+                            >Permitir facturación</label
+                        >
+                    </div>
+                </div>
+
+                <div class="col-12 md:col-6">
+                    <div class="field-checkbox">
+                        <p-checkbox
+                            formControlName="alwaysInclude"
+                            binary="true"
+                            id="alwaysInclude"
+                        ></p-checkbox>
+                        <label for="alwaysInclude" class="ml-2"
+                            >Incluir siempre</label
+                        >
+                    </div>
+                </div>
+
+                <div class="col-12 md:col-6">
+                    <div class="field-checkbox">
+                        <p-checkbox
+                            formControlName="automaticCharge"
+                            binary="true"
+                            id="automaticCharge"
+                        ></p-checkbox>
+                        <label for="automaticCharge" class="ml-2"
+                            >Cobro automático</label
+                        >
+                    </div>
+                </div>
+
+                <div class="col-12 md:col-6">
+                    <label
+                        for="chargeFrequency"
+                        class="block text-900 text-xl font-medium mb-2"
+                    >
+                        Frecuencia de Cobro
+                    </label>
+                    <p-dropdown
+                        appendTo="body"
+                        id="chargeFrequency"
+                        formControlName="chargeFrequency"
+                        [options]="chargeFrequencyOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        placeholder="Seleccionar frecuencia"
+                        class="w-full"
+                    ></p-dropdown>
+                </div>
+
+                <div class="col-12">
+                    <div class="field-checkbox">
+                        <p-checkbox
+                            formControlName="uniqueByIntroducerYear"
+                            binary="true"
+                            id="uniqueByIntroducerYear"
+                        ></p-checkbox>
+                        <label for="uniqueByIntroducerYear" class="ml-2">
+                            Único por introductor al año
+                        </label>
+                        <small class="text-600 block mt-1">
+                            Solo se permite un cargo por introductor en el año
+                            fiscal
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </p-tabPanel>
+
+        <!-- TAB 5: DEPENDENCIAS Y VALIDACIONES -->
+        <p-tabPanel header="Dependencias" leftIcon="pi pi-sitemap">
+            <div class="grid">
+                <!-- Dependencias -->
+                <div class="col-12">
+                    <h6 class="section-title">Configuración de Dependencias</h6>
+                </div>
+
+                <div formGroupName="dependencies" class="grid col-12">
+                    <div class="col-12 md:col-4">
+                        <label
+                            for="requiresPreviousRate"
+                            class="block text-900 text-xl font-medium mb-2"
+                        >
+                            Requiere Rate Previo
+                        </label>
+                        <p-dropdown
+                            appendTo="body"
+                            id="requiresPreviousRate"
+                            formControlName="requiresPreviousRate"
+                            [options]="availableRates"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Seleccionar rate"
+                            class="w-full"
+                            [showClear]="true"
+                        ></p-dropdown>
+                    </div>
+
+                    <div class="col-12 md:col-4">
+                        <div class="field-checkbox">
+                            <p-checkbox
+                                formControlName="requiresSlaughterProcess"
+                                binary="true"
+                                id="requiresSlaughterProcess"
+                            ></p-checkbox>
+                            <label for="requiresSlaughterProcess" class="ml-2">
+                                Requiere proceso de sacrificio
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-4">
+                        <div class="field-checkbox">
+                            <p-checkbox
+                                formControlName="standaloneAllowed"
+                                binary="true"
+                                id="standaloneAllowed"
+                            ></p-checkbox>
+                            <label for="standaloneAllowed" class="ml-2">
+                                Permitir independiente
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reglas de Validación -->
+                <div class="col-12">
+                    <h6 class="section-title">Reglas de Validación</h6>
+                </div>
+
+                <div formGroupName="validationRules" class="grid col-12">
+                    <div class="col-12 md:col-4">
+                        <label
+                            for="prerequisiteRates"
+                            class="block text-900 text-xl font-medium mb-2"
+                        >
+                            Rates Prerequisito
+                        </label>
+                        <p-multiSelect
+                            appendTo="body"
+                            id="prerequisiteRates"
+                            formControlName="prerequisiteRates"
+                            [options]="availableRates"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Seleccionar rates"
+                            class="w-full"
+                            [showHeader]="false"
+                        ></p-multiSelect>
+                    </div>
+
+                    <div class="col-12 md:col-4">
+                        <label
+                            for="quantityValidationRate"
+                            class="block text-900 text-xl font-medium mb-2"
+                        >
+                            Rate de Validación de Cantidad
+                        </label>
+                        <p-dropdown
+                            appendTo="body"
+                            id="quantityValidationRate"
+                            formControlName="quantityValidationRate"
+                            [options]="availableRates"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Seleccionar rate"
+                            class="w-full"
+                            [showClear]="true"
+                        ></p-dropdown>
+                    </div>
+
+                    <div class="col-12 md:col-4">
+                        <label
+                            for="quantityValidationType"
+                            class="block text-900 text-xl font-medium mb-2"
+                        >
+                            Tipo de Validación
+                        </label>
+                        <p-dropdown
+                            appendTo="body"
+                            id="quantityValidationType"
+                            formControlName="quantityValidationType"
+                            [options]="quantityValidationOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Seleccionar tipo"
+                            class="w-full"
+                        ></p-dropdown>
+                    </div>
+                </div>
+            </div>
+        </p-tabPanel>
+
+        <p-tabPanel header="Base Legal" leftIcon="pi pi-book">
+            <div class="legal-base-section">
+                <div class="col-12">
+                    <h6 class="section-title">Referencias Legales</h6>
+                    <p class="text-600 mb-3">
+                        Configure las bases legales que sustentan este rate de
+                        faenamiento
+                    </p>
+                </div>
+
+                <div formGroupName="baseLegalRate" class="col-12">
+                    <!-- Referencias legales dinámicas -->
+                    <div formArrayName="references">
+                        <div
+                            *ngFor="
+                                let referenceGroup of legalReferencesArray.controls;
+                                let i = index
+                            "
+                            [formGroupName]="i"
+                            class="legal-reference-item"
+                        >
+                            <div
+                                class="remove-button"
+                                *ngIf="legalReferencesArray.length > 1"
+                            >
+                                <p-button
+                                    icon="pi pi-times"
+                                    severity="danger"
+                                    [text]="true"
+                                    [rounded]="true"
+                                    size="small"
+                                    (click)="removeLegalReference(i)"
+                                ></p-button>
+                            </div>
+
+                            <div class="reference-header">
+                                <span class="reference-type-badge">
+                                    Referencia {{ i + 1 }}
+                                </span>
+                            </div>
+
+                            <div class="grid">
+                                <div class="col-12 md:col-3">
+                                    <label
+                                        [for]="'referenceType_' + i"
+                                        class="block text-900 font-medium mb-2"
+                                    >
+                                        Tipo de Norma
+                                    </label>
+                                    <p-dropdown
+                                        appendTo="body"
+                                        [id]="'referenceType_' + i"
+                                        formControlName="type"
+                                        [options]="legalReferenceTypes"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                        placeholder="Seleccionar tipo"
+                                        class="w-full"
+                                    ></p-dropdown>
+                                </div>
+
+                                <div class="col-12 md:col-3">
+                                    <label
+                                        [for]="'referenceNumber_' + i"
+                                        class="block text-900 font-medium mb-2"
+                                    >
+                                        Número/Código
+                                    </label>
+                                    <input
+                                        [id]="'referenceNumber_' + i"
+                                        type="text"
+                                        formControlName="number"
+                                        pInputText
+                                        class="w-full"
+                                        placeholder="Ej: 123-2024"
+                                        style="text-transform: uppercase"
+                                    />
+                                </div>
+
+                                <div class="col-12 md:col-3">
+                                    <label
+                                        [for]="'referenceDate_' + i"
+                                        class="block text-900 font-medium mb-2"
+                                    >
+                                        Fecha de Emisión
+                                    </label>
+                                    <p-calendar
+                                        [id]="'referenceDate_' + i"
+                                        formControlName="date"
+                                        class="w-full"
+                                        placeholder="dd/mm/yyyy"
+                                        dateFormat="dd/mm/yy"
+                                        [showIcon]="true"
+                                        appendTo="body"
+                                    ></p-calendar>
+                                </div>
+
+                                <div class="col-12 md:col-3">
+                                    <label
+                                        [for]="'referenceArticle_' + i"
+                                        class="block text-900 font-medium mb-2"
+                                    >
+                                        Artículo/Sección
+                                    </label>
+                                    <input
+                                        [id]="'referenceArticle_' + i"
+                                        type="text"
+                                        formControlName="article"
+                                        pInputText
+                                        class="w-full"
+                                        placeholder="Ej: Art. 15, Inciso 3"
+                                    />
+                                </div>
+
+                                <div class="col-12 md:col-8">
+                                    <label
+                                        [for]="'referenceTitle_' + i"
+                                        class="block text-900 font-medium mb-2"
+                                    >
+                                        Título/Descripción
+                                    </label>
+                                    <input
+                                        [id]="'referenceTitle_' + i"
+                                        type="text"
+                                        formControlName="title"
+                                        pInputText
+                                        class="w-full"
+                                        placeholder="Título de la norma o descripción"
+                                    />
+                                </div>
+
+                                <div class="col-12 md:col-4">
+                                    <label
+                                        [for]="'referenceUrl_' + i"
+                                        class="block text-900 font-medium mb-2"
+                                    >
+                                        URL de Referencia
+                                    </label>
+                                    <input
+                                        [id]="'referenceUrl_' + i"
+                                        type="url"
+                                        formControlName="url"
+                                        pInputText
+                                        class="w-full"
+                                        placeholder="https://..."
+                                    />
+                                </div>
+
+                                <div class="col-12">
+                                    <label
+                                        [for]="'referenceDescription_' + i"
+                                        class="block text-900 font-medium mb-2"
+                                    >
+                                        Descripción Detallada
+                                    </label>
+                                    <textarea
+                                        [id]="'referenceDescription_' + i"
+                                        formControlName="description"
+                                        pInputTextarea
+                                        class="w-full"
+                                        rows="3"
+                                        placeholder="Descripción de cómo esta norma se relaciona con el rate"
+                                        maxlength="500"
+                                    ></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botón para agregar nueva referencia -->
+                    <div class="add-reference-button">
+                        <p-button
+                            label="Agregar Referencia Legal"
+                            icon="pi pi-plus"
+                            (click)="addLegalReference()"
+                            [outlined]="true"
+                        ></p-button>
+                    </div>
+
+                    <!-- Información adicional -->
+                    <div class="col-12 mt-4">
+                        <label
+                            for="legalNotes"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Notas Legales Adicionales
+                        </label>
+                        <textarea
+                            id="legalNotes"
+                            formControlName="notes"
+                            pInputTextarea
+                            class="w-full"
+                            rows="4"
+                            placeholder="Información adicional sobre el sustento legal de este rate"
+                            maxlength="1000"
+                        ></textarea>
+                    </div>
+
+                    <div class="col-12 md:col-6">
+                        <label
+                            for="effectiveDate"
+                            class="block text-900 font-medium mb-2"
+                        >
+                            Fecha de Vigencia
+                        </label>
+                        <p-calendar
+                            id="effectiveDate"
+                            formControlName="effectiveDate"
+                            class="w-full"
+                            placeholder="dd/mm/yyyy"
+                            dateFormat="dd/mm/yy"
+                            [showIcon]="true"
+                            appendTo="body"
+                        ></p-calendar>
+                        <small class="text-600 block mt-1">
+                            Fecha desde la cual aplica esta base legal
+                        </small>
+                    </div>
+
+                    <div class="col-12 md:col-6">
+                        <div class="field-checkbox mt-4">
+                            <p-checkbox
+                                formControlName="requiresLegalValidation"
+                                binary="true"
+                                id="requiresLegalValidation"
+                            ></p-checkbox>
+                            <label for="requiresLegalValidation" class="ml-2">
+                                Requiere validación legal previa
+                            </label>
+                            <small class="text-600 block mt-1">
+                                Marcar si este rate requiere aprobación legal
+                                antes de su aplicación
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </p-tabPanel>
+    </p-tabView>
+
+    <!-- Botones de acción -->
+    <div class="flex justify-content-end gap-2 mt-4">
+        <button
+            type="button"
+            pButton
+            pRipple
+            label="Cancelar"
+            icon="pi pi-times"
+            class="p-button-outlined p-button-secondary"
+            (click)="onCancel()"
+            [disabled]="loading"
+        ></button>
+        <button
+            type="submit"
+            pButton
+            pRipple
+            [label]="isEditMode ? 'Actualizar' : 'Crear'"
+            [icon]="
+                loading
+                    ? 'pi pi-spin pi-spinner'
+                    : isEditMode
+                    ? 'pi pi-check'
+                    : 'pi pi-plus'
+            "
+            class="p-button-success"
+            [disabled]="loading"
+        ></button>
     </div>
 
     <!-- Toast para mensajes -->

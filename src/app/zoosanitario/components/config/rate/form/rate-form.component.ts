@@ -8,7 +8,7 @@ import {
     SimpleChanges,
     inject,
 } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ImportsModule } from 'src/app/demo/services/import';
 import { Rate } from 'src/app/zoosanitario/interfaces/rate.interface';
@@ -35,6 +35,7 @@ export class RateFormComponent implements OnInit, OnChanges {
     constructor(private messageService: MessageService) {}
 
     rateForm!: FormGroup;
+    quantityConfigForm!: FormGroup;
     loading = false;
     submitted = false;
 
@@ -50,12 +51,33 @@ export class RateFormComponent implements OnInit, OnChanges {
         { label: 'Jurídica', value: 'Jurídica' },
     ];
 
-    // Tipos de animales
+    statusOptions = [
+        { label: 'Activo', value: true },
+        { label: 'Inactivo', value: false },
+    ];
+
+    chargeFrequencyOptions = [
+        { label: 'Ninguna', value: 'NONE' },
+        { label: 'Anual', value: 'YEARLY' },
+        { label: 'Año fiscal', value: 'FISCAL_YEAR' },
+        { label: 'Por proceso de sacrificio', value: 'PER_SLAUGHTER_PROCESS' },
+    ];
+
+    quantityValidationOptions = [
+        { label: 'Ninguna', value: 'NONE' },
+        { label: 'Máximo basado en', value: 'MAX_BASED_ON' },
+        { label: 'Coincidencia exacta', value: 'EXACT_MATCH' },
+        { label: 'Proporcional', value: 'PROPORTIONAL' },
+    ];
+
+    // Tipos de animales y rates disponibles
     animalTypeOptions: any[] = [];
+    availableRates: any[] = [];
 
     ngOnInit() {
         this.initForm();
         this.loadAnimalTypes();
+        this.loadAvailableRates();
     }
 
     ngOnChanges(changes: SimpleChanges) {
@@ -66,6 +88,7 @@ export class RateFormComponent implements OnInit, OnChanges {
 
     initForm() {
         this.rateForm = this.fb.group({
+            // Campos básicos
             code: [
                 '',
                 [
@@ -74,6 +97,7 @@ export class RateFormComponent implements OnInit, OnChanges {
                     Validators.maxLength(20),
                 ],
             ],
+            code_tributo: ['', [Validators.maxLength(20)]],
             description: [
                 '',
                 [Validators.required, Validators.maxLength(1000)],
@@ -84,11 +108,76 @@ export class RateFormComponent implements OnInit, OnChanges {
                 1,
                 [Validators.required, Validators.min(1), Validators.max(100)],
             ],
+            maxQuantity: [null, [Validators.min(1)]],
+            status: [true],
             personType: [['Natural', 'Jurídica']], // Array por defecto
             animalTypes: [[], [Validators.required]], // Array de ObjectIds
+            baseLegalRate: [],
+
+            // Configuración de cantidad
+            quantityConfig: this.fb.group({
+                maxQuantity: [null, [Validators.min(1)]],
+                isUnlimited: [true],
+                maxQuantityBasedOnRate: [null],
+            }),
+
+            // Configuración de facturación
+            invoiceConfig: this.fb.group({
+                allowInvoice: [true],
+                alwaysInclude: [false],
+                automaticCharge: [false],
+                chargeFrequency: ['NONE'],
+                uniqueByIntroducerYear: [false],
+            }),
+
+            // Dependencias
+            dependencies: this.fb.group({
+                requiresPreviousRate: [null],
+                requiresSlaughterProcess: [false],
+                standaloneAllowed: [true],
+            }),
+
+            // Reglas de validación
+            validationRules: this.fb.group({
+                prerequisiteRates: [[]],
+                quantityValidationRate: [null],
+                quantityValidationType: ['NONE'],
+            }),
         });
 
+        // Referencia para el template
+        this.quantityConfigForm = this.rateForm.get(
+            'quantityConfig'
+        ) as FormGroup;
+
         this.loadRateData();
+    }
+
+    legalReferencesArray: FormArray = this.fb.array([]);
+    legalReferenceTypes: any = [
+        { label: 'Artículo', value: 'ART' },
+        { label: 'Sección', value: 'SEC' },
+    ];
+    addLegalReference() {
+        this.legalReferencesArray.push(this.createLegalReferenceGroup());
+    }
+
+    removeLegalReference(index: number) {
+        if (this.legalReferencesArray.length > 1) {
+            this.legalReferencesArray.removeAt(index);
+        }
+    }
+    // Métodos para manejar referencias legales
+    createLegalReferenceGroup(): FormGroup {
+        return this.fb.group({
+            type: ['', [Validators.required]],
+            number: ['', [Validators.required]],
+            date: [null],
+            article: [''],
+            title: ['', [Validators.required]],
+            description: ['', [Validators.maxLength(500)]],
+            url: [''],
+        });
     }
 
     loadAnimalTypes() {
@@ -96,7 +185,6 @@ export class RateFormComponent implements OnInit, OnChanges {
             .getAll({ limit: 100, fields: 'species,category' })
             .subscribe({
                 next: (response: any) => {
-                    console.log(response);
                     this.animalTypeOptions = response.data.animalTypes.map(
                         (type: any) => ({
                             label: type.species + ' (' + type.category + ')',
@@ -115,8 +203,28 @@ export class RateFormComponent implements OnInit, OnChanges {
             });
     }
 
+    loadAvailableRates() {
+        this.rateService
+            .getRatesWithPagination({}, { page: 1, limit: 100 })
+            .subscribe({
+                next: (response: any) => {
+                    this.availableRates =
+                        response.data
+                            ?.filter(
+                                (rate: Rate) => rate._id !== this.rate?._id
+                            ) // Excluir el rate actual
+                            .map((rate: Rate) => ({
+                                label: `${rate.code} - ${rate.rubroxAtributo}`,
+                                value: rate._id,
+                            })) || [];
+                },
+                error: (error) => {
+                    console.error('Error loading available rates:', error);
+                },
+            });
+    }
+
     loadRateData() {
-        console.log('loadRateData', this.rate);
         if (this.rate && this.isEditMode) {
             const rateData: any = { ...this.rate };
 
@@ -125,36 +233,86 @@ export class RateFormComponent implements OnInit, OnChanges {
                 rateData.personType = [rateData.personType];
             }
 
-            // Asegurar que animalTypes sea un array
-            if (rateData.animalTypes && !Array.isArray(rateData.animalTypes)) {
-                rateData.animalTypes = [rateData.animalTypes];
-            }
-
-            // AQUÍ ESTÁ EL CAMBIO CLAVE:
-            // Solo extraer los IDs (_id) para el patchValue, no los objetos completos
+            // Asegurar que animalTypes sea un array de IDs
             if (rateData.animalTypes && Array.isArray(rateData.animalTypes)) {
                 rateData.animalTypes = rateData.animalTypes.map((type: any) => {
-                    // Si ya es un string (ID), devolverlo tal como está
-                    if (typeof type === 'string') {
-                        return type;
-                    }
-                    // Si es un objeto, extraer solo el _id
-                    return type._id;
+                    return typeof type === 'string' ? type : type._id;
                 });
             }
 
-            this.rateForm.patchValue(rateData);
+            // Procesar los campos anidados con valores por defecto
+            rateData.quantityConfig = {
+                maxQuantity: rateData.quantityConfig?.maxQuantity || null,
+                isUnlimited: rateData.quantityConfig?.isUnlimited ?? true,
+                maxQuantityBasedOnRate:
+                    rateData.quantityConfig?.maxQuantityBasedOnRate || null,
+            };
 
-            console.log('rateData', this.rateForm.value);
+            rateData.invoiceConfig = {
+                allowInvoice: rateData.invoiceConfig?.allowInvoice ?? true,
+                alwaysInclude: rateData.invoiceConfig?.alwaysInclude ?? false,
+                automaticCharge:
+                    rateData.invoiceConfig?.automaticCharge ?? false,
+                chargeFrequency:
+                    rateData.invoiceConfig?.chargeFrequency || 'NONE',
+                uniqueByIntroducerYear:
+                    rateData.invoiceConfig?.uniqueByIntroducerYear ?? false,
+            };
+
+            rateData.dependencies = {
+                requiresPreviousRate:
+                    rateData.dependencies?.requiresPreviousRate || null,
+                requiresSlaughterProcess:
+                    rateData.dependencies?.requiresSlaughterProcess ?? false,
+                standaloneAllowed:
+                    rateData.dependencies?.standaloneAllowed ?? true,
+            };
+
+            rateData.validationRules = {
+                prerequisiteRates:
+                    rateData.validationRules?.prerequisiteRates || [],
+                quantityValidationRate:
+                    rateData.validationRules?.quantityValidationRate || null,
+                quantityValidationType:
+                    rateData.validationRules?.quantityValidationType || 'NONE',
+            };
+
+            this.rateForm.patchValue(rateData);
         } else {
             this.rateForm.reset({
                 code: '',
+                code_tributo: '',
                 description: '',
                 type: '',
                 rubroxAtributo: '',
                 position: 1,
+                maxQuantity: null,
+                status: true,
                 personType: ['Natural', 'Jurídica'],
                 animalTypes: [],
+                baseLegalRate: null,
+                quantityConfig: {
+                    maxQuantity: null,
+                    isUnlimited: true,
+                    maxQuantityBasedOnRate: null,
+                },
+                invoiceConfig: {
+                    allowInvoice: true,
+                    alwaysInclude: false,
+                    automaticCharge: false,
+                    chargeFrequency: 'NONE',
+                    uniqueByIntroducerYear: false,
+                },
+                dependencies: {
+                    requiresPreviousRate: null,
+                    requiresSlaughterProcess: false,
+                    standaloneAllowed: true,
+                },
+                validationRules: {
+                    prerequisiteRates: [],
+                    quantityValidationRate: null,
+                    quantityValidationType: 'NONE',
+                },
             });
         }
     }
@@ -164,40 +322,102 @@ export class RateFormComponent implements OnInit, OnChanges {
 
         if (this.rateForm.invalid) {
             this.markFormGroupTouched();
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Formulario incompleto',
+                detail: 'Por favor, complete todos los campos requeridos',
+            });
             return;
         }
 
         this.loading = true;
         const formValue = { ...this.rateForm.value };
 
-        // Convertir código a mayúsculas y hacer trim
+        // Limpiar y formatear campos
         if (formValue.code) {
             formValue.code = formValue.code.toString().toUpperCase().trim();
         }
+        if (formValue.code_tributo) {
+            formValue.code_tributo = formValue.code_tributo
+                .toString()
+                .toUpperCase()
+                .trim();
+        }
+
+        // Limpiar valores null/undefined en objetos anidados
+        this.cleanNestedObjects(formValue);
 
         if (this.isEditMode && this.rate?._id) {
             this.rateService.update(this.rate._id, formValue).subscribe({
                 next: () => {
                     this.loading = false;
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Rate actualizado correctamente',
+                    });
                     this.rateSaved.emit();
                 },
                 error: (error) => {
                     console.error('Error updating rate:', error);
                     this.loading = false;
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail:
+                            error.error?.message ||
+                            'Error al actualizar el rate',
+                    });
                 },
             });
         } else {
             this.rateService.create(formValue).subscribe({
                 next: () => {
                     this.loading = false;
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Rate creado correctamente',
+                    });
                     this.rateSaved.emit();
                 },
                 error: (error) => {
                     console.error('Error creating rate:', error);
                     this.loading = false;
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail:
+                            error.error?.message || 'Error al crear el rate',
+                    });
                 },
             });
         }
+    }
+
+    private cleanNestedObjects(obj: any) {
+        Object.keys(obj).forEach((key) => {
+            if (
+                obj[key] &&
+                typeof obj[key] === 'object' &&
+                !Array.isArray(obj[key])
+            ) {
+                // Limpiar propiedades null/undefined de objetos anidados
+                Object.keys(obj[key]).forEach((nestedKey) => {
+                    if (
+                        obj[key][nestedKey] === null ||
+                        obj[key][nestedKey] === undefined
+                    ) {
+                        delete obj[key][nestedKey];
+                    }
+                });
+
+                // Si el objeto queda vacío, eliminarlo
+                if (Object.keys(obj[key]).length === 0) {
+                    delete obj[key];
+                }
+            }
+        });
     }
 
     onCancel() {
@@ -210,7 +430,18 @@ export class RateFormComponent implements OnInit, OnChanges {
             control?.markAsTouched();
 
             if (control instanceof FormGroup) {
-                this.markFormGroupTouched();
+                this.markNestedFormGroupTouched(control);
+            }
+        });
+    }
+
+    private markNestedFormGroupTouched(formGroup: FormGroup) {
+        Object.keys(formGroup.controls).forEach((key) => {
+            const control = formGroup.get(key);
+            control?.markAsTouched();
+
+            if (control instanceof FormGroup) {
+                this.markNestedFormGroupTouched(control);
             }
         });
     }
@@ -287,13 +518,12 @@ export class RateFormComponent implements OnInit, OnChanges {
         return this.getFieldError('code');
     }
 
-    // Método para manejar la selección múltiple de tipos de persona
+    // Métodos para manejar cambios en selects múltiples
     onPersonTypeChange(event: any) {
         const value = event.value;
         this.rateForm.patchValue({ personType: value });
     }
 
-    // Método para manejar la selección múltiple de tipos de animal
     onAnimalTypesChange(event: any) {
         const value = event.value;
         this.rateForm.patchValue({ animalTypes: value });

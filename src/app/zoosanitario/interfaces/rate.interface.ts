@@ -2,8 +2,8 @@
 
 export interface AnimalType {
     _id: string;
-    name: string;
-    description?: string;
+    species: string;
+    category: string;
 }
 
 export interface User {
@@ -12,47 +12,88 @@ export interface User {
     email: string;
 }
 
+// rate.interface.ts - Interface actualizada
 export interface Rate {
     _id?: string;
+
+    // Campos básicos
     type: 'TASA' | 'TARIFA' | 'SERVICIOS';
     description: string;
     rubroxAtributo: string;
     code: string;
+    code_tributo?: string;
     position: number;
-    animalTypes: AnimalType[];
+    maxQuantity?: number;
+    status?: boolean;
+
+    // Relaciones
+    animalTypes: string[] | AnimalType[];
     personType: ('Natural' | 'Jurídica')[];
-    isActive: boolean;
-    validFrom?: Date | string;
-    validTo?: Date | string;
-    metadata?: {
-        category?: string;
-        subcategory?: string;
-        unit?: string;
-        minimumAmount?: number;
-        maximumAmount?: number | null;
+
+    // Campos complejos nuevos
+    baseLegalRate?: any;
+
+    quantityConfig?: {
+        maxQuantity?: number;
+        isUnlimited?: boolean;
+        maxQuantityBasedOnRate?: string;
     };
+
+    invoiceConfig?: {
+        allowInvoice?: boolean;
+        alwaysInclude?: boolean;
+        automaticCharge?: boolean;
+        chargeFrequency?:
+            | 'NONE'
+            | 'YEARLY'
+            | 'FISCAL_YEAR'
+            | 'PER_SLAUGHTER_PROCESS';
+        uniqueByIntroducerYear?: boolean;
+    };
+
+    dependencies?: {
+        requiresPreviousRate?: string;
+        requiresSlaughterProcess?: boolean;
+        standaloneAllowed?: boolean;
+    };
+
+    validationRules?: {
+        prerequisiteRates?: string[];
+        quantityValidationRate?: string;
+        quantityValidationType?:
+            | 'NONE'
+            | 'MAX_BASED_ON'
+            | 'EXACT_MATCH'
+            | 'PROPORTIONAL';
+    };
+
+    // Auditoría
+    createdBy?: string;
+    updatedBy?: string;
+    deletedBy?: string;
+    deletedAt?: Date;
     createdAt?: Date;
     updatedAt?: Date;
 }
 
 export interface RateFilters {
-    type?: 'TASA' | 'TARIFA' | 'SERVICIOS';
-    animalType?: string;
-    personType?: 'Natural' | 'Jurídica';
-    code?: string;
-    isActive?: boolean;
+    type?: string;
+    personType?: string;
+    status?: boolean;
+    search?: string;
+    sort?: any;
+}
+
+export interface PaginationOptions {
+    page: number;
+    limit: number;
+    sort?: any;
 }
 
 export interface RateSearchParams {
     type: 'TASA' | 'TARIFA' | 'SERVICIOS';
     animalTypeId: string;
     personType: 'Natural' | 'Jurídica';
-}
-
-export interface PaginationOptions {
-    page?: number;
-    limit?: number;
-    sort?: Record<string, 1 | -1>;
 }
 
 export interface PaginatedResponse<T> {

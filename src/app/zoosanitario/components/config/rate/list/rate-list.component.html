@@ -22,7 +22,6 @@
                             (click)="deleteSelectedRates()"
                             [disabled]="!selectedRates || !selectedRates.length"
                         ></button>
-                        <!-- BOTÓN DE REFRESH CORREGIDO -->
                         <button
                             pButton
                             pRipple
@@ -49,75 +48,109 @@
                 </ng-template>
             </p-toolbar>
 
-            <!-- Filtros -->
+            <!-- Filtros mejorados -->
             <div class="grid mb-4">
-                <div class="col-12 md:col-3">
+                <div class="col-12 md:col-2">
                     <label
                         for="typeFilter"
                         class="block text-900 text-xl font-medium mb-2"
-                        >Tipo</label
                     >
+                        Tipo
+                    </label>
                     <p-dropdown
                         id="typeFilter"
                         [options]="typeOptions"
                         [(ngModel)]="filters.type"
-                        placeholder="Seleccionar tipo"
+                        placeholder="Todos"
                         [showClear]="true"
                         (onChange)="onFilterChange()"
                         styleClass="w-full"
-                    >
-                    </p-dropdown>
+                    ></p-dropdown>
                 </div>
 
-                <div class="col-12 md:col-3">
+                <div class="col-12 md:col-2">
                     <label
                         for="personTypeFilter"
                         class="block text-900 text-xl font-medium mb-2"
-                        >Tipo de Persona</label
                     >
+                        Tipo de Persona
+                    </label>
                     <p-dropdown
                         id="personTypeFilter"
                         [options]="personTypeOptions"
                         [(ngModel)]="filters.personType"
-                        placeholder="Seleccionar tipo"
+                        placeholder="Todos"
                         [showClear]="true"
                         (onChange)="onFilterChange()"
                         styleClass="w-full"
-                    >
-                    </p-dropdown>
+                    ></p-dropdown>
                 </div>
 
-                <div class="col-12 md:col-3">
+                <div class="col-12 md:col-2">
                     <label
                         for="statusFilter"
                         class="block text-900 text-xl font-medium mb-2"
-                        >Estado</label
                     >
+                        Estado
+                    </label>
                     <p-dropdown
                         id="statusFilter"
-                        [options]="[
-                            { label: 'Activo', value: true },
-                            { label: 'Inactivo', value: false }
-                        ]"
-                        [(ngModel)]="filters.deletedBy"
-                        placeholder="Seleccionar estado"
+                        [options]="statusFilterOptions"
+                        [(ngModel)]="filters.status"
+                        placeholder="Todos"
                         [showClear]="true"
                         (onChange)="onFilterChange()"
                         styleClass="w-full"
-                    >
-                    </p-dropdown>
+                    ></p-dropdown>
                 </div>
 
-                <div class="col-12 md:col-3">
+                <div class="col-12 md:col-2">
+                    <label
+                        for="invoiceFilter"
+                        class="block text-900 text-xl font-medium mb-2"
+                    >
+                        Facturación
+                    </label>
+                    <p-dropdown
+                        id="invoiceFilter"
+                        [options]="invoiceFilterOptions"
+                        [(ngModel)]="filters.allowInvoice"
+                        placeholder="Todos"
+                        [showClear]="true"
+                        (onChange)="onFilterChange()"
+                        styleClass="w-full"
+                    ></p-dropdown>
+                </div>
+
+                <div class="col-12 md:col-2">
+                    <label
+                        for="autoChargeFilter"
+                        class="block text-900 text-xl font-medium mb-2"
+                    >
+                        Cobro Automático
+                    </label>
+                    <p-dropdown
+                        id="autoChargeFilter"
+                        [options]="autoChargeFilterOptions"
+                        [(ngModel)]="filters.automaticCharge"
+                        placeholder="Todos"
+                        [showClear]="true"
+                        (onChange)="onFilterChange()"
+                        styleClass="w-full"
+                    ></p-dropdown>
+                </div>
+
+                <div class="col-12 md:col-2">
                     <label
                         for="clearBtn"
                         class="block text-900 text-xl font-medium mb-2"
-                        >&nbsp;</label
                     >
+                        &nbsp;
+                    </label>
                     <button
                         pButton
                         pRipple
-                        label="Limpiar Filtros"
+                        label="Limpiar"
                         icon="pi pi-filter-slash"
                         class="p-button-outlined w-full"
                         (click)="clearFilters()"
@@ -139,6 +172,7 @@
                 (onLazyLoad)="onPageChange($event)"
                 [globalFilterFields]="[
                     'code',
+                    'code_tributo',
                     'description',
                     'rubroxAtributo',
                     'type'
@@ -179,6 +213,10 @@
                         <th pSortableColumn="code">
                             Código <p-sortIcon field="code"></p-sortIcon>
                         </th>
+                        <th pSortableColumn="code_tributo">
+                            Código Tributo
+                            <p-sortIcon field="code_tributo"></p-sortIcon>
+                        </th>
                         <th pSortableColumn="type">
                             Tipo <p-sortIcon field="type"></p-sortIcon>
                         </th>
@@ -186,14 +224,16 @@
                             Descripción
                             <p-sortIcon field="description"></p-sortIcon>
                         </th>
-                        <th pSortableColumn="rubroxAtributo">
-                            Rubro x Atributo
-                            <p-sortIcon field="rubroxAtributo"></p-sortIcon>
+                        <th pSortableColumn="position">
+                            Posición <p-sortIcon field="position"></p-sortIcon>
                         </th>
+                        <th>Cantidad Máx.</th>
+                        <th>Facturación</th>
+                        <th>Cobro Auto.</th>
                         <th>Tipos de Animal</th>
                         <th>Tipos de Persona</th>
-                        <th pSortableColumn="deletedBy">
-                            Estado <p-sortIcon field="deletedBy"></p-sortIcon>
+                        <th pSortableColumn="status">
+                            Estado <p-sortIcon field="status"></p-sortIcon>
                         </th>
                         <th>Acciones</th>
                     </tr>
@@ -206,29 +246,120 @@
                         </td>
                         <td>
                             <span class="p-column-title">Código</span>
-                            {{ rate.code }}
+                            <span class="font-bold">{{ rate.code }}</span>
+                        </td>
+                        <td>
+                            <span class="p-column-title">Código Tributo</span>
+                            {{ rate.code_tributo || "-" }}
                         </td>
                         <td>
                             <span class="p-column-title">Tipo</span>
                             <p-tag
                                 [value]="rate.type"
-                                [severity]="
-                                    rate.type === 'TASA'
-                                        ? 'info'
-                                        : rate.type === 'TARIFA'
-                                        ? 'success'
-                                        : 'warning'
-                                "
-                            >
-                            </p-tag>
+                                [severity]="getTypeSeverity(rate.type)"
+                            ></p-tag>
                         </td>
                         <td>
                             <span class="p-column-title">Descripción</span>
-                            {{ rate.description }}
+                            <span
+                                class="block max-w-15rem overflow-hidden text-overflow-ellipsis white-space-nowrap"
+                                [pTooltip]="getRateTooltip(rate)"
+                                tooltipPosition="top"
+                                placeholder="Top"
+                            >
+                                {{ rate.description }}
+                            </span>
                         </td>
                         <td>
-                            <span class="p-column-title">Rubro x Atributo</span>
-                            {{ rate.rubroxAtributo }}
+                            <span class="p-column-title">Posición</span>
+                            <p-tag
+                                [value]="rate.position"
+                                severity="secondary"
+                            ></p-tag>
+                        </td>
+                        <td>
+                            <span class="p-column-title">Cantidad Máx.</span>
+                            <span
+                                *ngIf="
+                                    rate.quantityConfig?.isUnlimited;
+                                    else limitedQuantity
+                                "
+                            >
+                                <i class="pi pi-infinity text-blue-500"></i>
+                                Ilimitado
+                            </span>
+                            <ng-template #limitedQuantity>
+                                <span
+                                    *ngIf="
+                                        rate.quantityConfig?.maxQuantity;
+                                        else noLimit
+                                    "
+                                >
+                                    {{ rate.quantityConfig.maxQuantity }}
+                                </span>
+                                <ng-template #noLimit>
+                                    <span *ngIf="rate.maxQuantity">{{
+                                        rate.maxQuantity
+                                    }}</span>
+                                    <span *ngIf="!rate.maxQuantity">-</span>
+                                </ng-template>
+                            </ng-template>
+                        </td>
+                        <td>
+                            <span class="p-column-title">Facturación</span>
+                            <div class="flex flex-column gap-1">
+                                <p-tag
+                                    [value]="
+                                        rate.invoiceConfig?.allowInvoice
+                                            ? 'Permitida'
+                                            : 'No permitida'
+                                    "
+                                    [severity]="
+                                        rate.invoiceConfig?.allowInvoice
+                                            ? 'success'
+                                            : 'danger'
+                                    "
+                                    class="text-xs"
+                                ></p-tag>
+                                <p-tag
+                                    *ngIf="rate.invoiceConfig?.alwaysInclude"
+                                    value="Incluir siempre"
+                                    severity="info"
+                                    class="text-xs"
+                                ></p-tag>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="p-column-title">Cobro Auto.</span>
+                            <div class="flex flex-column gap-1">
+                                <p-tag
+                                    [value]="
+                                        rate.invoiceConfig?.automaticCharge
+                                            ? 'Activo'
+                                            : 'Inactivo'
+                                    "
+                                    [severity]="
+                                        rate.invoiceConfig?.automaticCharge
+                                            ? 'success'
+                                            : 'secondary'
+                                    "
+                                    class="text-xs"
+                                ></p-tag>
+                                <small
+                                    *ngIf="
+                                        rate.invoiceConfig?.chargeFrequency &&
+                                        rate.invoiceConfig?.chargeFrequency !==
+                                            'NONE'
+                                    "
+                                    class="text-xs text-600"
+                                >
+                                    {{
+                                        getChargeFrequencyLabel(
+                                            rate.invoiceConfig.chargeFrequency
+                                        )
+                                    }}
+                                </small>
+                            </div>
                         </td>
                         <td>
                             <span class="p-column-title">Tipos de Animal</span>
@@ -240,17 +371,24 @@
                             >
                                 <p-tag
                                     *ngFor="
-                                        let animalType of rate.animalTypes;
+                                        let animalType of rate.animalTypes
+                                            | slice : 0 : 2;
                                         let last = last
                                     "
-                                    [value]="animalType.species"
+                                    [value]="getAnimalTypeDisplay(animalType)"
                                     severity="secondary"
                                     [style]="{
                                         'margin-right': last ? '0' : '0.25rem',
                                         'margin-bottom': '0.25rem'
                                     }"
+                                    class="text-xs"
+                                ></p-tag>
+                                <small
+                                    *ngIf="rate.animalTypes.length > 2"
+                                    class="text-xs text-600 block mt-1"
                                 >
-                                </p-tag>
+                                    +{{ rate.animalTypes.length - 2 }} más
+                                </small>
                             </div>
                             <span
                                 *ngIf="
@@ -281,8 +419,8 @@
                                         'margin-right': last ? '0' : '0.25rem',
                                         'margin-bottom': '0.25rem'
                                     }"
-                                >
-                                </p-tag>
+                                    class="text-xs"
+                                ></p-tag>
                             </div>
                             <span
                                 *ngIf="
@@ -291,24 +429,39 @@
                                 "
                                 class="text-muted"
                             >
-                                Sin tipos asignados
+                                Ambos tipos
                             </span>
                         </td>
                         <td>
                             <span class="p-column-title">Estado</span>
                             <p-tag
-                                [value]="getStatusText(rate.deletedAt)"
-                                [severity]="getSeverity(rate.deletedAt)"
-                            >
-                            </p-tag>
+                                [value]="
+                                    getStatusText(rate.status, rate.deletedAt)
+                                "
+                                [severity]="
+                                    getStatusSeverity(
+                                        rate.status,
+                                        rate.deletedAt
+                                    )
+                                "
+                            ></p-tag>
                         </td>
                         <td>
-                            <div class="flex">
+                            <div class="flex gap-2">
+                                <button
+                                    pButton
+                                    pRipple
+                                    icon="pi pi-eye"
+                                    class="p-button-rounded p-button-info p-button-text"
+                                    (click)="viewRate(rate)"
+                                    pTooltip="Ver detalles"
+                                    tooltipPosition="top"
+                                ></button>
                                 <button
                                     pButton
                                     pRipple
                                     icon="pi pi-pencil"
-                                    class="p-button-rounded p-button-success mr-2"
+                                    class="p-button-rounded p-button-success p-button-text"
                                     (click)="editRate(rate)"
                                     pTooltip="Editar"
                                     tooltipPosition="top"
@@ -317,7 +470,7 @@
                                     pButton
                                     pRipple
                                     icon="pi pi-trash"
-                                    class="p-button-rounded p-button-warning"
+                                    class="p-button-rounded p-button-danger p-button-text"
                                     (click)="deleteRate(rate)"
                                     pTooltip="Eliminar"
                                     tooltipPosition="top"
@@ -336,7 +489,7 @@
                 [modal]="true"
                 class="p-fluid"
                 [maximizable]="true"
-                [style]="{ width: '600px' }"
+                [style]="{ width: '90vw', maxWidth: '1200px' }"
                 (onHide)="onDialogHide()"
             >
                 <app-rate-form
@@ -344,8 +497,141 @@
                     [isEditMode]="isEditMode"
                     (rateSaved)="onRateSaved()"
                     (cancel)="onDialogHide()"
-                >
-                </app-rate-form>
+                ></app-rate-form>
+            </p-dialog>
+
+            <!-- Modal para ver detalles -->
+            <p-dialog
+                *ngIf="showViewDialog"
+                [(visible)]="showViewDialog"
+                header="Detalles de la Tarifa"
+                [modal]="true"
+                class="p-fluid"
+                [maximizable]="true"
+                [style]="{ width: '80vw', maxWidth: '1000px' }"
+                (onHide)="onViewDialogHide()"
+            >
+                <div *ngIf="selectedRate" class="grid">
+                    <!-- Información básica -->
+                    <div class="col-12">
+                        <h6 class="text-primary-500 font-bold mb-3">
+                            Información Básica
+                        </h6>
+                    </div>
+                    <div class="col-6 md:col-3">
+                        <strong>Código:</strong><br />
+                        <span>{{ selectedRate.code }}</span>
+                    </div>
+                    <div class="col-6 md:col-3">
+                        <strong>Código Tributo:</strong><br />
+                        <span>{{ selectedRate.code_tributo || "N/A" }}</span>
+                    </div>
+                    <div class="col-6 md:col-3">
+                        <strong>Tipo:</strong><br />
+                        <p-tag
+                            [value]="selectedRate.type"
+                            [severity]="getTypeSeverity(selectedRate.type)"
+                        ></p-tag>
+                    </div>
+                    <div class="col-6 md:col-3">
+                        <strong>Posición:</strong><br />
+                        <span>{{ selectedRate.position }}</span>
+                    </div>
+                    <div class="col-12">
+                        <strong>Descripción:</strong><br />
+                        <span>{{ selectedRate.description }}</span>
+                    </div>
+
+                    <!-- Configuración de cantidad -->
+                    <div class="col-12 mt-4">
+                        <h6 class="text-primary-500 font-bold mb-3">
+                            Configuración de Cantidad
+                        </h6>
+                    </div>
+                    <div class="col-6">
+                        <strong>Cantidad:</strong><br />
+                        <span *ngIf="selectedRate.quantityConfig?.isUnlimited"
+                            >Ilimitada</span
+                        >
+                        <span
+                            *ngIf="
+                                !selectedRate.quantityConfig?.isUnlimited &&
+                                selectedRate.quantityConfig?.maxQuantity
+                            "
+                        >
+                            Máximo:
+                            {{ selectedRate.quantityConfig.maxQuantity }}
+                        </span>
+                        <span
+                            *ngIf="
+                                !selectedRate.quantityConfig?.isUnlimited &&
+                                !selectedRate.quantityConfig?.maxQuantity
+                            "
+                        >
+                            No especificada
+                        </span>
+                    </div>
+
+                    <!-- Configuración de facturación -->
+                    <div class="col-12 mt-4">
+                        <h6 class="text-primary-500 font-bold mb-3">
+                            Configuración de Facturación
+                        </h6>
+                    </div>
+                    <div class="col-3">
+                        <strong>Permite Facturación:</strong><br />
+                        <p-tag
+                            [value]="
+                                selectedRate.invoiceConfig?.allowInvoice
+                                    ? 'Sí'
+                                    : 'No'
+                            "
+                            [severity]="
+                                selectedRate.invoiceConfig?.allowInvoice
+                                    ? 'success'
+                                    : 'danger'
+                            "
+                        ></p-tag>
+                    </div>
+                    <div class="col-3">
+                        <strong>Incluir Siempre:</strong><br />
+                        <p-tag
+                            [value]="
+                                selectedRate.invoiceConfig?.alwaysInclude
+                                    ? 'Sí'
+                                    : 'No'
+                            "
+                            [severity]="
+                                selectedRate.invoiceConfig?.alwaysInclude
+                                    ? 'info'
+                                    : 'secondary'
+                            "
+                        ></p-tag>
+                    </div>
+                    <div class="col-3">
+                        <strong>Cobro Automático:</strong><br />
+                        <p-tag
+                            [value]="
+                                selectedRate.invoiceConfig?.automaticCharge
+                                    ? 'Sí'
+                                    : 'No'
+                            "
+                            [severity]="
+                                selectedRate.invoiceConfig?.automaticCharge
+                                    ? 'success'
+                                    : 'secondary'
+                            "
+                        ></p-tag>
+                    </div>
+                    <div class="col-3">
+                        <strong>Frecuencia:</strong><br />
+                        <span>{{
+                            getChargeFrequencyLabel(
+                                selectedRate.invoiceConfig?.chargeFrequency
+                            )
+                        }}</span>
+                    </div>
+                </div>
             </p-dialog>
 
             <p-confirmDialog [style]="{ width: '450px' }"></p-confirmDialog>

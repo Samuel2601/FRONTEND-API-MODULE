@@ -44,11 +44,22 @@
                     background: linear-gradient(45deg, #7c3aed, #6d28d9);
                 }
             }
+
+            &.p-button-info {
+                background: linear-gradient(45deg, #06b6d4, #0891b2);
+                border: none;
+
+                &:hover {
+                    background: linear-gradient(45deg, #0891b2, #0e7490);
+                }
+            }
         }
     }
 
+    // Enhanced filters section
     .grid {
         .col-12,
+        .col-2,
         .col-3 {
             padding: 0.5rem;
 
@@ -56,11 +67,22 @@
                 color: var(--text-color);
                 font-weight: 600;
                 margin-bottom: 0.5rem;
+                font-size: 0.9rem;
             }
 
             .p-dropdown {
                 .p-dropdown-label {
                     padding: 0.75rem 1rem;
+                    font-size: 0.85rem;
+                }
+
+                &:hover {
+                    border-color: var(--primary-color-text);
+                }
+
+                &.p-focus {
+                    border-color: var(--primary-color);
+                    box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.1);
                 }
             }
         }
@@ -97,7 +119,9 @@
                 border: none;
                 color: var(--text-color);
                 font-weight: 700;
-                padding: 1rem;
+                padding: 1rem 0.75rem;
+                font-size: 0.85rem;
+                white-space: nowrap;
 
                 .dark & {
                     background: var(--surface-800);
@@ -105,10 +129,72 @@
 
                 &:first-child {
                     border-radius: 8px 0 0 8px;
+                    width: 3rem;
                 }
 
                 &:last-child {
                     border-radius: 0 8px 8px 0;
+                }
+
+                // Specific column widths
+                &:nth-child(2) {
+                    // Código
+                    width: 100px;
+                }
+
+                &:nth-child(3) {
+                    // Código Tributo
+                    width: 120px;
+                }
+
+                &:nth-child(4) {
+                    // Tipo
+                    width: 90px;
+                }
+
+                &:nth-child(5) {
+                    // Descripción
+                    min-width: 200px;
+                }
+
+                &:nth-child(6) {
+                    // Posición
+                    width: 80px;
+                }
+
+                &:nth-child(7) {
+                    // Cantidad Máx
+                    width: 120px;
+                }
+
+                &:nth-child(8) {
+                    // Facturación
+                    width: 140px;
+                }
+
+                &:nth-child(9) {
+                    // Cobro Auto
+                    width: 130px;
+                }
+
+                &:nth-child(10) {
+                    // Tipos Animal
+                    width: 150px;
+                }
+
+                &:nth-child(11) {
+                    // Tipos Persona
+                    width: 130px;
+                }
+
+                &:nth-child(12) {
+                    // Estado
+                    width: 90px;
+                }
+
+                &:nth-child(13) {
+                    // Acciones
+                    width: 120px;
                 }
             }
         }
@@ -125,44 +211,100 @@
 
                 td {
                     border: none;
-                    padding: 1rem;
+                    padding: 1rem 0.75rem;
                     border-bottom: 1px solid var(--surface-border);
+                    font-size: 0.85rem;
+                    vertical-align: top;
 
                     .p-column-title {
                         font-weight: 600;
                         color: var(--text-color-secondary);
                         display: none;
+                        font-size: 0.8rem;
                     }
 
+                    // Enhanced tag styles
                     .p-tag {
                         border-radius: 12px;
                         font-weight: 600;
                         padding: 0.25rem 0.75rem;
+                        font-size: 0.75rem;
+
+                        &.text-xs {
+                            font-size: 0.7rem;
+                            padding: 0.2rem 0.5rem;
+                        }
                     }
 
+                    // Multi-column layouts for complex data
+                    .flex.flex-column {
+                        gap: 0.25rem;
+
+                        .p-tag {
+                            align-self: flex-start;
+                        }
+                    }
+
+                    // Truncated text with ellipsis
+                    .max-w-15rem {
+                        max-width: 15rem;
+                    }
+
+                    // Icon styles
+                    .pi-infinity {
+                        font-size: 1rem;
+                        margin-right: 0.25rem;
+                    }
+
+                    // Small text for additional info
+                    small {
+                        font-size: 0.7rem;
+                        color: var(--text-color-secondary);
+                        font-style: italic;
+                    }
+
+                    // Action buttons
                     .p-button {
                         &.p-button-rounded {
-                            width: 2.5rem;
-                            height: 2.5rem;
+                            width: 2.25rem;
+                            height: 2.25rem;
+                            margin: 0 0.125rem;
 
-                            &.p-button-success {
-                                background: #22c55e;
+                            &.p-button-text {
+                                background: transparent;
                                 border: none;
+                                color: var(--text-color-secondary);
 
                                 &:hover {
-                                    background: #16a34a;
+                                    background: var(--surface-100);
                                 }
-                            }
 
-                            &.p-button-warning {
-                                background: #f59e0b;
-                                border: none;
+                                &.p-button-success:hover {
+                                    background: rgba(34, 197, 94, 0.1);
+                                    color: #16a34a;
+                                }
 
-                                &:hover {
-                                    background: #d97706;
+                                &.p-button-info:hover {
+                                    background: rgba(6, 182, 212, 0.1);
+                                    color: #0891b2;
+                                }
+
+                                &.p-button-danger:hover {
+                                    background: rgba(239, 68, 68, 0.1);
+                                    color: #dc2626;
                                 }
                             }
                         }
+                    }
+
+                    // Status indicators
+                    &:first-child {
+                        padding-left: 1rem;
+                    }
+
+                    &:last-child {
+                        padding-right: 1rem;
+                        text-align: center;
                     }
                 }
             }
@@ -187,6 +329,7 @@
         }
     }
 
+    // Dialog styles
     .p-dialog {
         .p-dialog-header {
             background: var(--surface-0);
@@ -204,9 +347,101 @@
             background: var(--surface-0);
             padding: 2rem;
         }
+
+        // View dialog specific styles
+        &:has(.grid) {
+            .p-dialog-content {
+                .grid {
+                    .col-12,
+                    .col-6,
+                    .col-3 {
+                        padding: 0.5rem;
+                    }
+
+                    h6.text-primary-500 {
+                        font-size: 1rem;
+                        color: var(--primary-color);
+                        border-bottom: 2px solid var(--primary-color);
+                        padding-bottom: 0.5rem;
+                        margin-bottom: 1rem;
+                    }
+
+                    strong {
+                        font-weight: 600;
+                        color: var(--text-color);
+                        font-size: 0.85rem;
+                    }
+
+                    span {
+                        color: var(--text-color-secondary);
+                        font-size: 0.9rem;
+                        display: block;
+                        margin-top: 0.25rem;
+                    }
+
+                    .p-tag {
+                        margin-top: 0.25rem;
+                    }
+                }
+            }
+        }
     }
 
-    // Responsive
+    // Enhanced loading states
+    .p-datatable-loading-overlay {
+        background: rgba(var(--surface-0-rgb), 0.8);
+        backdrop-filter: blur(4px);
+    }
+
+    // Responsive design
+    @media screen and (max-width: 1200px) {
+        .p-table .p-datatable-thead th {
+            &:nth-child(3),
+            // Código Tributo
+            &:nth-child(7),
+            // Cantidad Máx
+            &:nth-child(10) {
+                // Tipos Animal
+                display: none;
+            }
+        }
+
+        .p-table .p-datatable-tbody td {
+            &:nth-child(3),
+            // Código Tributo
+            &:nth-child(7),
+            // Cantidad Máx
+            &:nth-child(10) {
+                // Tipos Animal
+                display: none;
+            }
+        }
+    }
+
+    @media screen and (max-width: 992px) {
+        .p-table .p-datatable-thead th {
+            &:nth-child(6),
+            // Posición
+            &:nth-child(8),
+            // Facturación
+            &:nth-child(9) {
+                // Cobro Auto
+                display: none;
+            }
+        }
+
+        .p-table .p-datatable-tbody td {
+            &:nth-child(6),
+            // Posición
+            &:nth-child(8),
+            // Facturación
+            &:nth-child(9) {
+                // Cobro Auto
+                display: none;
+            }
+        }
+    }
+
     @media screen and (max-width: 768px) {
         .p-table {
             .p-datatable-thead {
@@ -220,6 +455,7 @@
                     margin-bottom: 1rem;
                     display: block;
                     padding: 1rem;
+                    background: var(--surface-0);
 
                     td {
                         display: block;
@@ -232,9 +468,15 @@
                             font-weight: 600;
                             min-width: 120px;
                             margin-right: 1rem;
+                            color: var(--primary-color);
                         }
 
                         &:first-child {
+                            text-align: center;
+                            padding-bottom: 1rem;
+                            border-bottom: 1px solid var(--surface-border);
+                            margin-bottom: 0.5rem;
+
                             .p-column-title {
                                 display: none;
                             }
@@ -245,6 +487,23 @@
                             padding-top: 1rem;
                             border-top: 1px solid var(--surface-border);
                             margin-top: 1rem;
+
+                            .flex {
+                                justify-content: center;
+                            }
+                        }
+
+                        // Special handling for complex columns in mobile
+                        .flex.flex-column {
+                            .p-tag {
+                                margin-bottom: 0.25rem;
+                            }
+                        }
+
+                        // Ensure tags wrap properly in mobile
+                        .p-tag {
+                            display: inline-block;
+                            margin: 0.125rem;
                         }
                     }
                 }
@@ -262,12 +521,29 @@
                 }
             }
         }
+
+        .grid {
+            .col-2 {
+                width: 50%; // o los valores específicos de .col-6
+                padding: 0.5rem;
+                // otros estilos que necesites
+            }
+        }
+    }
+
+    // Define un mixin para los estilos comunes
+    @mixin col-responsive-styles {
+        padding: 0.25rem;
+        width: 100%;
+        // otros estilos que necesites
     }
 
     @media screen and (max-width: 576px) {
         .grid {
             .col-12,
-            .col-3 {
+            .col-2,
+            .col-3,
+            .col-6 {
                 padding: 0.25rem;
             }
         }
@@ -276,10 +552,38 @@
             width: 95vw !important;
             max-width: none !important;
         }
+
+        // Aplica el mixin en lugar de @extend
+        .grid .col-2,
+        .grid .col-3 {
+            @include col-responsive-styles;
+        }
+    }
+    // Print styles
+    @media print {
+        .p-toolbar,
+        .p-paginator,
+        .p-dialog {
+            display: none !important;
+        }
+
+        .p-table {
+            .p-datatable-tbody {
+                tr td:last-child {
+                    display: none !important; // Hide actions column
+                }
+            }
+
+            .p-datatable-thead {
+                th:last-child {
+                    display: none !important; // Hide actions header
+                }
+            }
+        }
     }
 }
 
-// Animaciones
+// Animations and transitions
 .p-button {
     transition: all 0.3s ease;
 
@@ -287,17 +591,42 @@
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
+
+    &.p-button-rounded.p-button-text:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
 }
 
 .p-tag {
     transition: all 0.2s ease;
+
+    &:hover {
+        transform: scale(1.05);
+    }
 }
 
 .p-datatable-tbody tr {
     transition: background-color 0.2s ease;
 }
 
-// Mejoras para accesibilidad
+// Loading animation
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.loading-pulse {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+// Enhanced focus states for accessibility
 .p-button:focus,
 .p-dropdown:focus,
 input:focus {
@@ -305,13 +634,57 @@ input:focus {
     outline-offset: 2px;
 }
 
-// Variables CSS personalizadas para temas
-:host-context(.light-theme) {
-    --custom-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-    --custom-border: rgba(0, 0, 0, 0.12);
+// Custom scrollbar for table
+.p-datatable-wrapper {
+    &::-webkit-scrollbar {
+        height: 8px;
+        width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: var(--surface-100);
+        border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--surface-400);
+        border-radius: 4px;
+
+        &:hover {
+            background: var(--surface-500);
+        }
+    }
 }
 
+// Dark theme specific adjustments
 :host-context(.dark-theme) {
-    --custom-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
-    --custom-border: rgba(255, 255, 255, 0.12);
+    .card {
+        background: var(--surface-900);
+        border: 1px solid var(--surface-700);
+    }
+
+    .p-table .p-datatable-tbody tr {
+        &:hover {
+            background: var(--surface-700);
+        }
+    }
+
+    .p-dialog {
+        .p-dialog-header,
+        .p-dialog-content {
+            background: var(--surface-800);
+            border-color: var(--surface-600);
+        }
+    }
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+    .p-tag {
+        border: 1px solid currentColor;
+    }
+
+    .p-button {
+        border: 2px solid currentColor;
+    }
 }

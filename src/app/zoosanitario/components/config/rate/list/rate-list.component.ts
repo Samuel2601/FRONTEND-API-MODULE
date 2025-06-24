@@ -35,7 +35,7 @@ export class RateListComponent implements OnInit {
     rows = 10;
     first = 0;
 
-    // Filtros - Corregido el filtro de status
+    // Filtros
     filters: any = {};
     globalFilterValue = '';
 
@@ -51,8 +51,32 @@ export class RateListComponent implements OnInit {
         { label: 'Jurídica', value: 'Jurídica' },
     ];
 
+    statusFilterOptions = [
+        { label: 'Activo', value: true },
+        { label: 'Inactivo', value: false },
+    ];
+
+    invoiceFilterOptions = [
+        { label: 'Permite facturación', value: true },
+        { label: 'No permite facturación', value: false },
+    ];
+
+    autoChargeFilterOptions = [
+        { label: 'Cobro automático', value: true },
+        { label: 'Sin cobro automático', value: false },
+    ];
+
+    // Mapas para etiquetas
+    chargeFrequencyLabels = {
+        NONE: 'Ninguna',
+        YEARLY: 'Anual',
+        FISCAL_YEAR: 'Año fiscal',
+        PER_SLAUGHTER_PROCESS: 'Por proceso',
+    };
+
     // Modal
     showDialog = false;
+    showViewDialog = false;
     selectedRate: Rate | null = null;
     isEditMode = false;
 
@@ -85,7 +109,7 @@ export class RateListComponent implements OnInit {
                         detail: 'Error al cargar las tarifas',
                     });
                     this.loading = false;
-                    this.rates = []; // Limpiar en caso de error
+                    this.rates = [];
                     this.totalRecords = 0;
                 },
             });
@@ -95,11 +119,8 @@ export class RateListComponent implements OnInit {
         const target = event.target as HTMLInputElement;
         this.globalFilterValue = target.value;
 
-        // Para paginación lazy, necesitamos aplicar el filtro en el servidor
-        // Resetear a la primera página cuando se aplica un filtro global
         this.first = 0;
 
-        // Agregar el filtro global a los filtros existentes
         if (target.value.trim()) {
             this.filters.search = target.value.trim();
         } else {
@@ -121,6 +142,11 @@ export class RateListComponent implements OnInit {
         this.showDialog = true;
     }
 
+    viewRate(rate: Rate) {
+        this.selectedRate = { ...rate };
+        this.showViewDialog = true;
+    }
+
     deleteRate(rate: Rate) {
         this.confirmationService.confirm({
             message: `¿Está seguro de que desea eliminar "${rate.description}"?`,
@@ -137,7 +163,7 @@ export class RateListComponent implements OnInit {
                                 summary: 'Éxito',
                                 detail: 'Tarifa eliminada correctamente',
                             });
-                            this.loadRates(true); // Saltar cache al eliminar
+                            this.loadRates(true);
                         },
                         error: (error) => {
                             console.error('Error al eliminar:', error);
@@ -180,7 +206,7 @@ export class RateListComponent implements OnInit {
                                 summary: 'Éxito',
                                 detail: 'Tarifas eliminadas correctamente',
                             });
-                            this.loadRates(true); // Saltar cache al eliminar
+                            this.loadRates(true);
                         })
                         .catch((error) => {
                             console.error('Error al eliminar tarifas:', error);
@@ -189,7 +215,7 @@ export class RateListComponent implements OnInit {
                                 summary: 'Error',
                                 detail: 'Error al eliminar algunas tarifas',
                             });
-                            this.loadRates(true); // Refrescar de todas formas
+                            this.loadRates(true);
                         });
                 }
             },
@@ -200,6 +226,11 @@ export class RateListComponent implements OnInit {
         this.showDialog = false;
         this.selectedRate = null;
         this.isEditMode = false;
+    }
+
+    onViewDialogHide() {
+        this.showViewDialog = false;
+        this.selectedRate = null;
     }
 
     onRateSaved() {
@@ -213,11 +244,10 @@ export class RateListComponent implements OnInit {
                 ? 'Tarifa actualizada correctamente'
                 : 'Tarifa creada correctamente',
         });
-        this.loadRates(true); // Saltar cache al guardar
+        this.loadRates(true);
     }
 
     exportExcel() {
-        // Implementar exportación a Excel
         this.messageService.add({
             severity: 'info',
             summary: 'Exportación',
@@ -225,16 +255,6 @@ export class RateListComponent implements OnInit {
         });
     }
 
-    // Corregido: usar 'status' en lugar de 'isActive'
-    getSeverity(status: boolean): 'success' | 'danger' | 'info' {
-        return status ? 'danger' : 'success';
-    }
-
-    getStatusText(status: boolean): string {
-        return status ? 'Inactivo' : 'Activo';
-    }
-
-    // Método mejorado de refresh
     refreshRates() {
         this.messageService.add({
             severity: 'info',
@@ -242,27 +262,18 @@ export class RateListComponent implements OnInit {
             detail: 'Consultando datos actualizados desde el servidor...',
         });
 
-        // Limpiar selecciones
         this.selectedRates = [];
-
-        // Resetear paginación al hacer refresh
         this.first = 0;
-
-        // Limpiar cache específico de rates
         this.rateService.clearRateCache();
-
-        // Cargar datos sin cache
         this.loadRates(true);
     }
 
-    // Método mejorado para manejar cambios de página y ordenamiento
     onPageChange(event: any) {
         console.log('Page change event:', event);
 
         this.first = event.first;
         this.rows = event.rows;
 
-        // Manejar ordenamiento si está presente
         if (event.sortField) {
             const sortOrder = event.sortOrder === 1 ? 'asc' : 'desc';
             this.filters.sort = { [event.sortField]: sortOrder };
@@ -274,41 +285,223 @@ export class RateListComponent implements OnInit {
     }
 
     onFilterChange() {
-        // Resetear a la primera página cuando se cambian filtros
         this.first = 0;
         this.loadRates();
     }
 
     clearFilters() {
-        // Limpiar todos los filtros
         this.filters = {};
         this.globalFilterValue = '';
 
-        // Limpiar el filtro global de la tabla
         if (this.table) {
             this.table.clear();
         }
 
-        // Resetear paginación
         this.first = 0;
-
-        // Refrescar datos con cache limpio
         this.refreshRates();
     }
 
-    // Método auxiliar para formatear arrays de tipos de persona
+    // === MÉTODOS AUXILIARES PARA DISPLAYS ===
+
+    getTypeSeverity(
+        type: string
+    ): 'success' | 'info' | 'warning' | 'danger' | 'secondary' {
+        const severityMap: {
+            [key: string]:
+                | 'success'
+                | 'info'
+                | 'warning'
+                | 'danger'
+                | 'secondary';
+        } = {
+            TASA: 'info',
+            TARIFA: 'success',
+            SERVICIOS: 'warning',
+        };
+        return severityMap[type] || 'secondary';
+    }
+
+    getStatusText(status?: boolean, deletedAt?: Date): string {
+        if (deletedAt) {
+            return 'Eliminado';
+        }
+        return status ? 'Activo' : 'Inactivo';
+    }
+
+    getStatusSeverity(
+        status?: boolean,
+        deletedAt?: Date
+    ): 'success' | 'danger' | 'warning' {
+        if (deletedAt) {
+            return 'danger';
+        }
+        return status ? 'success' : 'warning';
+    }
+
+    getChargeFrequencyLabel(frequency?: string): string {
+        if (!frequency || frequency === 'NONE') {
+            return 'Ninguna';
+        }
+        return this.chargeFrequencyLabels[frequency] || frequency;
+    }
+
+    getAnimalTypeDisplay(animalType: any): string {
+        if (typeof animalType === 'string') {
+            return animalType;
+        }
+        return animalType?.species || 'N/A';
+    }
+
     formatPersonTypes(personTypes: string[]): string {
         if (!personTypes || personTypes.length === 0) {
-            return 'Sin tipos asignados';
+            return 'Ambos tipos';
+        }
+        if (personTypes.length === 2) {
+            return 'Ambos tipos';
         }
         return personTypes.join(', ');
     }
 
-    // Método auxiliar para formatear tipos de animal
     formatAnimalTypes(animalTypes: any[]): string {
         if (!animalTypes || animalTypes.length === 0) {
             return 'Sin tipos asignados';
         }
-        return animalTypes.map((at) => at.species).join(', ');
+        return animalTypes
+            .map((at) => (typeof at === 'string' ? at : at.species))
+            .join(', ');
+    }
+
+    // === MÉTODOS AUXILIARES PARA CONFIGURACIONES ===
+
+    hasQuantityLimit(rate: Rate): boolean {
+        return (
+            !rate.quantityConfig?.isUnlimited &&
+            (!!rate.quantityConfig?.maxQuantity || !!rate.maxQuantity)
+        );
+    }
+
+    getQuantityDisplay(rate: Rate): string {
+        if (rate.quantityConfig?.isUnlimited) {
+            return 'Ilimitada';
+        }
+
+        const maxQty = rate.quantityConfig?.maxQuantity || rate.maxQuantity;
+        return maxQty ? maxQty.toString() : 'No especificada';
+    }
+
+    isAutoCharged(rate: Rate): boolean {
+        return !!rate.invoiceConfig?.automaticCharge;
+    }
+
+    getAllowsInvoice(rate: Rate): boolean {
+        return rate.invoiceConfig?.allowInvoice !== false;
+    }
+
+    isAlwaysIncluded(rate: Rate): boolean {
+        return !!rate.invoiceConfig?.alwaysInclude;
+    }
+
+    getInvoiceConfigSummary(rate: Rate): string[] {
+        const summary: string[] = [];
+
+        if (!this.getAllowsInvoice(rate)) {
+            summary.push('No facturable');
+        }
+
+        if (this.isAlwaysIncluded(rate)) {
+            summary.push('Incluir siempre');
+        }
+
+        if (this.isAutoCharged(rate)) {
+            summary.push('Cobro automático');
+        }
+
+        return summary;
+    }
+
+    hasDependencies(rate: Rate): boolean {
+        return !!(
+            rate.dependencies?.requiresPreviousRate ||
+            rate.dependencies?.requiresSlaughterProcess ||
+            !rate.dependencies?.standaloneAllowed
+        );
+    }
+
+    hasValidationRules(rate: Rate): boolean {
+        return !!(
+            rate.validationRules?.prerequisiteRates?.length ||
+            rate.validationRules?.quantityValidationRate ||
+            rate.validationRules?.quantityValidationType !== 'NONE'
+        );
+    }
+
+    // === MÉTODOS PARA TOOLTIPS Y DETALLES ===
+
+    getRateTooltip(rate: Rate): string {
+        const details = [];
+
+        if (rate.code_tributo) {
+            details.push(`Código Tributo: ${rate.code_tributo}`);
+        }
+
+        if (rate.rubroxAtributo) {
+            details.push(`Rubro: ${rate.rubroxAtributo}`);
+        }
+
+        if (this.hasQuantityLimit(rate)) {
+            details.push(`Cantidad: ${this.getQuantityDisplay(rate)}`);
+        }
+
+        const invoiceConfig = this.getInvoiceConfigSummary(rate);
+        if (invoiceConfig.length > 0) {
+            details.push(`Facturación: ${invoiceConfig.join(', ')}`);
+        }
+
+        return details.join(' | ');
+    }
+
+    getInvoiceTooltip(rate: Rate): string {
+        const details = [];
+
+        if (this.getAllowsInvoice(rate)) {
+            details.push('Facturación permitida');
+        } else {
+            details.push('Facturación no permitida');
+        }
+
+        if (this.isAlwaysIncluded(rate)) {
+            details.push('Se incluye automáticamente');
+        }
+
+        if (this.isAutoCharged(rate)) {
+            const frequency = this.getChargeFrequencyLabel(
+                rate.invoiceConfig?.chargeFrequency
+            );
+            details.push(`Cobro automático: ${frequency}`);
+        }
+
+        if (rate.invoiceConfig?.uniqueByIntroducerYear) {
+            details.push('Único por introductor al año');
+        }
+
+        return details.join('\n');
+    }
+
+    getDependenciesTooltip(rate: Rate): string {
+        const details = [];
+
+        if (rate.dependencies?.requiresPreviousRate) {
+            details.push('Requiere rate previo');
+        }
+
+        if (rate.dependencies?.requiresSlaughterProcess) {
+            details.push('Requiere proceso de sacrificio');
+        }
+
+        if (!rate.dependencies?.standaloneAllowed) {
+            details.push('No puede ser independiente');
+        }
+
+        return details.join('\n');
     }
 }
