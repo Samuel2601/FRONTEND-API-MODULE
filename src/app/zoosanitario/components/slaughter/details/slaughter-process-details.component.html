@@ -7,7 +7,7 @@
     <div class="process-header mb-4">
         <div class="flex justify-content-between align-items-start">
             <div class="process-title">
-                <h2 class="text-2xl font-bold text-primary mb-2">
+                <h2 class="text-2xl font-bold mb-2">
                     Proceso {{ processData.numeroOrden }}
                 </h2>
                 <div class="flex align-items-center gap-3">
@@ -27,13 +27,94 @@
                 <p-button
                     icon="pi pi-refresh"
                     severity="secondary"
-                    [outlined]="true"
                     (onClick)="refresh()"
                     [loading]="loading"
                     pTooltip="Actualizar datos"
                 >
                 </p-button>
             </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas Generales del Proceso -->
+    <div class="grid mb-4" *ngIf="summaryData">
+        <div class="col-12">
+            <p-panel header="Estadísticas Generales">
+                <div class="grid">
+                    <div class="col-12 md:col-3">
+                        <div class="stat-card text-center">
+                            <div class="stat-icon">
+                                <i
+                                    class="pi pi-list text-4xl text-blue-500"
+                                ></i>
+                            </div>
+                            <div class="stat-value">
+                                {{
+                                    summaryData.estadisticasGenerales
+                                        .totalAnimales
+                                }}
+                            </div>
+                            <div class="stat-label">Total Animales</div>
+                        </div>
+                    </div>
+                    <div class="col-12 md:col-3">
+                        <div class="stat-card text-center">
+                            <div class="stat-icon">
+                                <i
+                                    class="pi pi-dollar text-4xl text-green-500"
+                                ></i>
+                            </div>
+                            <div class="stat-value">
+                                ${{
+                                    summaryData.estadisticasGenerales
+                                        .montoTotalFacturado | number : "1.2-2"
+                                }}
+                            </div>
+                            <div class="stat-label">Total Facturado</div>
+                        </div>
+                    </div>
+                    <div class="col-12 md:col-3">
+                        <div class="stat-card text-center">
+                            <div class="stat-icon">
+                                <i
+                                    class="pi pi-file text-4xl text-purple-500"
+                                ></i>
+                            </div>
+                            <div class="stat-value">
+                                {{
+                                    summaryData.estadisticasGenerales
+                                        .totalFacturas
+                                }}
+                            </div>
+                            <div class="stat-label">Total Facturas</div>
+                        </div>
+                    </div>
+                    <div class="col-12 md:col-3">
+                        <div class="stat-card text-center">
+                            <div class="stat-icon">
+                                <i
+                                    class="pi pi-check-circle text-4xl"
+                                    [class]="
+                                        summaryData.estadisticasGenerales
+                                            .procesoCompleto
+                                            ? 'text-green-500'
+                                            : 'text-orange-500'
+                                    "
+                                ></i>
+                            </div>
+                            <div class="stat-value">
+                                {{
+                                    summaryData.estadisticasGenerales
+                                        .procesoCompleto
+                                        ? "SÍ"
+                                        : "NO"
+                                }}
+                            </div>
+                            <div class="stat-label">Proceso Completo</div>
+                        </div>
+                    </div>
+                </div>
+            </p-panel>
         </div>
     </div>
 
@@ -70,6 +151,10 @@
                                             | date : "dd/MM/yyyy HH:mm"
                                     }}
                                 </span>
+                            </div>
+                            <div class="detail-item" *ngIf="summaryData">
+                                <label>Tiempo Transcurrido:</label>
+                                <span>{{ tiempoTranscurridoText }}</span>
                             </div>
                         </div>
                     </div>
@@ -108,6 +193,16 @@
                                         "No disponible"
                                 }}</span>
                             </div>
+                            <div
+                                class="detail-item"
+                                *ngIf="
+                                    summaryData &&
+                                    summaryData.tiempos.tiempoDesdeRecepcion
+                                "
+                            >
+                                <label>Desde Recepción:</label>
+                                <span>{{ tiempoDesdeRecepcionText }}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -115,7 +210,10 @@
 
             <!-- Información del Introductor -->
             <p-panel header="Introductor" styleClass="mb-4">
-                <div class="introducer-card" *ngIf="introducerData">
+                <div
+                    class="introducer-card"
+                    *ngIf="introducerData || summaryData?.introductor"
+                >
                     <div class="flex justify-content-between align-items-start">
                         <div class="introducer-info flex-1">
                             <div class="grid">
@@ -124,17 +222,25 @@
                                         <div class="detail-item">
                                             <label>Nombre:</label>
                                             <span class="font-bold">
-                                                {{ introducerData.name }}
+                                                {{
+                                                    introducerData?.name ||
+                                                        summaryData?.introductor
+                                                            ?.nombre
+                                                }}
                                             </span>
                                         </div>
                                         <div class="detail-item">
                                             <label>Tipo de Persona:</label>
                                             <p-tag
                                                 [value]="
-                                                    introducerData.personType
+                                                    introducerData?.personType ||
+                                                    summaryData?.introductor
+                                                        ?.tipo
                                                 "
                                                 [severity]="
-                                                    introducerData.personType ===
+                                                    (introducerData?.personType ||
+                                                        summaryData?.introductor
+                                                            ?.tipo) ===
                                                     'Natural'
                                                         ? 'info'
                                                         : 'warning'
@@ -146,8 +252,12 @@
                                             <label>Documento:</label>
                                             <span>
                                                 {{
-                                                    introducerData.idNumber ||
-                                                        introducerData.ruc ||
+                                                    introducerData?.idNumber ||
+                                                        summaryData?.introductor
+                                                            ?.idNumber ||
+                                                        introducerData?.ruc ||
+                                                        summaryData?.introductor
+                                                            ?.ruc ||
                                                         "N/A"
                                                 }}
                                             </span>
@@ -158,29 +268,46 @@
                                     <div class="detail-group">
                                         <div
                                             class="detail-item"
-                                            *ngIf="introducerData.email"
+                                            *ngIf="
+                                                introducerData?.email ||
+                                                summaryData?.introductor?.email
+                                            "
                                         >
                                             <label>Email:</label>
                                             <span>{{
-                                                introducerData.email
+                                                introducerData?.email ||
+                                                    summaryData?.introductor
+                                                        ?.email
                                             }}</span>
                                         </div>
                                         <div
                                             class="detail-item"
-                                            *ngIf="introducerData.phone"
+                                            *ngIf="
+                                                introducerData?.phone ||
+                                                summaryData?.introductor
+                                                    ?.telefono
+                                            "
                                         >
                                             <label>Teléfono:</label>
                                             <span>{{
-                                                introducerData.phone
+                                                introducerData?.phone ||
+                                                    summaryData?.introductor
+                                                        ?.telefono
                                             }}</span>
                                         </div>
                                         <div
                                             class="detail-item"
-                                            *ngIf="introducerData.address"
+                                            *ngIf="
+                                                introducerData?.address ||
+                                                summaryData?.introductor
+                                                    ?.direccion
+                                            "
                                         >
                                             <label>Dirección:</label>
                                             <span>{{
-                                                introducerData.address
+                                                introducerData?.address ||
+                                                    summaryData?.introductor
+                                                        ?.direccion
                                             }}</span>
                                         </div>
                                     </div>
@@ -199,15 +326,21 @@
                         </div>
                     </div>
                 </div>
-                <div *ngIf="!introducerData" class="text-center p-4 text-600">
+                <div
+                    *ngIf="!introducerData && !summaryData?.introductor"
+                    class="text-center p-4 text-600"
+                >
                     <i class="pi pi-user text-3xl mb-2 block"></i>
                     <p>Información del introductor no disponible</p>
                 </div>
             </p-panel>
 
-            <!-- Información de Recepción -->
+            <!-- Información de Recepción Detallada -->
             <p-panel header="Recepción" styleClass="mb-4">
-                <div class="reception-card" *ngIf="receptionData">
+                <div
+                    class="reception-card"
+                    *ngIf="receptionData || summaryData?.recepcion"
+                >
                     <div class="grid">
                         <div class="col-12 md:col-6">
                             <div class="detail-group">
@@ -215,7 +348,8 @@
                                     <label>Fecha y Hora:</label>
                                     <span>
                                         {{
-                                            receptionData.fechaHoraRecepcion
+                                            receptionData?.fechaHoraRecepcion ||
+                                                summaryData?.recepcion?.fecha
                                                 | date : "dd/MM/yyyy HH:mm"
                                         }}
                                     </span>
@@ -223,10 +357,15 @@
                                 <div class="detail-item">
                                     <label>Estado:</label>
                                     <p-tag
-                                        [value]="receptionData.estado"
+                                        [value]="
+                                            receptionData?.estado ||
+                                            summaryData?.recepcion?.estado
+                                        "
                                         [severity]="
                                             getReceptionStateSeverity(
-                                                receptionData.estado
+                                                receptionData?.estado ||
+                                                    summaryData?.recepcion
+                                                        ?.estado
                                             )
                                         "
                                     >
@@ -235,7 +374,10 @@
                                 <div class="detail-item">
                                     <label>Prioridad:</label>
                                     <p-rating
-                                        [ngModel]="receptionData.prioridad"
+                                        [ngModel]="
+                                            receptionData?.prioridad ||
+                                            summaryData?.recepcion?.prioridad
+                                        "
                                         [readonly]="true"
                                         [stars]="5"
                                         [cancel]="false"
@@ -247,41 +389,145 @@
                         <div class="col-12 md:col-6">
                             <div
                                 class="detail-group"
-                                *ngIf="receptionData.animalHealthCertificate"
+                                *ngIf="
+                                    receptionData?.animalHealthCertificate ||
+                                    summaryData?.recepcion?.certificadoSanitario
+                                "
                             >
                                 <div class="detail-item">
                                     <label>Certificado CZPM:</label>
                                     <span class="font-bold">
                                         {{
                                             receptionData
-                                                .animalHealthCertificate
-                                                .numeroCZPM
+                                                ?.animalHealthCertificate
+                                                ?.numeroCZPM ||
+                                                summaryData?.recepcion
+                                                    ?.certificadoSanitario
+                                                    ?.numero
                                         }}
                                     </span>
                                 </div>
                                 <div class="detail-item">
                                     <label>Total Productos:</label>
                                     <span>{{
-                                        receptionData.animalHealthCertificate
-                                            .totalProductos
+                                        receptionData?.animalHealthCertificate
+                                            ?.totalProductos ||
+                                            summaryData?.recepcion
+                                                ?.certificadoSanitario
+                                                ?.totalProductos
                                     }}</span>
                                 </div>
                                 <div
                                     class="detail-item"
                                     *ngIf="
-                                        receptionData.animalHealthCertificate
-                                            .origen
+                                        receptionData?.animalHealthCertificate
+                                            ?.autorizadoA ||
+                                        summaryData?.recepcion
+                                            ?.certificadoSanitario?.autorizadoA
                                     "
                                 >
-                                    <label>Origen:</label>
+                                    <label>Autorizado A:</label>
                                     <span>{{
-                                        receptionData.animalHealthCertificate
-                                            .origen
+                                        receptionData?.animalHealthCertificate
+                                            ?.autorizadoA ||
+                                            summaryData?.recepcion
+                                                ?.certificadoSanitario
+                                                ?.autorizadoA
                                     }}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Información de Transporte -->
+                    <div
+                        class="mt-4"
+                        *ngIf="summaryData?.recepcion?.transporte"
+                    >
+                        <h6 class="text-primary mb-3">
+                            Condiciones de Transporte
+                        </h6>
+                        <div class="grid">
+                            <div class="col-12 md:col-4">
+                                <div class="detail-group">
+                                    <div class="detail-item">
+                                        <label>Temperatura:</label>
+                                        <span
+                                            >{{
+                                                summaryData.recepcion.transporte
+                                                    .temperatura
+                                            }}°C</span
+                                        >
+                                    </div>
+                                    <div class="detail-item">
+                                        <label>Humedad:</label>
+                                        <span
+                                            >{{
+                                                summaryData.recepcion.transporte
+                                                    .humedadAmbiental
+                                            }}%</span
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-4">
+                                <div class="detail-group">
+                                    <div class="detail-item">
+                                        <label>Condiciones Higiénicas:</label>
+                                        <span>{{
+                                            summaryData.recepcion.transporte
+                                                .condicionesHigienicas
+                                        }}</span>
+                                    </div>
+                                    <div
+                                        class="detail-item"
+                                        *ngIf="
+                                            summaryData.recepcion.transporte
+                                                .fotografias > 0
+                                        "
+                                    >
+                                        <label>Fotografías:</label>
+                                        <span>{{
+                                            summaryData.recepcion.transporte
+                                                .fotografias
+                                        }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-4">
+                                <div class="detail-group">
+                                    <div
+                                        class="detail-item"
+                                        *ngIf="
+                                            summaryData.recepcion.transporte
+                                                .condicionAnimales
+                                        "
+                                    >
+                                        <label>Condición Animales:</label>
+                                        <span>{{
+                                            summaryData.recepcion.transporte
+                                                .condicionAnimales
+                                        }}</span>
+                                    </div>
+                                    <div
+                                        class="detail-item"
+                                        *ngIf="
+                                            summaryData.recepcion.transporte
+                                                .fechaInspeccion
+                                        "
+                                    >
+                                        <label>Fecha Inspección:</label>
+                                        <span>{{
+                                            summaryData.recepcion.transporte
+                                                .fechaInspeccion
+                                                | date : "dd/MM/yyyy HH:mm"
+                                        }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mt-3">
                         <p-button
                             label="Ver Detalles de Recepción"
@@ -294,68 +540,183 @@
                         </p-button>
                     </div>
                 </div>
-                <div *ngIf="!receptionData" class="text-center p-4 text-600">
+                <div
+                    *ngIf="!receptionData && !summaryData?.recepcion"
+                    class="text-center p-4 text-600"
+                >
                     <i class="pi pi-inbox text-3xl mb-2 block"></i>
                     <p>No hay recepción asociada</p>
+                </div>
+            </p-panel>
+
+            <!-- Resumen de Facturación Detallado -->
+            <p-panel
+                header="Facturación Detallada"
+                styleClass="mb-4"
+                *ngIf="summaryData"
+            >
+                <div class="invoice-summary">
+                    <!-- Estados de Facturas -->
+                    <div class="stat-section mb-3">
+                        <h6 class="text-primary mb-2">Estados de Facturas</h6>
+                        <div class="invoice-states">
+                            <div class="invoice-state-item">
+                                <span class="state-label">Pagadas:</span>
+                                <p-tag
+                                    [value]="
+                                        summaryData.facturacion.porEstado.pagadas.toString()
+                                    "
+                                    severity="success"
+                                    class="ml-2"
+                                ></p-tag>
+                            </div>
+                            <div class="invoice-state-item">
+                                <span class="state-label">Emitidas:</span>
+                                <p-tag
+                                    [value]="
+                                        summaryData.facturacion.porEstado.emitidas.toString()
+                                    "
+                                    severity="warning"
+                                    class="ml-2"
+                                ></p-tag>
+                            </div>
+                            <div class="invoice-state-item">
+                                <span class="state-label">Canceladas:</span>
+                                <p-tag
+                                    [value]="
+                                        summaryData.facturacion.porEstado.canceladas.toString()
+                                    "
+                                    severity="danger"
+                                    class="ml-2"
+                                ></p-tag>
+                            </div>
+                            <div class="invoice-state-item">
+                                <span class="state-label">Pendientes:</span>
+                                <p-tag
+                                    [value]="
+                                        summaryData.facturacion.porEstado.pendientes.toString()
+                                    "
+                                    severity="info"
+                                    class="ml-2"
+                                ></p-tag>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Montos -->
+                    <div class="stat-section mb-3">
+                        <h6 class="text-primary mb-2">Montos</h6>
+                        <div class="money-stats">
+                            <div class="money-item">
+                                <label>Total Pagado:</label>
+                                <span class="font-bold text-green-600"
+                                    >${{
+                                        summaryData.facturacion.montos
+                                            .totalPagado | number : "1.2-2"
+                                    }}</span
+                                >
+                            </div>
+                            <div class="money-item">
+                                <label>Total Emitido:</label>
+                                <span class="font-bold text-orange-600"
+                                    >${{
+                                        summaryData.facturacion.montos
+                                            .totalEmitido | number : "1.2-2"
+                                    }}</span
+                                >
+                            </div>
+                            <div class="money-item">
+                                <label>Total General:</label>
+                                <span class="font-bold text-primary"
+                                    >${{
+                                        summaryData.facturacion.montos
+                                            .totalGeneral | number : "1.2-2"
+                                    }}</span
+                                >
+                            </div>
+                            <div
+                                class="money-item"
+                                *ngIf="
+                                    summaryData.facturacion.montos
+                                        .promedioFactura > 0
+                                "
+                            >
+                                <label>Promedio:</label>
+                                <span class="font-bold"
+                                    >${{
+                                        summaryData.facturacion.montos
+                                            .promedioFactura | number : "1.2-2"
+                                    }}</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fechas Importantes -->
+                    <div
+                        class="stat-section mb-3"
+                        *ngIf="summaryData.facturacion.fechas.primeraEmision"
+                    >
+                        <h6 class="text-primary mb-2">Fechas Importantes</h6>
+                        <div class="date-stats">
+                            <div class="date-item">
+                                <label>Primera Emisión:</label>
+                                <span>{{
+                                    summaryData.facturacion.fechas
+                                        .primeraEmision | date : "dd/MM/yyyy"
+                                }}</span>
+                            </div>
+                            <div
+                                class="date-item"
+                                *ngIf="
+                                    summaryData.facturacion.fechas.ultimaEmision
+                                "
+                            >
+                                <label>Última Emisión:</label>
+                                <span>{{
+                                    summaryData.facturacion.fechas.ultimaEmision
+                                        | date : "dd/MM/yyyy"
+                                }}</span>
+                            </div>
+                            <div
+                                class="date-item"
+                                *ngIf="
+                                    summaryData.facturacion.fechas
+                                        .proximoVencimiento
+                                "
+                            >
+                                <label>Próximo Vencimiento:</label>
+                                <span class="font-bold text-orange-600">{{
+                                    proximoVencimientoText
+                                }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico de Facturación -->
+                    <div
+                        class="chart-section mt-4"
+                        *ngIf="
+                            invoiceChartData.labels &&
+                            summaryData.facturacion.total > 0
+                        "
+                    >
+                        <h6 class="text-primary mb-2">
+                            Distribución por Estado
+                        </h6>
+                        <p-chart
+                            type="doughnut"
+                            [data]="invoiceChartData"
+                            [options]="invoiceChartOptions"
+                            width="250"
+                            height="250"
+                        ></p-chart>
+                    </div>
                 </div>
             </p-panel>
         </div>
 
         <div class="col-12 lg:col-4">
-            <!-- Resumen Estadístico -->
-            <p-panel header="Resumen" styleClass="mb-4">
-                <div class="summary-stats" *ngIf="summaryData">
-                    <div class="stat-item">
-                        <div class="stat-icon">
-                            <i class="pi pi-search text-blue-500"></i>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-value">
-                                {{ summaryData.inspecciones.total }}
-                            </div>
-                            <div class="stat-label">Inspecciones</div>
-                        </div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-icon">
-                            <i class="pi pi-dollar text-green-500"></i>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-value">
-                                {{
-                                    summaryData.facturacion.tieneFactura
-                                        ? "1"
-                                        : "0"
-                                }}
-                            </div>
-                            <div class="stat-label">Facturas</div>
-                        </div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-icon">
-                            <i class="pi pi-cog text-orange-500"></i>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-value">
-                                {{ summaryData.faenamientos.total }}
-                            </div>
-                            <div class="stat-label">Faenamientos</div>
-                        </div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-icon">
-                            <i class="pi pi-truck text-purple-500"></i>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-value">
-                                {{ summaryData.despachos.total }}
-                            </div>
-                            <div class="stat-label">Despachos</div>
-                        </div>
-                    </div>
-                </div>
-            </p-panel>
-
             <!-- Acciones Rápidas -->
             <p-panel header="Acciones" styleClass="mb-4">
                 <div class="quick-actions">
@@ -388,6 +749,194 @@
                         (onClick)="generateReport()"
                     >
                     </p-button>
+                </div>
+            </p-panel>
+            <!-- Resumen de Inspecciones Detallado -->
+            <p-panel
+                header="Inspecciones Detalladas"
+                styleClass="mb-4"
+                *ngIf="summaryData"
+            >
+                <div class="inspection-summary">
+                    <!-- Estadísticas por Resultado -->
+                    <div class="stat-section mb-3">
+                        <h6 class="text-primary mb-2">Por Resultado</h6>
+                        <div class="result-stats">
+                            <div class="result-item">
+                                <span class="result-label">Pendientes:</span>
+                                <p-tag
+                                    [value]="
+                                        summaryData.inspecciones.porResultado.pendientes.toString()
+                                    "
+                                    severity="warning"
+                                    class="ml-2"
+                                ></p-tag>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Aptas:</span>
+                                <p-tag
+                                    [value]="
+                                        summaryData.inspecciones.porResultado.aptas.toString()
+                                    "
+                                    severity="success"
+                                    class="ml-2"
+                                ></p-tag>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Devolución:</span>
+                                <p-tag
+                                    [value]="
+                                        summaryData.inspecciones.porResultado.devolucion.toString()
+                                    "
+                                    severity="danger"
+                                    class="ml-2"
+                                ></p-tag>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Cuarentena:</span>
+                                <p-tag
+                                    [value]="
+                                        summaryData.inspecciones.porResultado.cuarentena.toString()
+                                    "
+                                    severity="info"
+                                    class="ml-2"
+                                ></p-tag>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Comisión:</span>
+                                <p-tag
+                                    [value]="
+                                        summaryData.inspecciones.porResultado.comision.toString()
+                                    "
+                                    severity="info"
+                                    class="ml-2"
+                                ></p-tag>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas por Sexo -->
+                    <div class="stat-section mb-3">
+                        <h6 class="text-primary mb-2">Por Sexo</h6>
+                        <div class="sex-stats">
+                            <div class="sex-item">
+                                <span class="sex-label">Machos:</span>
+                                <span class="sex-value">{{
+                                    summaryData.inspecciones.porSexo.macho || 0
+                                }}</span>
+                            </div>
+                            <div class="sex-item">
+                                <span class="sex-label">Hembras:</span>
+                                <span class="sex-value">{{
+                                    summaryData.inspecciones.porSexo.hembra || 0
+                                }}</span>
+                            </div>
+                            <div class="sex-item">
+                                <span class="sex-label">Pendientes:</span>
+                                <span class="sex-value">{{
+                                    summaryData.inspecciones.porSexo
+                                        .pendiente || 0
+                                }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas de Peso y Edad -->
+                    <div
+                        class="stat-section mb-3"
+                        *ngIf="
+                            summaryData.inspecciones.estadisticas.pesoTotal > 0
+                        "
+                    >
+                        <h6 class="text-primary mb-2">Estadísticas</h6>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <label>Peso Promedio:</label>
+                                <span class="font-bold"
+                                    >{{
+                                        summaryData.inspecciones.estadisticas
+                                            .pesoPromedio
+                                    }}
+                                    kg</span
+                                >
+                            </div>
+                            <div class="stat-item">
+                                <label>Peso Total:</label>
+                                <span class="font-bold"
+                                    >{{
+                                        summaryData.inspecciones.estadisticas
+                                            .pesoTotal
+                                    }}
+                                    kg</span
+                                >
+                            </div>
+                            <div class="stat-item">
+                                <label>Edad Promedio:</label>
+                                <span class="font-bold"
+                                    >{{
+                                        summaryData.inspecciones.estadisticas
+                                            .edadPromedio
+                                    }}
+                                    años</span
+                                >
+                            </div>
+                            <div class="stat-item">
+                                <label>Rango Peso:</label>
+                                <span
+                                    >{{
+                                        summaryData.inspecciones.estadisticas
+                                            .pesoMinimo
+                                    }}
+                                    -
+                                    {{
+                                        summaryData.inspecciones.estadisticas
+                                            .pesoMaximo
+                                    }}
+                                    kg</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Especies -->
+                    <div class="stat-section" *ngIf="especiesArray.length > 0">
+                        <h6 class="text-primary mb-2">Por Especies</h6>
+                        <div class="species-list">
+                            <div
+                                class="species-item"
+                                *ngFor="let especie of especiesArray"
+                            >
+                                <span class="species-name"
+                                    >{{ especie.nombre }}:</span
+                                >
+                                <p-tag
+                                    [value]="especie.cantidad.toString()"
+                                    severity="info"
+                                    class="ml-2"
+                                ></p-tag>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico de Inspecciones -->
+                    <div
+                        class="chart-section mt-4"
+                        *ngIf="
+                            inspectionChartData.labels &&
+                            summaryData.inspecciones.total > 0
+                        "
+                    >
+                        <h6 class="text-primary mb-2">
+                            Distribución por Resultado
+                        </h6>
+                        <p-chart
+                            type="doughnut"
+                            [data]="inspectionChartData"
+                            [options]="inspectionChartOptions"
+                            width="250"
+                            height="250"
+                        ></p-chart>
+                    </div>
                 </div>
             </p-panel>
 
@@ -467,10 +1016,25 @@
                         class="flex align-items-center justify-content-between w-full mr-3"
                     >
                         <span class="font-semibold">Inspecciones Externas</span>
-                        <p-tag
-                            [value]="inspectionsData.length.toString()"
-                            severity="info"
-                        ></p-tag>
+                        <div
+                            class="p-button-outlined p-button-sm flex align-items-center"
+                        >
+                            <p-button
+                                label="Todos"
+                                class="p-button-outlined p-button-sm"
+                                (click)="
+                                    getExternalInspections(
+                                        processData.numeroOrden
+                                    )
+                                "
+                            >
+                            </p-button>
+                            <p-tag
+                                [ngStyle]="{ 'margin-left': '0.5rem' }"
+                                [value]="inspectionsData.length.toString()"
+                                severity="info"
+                            ></p-tag>
+                        </div>
                     </div>
                 </ng-template>
 

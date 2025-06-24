@@ -20,11 +20,143 @@ import {
     Slaughtering,
     SlaughterProcess,
     SlaughterProcessService,
-    SlaughterProcessSummary,
     User,
 } from 'src/app/zoosanitario/services/slaughter-process.service';
 import { InvoiceService } from 'src/app/zoosanitario/services/invoice.service';
 import { Router } from '@angular/router';
+
+// Interfaces actualizadas para el resumen detallado
+export interface SlaughterProcessSummary {
+    proceso: {
+        id: string;
+        numeroOrden: string;
+        estado: string;
+        fechaCreacion: string;
+        version: number;
+    };
+    introductor: {
+        id: string;
+        idNumber: string;
+        ruc: string;
+        nombre: string;
+        email: string;
+        telefono: string;
+        direccion: string;
+        tipo: string;
+    };
+    recepcion: {
+        id: string;
+        fecha: string;
+        estado: string;
+        prioridad: number;
+        fechaProgramada: string;
+        observaciones: string;
+        certificadoSanitario: {
+            numero: string;
+            autorizadoA: string;
+            totalProductos: number;
+        };
+        transporte: {
+            temperatura: number;
+            humedadAmbiental: number;
+            condicionesHigienicas: string;
+            condicionAnimales: string;
+            observaciones: string;
+            fechaInspeccion: string;
+            fotografias: number;
+        };
+    };
+    inspecciones: {
+        total: number;
+        porResultado: {
+            pendientes: number;
+            aptas: number;
+            devolucion: number;
+            cuarentena: number;
+            comision: number;
+        };
+        porSexo: {
+            macho: number;
+            hembra: number;
+            pendiente: number;
+        };
+        porEspecie: { [key: string]: number };
+        estadisticas: {
+            pesoPromedio: number;
+            pesoTotal: number;
+            pesoMinimo: number;
+            pesoMaximo: number;
+            edadPromedio: number;
+            edadMinima: number;
+            edadMaxima: number;
+        };
+        detalles: any[];
+    };
+    facturacion: {
+        total: number;
+        tieneFacturas: boolean;
+        porEstado: {
+            pagadas: number;
+            emitidas: number;
+            canceladas: number;
+            pendientes: number;
+        };
+        montos: {
+            totalPagado: number;
+            totalEmitido: number;
+            totalCancelado: number;
+            totalPendiente: number;
+            totalGeneral: number;
+            promedioFactura: number;
+        };
+        fechas: {
+            primeraEmision: string;
+            ultimaEmision: string;
+            proximoVencimiento: string;
+        };
+        facturas: any[];
+    };
+    faenamientos: {
+        total: number;
+        detalles: any[];
+    };
+    inspeccionesInternas: {
+        total: number;
+        detalles: any[];
+    };
+    despachos: {
+        total: number;
+        detalles: any[];
+    };
+    tiempos: {
+        fechaCreacion: string;
+        fechaUltimaActualizacion: string;
+        tiempoTranscurrido: number;
+        tiempoDesdeRecepcion: number;
+    };
+    auditoria: {
+        creadoPor: {
+            id: string;
+            nombre: string;
+            apellido: string;
+            email: string;
+        };
+        actualizadoPor: {
+            id: string;
+            nombre: string;
+            apellido: string;
+            email: string;
+        };
+        eliminado: boolean;
+        fechaEliminacion: string;
+    };
+    estadisticasGenerales: {
+        totalAnimales: number;
+        totalFacturas: number;
+        montoTotalFacturado: number;
+        procesoCompleto: boolean;
+    };
+}
 
 @Component({
     selector: 'app-slaughter-process-details',
@@ -69,10 +201,17 @@ export class SlaughterProcessDetailsComponent implements OnInit, OnDestroy {
         'Finalizado',
     ];
 
+    // Opciones para gráficos
+    inspectionChartData: any = {};
+    inspectionChartOptions: any = {};
+    invoiceChartData: any = {};
+    invoiceChartOptions: any = {};
+
     ngOnInit(): void {
         if (this.processId) {
             this.loadProcessDetails();
         }
+        this.initializeChartOptions();
     }
 
     ngOnDestroy(): void {
@@ -261,16 +400,17 @@ export class SlaughterProcessDetailsComponent implements OnInit, OnDestroy {
         this.slaughterProcessService
             .getSlaughterProcessSummary(this.processData._id)
             .pipe(takeUntil(this.destroy$))
-            .subscribe({
-                next: (summary: SlaughterProcessSummary) => {
+            .subscribe(
+                (summary: any) => {
                     console.log('Resumen del proceso cargado:', summary);
                     this.summaryData = summary;
+                    this.updateChartData();
                 },
-                error: (error) => {
+                (error) => {
                     console.error('Error loading summary:', error);
                     // No mostrar error al usuario, el resumen no es crítico
-                },
-            });
+                }
+            );
     }
 
     setupStateActions(): void {
@@ -312,7 +452,118 @@ export class SlaughterProcessDetailsComponent implements OnInit, OnDestroy {
     }
 
     // ========================================
-    // ACCIONES DEL PROCESO
+    // MÉTODOS PARA GRÁFICOS
+    // ========================================
+
+    initializeChartOptions(): void {
+        this.inspectionChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                },
+            },
+        };
+
+        this.invoiceChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                },
+            },
+        };
+    }
+
+    updateChartData(): void {
+        if (!this.summaryData) return;
+
+        // Datos para gráfico de inspecciones por resultado
+        this.inspectionChartData = {
+            labels: [
+                'Pendientes',
+                'Aptas',
+                'Devolución',
+                'Cuarentena',
+                'Comisión',
+            ],
+            datasets: [
+                {
+                    data: [
+                        this.summaryData.inspecciones.porResultado.pendientes,
+                        this.summaryData.inspecciones.porResultado.aptas,
+                        this.summaryData.inspecciones.porResultado.devolucion,
+                        this.summaryData.inspecciones.porResultado.cuarentena,
+                        this.summaryData.inspecciones.porResultado.comision,
+                    ],
+                    backgroundColor: [
+                        '#FFA726', // warning - pendientes
+                        '#66BB6A', // success - aptas
+                        '#EF5350', // danger - devolución
+                        '#42A5F5', // info - cuarentena
+                        '#AB47BC', // help - comisión
+                    ],
+                },
+            ],
+        };
+
+        // Datos para gráfico de facturas por estado
+        this.invoiceChartData = {
+            labels: ['Pagadas', 'Emitidas', 'Canceladas', 'Pendientes'],
+            datasets: [
+                {
+                    data: [
+                        this.summaryData.facturacion.porEstado.pagadas,
+                        this.summaryData.facturacion.porEstado.emitidas,
+                        this.summaryData.facturacion.porEstado.canceladas,
+                        this.summaryData.facturacion.porEstado.pendientes,
+                    ],
+                    backgroundColor: [
+                        '#66BB6A', // success - pagadas
+                        '#FFA726', // warning - emitidas
+                        '#EF5350', // danger - canceladas
+                        '#42A5F5', // info - pendientes
+                    ],
+                },
+            ],
+        };
+    }
+
+    // ========================================
+    // GETTERS PARA MOSTRAR DATOS
+    // ========================================
+
+    get especiesArray(): { nombre: string; cantidad: number }[] {
+        if (!this.summaryData?.inspecciones.porEspecie) return [];
+        return Object.entries(this.summaryData.inspecciones.porEspecie).map(
+            ([nombre, cantidad]) => ({ nombre, cantidad })
+        );
+    }
+
+    get tiempoTranscurridoText(): string {
+        if (!this.summaryData?.tiempos.tiempoTranscurrido) return 'N/A';
+        const dias = this.summaryData.tiempos.tiempoTranscurrido;
+        return dias === 1 ? '1 día' : `${dias} días`;
+    }
+
+    get tiempoDesdeRecepcionText(): string {
+        if (!this.summaryData?.tiempos.tiempoDesdeRecepcion) return 'N/A';
+        const dias = this.summaryData.tiempos.tiempoDesdeRecepcion;
+        return dias === 1 ? '1 día' : `${dias} días`;
+    }
+
+    get proximoVencimientoText(): string {
+        if (!this.summaryData?.facturacion.fechas.proximoVencimiento)
+            return 'N/A';
+        return new Date(
+            this.summaryData.facturacion.fechas.proximoVencimiento
+        ).toLocaleDateString('es-ES');
+    }
+
+    // ========================================
+    // ACCIONES DEL PROCESO (continuación del código original)
     // ========================================
 
     editProcess(): void {
@@ -489,8 +740,7 @@ export class SlaughterProcessDetailsComponent implements OnInit, OnDestroy {
                     this.messageService.add({
                         severity: 'error',
                         summary: 'Error',
-                        detail:
-                            error.error?.message || 'Error al generar factura',
+                        detail: error.message || 'Error al generar factura',
                     });
                 },
             });
@@ -664,5 +914,12 @@ export class SlaughterProcessDetailsComponent implements OnInit, OnDestroy {
         if (currentIndex === -1) return 0;
 
         return (currentIndex / (this.processStates.length - 1)) * 100;
+    }
+
+    getExternalInspections(number: string): void {
+        this.router.navigate([
+            'zoosanitario/workflow/external-inspection/recepcion/',
+            number,
+        ]);
     }
 }
