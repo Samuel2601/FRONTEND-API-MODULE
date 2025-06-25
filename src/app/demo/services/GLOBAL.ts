@@ -3,7 +3,7 @@ export const GLOBAL = {
     //url: 'http://127.0.0.1:4202/new/',
 
     url: 'https://geoapi.esmeraldas.gob.ec/new/',
-    url_zoosanitario: 'https://geoapi.esmeraldas.gob.ec/zoo/',
+    url_zoosanitario: 'https://geoapi.esmeraldas.gob.ec/api/',
     //url_zoosanitario: 'http://127.0.0.1:3000/api/',
     version: '1.0.0',
     appName: 'ESMERALDAS LA BELLA',
