@@ -120,6 +120,9 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
     introducerLocked = false;
     isCalculating = false;
 
+    // Item-specific loading states
+    itemsLoadingState: { [key: number]: boolean } = {};
+
     // Optimization properties
     retryCount = 0;
     maxRetries = 3;
@@ -385,10 +388,8 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
             response?.data &&
             Array.isArray(response.data)
         ) {
-            let totalFromAPI = 0;
-
             // Process items with rates (from API)
-            this.items.controls.forEach((formItem: any) => {
+            this.items.controls.forEach((formItem: any, index: number) => {
                 const rateId = formItem.get('rateId')?.value;
 
                 if (rateId) {
@@ -404,20 +405,15 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
                             },
                             { emitEvent: false }
                         );
-
-                        totalFromAPI += calculatedItem.totalAmount;
                     }
                 }
+
+                // Clear loading state for this item
+                this.itemsLoadingState[index] = false;
             });
 
-            this.form.patchValue(
-                {
-                    subtotal: totalFromAPI,
-                    totalAmount: totalFromAPI,
-                },
-                { emitEvent: false }
-            );
-
+            // Calculate combined totals after all updates
+            this.calculateCombinedTotals();
             this.calculationError = false;
         } else {
             this.calculationError = true;
@@ -428,11 +424,18 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
                 detail: 'No se recibieron datos válidos del servicio de cálculo. Se usó cálculo manual.',
             });
         }
+
+        // Clear all loading states
+        this.itemsLoadingState = {};
     }
 
     private handleCalculationError(error: any) {
         this.isCalculating = false;
         this.calculationError = true;
+
+        // Clear all loading states
+        this.itemsLoadingState = {};
+
         this.calculateManually();
 
         if (error.status === 429) {
@@ -1146,11 +1149,10 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
 
     // Template event handlers
     onItemQuantityChange(item: any, index: number) {
-        console.log('onItemQuantityChange', item, index);
+        // Do nothing during input, only on blur
     }
 
     onItemQuantityBlur(item: any, index: number) {
-        console.log('onItemQuantityBlur', item, index);
         const rateId = item.get('rateId')?.value;
 
         if (rateId) {
@@ -1164,12 +1166,33 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
     // ===============================
 
     private handleItemsChange(items: any[]) {
-        // All items now have rates, so process all using API
-        const rateItems = items.filter((item) => item.rateId);
+        // Separate items that need API calculation from those that can be calculated locally
+        const itemsNeedingAPI: any[] = [];
+        const itemsForLocalCalculation: any[] = [];
 
-        if (rateItems.length > 0) {
-            this.triggerCalculationOptimized();
-        } else {
+        items.forEach((item, index) => {
+            if (item.rateId) {
+                const currentUnitPrice = item.unitPrice;
+                // If we don't have a unit price or it's 0, we need API calculation
+                if (!currentUnitPrice || currentUnitPrice === 0) {
+                    itemsNeedingAPI.push({ ...item, itemIndex: index });
+                } else {
+                    // We can calculate locally
+                    itemsForLocalCalculation.push({
+                        ...item,
+                        itemIndex: index,
+                    });
+                }
+            }
+        });
+
+        // Calculate locally for items with unit price
+        this.calculateItemsLocally(itemsForLocalCalculation);
+
+        // Send to API only items that need unit price calculation
+        if (itemsNeedingAPI.length > 0) {
+            this.triggerAPICalculation(itemsNeedingAPI);
+        } else if (items.length === 0) {
             // If no items, reset totals
             this.form.patchValue(
                 {
@@ -1179,25 +1202,77 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
                 { emitEvent: false }
             );
         }
+
+        // Calculate combined totals after all updates
+        setTimeout(() => this.calculateCombinedTotals(), 100);
+    }
+
+    private calculateItemsLocally(itemsWithPrices: any[]) {
+        itemsWithPrices.forEach((item) => {
+            const itemIndex = item.itemIndex;
+            const itemControl = this.items.at(itemIndex);
+
+            if (itemControl) {
+                const quantity = item.quantity || 0;
+                const unitPrice = item.unitPrice || 0;
+                const total = quantity * unitPrice;
+
+                itemControl.patchValue({ total: total }, { emitEvent: false });
+            }
+        });
+    }
+
+    private triggerAPICalculation(itemsNeedingAPI: any[]) {
+        // Set loading state for items that need API calculation
+        itemsNeedingAPI.forEach((item) => {
+            this.itemsLoadingState[item.itemIndex] = true;
+        });
+
+        const itemsToCalculate = itemsNeedingAPI.map((item: any) => ({
+            rateId: item.rateId,
+            quantity: item.quantity,
+        }));
+
+        // Use optimized subject
+        this.calculateSubject$.next(itemsToCalculate);
     }
 
     private triggerCalculationOptimized() {
-        const itemsWithRates = this.items.value.filter(
-            (item: any) => item.rateId && item.quantity > 0
-        );
+        // Get current items and separate by calculation needs
+        const currentItems = this.items.value;
+        const itemsNeedingAPI: any[] = [];
+        const itemsForLocalCalculation: any[] = [];
 
-        if (itemsWithRates.length === 0) {
-            this.form.patchValue(
-                {
-                    subtotal: 0,
-                    totalAmount: 0,
-                },
-                { emitEvent: false }
-            );
+        currentItems.forEach((item: any, index: number) => {
+            if (item.rateId && item.quantity > 0) {
+                const currentUnitPrice = item.unitPrice;
+                // If we don't have a unit price or it's 0, we need API calculation
+                if (!currentUnitPrice || currentUnitPrice === 0) {
+                    itemsNeedingAPI.push({ ...item, itemIndex: index });
+                } else {
+                    // We can calculate locally
+                    itemsForLocalCalculation.push({
+                        ...item,
+                        itemIndex: index,
+                    });
+                }
+            }
+        });
+
+        // Calculate locally first
+        this.calculateItemsLocally(itemsForLocalCalculation);
+
+        if (itemsNeedingAPI.length === 0) {
+            this.calculateCombinedTotals();
             return;
         }
 
-        const itemsToCalculate = itemsWithRates.map((item: any) => ({
+        // Set loading state for items that need API calculation
+        itemsNeedingAPI.forEach((item) => {
+            this.itemsLoadingState[item.itemIndex] = true;
+        });
+
+        const itemsToCalculate = itemsNeedingAPI.map((item: any) => ({
             rateId: item.rateId,
             quantity: item.quantity,
         }));
