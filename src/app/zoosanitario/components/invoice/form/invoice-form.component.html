@@ -279,8 +279,8 @@
                         {{ getCurrentCodeTributoDescription() }}
                     </p>
                     <small class="text-xs text-blue-600 mt-1 block">
-                        Solo se pueden agregar items con el mismo código tributo
-                        en esta factura.
+                        Solo se pueden agregar tarifas con el mismo código
+                        tributo.
                     </small>
                 </div>
 
@@ -533,12 +533,11 @@
                                     <div class="item-number">
                                         <span>Item #{{ i + 1 }}</span>
 
-                                        <!-- Mostrar información del rate O indicar que es manual -->
+                                        <!-- Mostrar información del rate -->
                                         <ng-container
                                             *ngIf="
                                                 item.get('rateId')
-                                                    ?.value as rateId;
-                                                else manualItem
+                                                    ?.value as rateId
                                             "
                                         >
                                             <ng-container
@@ -553,15 +552,6 @@
                                                 </span>
                                             </ng-container>
                                         </ng-container>
-
-                                        <!-- Template para items manuales -->
-                                        <ng-template #manualItem>
-                                            <span
-                                                class="manual-item-badge ml-2 text-xs bg-orange-100 text-orange-700 px-2 py-1 border-round"
-                                            >
-                                                MANUAL
-                                            </span>
-                                        </ng-template>
                                     </div>
 
                                     <p-button
@@ -597,17 +587,12 @@
                                                     'description'
                                                 )
                                             "
-                                            [readonly]="
-                                                !item.get('isManual')?.value
-                                            "
+                                            [readonly]="true"
                                         ></textarea>
-                                        <small
-                                            *ngIf="!item.get('isManual')?.value"
-                                            class="help-text"
-                                        >
+                                        <small class="help-text">
                                             <i class="pi pi-info-circle"></i>
-                                            Descripción automática del rate
-                                            seleccionado
+                                            Descripción automática de la tarifa
+                                            seleccionada
                                         </small>
                                         <small
                                             class="error-message"
@@ -714,22 +699,9 @@
                                                         'unitPrice'
                                                     )
                                                 "
-                                                [readonly]="
-                                                    !item.get('isManual')?.value
-                                                "
-                                                (onInput)="
-                                                    onItemPriceChange(item, i)
-                                                "
-                                                (onBlur)="
-                                                    onItemPriceBlur(item, i)
-                                                "
+                                                [readonly]="true"
                                             ></p-inputNumber>
-                                            <small
-                                                *ngIf="
-                                                    !item.get('isManual')?.value
-                                                "
-                                                class="help-text"
-                                            >
+                                            <small class="help-text">
                                                 <i
                                                     class="pi pi-info-circle"
                                                 ></i>
@@ -773,39 +745,20 @@
                             </div>
                         </div>
 
-                        <!-- Botón agregar item manual -->
-                        <div class="add-item-section">
-                            <p-button
-                                label="Agregar Item Manual"
-                                icon="pi pi-plus"
-                                styleClass="p-button-outlined"
-                                (click)="addManualItem()"
-                                [disabled]="!selectedCodeTributo"
-                                pTooltip="Agregue un item personalizado con descripción y precio manual"
-                            ></p-button>
-                            <small
-                                *ngIf="!selectedCodeTributo"
-                                class="help-text"
-                            >
-                                Seleccione primero un tipo de factura para poder
-                                agregar items manuales
-                            </small>
-                        </div>
-
                         <!-- Mensaje cuando no hay items -->
                         <div class="empty-items" *ngIf="items.length === 0">
                             <i class="pi pi-inbox empty-icon"></i>
                             <h4>No hay items agregados</h4>
                             <p>
-                                Agregue items desde las tarifas disponibles o
-                                cree items manuales
+                                Seleccione tarifas desde las opciones
+                                disponibles arriba
                             </p>
                             <small
                                 *ngIf="selectedCodeTributo"
                                 class="text-color-secondary"
                             >
-                                Recuerde que los items manuales también deben
-                                corresponder al código tributo
+                                Solo se pueden agregar tarifas con código
+                                tributo
                                 {{ selectedCodeTributo }}
                             </small>
                         </div>
@@ -870,27 +823,7 @@
                     </div>
 
                     <div class="field-group">
-                        <div class="form-field">
-                            <label for="dueDate" class="field-label required"
-                                >Fecha de Vencimiento</label
-                            >
-                            <p-calendar
-                                id="dueDate"
-                                formControlName="dueDate"
-                                dateFormat="dd/mm/yy"
-                                [showIcon]="true"
-                                [class.field-error]="isFieldInvalid('dueDate')"
-                                placeholder="Seleccione fecha"
-                            ></p-calendar>
-                            <small
-                                class="error-message"
-                                *ngIf="isFieldInvalid('dueDate')"
-                            >
-                                {{ getFieldError("dueDate") }}
-                            </small>
-                        </div>
-
-                        <div class="form-field">
+                        <div class="form-field full-width">
                             <label for="notes" class="field-label">Notas</label>
                             <textarea
                                 pInputTextarea

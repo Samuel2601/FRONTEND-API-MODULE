@@ -174,7 +174,6 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
             items: this.fb.array([]),
             subtotal: [{ value: 0, disabled: true }],
             totalAmount: [{ value: 0, disabled: true }],
-            dueDate: [null, Validators.required],
             notes: [''],
         });
     }
@@ -215,15 +214,12 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
             .pipe(
                 debounceTime(800),
                 distinctUntilChanged((prev, curr) => {
-                    const prevWithRates = prev.filter((item) => item.rateId);
-                    const currWithRates = curr.filter((item) => item.rateId);
-
-                    if (prevWithRates.length !== currWithRates.length) {
+                    if (prev.length !== curr.length) {
                         return false;
                     }
 
-                    return prevWithRates.every((prevItem, index) => {
-                        const currItem = currWithRates[index];
+                    return prev.every((prevItem, index) => {
+                        const currItem = curr[index];
                         return (
                             prevItem.rateId === currItem.rateId &&
                             prevItem.quantity === currItem.quantity
@@ -390,14 +386,12 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
             Array.isArray(response.data)
         ) {
             let totalFromAPI = 0;
-            let totalFromManual = 0;
 
             // Process items with rates (from API)
             this.items.controls.forEach((formItem: any) => {
                 const rateId = formItem.get('rateId')?.value;
-                const isManual = formItem.get('isManual')?.value;
 
-                if (rateId && !isManual) {
+                if (rateId) {
                     const calculatedItem = response.data.find(
                         (item: any) => item.rateId === rateId
                     );
@@ -413,29 +407,13 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
 
                         totalFromAPI += calculatedItem.totalAmount;
                     }
-                } else if (isManual) {
-                    // Calculate manual items locally
-                    const quantity = formItem.get('quantity')?.value || 0;
-                    const unitPrice = formItem.get('unitPrice')?.value || 0;
-                    const total = quantity * unitPrice;
-
-                    formItem.patchValue(
-                        {
-                            total: total,
-                        },
-                        { emitEvent: false }
-                    );
-
-                    totalFromManual += total;
                 }
             });
 
-            const subtotal = totalFromAPI + totalFromManual;
-
             this.form.patchValue(
                 {
-                    subtotal: subtotal,
-                    totalAmount: subtotal,
+                    subtotal: totalFromAPI,
+                    totalAmount: totalFromAPI,
                 },
                 { emitEvent: false }
             );
@@ -630,7 +608,6 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
                         invoice.metadata?.slaughterProcessId || '',
                     subtotal: invoice.subtotal,
                     totalAmount: invoice.totalAmount,
-                    dueDate: invoice.dueDate ? new Date(invoice.dueDate) : null,
                     notes: invoice.notes || '',
                 });
 
@@ -1071,7 +1048,6 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
                 [Validators.required, Validators.min(0)],
             ],
             total: [{ value: itemData?.total || 0, disabled: true }],
-            isManual: [!rate], // Flag to identify manual items
         });
 
         // Add custom quantity validator only if rate exists
@@ -1090,51 +1066,12 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
         // Calculate initial total without triggering events
         this.calculateItemTotalSilent(item);
 
-        // Trigger calculation based on item type
+        // Trigger API calculation for items with rate
         if (rate) {
             setTimeout(() => {
                 this.triggerCalculationOptimized();
             }, 0);
-        } else {
-            this.calculateManualTotals();
         }
-    }
-
-    addManualItem() {
-        // Check that a invoice type is selected
-        if (!this.selectedCodeTributo) {
-            this.messageService.add({
-                severity: 'warn',
-                summary: 'Seleccione Tipo de Factura',
-                detail: 'Debe seleccionar un tipo de factura antes de agregar items manuales',
-            });
-            return;
-        }
-
-        const item = this.fb.group({
-            rateId: [null],
-            description: ['', Validators.required],
-            quantity: [1, [Validators.required, Validators.min(1)]],
-            unitPrice: [0, [Validators.required, Validators.min(0)]],
-            total: [{ value: 0, disabled: true }],
-            isManual: [true],
-        });
-
-        const itemIndex = this.items.length;
-        this.items.push(item);
-
-        // Setup listeners for this specific item
-        this.setupItemFieldListeners(item, itemIndex);
-
-        // Calculate initial total
-        this.calculateItemTotalSilent(item);
-        this.calculateManualTotals();
-
-        this.messageService.add({
-            severity: 'success',
-            summary: 'Item Manual Agregado',
-            detail: 'Item manual agregado correctamente. Complete la descripción y precios.',
-        });
     }
 
     removeItem(index: number) {
@@ -1191,28 +1128,12 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
             .subscribe(() => {
                 this.onItemFieldChange(item, index);
             });
-
-        // Listen to unitPrice changes
-        item.get('unitPrice')
-            ?.valueChanges.pipe(
-                debounceTime(500),
-                distinctUntilChanged(),
-                takeUntil(this.destroy$)
-            )
-            .subscribe(() => {
-                this.onItemFieldChange(item, index);
-            });
     }
 
     private onItemFieldChange(item: FormGroup, index: number) {
-        const isManual = item.get('isManual')?.value;
         const rateId = item.get('rateId')?.value;
 
-        if (isManual) {
-            // For manual items, calculate locally
-            this.calculateItemTotalSilent(item);
-            this.calculateManualTotals();
-        } else if (rateId) {
+        if (rateId) {
             // For items with rate, validate quantity and trigger API calculation
             this.validateItemQuantities();
 
@@ -1225,36 +1146,16 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
 
     // Template event handlers
     onItemQuantityChange(item: any, index: number) {
-        // Do nothing during input, only on blur
+        console.log('onItemQuantityChange', item, index);
     }
 
     onItemQuantityBlur(item: any, index: number) {
-        const isManual = item.get('isManual')?.value;
+        console.log('onItemQuantityBlur', item, index);
         const rateId = item.get('rateId')?.value;
 
-        if (isManual) {
-            this.calculateItemTotalSilent(item);
-            this.calculateManualTotals();
-        } else if (rateId) {
+        if (rateId) {
             this.validateItemQuantities();
             this.triggerCalculationOptimized();
-        }
-    }
-
-    onItemPriceChange(item: any, index: number) {
-        // Only allow changes if manual
-        const isManual = item.get('isManual')?.value;
-        if (!isManual) {
-            return;
-        }
-    }
-
-    onItemPriceBlur(item: any, index: number) {
-        const isManual = item.get('isManual')?.value;
-
-        if (isManual) {
-            this.calculateItemTotalSilent(item);
-            this.calculateManualTotals();
         }
     }
 
@@ -1263,19 +1164,12 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
     // ===============================
 
     private handleItemsChange(items: any[]) {
-        // Separate manual items from items with rate
-        const manualItems = items.filter((item) => !item.rateId);
+        // All items now have rates, so process all using API
         const rateItems = items.filter((item) => item.rateId);
 
-        // Process manual items locally
-        if (manualItems.length > 0) {
-            this.calculateManualTotals();
-        }
-
-        // Process items with rate using API
         if (rateItems.length > 0) {
             this.triggerCalculationOptimized();
-        } else if (manualItems.length === 0) {
+        } else {
             // If no items, reset totals
             this.form.patchValue(
                 {
@@ -1293,7 +1187,13 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
         );
 
         if (itemsWithRates.length === 0) {
-            this.calculateManualTotals();
+            this.form.patchValue(
+                {
+                    subtotal: 0,
+                    totalAmount: 0,
+                },
+                { emitEvent: false }
+            );
             return;
         }
 
@@ -1315,36 +1215,6 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
         item.patchValue(
             {
                 total: total,
-            },
-            { emitEvent: false }
-        );
-    }
-
-    private calculateManualTotals() {
-        let subtotal = 0;
-
-        this.items.controls.forEach((item) => {
-            const isManual = item.get('isManual')?.value;
-            if (isManual) {
-                const quantity = item.get('quantity')?.value || 0;
-                const unitPrice = item.get('unitPrice')?.value || 0;
-                const total = quantity * unitPrice;
-
-                item.patchValue(
-                    {
-                        total: total,
-                    },
-                    { emitEvent: false }
-                );
-            }
-
-            subtotal += item.get('total')?.value || 0;
-        });
-
-        this.form.patchValue(
-            {
-                subtotal: subtotal,
-                totalAmount: subtotal,
             },
             { emitEvent: false }
         );
@@ -1612,7 +1482,7 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
             .filter((id) => id);
 
         for (const item of this.items.value) {
-            if (!item.rateId) continue; // Skip manual items
+            if (!item.rateId) continue;
 
             const rate = this.rates_const.find((r) => r._id === item.rateId);
             if (rate?.dependencies?.requiresPreviousRate) {
@@ -1657,47 +1527,26 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
             return false;
         }
 
-        // Validate that all items are compatible with code_tributo
-        const incompatibleItems = this.items.controls.filter(
-            (item, index) =>
-                !this.isItemCompatibleWithCodeTributo(item as FormGroup)
+        // Validate that all items have rates
+        const itemsWithoutRates = this.items.controls.filter(
+            (item) => !item.get('rateId')?.value
         );
 
-        if (incompatibleItems.length > 0) {
+        if (itemsWithoutRates.length > 0) {
             this.messageService.add({
                 severity: 'error',
-                summary: 'Items Incompatibles',
-                detail: `Hay ${incompatibleItems.length} item(s) incompatible(s) con el tipo de factura seleccionado`,
+                summary: 'Items Sin Tarifa',
+                detail: `Hay ${itemsWithoutRates.length} item(s) sin tarifa asignada`,
             });
             return false;
         }
 
-        // Validate rate dependencies (only for items with rate)
+        // Validate rate dependencies
         if (!this.validateRateDependencies()) {
             return false;
         }
 
         return true;
-    }
-
-    isItemCompatibleWithCodeTributo(item: FormGroup): boolean {
-        const rateId = item.get('rateId')?.value;
-        const isManual = item.get('isManual')?.value;
-
-        // Manual items are compatible with any selected code_tributo
-        if (isManual) {
-            return true;
-        }
-
-        // Items with rate must have the same code_tributo
-        if (rateId) {
-            const rate = this.rates_const.find((r) => r._id === rateId);
-            return rate
-                ? rate.code_tributo === this.selectedCodeTributo
-                : false;
-        }
-
-        return false;
     }
 
     // ===============================
@@ -2155,13 +2004,6 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
         // Clean search fields
         delete formData.introducerSearch;
         delete formData.slaughterProcessSearch;
-
-        // Clean isManual field from items before sending
-        formData.items = formData.items.map((item: any) => {
-            const cleanItem = { ...item };
-            delete cleanItem.isManual;
-            return cleanItem;
-        });
 
         // Setup metadata
         if (formData.slaughterProcessId) {
