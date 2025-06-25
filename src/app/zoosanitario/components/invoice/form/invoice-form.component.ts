@@ -1489,9 +1489,8 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
 
             // Validate quantity based on another rate
             if (rate.quantityConfig?.maxQuantityBasedOnRate) {
-                const baseRateQuantity = this.getQuantityByRateId(
-                    rate.quantityConfig.maxQuantityBasedOnRate
-                );
+                const baseRateQuantity =
+                    this.getMaxQuantityFromSlaughterProcess(rate);
                 if (baseRateQuantity > 0 && quantity > baseRateQuantity) {
                     return {
                         quantityBasedOnRateExceeded: {
@@ -1565,7 +1564,7 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Cantidad Basada Excedida',
-                    detail: `La cantidad para ${rate.code} no puede exceder ${baseRateQuantity}`,
+                    detail: `Agregar ${rate.rubroxAtributo} no puede exceder ${baseRateQuantity}`,
                 });
                 return false;
             }
