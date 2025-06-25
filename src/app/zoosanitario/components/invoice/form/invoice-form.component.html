@@ -1,3 +1,4 @@
+<p-toast />
 <div class="invoice-form-container">
     <!-- Loading overlay -->
     <div class="loading-overlay" *ngIf="loading">
@@ -262,121 +263,25 @@
                         </div>
                     </div>
                 </div>
-                <!-- Tarifas Disponibles -->
-                <!-- En la sección de agregar rates, modifica para mostrar compatibilidad -->
-                <div class="rates-section" *ngIf="filteredRates.length > 0">
-                    <h4>Tarifas Disponibles</h4>
-                    <div class="grid">
-                        <div
-                            class="col-12 md:col-6 lg:col-4"
-                            *ngFor="let rate of filteredRates"
-                        >
-                            <div
-                                class="rate-card p-3 border-round cursor-pointer"
-                                [class.rate-incompatible]="
-                                    !isRateCompatible(rate)
-                                "
-                                [class.rate-compatible]="isRateCompatible(rate)"
-                                (click)="
-                                    isRateCompatible(rate) &&
-                                        addItem(null, rate)
-                                "
-                                [pTooltip]="
-                                    !isRateCompatible(rate)
-                                        ? getIncompatibilityMessage(rate)
-                                        : rate.description
-                                "
-                                tooltipPosition="top"
-                            >
-                                <div
-                                    class="flex justify-content-between align-items-start mb-2"
-                                >
-                                    <span class="rate-code font-bold">{{
-                                        rate.code
-                                    }}</span>
-                                    <p-badge
-                                        [value]="rate.type"
-                                        [severity]="
-                                            getRateBadgeSeverity(rate.type)
-                                        "
-                                        class="ml-2"
-                                    ></p-badge>
-                                </div>
 
-                                <p
-                                    class="rate-description text-sm mb-2 line-height-3"
-                                >
-                                    {{ rate.rubroxAtributo }}
-                                </p>
-
-                                <div
-                                    class="flex justify-content-between align-items-center"
-                                >
-                                    <span
-                                        class="rate-attribute text-xs text-color-secondary"
-                                    >
-                                        {{ rate.description }}
-                                    </span>
-                                    <p-button
-                                        icon="pi pi-plus"
-                                        [disabled]="!isRateCompatible(rate)"
-                                        size="small"
-                                        severity="success"
-                                        [text]="true"
-                                    ></p-button>
-                                </div>
-
-                                <!-- Mensaje de incompatibilidad -->
-                                <div
-                                    *ngIf="!isRateCompatible(rate)"
-                                    class="mt-2 p-2 bg-red-50 border-round text-xs text-red-600"
-                                >
-                                    <i
-                                        class="pi pi-exclamation-triangle mr-1"
-                                    ></i>
-                                    {{ getIncompatibilityMessage(rate) }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Mensaje cuando no hay rates disponibles -->
-                    <div
-                        *ngIf="filteredRates.length === 0"
-                        class="text-center p-4"
-                    >
-                        <i
-                            class="pi pi-info-circle text-4xl text-color-secondary mb-3"
-                        ></i>
-                        <p class="text-color-secondary">
-                            No hay tarifas disponibles para la configuración
-                            actual
-                        </p>
-                        <small class="text-color-secondary">
-                            Verifica que el introductor tenga tipos de ganado
-                            configurados
-                            <span *ngIf="selectedSlaughterProcess">
-                                y que el proceso de faenamiento sea compatible
-                            </span>
-                        </small>
-                    </div>
-                </div>
-
-                <!-- Sección de información del tipo de factura seleccionado -->
+                <!-- Información del Code Tributo Seleccionado -->
                 <div
-                    *ngIf="selectedInvoiceRateType"
-                    class="invoice-type-info mt-3 p-3 bg-blue-50 border-round"
+                    *ngIf="selectedCodeTributo"
+                    class="code-tributo-info mt-3 p-3 bg-blue-50 border-round"
                 >
                     <div class="flex align-items-center mb-2">
-                        <i class="pi pi-info-circle text-blue-600 mr-2"></i>
+                        <i class="pi pi-tag text-blue-600 mr-2"></i>
                         <span class="font-semibold text-blue-800">
-                            Tipo de Factura: {{ selectedInvoiceRateType }}
+                            Código Tributo: {{ selectedCodeTributo }}
                         </span>
                     </div>
                     <p class="text-sm text-blue-700 m-0">
-                        Solo se pueden agregar items del tipo
-                        {{ selectedInvoiceRateType }} a esta factura.
+                        {{ getCurrentCodeTributoDescription() }}
                     </p>
+                    <small class="text-xs text-blue-600 mt-1 block">
+                        Solo se pueden agregar items con el mismo código tributo
+                        en esta factura.
+                    </small>
                 </div>
 
                 <!-- Advertencia cuando se selecciona un Slaughter Process -->
@@ -393,10 +298,9 @@
                         </span>
                     </div>
                     <p class="text-sm text-orange-700 m-0">
-                        Las tarifas de inscripción (TARIFA) no están disponibles
-                        cuando hay un proceso de faenamiento seleccionado. Solo
-                        se pueden usar servicios de faenamiento (TASA) y
-                        servicios adicionales (SERVICIOS).
+                        Se mostrarán solo las tarifas compatibles con el proceso
+                        de faenamiento. Algunas tarifas requieren que haya un
+                        proceso seleccionado.
                     </p>
                 </div>
 
@@ -461,6 +365,142 @@
                     </div>
                 </div>
 
+                <!-- Tarifas Disponibles -->
+                <div class="rates-section" *ngIf="filteredRates.length > 0">
+                    <h4>
+                        Tarifas Disponibles
+                        <span *ngIf="hasAlwaysIncludeRates()" class="ml-2">
+                            <p-badge
+                                value="Auto"
+                                severity="info"
+                                pTooltip="Algunas tarifas se incluyen automáticamente"
+                            ></p-badge>
+                        </span>
+                    </h4>
+                    <div class="grid">
+                        <div
+                            class="col-12 md:col-6 lg:col-4"
+                            *ngFor="let rate of filteredRates"
+                        >
+                            <div
+                                class="rate-card p-3 border-round cursor-pointer"
+                                [class.rate-incompatible]="
+                                    !isRateCompatible(rate).result
+                                "
+                                [class.rate-compatible]="
+                                    isRateCompatible(rate).result
+                                "
+                                [class.rate-auto-include]="
+                                    rate.invoiceConfig?.alwaysInclude
+                                "
+                                (click)="
+                                    isRateCompatible(rate).result &&
+                                        addItem(null, rate)
+                                "
+                                [pTooltip]="
+                                    !isRateCompatible(rate).result
+                                        ? getIncompatibilityMessage(rate)
+                                        : getRateDependencyInfo(rate) ||
+                                          rate.description
+                                "
+                                tooltipPosition="top"
+                            >
+                                <div
+                                    class="flex justify-content-between align-items-start mb-2"
+                                >
+                                    <div class="flex align-items-center gap-2">
+                                        <span class="rate-code font-bold">{{
+                                            rate.code
+                                        }}</span>
+                                        <span
+                                            *ngIf="
+                                                rate.invoiceConfig
+                                                    ?.alwaysInclude
+                                            "
+                                            class="text-xs bg-blue-100 text-blue-700 px-2 py-1 border-round"
+                                        >
+                                            AUTO
+                                        </span>
+                                    </div>
+                                    <p-badge
+                                        [value]="rate.type"
+                                        [severity]="
+                                            getRateBadgeSeverity(rate.type)
+                                        "
+                                        class="ml-2"
+                                    ></p-badge>
+                                </div>
+
+                                <p
+                                    class="rate-description text-sm mb-2 line-height-3"
+                                >
+                                    {{ rate.rubroxAtributo }}
+                                </p>
+
+                                <!-- Información de dependencias y limitaciones -->
+                                <div
+                                    *ngIf="getRateDependencyInfo(rate)"
+                                    class="text-xs text-color-secondary mb-2 p-2 bg-surface-100 border-round"
+                                >
+                                    <i class="pi pi-info-circle mr-1"></i>
+                                    {{ getRateDependencyInfo(rate) }}
+                                </div>
+
+                                <div
+                                    class="flex justify-content-between align-items-center"
+                                >
+                                    <span
+                                        class="rate-attribute text-xs text-color-secondary"
+                                    >
+                                        Código Tributo: {{ rate.code_tributo }}
+                                    </span>
+                                    <p-button
+                                        icon="pi pi-plus"
+                                        [disabled]="
+                                            !isRateCompatible(rate).result
+                                        "
+                                        size="small"
+                                        severity="success"
+                                        [text]="true"
+                                    ></p-button>
+                                </div>
+
+                                <!-- Mensaje de incompatibilidad -->
+                                <div
+                                    *ngIf="!isRateCompatible(rate).result"
+                                    class="mt-2 p-2 bg-red-50 border-round text-xs text-red-600"
+                                >
+                                    <i
+                                        class="pi pi-exclamation-triangle mr-1"
+                                    ></i>
+                                    {{ getIncompatibilityMessage(rate) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mensaje cuando no hay rates disponibles -->
+                    <div
+                        *ngIf="filteredRates.length === 0"
+                        class="text-center p-4"
+                    >
+                        <i
+                            class="pi pi-info-circle text-4xl text-color-secondary mb-3"
+                        ></i>
+                        <p class="text-color-secondary">
+                            No hay tarifas disponibles para la configuración
+                            actual
+                        </p>
+                        <small class="text-color-secondary">
+                            Verifica que el introductor tenga tipos de ganado
+                            configurados y el tipo de factura seleccionado
+                            <span *ngIf="selectedSlaughterProcess">
+                                , y que el proceso de faenamiento sea compatible
+                            </span>
+                        </small>
+                    </div>
+                </div>
+
                 <!-- Items -->
                 <div class="form-section">
                     <div class="section-header">
@@ -492,7 +532,38 @@
                                 <div class="item-header">
                                     <div class="item-number">
                                         <span>Item #{{ i + 1 }}</span>
+
+                                        <!-- Mostrar información del rate O indicar que es manual -->
+                                        <ng-container
+                                            *ngIf="
+                                                item.get('rateId')
+                                                    ?.value as rateId;
+                                                else manualItem
+                                            "
+                                        >
+                                            <ng-container
+                                                *ngFor="let rate of rates"
+                                            >
+                                                <span
+                                                    *ngIf="rate._id === rateId"
+                                                    class="rate-info-badge ml-2 text-xs bg-primary-100 text-primary-700 px-2 py-1 border-round"
+                                                >
+                                                    {{ rate.code }} -
+                                                    {{ rate.code_tributo }}
+                                                </span>
+                                            </ng-container>
+                                        </ng-container>
+
+                                        <!-- Template para items manuales -->
+                                        <ng-template #manualItem>
+                                            <span
+                                                class="manual-item-badge ml-2 text-xs bg-orange-100 text-orange-700 px-2 py-1 border-round"
+                                            >
+                                                MANUAL
+                                            </span>
+                                        </ng-template>
                                     </div>
+
                                     <p-button
                                         icon="pi pi-trash"
                                         severity="danger"
@@ -526,7 +597,18 @@
                                                     'description'
                                                 )
                                             "
+                                            [readonly]="
+                                                !item.get('isManual')?.value
+                                            "
                                         ></textarea>
+                                        <small
+                                            *ngIf="!item.get('isManual')?.value"
+                                            class="help-text"
+                                        >
+                                            <i class="pi pi-info-circle"></i>
+                                            Descripción automática del rate
+                                            seleccionado
+                                        </small>
                                         <small
                                             class="error-message"
                                             *ngIf="
@@ -560,6 +642,15 @@
                                                         'quantity'
                                                     )
                                                 "
+                                                (onInput)="
+                                                    onItemQuantityChange(
+                                                        item,
+                                                        i
+                                                    )
+                                                "
+                                                (onBlur)="
+                                                    onItemQuantityBlur(item, i)
+                                                "
                                             ></p-inputNumber>
                                             <small
                                                 class="error-message"
@@ -570,7 +661,35 @@
                                                     )
                                                 "
                                             >
-                                                Cantidad debe ser mayor a 0
+                                                <ng-container
+                                                    *ngIf="item.get('quantity')?.errors?.['required']"
+                                                >
+                                                    Cantidad requerida
+                                                </ng-container>
+                                                <ng-container
+                                                    *ngIf="item.get('quantity')?.errors?.['min']"
+                                                >
+                                                    Cantidad debe ser mayor a 0
+                                                </ng-container>
+                                                <ng-container
+                                                    *ngIf="item.get('quantity')?.errors?.['maxQuantityExceeded']"
+                                                >
+                                                    Cantidad máxima:
+                                                    {{ item.get('quantity')?.errors?.['maxQuantityExceeded'].max }}
+                                                </ng-container>
+                                                <ng-container
+                                                    *ngIf="item.get('quantity')?.errors?.['quantityBasedOnRateExceeded']"
+                                                >
+                                                    Cantidad no puede exceder:
+                                                    {{ item.get('quantity')?.errors?.['quantityBasedOnRateExceeded'].baseQuantity }}
+                                                </ng-container>
+                                                <ng-container
+                                                    *ngIf="item.get('quantity')?.errors?.['slaughterProcessQuantityExceeded']"
+                                                >
+                                                    Cantidad disponible en
+                                                    proceso:
+                                                    {{ item.get('quantity')?.errors?.['slaughterProcessQuantityExceeded'].maxAvailable }}
+                                                </ng-container>
                                             </small>
                                         </div>
 
@@ -595,7 +714,28 @@
                                                         'unitPrice'
                                                     )
                                                 "
+                                                [readonly]="
+                                                    !item.get('isManual')?.value
+                                                "
+                                                (onInput)="
+                                                    onItemPriceChange(item, i)
+                                                "
+                                                (onBlur)="
+                                                    onItemPriceBlur(item, i)
+                                                "
                                             ></p-inputNumber>
+                                            <small
+                                                *ngIf="
+                                                    !item.get('isManual')?.value
+                                                "
+                                                class="help-text"
+                                            >
+                                                <i
+                                                    class="pi pi-info-circle"
+                                                ></i>
+                                                Precio calculado automáticamente
+                                                por la API
+                                            </small>
                                             <small
                                                 class="error-message"
                                                 *ngIf="
@@ -639,8 +779,17 @@
                                 label="Agregar Item Manual"
                                 icon="pi pi-plus"
                                 styleClass="p-button-outlined"
-                                (click)="addItem()"
+                                (click)="addManualItem()"
+                                [disabled]="!selectedCodeTributo"
+                                pTooltip="Agregue un item personalizado con descripción y precio manual"
                             ></p-button>
+                            <small
+                                *ngIf="!selectedCodeTributo"
+                                class="help-text"
+                            >
+                                Seleccione primero un tipo de factura para poder
+                                agregar items manuales
+                            </small>
                         </div>
 
                         <!-- Mensaje cuando no hay items -->
@@ -649,8 +798,16 @@
                             <h4>No hay items agregados</h4>
                             <p>
                                 Agregue items desde las tarifas disponibles o
-                                manualmente
+                                cree items manuales
                             </p>
+                            <small
+                                *ngIf="selectedCodeTributo"
+                                class="text-color-secondary"
+                            >
+                                Recuerde que los items manuales también deben
+                                corresponder al código tributo
+                                {{ selectedCodeTributo }}
+                            </small>
                         </div>
                     </div>
                 </div>
@@ -659,6 +816,10 @@
                 <div class="form-section totals-section">
                     <div class="section-header">
                         <h3>Resumen de Totales</h3>
+                        <div *ngIf="isCalculating" class="calculation-loading">
+                            <i class="pi pi-spin pi-spinner mr-2"></i>
+                            <span>Calculando...</span>
+                        </div>
                     </div>
 
                     <div class="totals-grid">
@@ -683,6 +844,22 @@
                                 [readonly]="true"
                             ></p-inputNumber>
                         </div>
+                    </div>
+
+                    <!-- Indicador de tipo de cálculo -->
+                    <div class="calculation-info mt-2">
+                        <small *ngIf="calculationError" class="text-orange-600">
+                            <i class="pi pi-exclamation-triangle mr-1"></i>
+                            Cálculo manual activo - Los precios se calculan
+                            localmente
+                        </small>
+                        <small
+                            *ngIf="!calculationError && !isCalculating"
+                            class="text-green-600"
+                        >
+                            <i class="pi pi-check-circle mr-1"></i>
+                            Cálculos actualizados correctamente
+                        </small>
                     </div>
                 </div>
 

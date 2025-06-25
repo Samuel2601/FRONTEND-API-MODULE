@@ -426,11 +426,14 @@ export class SlaughterProcessService extends BaseService<SlaughterProcess> {
     /**
      * Obtener proceso por ID (override del método base)
      */
-    override getById(id: string): Observable<SlaughterProcess> {
+    override getById(
+        id: string,
+        cache: boolean = true
+    ): Observable<SlaughterProcess> {
         const cacheKey = `${this.endpoint}_${id}`;
         const cachedData = this.cacheService.get<SlaughterProcess>(cacheKey);
 
-        if (cachedData) {
+        if (cachedData && cache) {
             return of(cachedData);
         }
 

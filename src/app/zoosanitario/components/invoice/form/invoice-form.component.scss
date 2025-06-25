@@ -1114,3 +1114,248 @@
     font-size: 0.875rem;
     line-height: 1.4;
 }
+
+// Estilos adicionales para la funcionalidad mejorada
+
+.invoice-form-container {
+    .manual-item-badge {
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .rate-info-badge {
+        font-weight: 500;
+    }
+
+    .calculation-loading {
+        display: flex;
+        align-items: center;
+        color: var(--primary-color);
+        font-size: 0.875rem;
+    }
+
+    .calculation-info {
+        display: flex;
+        justify-content: center;
+
+        small {
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
+    }
+
+    .add-item-section {
+        margin-top: 1rem;
+        padding: 1rem;
+        border: 2px dashed var(--surface-border);
+        border-radius: var(--border-radius);
+        text-align: center;
+
+        .help-text {
+            display: block;
+            margin-top: 0.5rem;
+            color: var(--text-color-secondary);
+        }
+    }
+
+    .item-card {
+        .item-header {
+            .item-number {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+        }
+
+        .item-content {
+            .item-field {
+                &.full-width {
+                    grid-column: 1 / -1;
+                }
+            }
+
+            .item-fields-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 1rem;
+                margin-top: 1rem;
+
+                @media (max-width: 768px) {
+                    grid-template-columns: 1fr;
+                }
+
+                @media (min-width: 769px) and (max-width: 1024px) {
+                    grid-template-columns: 1fr 1fr;
+                }
+            }
+        }
+    }
+
+    .totals-section {
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .totals-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 1rem;
+
+            @media (max-width: 768px) {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .total-final {
+                .field-label {
+                    font-weight: 600;
+                    font-size: 1.1rem;
+                    color: var(--primary-color);
+                }
+
+                ::ng-deep .p-inputnumber {
+                    .p-inputtext {
+                        font-weight: 600;
+                        font-size: 1.1rem;
+                        color: var(--primary-color);
+                    }
+                }
+            }
+        }
+    }
+
+    // Estados de los rates
+    .rate-card {
+        transition: all 0.2s ease;
+
+        &.rate-compatible:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        &.rate-incompatible {
+            opacity: 0.6;
+            cursor: not-allowed;
+
+            &:hover {
+                transform: none;
+                box-shadow: none;
+            }
+        }
+
+        &.rate-auto-include {
+            border: 2px solid var(--blue-500);
+            background: linear-gradient(135deg, var(--blue-50) 0%, white 100%);
+        }
+    }
+
+    // Mejoras para mensajes de ayuda
+    .help-text {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin-top: 0.25rem;
+        font-size: 0.8rem;
+        color: var(--text-color-secondary);
+
+        .pi {
+            font-size: 0.75rem;
+        }
+    }
+
+    // Estados de validación mejorados
+    .field-error {
+        border-color: var(--red-500) !important;
+        box-shadow: 0 0 0 1px var(--red-500) !important;
+    }
+
+    .error-message {
+        color: var(--red-500);
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    // Responsividad mejorada
+    @media (max-width: 768px) {
+        .field-group {
+            grid-template-columns: 1fr;
+        }
+
+        .rates-section {
+            .grid {
+                .col-12 {
+                    &.md\:col-6,
+                    &.lg\:col-4 {
+                        flex: 0 0 100%;
+                        max-width: 100%;
+                    }
+                }
+            }
+        }
+
+        .form-actions {
+            flex-direction: column;
+            gap: 0.5rem;
+
+            .p-button {
+                width: 100%;
+            }
+        }
+    }
+
+    // Loading states
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+
+        .loading-content {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+
+            .loading-icon {
+                font-size: 2rem;
+                color: var(--primary-color);
+                margin-bottom: 1rem;
+            }
+        }
+    }
+
+    // Animaciones sutiles
+    .item-card,
+    .rate-card {
+        transition: all 0.2s ease-in-out;
+    }
+
+    .form-section {
+        animation: fadeInUp 0.3s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
