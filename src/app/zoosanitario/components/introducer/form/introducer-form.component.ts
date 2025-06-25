@@ -121,7 +121,7 @@ export class IntroducerFormComponent implements OnInit {
         this.form.get('rucNatural')?.valueChanges.subscribe((value) => {
             // Si se borra el RUC, resetear preferencia de facturación
             if (!value) {
-                this.form.get('billingPreference')?.setValue('cedula');
+                this.form.get('billingPreference')?.setValue('idNumber');
             }
         });
 
@@ -441,7 +441,7 @@ export class IntroducerFormComponent implements OnInit {
 
     async loadAnimalTypes(): Promise<void> {
         this.animalTypeService
-            .getAll({ limit: 100, fields: 'species,category', slaughter: true })
+            .getAll({ limit: 100, fields: 'species,category' })
             .subscribe({
                 next: (response: any) => {
                     this.introducerTypeOptions = response.data.animalTypes
@@ -566,7 +566,7 @@ export class IntroducerFormComponent implements OnInit {
 
             // Limpiar valores de persona natural
             rucNaturalControl?.setValue('');
-            this.form.get('billingPreference')?.setValue('cedula');
+            this.form.get('billingPreference')?.setValue('ruc');
 
             if (this.nameFromConsult) {
                 nameControl?.setValue('');
