@@ -1,28 +1,13 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.google.gms:google-services:4.4.2'
-        classpath 'com.android.tools.build:gradle:8.6.0'
-    }
-}
-
-apply from: "variables.gradle"
-
 allprojects {
     repositories {
         google()
         mavenCentral()
     }
 
-    // Forzar Java 17 en todos los proyectos
+    // Cambiar a Java 22
     tasks.withType(JavaCompile) {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_22
+        targetCompatibility = JavaVersion.VERSION_22
     }
 }
 
@@ -31,14 +16,16 @@ subprojects {
         if (project.hasProperty("android")) {
             android {
                 compileOptions {
-                    sourceCompatibility JavaVersion.VERSION_17
-                    targetCompatibility JavaVersion.VERSION_17
+                    sourceCompatibility JavaVersion.VERSION_22
+                    targetCompatibility JavaVersion.VERSION_22
                 }
             }
         }
-    }
-}
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
+        if (project.plugins.hasPlugin('kotlin-android')) {
+            kotlin {
+                jvmToolchain(22)
+            }
+        }
+    }
 }

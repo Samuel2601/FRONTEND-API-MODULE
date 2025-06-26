@@ -1,6 +1,6 @@
 ext {
     minSdkVersion = 29
-    compileSdkVersion = 35  // Cambiar de vuelta a 34 por compatibilidad con AGP 8.5.1
+    compileSdkVersion = 34  // Cambiar de vuelta a 34 por compatibilidad con AGP 8.5.1
     targetSdkVersion = 34
     androidxActivityVersion = '1.8.0'
     androidxAppCompatVersion = '1.6.1'

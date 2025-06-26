@@ -3,6 +3,7 @@ apply plugin: 'com.android.application'
 android {
     namespace "ec.gob.esmeraldas.labella"
     compileSdk rootProject.ext.compileSdkVersion
+
     defaultConfig {
         applicationId "ec.gob.esmeraldas.labella"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -11,11 +12,10 @@ android {
         versionName '1.44.34'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
-             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
-             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -23,13 +23,21 @@ android {
         }
     }
 
+    // Java 17 para coincidir con Capacitor
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_22
+        targetCompatibility JavaVersion.VERSION_22
     }
 
     buildFeatures {
         buildConfig true
+    }
+}
+
+// JVM Toolchain para Java 17
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(22)
     }
 }
 
