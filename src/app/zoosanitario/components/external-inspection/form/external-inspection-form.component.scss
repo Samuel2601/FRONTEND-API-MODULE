@@ -777,7 +777,7 @@
 }
 
 // Responsive Design
-@media (max-width: 768px) {
+@media (max-width: 500px) {
     ::ng-deep .inspection-form-dialog {
         width: 95vw !important;
         height: 95vh !important;
@@ -1060,5 +1060,10 @@
     60%,
     80% {
         transform: translateX(2px);
+    }
+}
+@media (min-width: 700px) and (max-width: 800px) {
+    ::ng-deep .navigation-bar{
+        flex-direction: row !important;
     }
 }

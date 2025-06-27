@@ -90,7 +90,7 @@ export class IntroducerListComponent implements OnInit {
             });
     }
 
-    loadIntroducers(event?: any): void {
+    loadIntroducers(event?: any, cache: boolean = true): void {
         this.loading = true;
 
         const params = {
@@ -102,7 +102,7 @@ export class IntroducerListComponent implements OnInit {
             limit: event?.rows || 10,
         };
 
-        this.introducerService.getAll(params).subscribe({
+        this.introducerService.getAll(params, cache).subscribe({
             next: (response: any) => {
                 console.log('Introducers:', response);
                 this.introducers = response.data.introducers;
@@ -285,7 +285,7 @@ export class IntroducerListComponent implements OnInit {
         this.selectedType = null;
         this.selectedIntroducerType = null;
         this.selectedStatus = null;
-        this.loadIntroducers();
+        this.loadIntroducers(null, false);
     }
 
     newIntroducer(): void {
