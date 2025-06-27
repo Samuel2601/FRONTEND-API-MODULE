@@ -6,6 +6,9 @@ import {
     OnInit,
     OnChanges,
     SimpleChanges,
+    HostListener,
+    ElementRef,
+    ViewChild,
 } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -22,6 +25,16 @@ interface PhotoFile {
     name: string;
     size: number;
     preview?: string;
+}
+
+interface SwipeState {
+    startX: number;
+    startY: number;
+    currentX: number;
+    currentY: number;
+    isDragging: boolean;
+    threshold: number;
+    direction: 'left' | 'right' | null;
 }
 
 @Component({
@@ -47,6 +60,8 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
     @Output() dialogClosed = new EventEmitter<void>();
     @Output() navigationChanged = new EventEmitter<'prev' | 'next'>();
 
+    @ViewChild('swipeContainer', { static: false }) swipeContainer!: ElementRef;
+
     inspectionForm!: FormGroup;
     loading = false;
     submitting = false;
@@ -58,13 +73,32 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
     // Gestión de archivos
     selectedFiles: PhotoFile[] = [];
     existingPhotos: string[] = [];
-    existingPhotosUrls: Map<string, string> = new Map(); // NUEVA PROPIEDAD
-    loadingImages: Set<string> = new Set(); // NUEVA PROPIEDAD
+    existingPhotosUrls: Map<string, string> = new Map();
+    loadingImages: Set<string> = new Set();
     maxFileSize = 5 * 1024 * 1024; // 5MB
     maxFiles = 10;
 
     showPhotoViewer = false;
     selectedPhoto: string | null = null;
+
+    // Estado del swipe
+    swipeState: SwipeState = {
+        startX: 0,
+        startY: 0,
+        currentX: 0,
+        currentY: 0,
+        isDragging: false,
+        threshold: 100,
+        direction: null,
+    };
+
+    // Indicador visual del swipe
+    swipeIndicator = {
+        visible: false,
+        direction: '',
+        text: '',
+        progress: 0,
+    };
 
     // Opciones para formulario
     speciesOptions: any[] = [];
@@ -86,7 +120,8 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
         private fb: FormBuilder,
         private inspectionService: ExternalInspectionService,
         private animalTypeService: AnimalTypeService,
-        private messageService: MessageService
+        private messageService: MessageService,
+        private elementRef: ElementRef
     ) {}
 
     ngOnInit(): void {
@@ -123,6 +158,217 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
         }
     }
 
+    // NUEVOS MÉTODOS PARA SWIPE FUNCTIONALITY
+
+    @HostListener('touchstart', ['$event'])
+    @HostListener('mousedown', ['$event'])
+    onSwipeStart(event: TouchEvent | MouseEvent): void {
+        if (!this.showNavigation) return;
+
+        const clientX = this.getClientX(event);
+        const clientY = this.getClientY(event);
+
+        this.swipeState = {
+            ...this.swipeState,
+            startX: clientX,
+            startY: clientY,
+            currentX: clientX,
+            currentY: clientY,
+            isDragging: true,
+            direction: null,
+        };
+
+        this.swipeIndicator.visible = false;
+
+        if (event instanceof MouseEvent) {
+            event.preventDefault();
+        }
+    }
+
+    @HostListener('touchmove', ['$event'])
+    @HostListener('mousemove', ['$event'])
+    onSwipeMove(event: TouchEvent | MouseEvent): void {
+        if (!this.swipeState.isDragging || !this.showNavigation) return;
+
+        const clientX = this.getClientX(event);
+        const clientY = this.getClientY(event);
+
+        this.swipeState.currentX = clientX;
+        this.swipeState.currentY = clientY;
+
+        const deltaX = clientX - this.swipeState.startX;
+        const deltaY = Math.abs(clientY - this.swipeState.startY);
+
+        // Verificar si es un swipe horizontal válido
+        if (Math.abs(deltaX) > 10 && Math.abs(deltaX) > deltaY * 2) {
+            const direction = deltaX > 0 ? 'right' : 'left';
+            const canNavigate =
+                (direction === 'left' && this.canNavigateNext()) ||
+                (direction === 'right' && this.canNavigatePrev());
+
+            if (canNavigate) {
+                this.swipeState.direction = direction;
+                this.updateSwipeIndicator(deltaX, direction);
+            }
+
+            if (event instanceof TouchEvent) {
+                event.preventDefault();
+            }
+        }
+    }
+
+    @HostListener('touchend', ['$event'])
+    @HostListener('mouseup', ['$event'])
+    onSwipeEnd(event: TouchEvent | MouseEvent): void {
+        if (!this.swipeState.isDragging) return;
+
+        const deltaX = this.swipeState.currentX - this.swipeState.startX;
+        const deltaY = Math.abs(
+            this.swipeState.currentY - this.swipeState.startY
+        );
+
+        // Verificar si cumple los criterios para un swipe válido
+        if (
+            Math.abs(deltaX) > this.swipeState.threshold &&
+            Math.abs(deltaX) > deltaY * 2 &&
+            this.swipeState.direction
+        ) {
+            this.executeSwipeNavigation(this.swipeState.direction);
+        }
+
+        this.resetSwipeState();
+    }
+
+    @HostListener('mouseleave', ['$event'])
+    onMouseLeave(event: MouseEvent): void {
+        this.resetSwipeState();
+    }
+
+    private getClientX(event: TouchEvent | MouseEvent): number {
+        return event instanceof TouchEvent
+            ? event.touches[0]?.clientX || 0
+            : event.clientX;
+    }
+
+    private getClientY(event: TouchEvent | MouseEvent): number {
+        return event instanceof TouchEvent
+            ? event.touches[0]?.clientY || 0
+            : event.clientY;
+    }
+
+    private updateSwipeIndicator(
+        deltaX: number,
+        direction: 'left' | 'right'
+    ): void {
+        const progress = Math.min(
+            Math.abs(deltaX) / this.swipeState.threshold,
+            1
+        );
+
+        this.swipeIndicator = {
+            visible: true,
+            direction: direction,
+            text: direction === 'left' ? 'Siguiente →' : '← Anterior',
+            progress: progress,
+        };
+    }
+
+    private executeSwipeNavigation(direction: 'left' | 'right'): void {
+        const navigationDirection = direction === 'left' ? 'next' : 'prev';
+
+        // Mostrar feedback visual de éxito
+        this.swipeIndicator = {
+            ...this.swipeIndicator,
+            visible: true,
+            progress: 1,
+        };
+
+        // Ejecutar navegación después de un breve delay para mostrar el feedback
+        setTimeout(() => {
+            this.navigateToInspection(navigationDirection);
+            this.resetSwipeState();
+        }, 200);
+    }
+
+    private resetSwipeState(): void {
+        this.swipeState = {
+            ...this.swipeState,
+            isDragging: false,
+            direction: null,
+        };
+        this.swipeIndicator.visible = false;
+    }
+
+    // MÉTODOS PARA COLORES DINÁMICOS
+
+    getFormThemeClass(): string {
+        if (this.phase !== 'recepcion' || !this.receptionData?.resultado) {
+            return 'theme-default';
+        }
+
+        const resultado = this.receptionData.resultado;
+        if (resultado === 'Pendiente') {
+            return 'theme-default';
+        }
+
+        const themeMap: { [key: string]: string } = {
+            Apto: 'theme-approved',
+            Devolución: 'theme-returned',
+            Cuarentena: 'theme-quarantine',
+            Comisión: 'theme-commission',
+        };
+
+        return themeMap[resultado] || 'theme-default';
+    }
+
+    getResultThemeInfo(): {
+        color: 'success' | 'warning' | 'danger' | 'info' | 'secondary';
+        icon: string;
+        text: string;
+    } {
+        if (this.phase !== 'recepcion' || !this.receptionData?.resultado) {
+            return { color: 'secondary', icon: 'pi-circle', text: 'Pendiente' };
+        }
+
+        const resultado = this.receptionData.resultado;
+        const themeInfo: {
+            [key: string]: {
+                color: 'success' | 'warning' | 'danger' | 'info' | 'secondary';
+                icon: string;
+                text: string;
+            };
+        } = {
+            Apto: {
+                color: 'success',
+                icon: 'pi-check-circle',
+                text: 'Aprobado',
+            },
+            Devolución: {
+                color: 'danger',
+                icon: 'pi-times-circle',
+                text: 'Devuelto',
+            },
+            Cuarentena: {
+                color: 'warning',
+                icon: 'pi-exclamation-triangle',
+                text: 'Cuarentena',
+            },
+            Comisión: {
+                color: 'info',
+                icon: 'pi-info-circle',
+                text: 'En Comisión',
+            },
+        };
+
+        return (
+            themeInfo[resultado] || {
+                color: 'secondary',
+                icon: 'pi-circle',
+                text: 'Pendiente',
+            }
+        );
+    }
+
     // Propiedades para la navegación
     get showNavigation(): boolean {
         return this.inspectionsList.length > 0 && this.currentIndex >= 0;
@@ -151,12 +397,27 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
         return this.currentIndex < this.inspectionsList.length - 1;
     }
 
-    navigateToInspection(direction: 'prev' | 'next'): void {
-        if (this.inspectionForm.dirty) {
-            this.confirmNavigationWithUnsavedChanges(direction);
-        } else {
-            this.performNavigation(direction);
-        }
+    // Agrega esta propiedad
+    currentAnimation = '';
+
+    // Modifica tu función de navegación
+    navigateToInspection(direction: 'prev' | 'next') {
+        this.currentAnimation =
+            direction === 'next' ? 'slide-out-left' : 'slide-out-right';
+
+        setTimeout(() => {
+            if (this.inspectionForm.dirty) {
+                this.confirmNavigationWithUnsavedChanges(direction);
+            } else {
+                this.performNavigation(direction);
+            }
+            // Después de cambiar el registro
+            this.currentAnimation =
+                direction === 'next' ? 'slide-in-right' : 'slide-in-left';
+
+            // Remueve la animación después de que termine
+            setTimeout(() => (this.currentAnimation = ''), 500);
+        }, 50);
     }
 
     private confirmNavigationWithUnsavedChanges(
@@ -459,7 +720,7 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
     // REEMPLAZAR el método getImgae por este:
     getImageUrl(photoId: string): string {
         const url = this.existingPhotosUrls.get(photoId);
-        return url || 'assets/images/loading.png'; // Imagen placeholder mientras carga
+        return url || 'assets/icon/imagen.jpg'; // Imagen placeholder mientras carga
     }
 
     // Método para verificar si una imagen está cargando
@@ -664,11 +925,11 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
             )
             .subscribe({
                 next: (response) => {
-                    this.messageService.add({
+                    /*this.messageService.add({
                         severity: 'success',
                         summary: 'Éxito',
                         detail: 'Inspección actualizada correctamente',
-                    });
+                    });*/
                     this.inspectionSaved.emit(response);
 
                     // Si estamos navegando, no cerramos el diálogo, solo refrescamos
@@ -713,6 +974,7 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
         this.existingPhotos = [];
         this.receptionData = null;
         this.currentInspection = null;
+        this.resetSwipeState();
     }
 
     private markFormAsPristine(): void {

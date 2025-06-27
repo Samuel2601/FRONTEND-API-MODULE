@@ -3,7 +3,7 @@
     [header]="getDialogTitle()"
     [modal]="true"
     [style]="{ width: '95vw', maxWidth: '1400px' }"
-    [styleClass]="'inspection-form-dialog'"
+    [styleClass]="'inspection-form-dialog ' + getFormThemeClass()"
     (onHide)="closeDialog()"
 >
     <!-- Barra de Navegación -->
@@ -22,6 +22,18 @@
                 >
                     Número: {{ currentInspectionNumber }}
                 </div>
+                <!-- Indicador de estado del resultado -->
+                <div
+                    class="result-status-indicator mt-2"
+                    *ngIf="phase === 'recepcion' && receptionData?.resultado"
+                >
+                    <p-tag
+                        [value]="getResultThemeInfo().text"
+                        [severity]="getResultThemeInfo().color"
+                        [icon]="getResultThemeInfo().icon"
+                    >
+                    </p-tag>
+                </div>
             </div>
 
             <div class="navigation-controls flex gap-2">
@@ -32,7 +44,7 @@
                     size="small"
                     (onClick)="navigateToInspection('prev')"
                     [disabled]="!canNavigatePrev()"
-                    pTooltip="Inspección anterior"
+                    pTooltip="Inspección anterior (Swipe →)"
                     tooltipPosition="bottom"
                 >
                 </p-button>
@@ -44,7 +56,7 @@
                     size="small"
                     (onClick)="navigateToInspection('next')"
                     [disabled]="!canNavigateNext()"
-                    pTooltip="Inspección siguiente"
+                    pTooltip="Inspección siguiente (Swipe ←)"
                     tooltipPosition="bottom"
                 >
                 </p-button>
@@ -64,1058 +76,1145 @@
                 </p-button>
             </div>
         </div>
+
+        <!-- Instrucciones de swipe -->
+        <div class="swipe-instructions" *ngIf="showNavigation">
+            <small class="text-color-secondary">
+                <i class="pi pi-hand-point-right mr-1"></i>
+                Desliza horizontalmente para navegar entre inspecciones
+            </small>
+        </div>
     </div>
 
-    <form [formGroup]="inspectionForm" (ngSubmit)="onSubmit()">
-        <div class="inspection-form-container">
-            <!-- Datos de Referencia (Solo en Ante Mortem) -->
-            <ng-container *ngIf="phase === 'anteMortem' && hasReceptionData()">
-                <p-panel
-                    header="Datos de Recepción (Referencia)"
-                    styleClass="mb-3 reference-panel"
-                >
-                    <div class="grid">
-                        <div class="col-12 md:col-3">
-                            <div class="reference-item">
-                                <label>Número:</label>
-                                <span>{{ currentInspection?.numero }}</span>
-                            </div>
-                        </div>
-                        <div class="col-12 md:col-3">
-                            <div class="reference-item">
-                                <label>Especie:</label>
-                                <span>{{
-                                    currentInspection?.especie?.species || "N/A"
-                                }}</span>
-                            </div>
-                        </div>
-                        <div class="col-12 md:col-3">
-                            <div class="reference-item">
-                                <label>Sexo:</label>
-                                <span>{{
-                                    currentInspection?.sexo || "N/A"
-                                }}</span>
-                            </div>
-                        </div>
-                        <div class="col-12 md:col-3">
-                            <div class="reference-item">
-                                <label>Resultado Recepción:</label>
-                                <p-tag
-                                    [value]="
-                                        receptionData?.resultado || 'Pendiente'
-                                    "
-                                    [severity]="
-                                        receptionData?.resultado === 'Apto'
-                                            ? 'success'
-                                            : 'warning'
-                                    "
-                                ></p-tag>
-                            </div>
-                        </div>
-                    </div>
+    <!-- Indicador visual del swipe -->
+    <div
+        class="swipe-indicator"
+        [class.visible]="swipeIndicator.visible"
+        [class.swipe-left]="swipeIndicator.direction === 'left'"
+        [class.swipe-right]="swipeIndicator.direction === 'right'"
+        [style.opacity]="swipeIndicator.progress"
+    >
+        <div class="swipe-indicator-content">
+            <i
+                class="pi"
+                [class.pi-chevron-left]="swipeIndicator.direction === 'right'"
+                [class.pi-chevron-right]="swipeIndicator.direction === 'left'"
+            ></i>
+            <span>{{ swipeIndicator.text }}</span>
+        </div>
+        <div class="swipe-progress-bar">
+            <div
+                class="swipe-progress-fill"
+                [style.width.%]="swipeIndicator.progress * 100"
+            ></div>
+        </div>
+    </div>
 
-                    <div class="grid mt-3" *ngIf="receptionData">
-                        <div class="col-12 md:col-4">
-                            <div class="reference-item">
-                                <label>Temperatura:</label>
-                                <span>{{
-                                    formatValue(receptionData.temperatura, "°C")
-                                }}</span>
+    <!-- Contenedor principal con soporte para swipe -->
+    <div
+        #swipeContainer
+        class="swipe-container"
+        [class.swipe-enabled]="showNavigation"
+    >
+        <form [formGroup]="inspectionForm" (ngSubmit)="onSubmit()">
+            <div
+                class="inspection-form-container"
+                [class]="getFormThemeClass() + ' ' + currentAnimation"
+            >
+                <!-- Datos de Referencia (Solo en Ante Mortem) -->
+                <ng-container
+                    *ngIf="phase === 'anteMortem' && hasReceptionData()"
+                >
+                    <p-panel
+                        header="Datos de Recepción (Referencia)"
+                        styleClass="mb-3 reference-panel"
+                    >
+                        <div class="grid">
+                            <div class="col-12 md:col-3">
+                                <div class="reference-item">
+                                    <label>Número:</label>
+                                    <span>{{ currentInspection?.numero }}</span>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-3">
+                                <div class="reference-item">
+                                    <label>Especie:</label>
+                                    <span>{{
+                                        currentInspection?.especie?.species ||
+                                            "N/A"
+                                    }}</span>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-3">
+                                <div class="reference-item">
+                                    <label>Sexo:</label>
+                                    <span>{{
+                                        currentInspection?.sexo || "N/A"
+                                    }}</span>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-3">
+                                <div class="reference-item">
+                                    <label>Resultado Recepción:</label>
+                                    <p-tag
+                                        [value]="
+                                            receptionData?.resultado ||
+                                            'Pendiente'
+                                        "
+                                        [severity]="
+                                            receptionData?.resultado === 'Apto'
+                                                ? 'success'
+                                                : receptionData?.resultado ===
+                                                  'Pendiente'
+                                                ? 'info'
+                                                : 'warning'
+                                        "
+                                    ></p-tag>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-12 md:col-4">
-                            <div class="reference-item">
-                                <label>Frecuencia Cardíaca:</label>
-                                <span>{{
-                                    formatValue(
-                                        receptionData.frecuenciaCardiaca,
-                                        " lpm"
-                                    )
-                                }}</span>
+
+                        <div class="grid mt-3" *ngIf="receptionData">
+                            <div class="col-12 md:col-4">
+                                <div class="reference-item">
+                                    <label>Temperatura:</label>
+                                    <span>{{
+                                        formatValue(
+                                            receptionData.temperatura,
+                                            "°C"
+                                        )
+                                    }}</span>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-4">
+                                <div class="reference-item">
+                                    <label>Frecuencia Cardíaca:</label>
+                                    <span>{{
+                                        formatValue(
+                                            receptionData.frecuenciaCardiaca,
+                                            " lpm"
+                                        )
+                                    }}</span>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-4">
+                                <div class="reference-item">
+                                    <label>Frecuencia Respiratoria:</label>
+                                    <span>{{
+                                        formatValue(
+                                            receptionData.frecuenciaRespiratoria,
+                                            " rpm"
+                                        )
+                                    }}</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-12 md:col-4">
-                            <div class="reference-item">
-                                <label>Frecuencia Respiratoria:</label>
-                                <span>{{
-                                    formatValue(
-                                        receptionData.frecuenciaRespiratoria,
-                                        " rpm"
-                                    )
-                                }}</span>
+                    </p-panel>
+                </ng-container>
+
+                <!-- Formulario de Recepción -->
+                <ng-container *ngIf="phase === 'recepcion'">
+                    <p-panel header="Información General" styleClass="mb-3">
+                        <div class="grid">
+                            <div class="col-12 md:col-4">
+                                <div class="field">
+                                    <label for="numero"
+                                        >Número de Inspección *</label
+                                    >
+                                    <input
+                                        pInputText
+                                        id="numero"
+                                        formControlName="numero"
+                                        [readonly]="inspectionId !== null"
+                                        placeholder="Se generará automáticamente"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="col-12 md:col-4">
+                                <div class="field">
+                                    <label for="especie">Especie</label>
+                                    <p-dropdown
+                                        appendTo="body"
+                                        id="especie"
+                                        formControlName="especie"
+                                        [options]="speciesOptions"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                        [showClear]="true"
+                                        placeholder="Seleccionar especie"
+                                    ></p-dropdown>
+                                </div>
+                            </div>
+
+                            <div class="col-6 md:col-4">
+                                <div class="field">
+                                    <label for="sexo">Sexo</label>
+                                    <p-selectButton
+                                        id="sexo"
+                                        formControlName="sexo"
+                                        [options]="sexOptions"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                    ></p-selectButton>
+                                </div>
+                            </div>
+
+                            <div class="col-6 md:col-3">
+                                <div class="field">
+                                    <label for="edad">Edad (meses)</label>
+                                    <p-inputNumber
+                                        id="edad"
+                                        formControlName="edad"
+                                        mode="decimal"
+                                        [min]="0"
+                                        [max]="30"
+                                        placeholder="0"
+                                    ></p-inputNumber>
+                                </div>
+                            </div>
+
+                            <div class="col-6 md:col-3">
+                                <div class="field">
+                                    <label for="peso">Peso (kg)</label>
+                                    <p-inputNumber
+                                        id="peso"
+                                        formControlName="peso"
+                                        mode="decimal"
+                                        [min]="0"
+                                        [max]="2000"
+                                        suffix=" kg"
+                                        placeholder="0"
+                                    ></p-inputNumber>
+                                </div>
+                            </div>
+
+                            <div class="col-6 md:col-3">
+                                <div class="field temp-indicator">
+                                    <label for="temperatura"
+                                        >Temperatura (°C)</label
+                                    >
+                                    <p-inputNumber
+                                        id="temperatura"
+                                        formControlName="temperatura"
+                                        mode="decimal"
+                                        [min]="35"
+                                        [max]="45"
+                                        suffix=" °C"
+                                        placeholder="36.5"
+                                    ></p-inputNumber>
+                                    <small
+                                        *ngIf="
+                                            inspectionForm.get('temperatura')
+                                                ?.value
+                                        "
+                                        [class]="
+                                            getTempIndicatorClass(
+                                                inspectionForm.get(
+                                                    'temperatura'
+                                                )?.value
+                                            )
+                                        "
+                                    >
+                                        {{
+                                            getTempIndicatorText(
+                                                inspectionForm.get(
+                                                    "temperatura"
+                                                )?.value
+                                            )
+                                        }}
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="col-6 md:col-3">
+                                <div class="field hr-indicator">
+                                    <label for="frecuenciaCardiaca"
+                                        >Frecuencia Cardíaca (lpm)</label
+                                    >
+                                    <p-inputNumber
+                                        id="frecuenciaCardiaca"
+                                        formControlName="frecuenciaCardiaca"
+                                        mode="decimal"
+                                        [min]="30"
+                                        [max]="200"
+                                        suffix=" lpm"
+                                        placeholder="70"
+                                    ></p-inputNumber>
+                                    <small
+                                        *ngIf="
+                                            inspectionForm.get(
+                                                'frecuenciaCardiaca'
+                                            )?.value
+                                        "
+                                        [class]="
+                                            getHeartRateIndicatorClass(
+                                                inspectionForm.get(
+                                                    'frecuenciaCardiaca'
+                                                )?.value
+                                            )
+                                        "
+                                    >
+                                        {{
+                                            getHeartRateIndicatorText(
+                                                inspectionForm.get(
+                                                    "frecuenciaCardiaca"
+                                                )?.value
+                                            )
+                                        }}
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="col-6 md:col-3">
+                                <div class="field rr-indicator">
+                                    <label for="frecuenciaRespiratoria"
+                                        >Frecuencia Respiratoria (rpm)</label
+                                    >
+                                    <p-inputNumber
+                                        id="frecuenciaRespiratoria"
+                                        formControlName="frecuenciaRespiratoria"
+                                        mode="decimal"
+                                        [min]="5"
+                                        [max]="80"
+                                        suffix=" rpm"
+                                        placeholder="20"
+                                    ></p-inputNumber>
+                                    <small
+                                        *ngIf="
+                                            inspectionForm.get(
+                                                'frecuenciaRespiratoria'
+                                            )?.value
+                                        "
+                                        [class]="
+                                            getRespRateIndicatorClass(
+                                                inspectionForm.get(
+                                                    'frecuenciaRespiratoria'
+                                                )?.value
+                                            )
+                                        "
+                                    >
+                                        {{
+                                            getRespRateIndicatorText(
+                                                inspectionForm.get(
+                                                    "frecuenciaRespiratoria"
+                                                )?.value
+                                            )
+                                        }}
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="col-12 md:col-3">
+                                <div class="field">
+                                    <label for="horaChequeo"
+                                        >Hora de Chequeo</label
+                                    >
+                                    <p-calendar
+                                        id="horaChequeo"
+                                        formControlName="horaChequeo"
+                                        [showTime]="true"
+                                        hourFormat="24"
+                                        [showIcon]="true"
+                                    ></p-calendar>
+                                </div>
+                            </div>
+
+                            <div class="col-12 md:col-6">
+                                <div class="field">
+                                    <label for="estadoGeneral"
+                                        >Estado General</label
+                                    >
+                                    <textarea
+                                        id="estadoGeneral"
+                                        formControlName="estadoGeneral"
+                                        rows="3"
+                                        [maxlength]="500"
+                                        pInputTextarea
+                                        placeholder="Descripción del estado general del animal"
+                                    ></textarea>
+                                    <small class="text-color-secondary">
+                                        {{
+                                            inspectionForm.get("estadoGeneral")
+                                                ?.value?.length || 0
+                                        }}/500
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="col-12 md:col-6">
+                                <div class="field">
+                                    <label for="lesionesVisibles"
+                                        >Lesiones Visibles</label
+                                    >
+                                    <textarea
+                                        id="lesionesVisibles"
+                                        formControlName="lesionesVisibles"
+                                        rows="3"
+                                        [maxlength]="500"
+                                        pInputTextarea
+                                        placeholder="Descripción de lesiones visibles"
+                                    ></textarea>
+                                    <small class="text-color-secondary">
+                                        {{
+                                            inspectionForm.get(
+                                                "lesionesVisibles"
+                                            )?.value?.length || 0
+                                        }}/500
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </p-panel>
+
+                    <p-panel
+                        header="Características del Animal"
+                        styleClass="mb-3"
+                        formGroupName="caracteristicas"
+                    >
+                        <div class="grid">
+                            <div class="col-12 md:col-4">
+                                <div class="field">
+                                    <label for="tamano">Tamaño</label>
+                                    <p-selectButton
+                                        id="tamano"
+                                        formControlName="tamano"
+                                        [options]="[
+                                            {
+                                                label: 'Grande',
+                                                value: 'Grande'
+                                            },
+                                            {
+                                                label: 'Mediano',
+                                                value: 'Mediano'
+                                            },
+                                            {
+                                                label: 'Pequeño',
+                                                value: 'Pequeño'
+                                            }
+                                        ]"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                    ></p-selectButton>
+                                </div>
+                            </div>
+
+                            <div class="col-12 md:col-4">
+                                <div class="field">
+                                    <label for="parasitos"
+                                        >Presencia de Parásitos</label
+                                    >
+                                    <p-dropdown
+                                        appendTo="body"
+                                        id="parasitos"
+                                        formControlName="parasitos"
+                                        [options]="[
+                                            { label: 'Sí', value: true },
+                                            { label: 'No', value: false }
+                                        ]"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                        [showClear]="true"
+                                        placeholder="Seleccionar"
+                                    ></p-dropdown>
+                                </div>
+                            </div>
+
+                            <div class="col-12 md:col-4">
+                                <div class="field">
+                                    <label for="movilidad">Movilidad</label>
+                                    <p-selectButton
+                                        id="movilidad"
+                                        formControlName="movilidad"
+                                        [options]="[
+                                            { label: 'Solo', value: 'Solo' },
+                                            {
+                                                label: 'Con Ayuda',
+                                                value: 'Con Ayuda'
+                                            }
+                                        ]"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                    ></p-selectButton>
+                                </div>
+                            </div>
+                        </div>
+                    </p-panel>
+                </ng-container>
+
+                <!-- Formulario Ante Mortem -->
+                <ng-container *ngIf="phase === 'anteMortem'">
+                    <p-panel header="Examen Ante Mortem" styleClass="mb-3">
+                        <div class="grid">
+                            <div class="col-12 md:col-3">
+                                <div class="field temp-indicator">
+                                    <label for="temperatura"
+                                        >Temperatura (°C)</label
+                                    >
+                                    <p-inputNumber
+                                        id="temperatura"
+                                        formControlName="temperatura"
+                                        mode="decimal"
+                                        [min]="35"
+                                        [max]="45"
+                                        suffix=" °C"
+                                        placeholder="36.5"
+                                    ></p-inputNumber>
+                                    <small
+                                        *ngIf="
+                                            inspectionForm.get('temperatura')
+                                                ?.value
+                                        "
+                                        [class]="
+                                            getTempIndicatorClass(
+                                                inspectionForm.get(
+                                                    'temperatura'
+                                                )?.value
+                                            )
+                                        "
+                                    >
+                                        {{
+                                            getTempIndicatorText(
+                                                inspectionForm.get(
+                                                    "temperatura"
+                                                )?.value
+                                            )
+                                        }}
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="col-12 md:col-3">
+                                <div class="field hr-indicator">
+                                    <label for="frecuenciaCardiaca"
+                                        >Frecuencia Cardíaca (lpm)</label
+                                    >
+                                    <p-inputNumber
+                                        id="frecuenciaCardiaca"
+                                        formControlName="frecuenciaCardiaca"
+                                        mode="decimal"
+                                        [min]="30"
+                                        [max]="200"
+                                        suffix=" lpm"
+                                        placeholder="70"
+                                    ></p-inputNumber>
+                                    <small
+                                        *ngIf="
+                                            inspectionForm.get(
+                                                'frecuenciaCardiaca'
+                                            )?.value
+                                        "
+                                        [class]="
+                                            getHeartRateIndicatorClass(
+                                                inspectionForm.get(
+                                                    'frecuenciaCardiaca'
+                                                )?.value
+                                            )
+                                        "
+                                    >
+                                        {{
+                                            getHeartRateIndicatorText(
+                                                inspectionForm.get(
+                                                    "frecuenciaCardiaca"
+                                                )?.value
+                                            )
+                                        }}
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="col-12 md:col-3">
+                                <div class="field rr-indicator">
+                                    <label for="frecuenciaRespiratoria"
+                                        >Frecuencia Respiratoria (rpm)</label
+                                    >
+                                    <p-inputNumber
+                                        id="frecuenciaRespiratoria"
+                                        formControlName="frecuenciaRespiratoria"
+                                        mode="decimal"
+                                        [min]="5"
+                                        [max]="80"
+                                        suffix=" rpm"
+                                        placeholder="20"
+                                    ></p-inputNumber>
+                                    <small
+                                        *ngIf="
+                                            inspectionForm.get(
+                                                'frecuenciaRespiratoria'
+                                            )?.value
+                                        "
+                                        [class]="
+                                            getRespRateIndicatorClass(
+                                                inspectionForm.get(
+                                                    'frecuenciaRespiratoria'
+                                                )?.value
+                                            )
+                                        "
+                                    >
+                                        {{
+                                            getRespRateIndicatorText(
+                                                inspectionForm.get(
+                                                    "frecuenciaRespiratoria"
+                                                )?.value
+                                            )
+                                        }}
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="col-12 md:col-3">
+                                <div class="field">
+                                    <label for="horaChequeo"
+                                        >Hora de Chequeo</label
+                                    >
+                                    <p-calendar
+                                        id="horaChequeo"
+                                        formControlName="horaChequeo"
+                                        [showTime]="true"
+                                        hourFormat="24"
+                                        [showIcon]="true"
+                                    ></p-calendar>
+                                </div>
+                            </div>
+
+                            <div class="col-12 md:col-6">
+                                <div class="field">
+                                    <label>Estado General Óptimo</label>
+                                    <p-dropdown
+                                        formControlName="estadoGeneralOptimo"
+                                        [options]="[
+                                            { label: 'Sí', value: true },
+                                            { label: 'No', value: false }
+                                        ]"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                        [showClear]="true"
+                                        placeholder="Seleccionar"
+                                    ></p-dropdown>
+                                </div>
+                            </div>
+
+                            <div class="col-12 md:col-6">
+                                <div class="field">
+                                    <label>Comportamiento Normal</label>
+                                    <p-dropdown
+                                        formControlName="comportamientoNormal"
+                                        [options]="[
+                                            { label: 'Sí', value: true },
+                                            { label: 'No', value: false }
+                                        ]"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                        [showClear]="true"
+                                        placeholder="Seleccionar"
+                                    ></p-dropdown>
+                                </div>
+                            </div>
+
+                            <div class="col-12 md:col-6">
+                                <div class="field">
+                                    <label>Lesiones Visibles</label>
+                                    <p-dropdown
+                                        formControlName="lesiones"
+                                        [options]="[
+                                            { label: 'Sí', value: true },
+                                            { label: 'No', value: false }
+                                        ]"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                        [showClear]="true"
+                                        placeholder="Seleccionar"
+                                    ></p-dropdown>
+                                </div>
+                            </div>
+
+                            <div class="col-12 md:col-6">
+                                <div class="field">
+                                    <label>Presencia de Parásitos</label>
+                                    <p-dropdown
+                                        formControlName="parasitos"
+                                        [options]="[
+                                            { label: 'Sí', value: true },
+                                            { label: 'No', value: false }
+                                        ]"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                        [showClear]="true"
+                                        placeholder="Seleccionar"
+                                    ></p-dropdown>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid mt-3">
+                            <div class="col-12">
+                                <p-panel
+                                    header="Secreciones"
+                                    formGroupName="secreciones"
+                                >
+                                    <div class="grid">
+                                        <div class="col-12 md:col-6">
+                                            <div class="field">
+                                                <label>Oculares</label>
+                                                <p-dropdown
+                                                    formControlName="ocular"
+                                                    [options]="[
+                                                        {
+                                                            label: 'Sí',
+                                                            value: true
+                                                        },
+                                                        {
+                                                            label: 'No',
+                                                            value: false
+                                                        }
+                                                    ]"
+                                                    optionLabel="label"
+                                                    optionValue="value"
+                                                    [showClear]="true"
+                                                    placeholder="Seleccionar"
+                                                ></p-dropdown>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 md:col-6">
+                                            <div class="field">
+                                                <label>Nasales</label>
+                                                <p-dropdown
+                                                    formControlName="nasal"
+                                                    [options]="[
+                                                        {
+                                                            label: 'Sí',
+                                                            value: true
+                                                        },
+                                                        {
+                                                            label: 'No',
+                                                            value: false
+                                                        }
+                                                    ]"
+                                                    optionLabel="label"
+                                                    optionValue="value"
+                                                    [showClear]="true"
+                                                    placeholder="Seleccionar"
+                                                ></p-dropdown>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </p-panel>
+                            </div>
+
+                            <div class="col-12">
+                                <p-panel
+                                    header="Signos Clínicos"
+                                    formGroupName="signos"
+                                >
+                                    <div class="grid">
+                                        <div class="col-12 md:col-6 lg:col-3">
+                                            <div class="field">
+                                                <label>Nerviosos</label>
+                                                <p-dropdown
+                                                    formControlName="nervioso"
+                                                    [options]="[
+                                                        {
+                                                            label: 'Sí',
+                                                            value: true
+                                                        },
+                                                        {
+                                                            label: 'No',
+                                                            value: false
+                                                        }
+                                                    ]"
+                                                    optionLabel="label"
+                                                    optionValue="value"
+                                                    [showClear]="true"
+                                                    placeholder="Seleccionar"
+                                                ></p-dropdown>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 md:col-6 lg:col-3">
+                                            <div class="field">
+                                                <label>Respiratorios</label>
+                                                <p-dropdown
+                                                    formControlName="respiratorio"
+                                                    [options]="[
+                                                        {
+                                                            label: 'Sí',
+                                                            value: true
+                                                        },
+                                                        {
+                                                            label: 'No',
+                                                            value: false
+                                                        }
+                                                    ]"
+                                                    optionLabel="label"
+                                                    optionValue="value"
+                                                    [showClear]="true"
+                                                    placeholder="Seleccionar"
+                                                ></p-dropdown>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 md:col-6 lg:col-3">
+                                            <div class="field">
+                                                <label>Digestivos</label>
+                                                <p-dropdown
+                                                    formControlName="digestivo"
+                                                    [options]="[
+                                                        {
+                                                            label: 'Sí',
+                                                            value: true
+                                                        },
+                                                        {
+                                                            label: 'No',
+                                                            value: false
+                                                        }
+                                                    ]"
+                                                    optionLabel="label"
+                                                    optionValue="value"
+                                                    [showClear]="true"
+                                                    placeholder="Seleccionar"
+                                                ></p-dropdown>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 md:col-6 lg:col-3">
+                                            <div class="field">
+                                                <label>Vesiculares</label>
+                                                <p-dropdown
+                                                    formControlName="vesicular"
+                                                    [options]="[
+                                                        {
+                                                            label: 'Sí',
+                                                            value: true
+                                                        },
+                                                        {
+                                                            label: 'No',
+                                                            value: false
+                                                        }
+                                                    ]"
+                                                    optionLabel="label"
+                                                    optionValue="value"
+                                                    [showClear]="true"
+                                                    placeholder="Seleccionar"
+                                                ></p-dropdown>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </p-panel>
+                            </div>
+
+                            <div class="col-12">
+                                <p-panel
+                                    header="Características del Animal"
+                                    formGroupName="caracteristicasAnimal"
+                                >
+                                    <div class="grid">
+                                        <div class="col-12 md:col-6">
+                                            <div class="field">
+                                                <label>Color</label>
+                                                <input
+                                                    pInputText
+                                                    formControlName="color"
+                                                    placeholder="Color del animal"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div class="col-12 md:col-6">
+                                            <div class="field">
+                                                <label>Tamaño de Cacho</label>
+                                                <input
+                                                    pInputText
+                                                    formControlName="tamanoCacho"
+                                                    placeholder="Tamaño del cacho"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </p-panel>
+                            </div>
+                        </div>
+                    </p-panel>
+                </ng-container>
+
+                <!-- Panel de Fotografías (Común para ambas fases) -->
+                <p-panel header="Fotografías" styleClass="mb-3">
+                    <div class="photos-section">
+                        <!-- Subida de archivos -->
+                        <div class="upload-section mb-4">
+                            <p-fileUpload
+                                #fileUpload
+                                mode="basic"
+                                name="photos"
+                                accept="image/*"
+                                [multiple]="true"
+                                [maxFileSize]="maxFileSize"
+                                chooseLabel="Seleccionar Fotos"
+                                (onSelect)="onFileSelect($event)"
+                            ></p-fileUpload>
+                            <div class="upload-info mt-2">
+                                <small>
+                                    Puedes subir hasta {{ maxFiles }} fotos
+                                    (máx. 5MB cada una). Archivos seleccionados:
+                                    {{ selectedFiles.length }}
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="grid">
+                            <!-- Fotos existentes -->
+                            <div
+                                class="col-12 md:col-6"
+                                *ngIf="existingPhotos.length > 0"
+                            >
+                                <div class="existing-photos">
+                                    <h6>Fotos Existentes</h6>
+                                    <div class="grid">
+                                        <div
+                                            class="col-12 sm:col-6 lg:col-4"
+                                            *ngFor="let photo of existingPhotos"
+                                        >
+                                            <div class="photo-card existing">
+                                                <img
+                                                    [src]="getImageUrl(photo)"
+                                                    class="photo-thumbnail"
+                                                    alt="Foto de inspección"
+                                                    [style.display]="
+                                                        isImageLoading(photo)
+                                                            ? 'none'
+                                                            : 'block'
+                                                    "
+                                                />
+                                                <div
+                                                    class="loading-indicator"
+                                                    *ngIf="
+                                                        isImageLoading(photo)
+                                                    "
+                                                >
+                                                    <i
+                                                        class="pi pi-spin pi-spinner"
+                                                    ></i>
+                                                </div>
+                                                <div class="photo-actions">
+                                                    <p-button
+                                                        icon="pi pi-eye"
+                                                        severity="info"
+                                                        [text]="true"
+                                                        size="small"
+                                                        (onClick)="
+                                                            openPhotoViewer(
+                                                                photo
+                                                            )
+                                                        "
+                                                    ></p-button>
+                                                    <p-button
+                                                        icon="pi pi-trash"
+                                                        severity="danger"
+                                                        [text]="true"
+                                                        size="small"
+                                                        (onClick)="
+                                                            removeExistingPhoto(
+                                                                photo
+                                                            )
+                                                        "
+                                                    ></p-button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Fotos nuevas -->
+                            <div
+                                class="col-12"
+                                [class.md:col-6]="existingPhotos.length > 0"
+                            >
+                                <div class="new-photos">
+                                    <h6>Fotos Nuevas</h6>
+                                    <div
+                                        class="grid"
+                                        *ngIf="
+                                            selectedFiles.length > 0;
+                                            else noNewPhotos
+                                        "
+                                    >
+                                        <div
+                                            class="col-12 sm:col-6 lg:col-4"
+                                            *ngFor="
+                                                let photoFile of selectedFiles;
+                                                let i = index
+                                            "
+                                        >
+                                            <div class="photo-card new">
+                                                <div
+                                                    class="photo-preview"
+                                                    *ngIf="
+                                                        photoFile.preview;
+                                                        else filePreview
+                                                    "
+                                                >
+                                                    <img
+                                                        [src]="
+                                                            photoFile.preview
+                                                        "
+                                                        class="photo-thumbnail"
+                                                        alt="Vista previa"
+                                                    />
+                                                </div>
+                                                <ng-template #filePreview>
+                                                    <div class="file-preview">
+                                                        <i
+                                                            class="pi pi-image text-4xl"
+                                                        ></i>
+                                                        <div class="photo-name">
+                                                            {{ photoFile.name }}
+                                                        </div>
+                                                        <div class="photo-size">
+                                                            {{
+                                                                photoFile.size
+                                                                    | fileSize
+                                                            }}
+                                                        </div>
+                                                    </div>
+                                                </ng-template>
+                                                <div class="photo-actions">
+                                                    <p-button
+                                                        icon="pi pi-trash"
+                                                        severity="danger"
+                                                        [text]="true"
+                                                        size="small"
+                                                        (onClick)="
+                                                            removeFile(i)
+                                                        "
+                                                    ></p-button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <ng-template #noNewPhotos>
+                                        <div
+                                            class="empty-photos p-4 flex flex-column align-items-center justify-content-center gap-2"
+                                        >
+                                            <i
+                                                class="pi pi-camera text-4xl"
+                                            ></i>
+                                            <small
+                                                >No hay fotos nuevas
+                                                seleccionadas</small
+                                            >
+                                        </div>
+                                    </ng-template>
+                                </div>
+                            </div>
+
+                            <!-- Estado vacío cuando no hay fotos -->
+                            <div
+                                class="col-12"
+                                *ngIf="
+                                    existingPhotos.length === 0 &&
+                                    selectedFiles.length === 0
+                                "
+                            >
+                                <div
+                                    class="empty-photos p-4 flex flex-column align-items-center justify-content-center gap-2"
+                                >
+                                    <i class="pi pi-camera text-4xl"></i>
+                                    <small
+                                        >No hay fotografías. Haz clic en
+                                        "Seleccionar Fotos" para agregar.</small
+                                    >
+                                </div>
                             </div>
                         </div>
                     </div>
                 </p-panel>
-            </ng-container>
 
-            <!-- Formulario de Recepción -->
-            <ng-container *ngIf="phase === 'recepcion'">
-                <p-panel header="Información General" styleClass="mb-3">
+                <!-- Panel de Resultado (Común para ambas fases) -->
+                <p-panel header="Resultado y Dictamen" styleClass="mb-3">
                     <div class="grid">
-                        <div class="col-12 md:col-4">
+                        <div class="col-12 md:col-6">
                             <div class="field">
-                                <label for="numero"
-                                    >Número de Inspección *</label
+                                <label for="resultado">Resultado *</label>
+                                <p-dropdown
+                                    appendTo="body"
+                                    id="resultado"
+                                    formControlName="resultado"
+                                    [options]="resultOptions"
+                                    optionLabel="label"
+                                    optionValue="value"
+                                    placeholder="Seleccionar resultado"
+                                ></p-dropdown>
+                                <small
+                                    *ngIf="
+                                        inspectionForm.get('resultado')
+                                            ?.invalid &&
+                                        inspectionForm.get('resultado')?.touched
+                                    "
+                                    class="p-error"
+                                >
+                                    El resultado es requerido
+                                </small>
+                            </div>
+                        </div>
+                        <!--
+                            <div class="col-12 md:col-6">
+                            <div class="field">
+                                <label for="veterinarioResponsable"
+                                    >Veterinario Responsable</label
                                 >
                                 <input
                                     pInputText
-                                    id="numero"
-                                    formControlName="numero"
-                                    [readonly]="inspectionId !== null"
-                                    placeholder="Se generará automáticamente"
+                                    id="veterinarioResponsable"
+                                    formControlName="veterinarioResponsable"
+                                    placeholder="Nombre del veterinario"
                                 />
                             </div>
                         </div>
+                        -->
 
-                        <div class="col-12 md:col-4">
-                            <div class="field">
-                                <label for="especie">Especie</label>
-                                <p-dropdown
-                                    appendTo="body"
-                                    id="especie"
-                                    formControlName="especie"
-                                    [options]="speciesOptions"
-                                    optionLabel="label"
-                                    optionValue="value"
-                                    [showClear]="true"
-                                    placeholder="Seleccionar especie"
-                                ></p-dropdown>
-                            </div>
-                        </div>
-
-                        <div class="col-12 md:col-4">
-                            <div class="field">
-                                <label for="sexo">Sexo</label>
-                                <p-selectButton
-                                    id="sexo"
-                                    formControlName="sexo"
-                                    [options]="sexOptions"
-                                    optionLabel="label"
-                                    optionValue="value"
-                                ></p-selectButton>
-                            </div>
-                        </div>
-
-                        <div class="col-6 md:col-3">
-                            <div class="field">
-                                <label for="edad">Edad (meses)</label>
-                                <p-inputNumber
-                                    id="edad"
-                                    formControlName="edad"
-                                    mode="decimal"
-                                    [min]="0"
-                                    [max]="30"
-                                    placeholder="0"
-                                ></p-inputNumber>
-                            </div>
-                        </div>
-
-                        <div class="col-6 md:col-3">
-                            <div class="field">
-                                <label for="peso">Peso (kg)</label>
-                                <p-inputNumber
-                                    id="peso"
-                                    formControlName="peso"
-                                    mode="decimal"
-                                    [min]="0"
-                                    [max]="2000"
-                                    suffix=" kg"
-                                    placeholder="0"
-                                ></p-inputNumber>
-                            </div>
-                        </div>
-
-                        <div class="col-6 md:col-3">
-                            <div class="field temp-indicator">
-                                <label for="temperatura"
-                                    >Temperatura (°C)</label
-                                >
-                                <p-inputNumber
-                                    id="temperatura"
-                                    formControlName="temperatura"
-                                    mode="decimal"
-                                    [min]="35"
-                                    [max]="45"
-                                    suffix=" °C"
-                                    placeholder="36.5"
-                                ></p-inputNumber>
-                                <small
-                                    *ngIf="
-                                        inspectionForm.get('temperatura')?.value
-                                    "
-                                    [class]="
-                                        getTempIndicatorClass(
-                                            inspectionForm.get('temperatura')
-                                                ?.value
-                                        )
-                                    "
-                                >
-                                    {{
-                                        getTempIndicatorText(
-                                            inspectionForm.get("temperatura")
-                                                ?.value
-                                        )
-                                    }}
-                                </small>
-                            </div>
-                        </div>
-
-                        <div class="col-6 md:col-3">
-                            <div class="field hr-indicator">
-                                <label for="frecuenciaCardiaca"
-                                    >Frecuencia Cardíaca (lpm)</label
-                                >
-                                <p-inputNumber
-                                    id="frecuenciaCardiaca"
-                                    formControlName="frecuenciaCardiaca"
-                                    mode="decimal"
-                                    [min]="30"
-                                    [max]="200"
-                                    suffix=" lpm"
-                                    placeholder="70"
-                                ></p-inputNumber>
-                                <small
-                                    *ngIf="
-                                        inspectionForm.get('frecuenciaCardiaca')
-                                            ?.value
-                                    "
-                                    [class]="
-                                        getHeartRateIndicatorClass(
-                                            inspectionForm.get(
-                                                'frecuenciaCardiaca'
-                                            )?.value
-                                        )
-                                    "
-                                >
-                                    {{
-                                        getHeartRateIndicatorText(
-                                            inspectionForm.get(
-                                                "frecuenciaCardiaca"
-                                            )?.value
-                                        )
-                                    }}
-                                </small>
-                            </div>
-                        </div>
-
-                        <div class="col-6 md:col-3">
-                            <div class="field rr-indicator">
-                                <label for="frecuenciaRespiratoria"
-                                    >Frecuencia Respiratoria (rpm)</label
-                                >
-                                <p-inputNumber
-                                    id="frecuenciaRespiratoria"
-                                    formControlName="frecuenciaRespiratoria"
-                                    mode="decimal"
-                                    [min]="5"
-                                    [max]="80"
-                                    suffix=" rpm"
-                                    placeholder="20"
-                                ></p-inputNumber>
-                                <small
-                                    *ngIf="
-                                        inspectionForm.get(
-                                            'frecuenciaRespiratoria'
-                                        )?.value
-                                    "
-                                    [class]="
-                                        getRespRateIndicatorClass(
-                                            inspectionForm.get(
-                                                'frecuenciaRespiratoria'
-                                            )?.value
-                                        )
-                                    "
-                                >
-                                    {{
-                                        getRespRateIndicatorText(
-                                            inspectionForm.get(
-                                                "frecuenciaRespiratoria"
-                                            )?.value
-                                        )
-                                    }}
-                                </small>
-                            </div>
-                        </div>
-
-                        <div class="col-12 md:col-3">
-                            <div class="field">
-                                <label for="horaChequeo">Hora de Chequeo</label>
-                                <p-calendar
-                                    id="horaChequeo"
-                                    formControlName="horaChequeo"
-                                    [showTime]="true"
-                                    hourFormat="24"
-                                    [showIcon]="true"
-                                ></p-calendar>
-                            </div>
-                        </div>
-
-                        <div class="col-12 md:col-6">
-                            <div class="field">
-                                <label for="estadoGeneral"
-                                    >Estado General</label
-                                >
-                                <textarea
-                                    id="estadoGeneral"
-                                    formControlName="estadoGeneral"
-                                    rows="3"
-                                    [maxlength]="500"
-                                    pInputTextarea
-                                    placeholder="Descripción del estado general del animal"
-                                ></textarea>
-                                <small class="text-color-secondary">
-                                    {{
-                                        inspectionForm.get("estadoGeneral")
-                                            ?.value?.length || 0
-                                    }}/500
-                                </small>
-                            </div>
-                        </div>
-
-                        <div class="col-12 md:col-6">
-                            <div class="field">
-                                <label for="lesionesVisibles"
-                                    >Lesiones Visibles</label
-                                >
-                                <textarea
-                                    id="lesionesVisibles"
-                                    formControlName="lesionesVisibles"
-                                    rows="3"
-                                    [maxlength]="500"
-                                    pInputTextarea
-                                    placeholder="Descripción de lesiones visibles"
-                                ></textarea>
-                                <small class="text-color-secondary">
-                                    {{
-                                        inspectionForm.get("lesionesVisibles")
-                                            ?.value?.length || 0
-                                    }}/500
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </p-panel>
-
-                <p-panel
-                    header="Características del Animal"
-                    styleClass="mb-3"
-                    formGroupName="caracteristicas"
-                >
-                    <div class="grid">
-                        <div class="col-12 md:col-4">
-                            <div class="field">
-                                <label for="tamano">Tamaño</label>
-                                <p-selectButton
-                                    id="tamano"
-                                    formControlName="tamano"
-                                    [options]="[
-                                        { label: 'Grande', value: 'Grande' },
-                                        { label: 'Mediano', value: 'Mediano' },
-                                        { label: 'Pequeño', value: 'Pequeño' }
-                                    ]"
-                                    optionLabel="label"
-                                    optionValue="value"
-                                ></p-selectButton>
-                            </div>
-                        </div>
-
-                        <div class="col-12 md:col-4">
-                            <div class="field">
-                                <label for="parasitos"
-                                    >Presencia de Parásitos</label
-                                >
-                                <p-dropdown
-                                    appendTo="body"
-                                    id="parasitos"
-                                    formControlName="parasitos"
-                                    [options]="[
-                                        { label: 'Sí', value: true },
-                                        { label: 'No', value: false }
-                                    ]"
-                                    optionLabel="label"
-                                    optionValue="value"
-                                    [showClear]="true"
-                                    placeholder="Seleccionar"
-                                ></p-dropdown>
-                            </div>
-                        </div>
-
-                        <div class="col-12 md:col-4">
-                            <div class="field">
-                                <label for="movilidad">Movilidad</label>
-                                <p-selectButton
-                                    id="movilidad"
-                                    formControlName="movilidad"
-                                    [options]="[
-                                        { label: 'Solo', value: 'Solo' },
-                                        {
-                                            label: 'Con Ayuda',
-                                            value: 'Con Ayuda'
-                                        }
-                                    ]"
-                                    optionLabel="label"
-                                    optionValue="value"
-                                ></p-selectButton>
-                            </div>
-                        </div>
-                    </div>
-                </p-panel>
-            </ng-container>
-
-            <!-- Formulario Ante Mortem -->
-            <ng-container *ngIf="phase === 'anteMortem'">
-                <p-panel header="Examen Ante Mortem" styleClass="mb-3">
-                    <div class="grid">
-                        <div class="col-12 md:col-3">
-                            <div class="field temp-indicator">
-                                <label for="temperatura"
-                                    >Temperatura (°C)</label
-                                >
-                                <p-inputNumber
-                                    id="temperatura"
-                                    formControlName="temperatura"
-                                    mode="decimal"
-                                    [min]="35"
-                                    [max]="45"
-                                    suffix=" °C"
-                                    placeholder="36.5"
-                                ></p-inputNumber>
-                                <small
-                                    *ngIf="
-                                        inspectionForm.get('temperatura')?.value
-                                    "
-                                    [class]="
-                                        getTempIndicatorClass(
-                                            inspectionForm.get('temperatura')
-                                                ?.value
-                                        )
-                                    "
-                                >
-                                    {{
-                                        getTempIndicatorText(
-                                            inspectionForm.get("temperatura")
-                                                ?.value
-                                        )
-                                    }}
-                                </small>
-                            </div>
-                        </div>
-
-                        <div class="col-12 md:col-3">
-                            <div class="field hr-indicator">
-                                <label for="frecuenciaCardiaca"
-                                    >Frecuencia Cardíaca (lpm)</label
-                                >
-                                <p-inputNumber
-                                    id="frecuenciaCardiaca"
-                                    formControlName="frecuenciaCardiaca"
-                                    mode="decimal"
-                                    [min]="30"
-                                    [max]="200"
-                                    suffix=" lpm"
-                                    placeholder="70"
-                                ></p-inputNumber>
-                                <small
-                                    *ngIf="
-                                        inspectionForm.get('frecuenciaCardiaca')
-                                            ?.value
-                                    "
-                                    [class]="
-                                        getHeartRateIndicatorClass(
-                                            inspectionForm.get(
-                                                'frecuenciaCardiaca'
-                                            )?.value
-                                        )
-                                    "
-                                >
-                                    {{
-                                        getHeartRateIndicatorText(
-                                            inspectionForm.get(
-                                                "frecuenciaCardiaca"
-                                            )?.value
-                                        )
-                                    }}
-                                </small>
-                            </div>
-                        </div>
-
-                        <div class="col-12 md:col-3">
-                            <div class="field rr-indicator">
-                                <label for="frecuenciaRespiratoria"
-                                    >Frecuencia Respiratoria (rpm)</label
-                                >
-                                <p-inputNumber
-                                    id="frecuenciaRespiratoria"
-                                    formControlName="frecuenciaRespiratoria"
-                                    mode="decimal"
-                                    [min]="5"
-                                    [max]="80"
-                                    suffix=" rpm"
-                                    placeholder="20"
-                                ></p-inputNumber>
-                                <small
-                                    *ngIf="
-                                        inspectionForm.get(
-                                            'frecuenciaRespiratoria'
-                                        )?.value
-                                    "
-                                    [class]="
-                                        getRespRateIndicatorClass(
-                                            inspectionForm.get(
-                                                'frecuenciaRespiratoria'
-                                            )?.value
-                                        )
-                                    "
-                                >
-                                    {{
-                                        getRespRateIndicatorText(
-                                            inspectionForm.get(
-                                                "frecuenciaRespiratoria"
-                                            )?.value
-                                        )
-                                    }}
-                                </small>
-                            </div>
-                        </div>
-
-                        <div class="col-12 md:col-3">
-                            <div class="field">
-                                <label for="horaChequeo">Hora de Chequeo</label>
-                                <p-calendar
-                                    id="horaChequeo"
-                                    formControlName="horaChequeo"
-                                    [showTime]="true"
-                                    hourFormat="24"
-                                    [showIcon]="true"
-                                ></p-calendar>
-                            </div>
-                        </div>
-
-                        <div class="col-12 md:col-6">
-                            <div class="field">
-                                <label>Estado General Óptimo</label>
-                                <p-dropdown
-                                    formControlName="estadoGeneralOptimo"
-                                    [options]="[
-                                        { label: 'Sí', value: true },
-                                        { label: 'No', value: false }
-                                    ]"
-                                    optionLabel="label"
-                                    optionValue="value"
-                                    [showClear]="true"
-                                    placeholder="Seleccionar"
-                                ></p-dropdown>
-                            </div>
-                        </div>
-
-                        <div class="col-12 md:col-6">
-                            <div class="field">
-                                <label>Comportamiento Normal</label>
-                                <p-dropdown
-                                    formControlName="comportamientoNormal"
-                                    [options]="[
-                                        { label: 'Sí', value: true },
-                                        { label: 'No', value: false }
-                                    ]"
-                                    optionLabel="label"
-                                    optionValue="value"
-                                    [showClear]="true"
-                                    placeholder="Seleccionar"
-                                ></p-dropdown>
-                            </div>
-                        </div>
-
-                        <div class="col-12 md:col-6">
-                            <div class="field">
-                                <label>Lesiones Visibles</label>
-                                <p-dropdown
-                                    formControlName="lesiones"
-                                    [options]="[
-                                        { label: 'Sí', value: true },
-                                        { label: 'No', value: false }
-                                    ]"
-                                    optionLabel="label"
-                                    optionValue="value"
-                                    [showClear]="true"
-                                    placeholder="Seleccionar"
-                                ></p-dropdown>
-                            </div>
-                        </div>
-
-                        <div class="col-12 md:col-6">
-                            <div class="field">
-                                <label>Presencia de Parásitos</label>
-                                <p-dropdown
-                                    formControlName="parasitos"
-                                    [options]="[
-                                        { label: 'Sí', value: true },
-                                        { label: 'No', value: false }
-                                    ]"
-                                    optionLabel="label"
-                                    optionValue="value"
-                                    [showClear]="true"
-                                    placeholder="Seleccionar"
-                                ></p-dropdown>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid mt-3">
-                        <div class="col-12">
-                            <p-panel
-                                header="Secreciones"
-                                formGroupName="secreciones"
-                            >
-                                <div class="grid">
-                                    <div class="col-12 md:col-6">
-                                        <div class="field">
-                                            <label>Oculares</label>
-                                            <p-dropdown
-                                                formControlName="ocular"
-                                                [options]="[
-                                                    {
-                                                        label: 'Sí',
-                                                        value: true
-                                                    },
-                                                    {
-                                                        label: 'No',
-                                                        value: false
-                                                    }
-                                                ]"
-                                                optionLabel="label"
-                                                optionValue="value"
-                                                [showClear]="true"
-                                                placeholder="Seleccionar"
-                                            ></p-dropdown>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 md:col-6">
-                                        <div class="field">
-                                            <label>Nasales</label>
-                                            <p-dropdown
-                                                formControlName="nasal"
-                                                [options]="[
-                                                    {
-                                                        label: 'Sí',
-                                                        value: true
-                                                    },
-                                                    {
-                                                        label: 'No',
-                                                        value: false
-                                                    }
-                                                ]"
-                                                optionLabel="label"
-                                                optionValue="value"
-                                                [showClear]="true"
-                                                placeholder="Seleccionar"
-                                            ></p-dropdown>
-                                        </div>
-                                    </div>
-                                </div>
-                            </p-panel>
-                        </div>
-
-                        <div class="col-12">
-                            <p-panel
-                                header="Signos Clínicos"
-                                formGroupName="signos"
-                            >
-                                <div class="grid">
-                                    <div class="col-12 md:col-6 lg:col-3">
-                                        <div class="field">
-                                            <label>Nerviosos</label>
-                                            <p-dropdown
-                                                formControlName="nervioso"
-                                                [options]="[
-                                                    {
-                                                        label: 'Sí',
-                                                        value: true
-                                                    },
-                                                    {
-                                                        label: 'No',
-                                                        value: false
-                                                    }
-                                                ]"
-                                                optionLabel="label"
-                                                optionValue="value"
-                                                [showClear]="true"
-                                                placeholder="Seleccionar"
-                                            ></p-dropdown>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 md:col-6 lg:col-3">
-                                        <div class="field">
-                                            <label>Respiratorios</label>
-                                            <p-dropdown
-                                                formControlName="respiratorio"
-                                                [options]="[
-                                                    {
-                                                        label: 'Sí',
-                                                        value: true
-                                                    },
-                                                    {
-                                                        label: 'No',
-                                                        value: false
-                                                    }
-                                                ]"
-                                                optionLabel="label"
-                                                optionValue="value"
-                                                [showClear]="true"
-                                                placeholder="Seleccionar"
-                                            ></p-dropdown>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 md:col-6 lg:col-3">
-                                        <div class="field">
-                                            <label>Digestivos</label>
-                                            <p-dropdown
-                                                formControlName="digestivo"
-                                                [options]="[
-                                                    {
-                                                        label: 'Sí',
-                                                        value: true
-                                                    },
-                                                    {
-                                                        label: 'No',
-                                                        value: false
-                                                    }
-                                                ]"
-                                                optionLabel="label"
-                                                optionValue="value"
-                                                [showClear]="true"
-                                                placeholder="Seleccionar"
-                                            ></p-dropdown>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 md:col-6 lg:col-3">
-                                        <div class="field">
-                                            <label>Vesiculares</label>
-                                            <p-dropdown
-                                                formControlName="vesicular"
-                                                [options]="[
-                                                    {
-                                                        label: 'Sí',
-                                                        value: true
-                                                    },
-                                                    {
-                                                        label: 'No',
-                                                        value: false
-                                                    }
-                                                ]"
-                                                optionLabel="label"
-                                                optionValue="value"
-                                                [showClear]="true"
-                                                placeholder="Seleccionar"
-                                            ></p-dropdown>
-                                        </div>
-                                    </div>
-                                </div>
-                            </p-panel>
-                        </div>
-
-                        <div class="col-12">
-                            <p-panel
-                                header="Características del Animal"
-                                formGroupName="caracteristicasAnimal"
-                            >
-                                <div class="grid">
-                                    <div class="col-12 md:col-6">
-                                        <div class="field">
-                                            <label>Color</label>
-                                            <input
-                                                pInputText
-                                                formControlName="color"
-                                                placeholder="Color del animal"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="col-12 md:col-6">
-                                        <div class="field">
-                                            <label>Tamaño de Cacho</label>
-                                            <input
-                                                pInputText
-                                                formControlName="tamanoCacho"
-                                                placeholder="Tamaño del cacho"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </p-panel>
-                        </div>
-                    </div>
-                </p-panel>
-            </ng-container>
-
-            <!-- Panel de Fotografías (Común para ambas fases) -->
-            <p-panel header="Fotografías" styleClass="mb-3">
-                <div class="photos-section">
-                    <!-- Subida de archivos -->
-                    <div class="upload-section mb-4">
-                        <p-fileUpload
-                            #fileUpload
-                            mode="basic"
-                            name="photos"
-                            accept="image/*"
-                            [multiple]="true"
-                            [maxFileSize]="maxFileSize"
-                            chooseLabel="Seleccionar Fotos"
-                            (onSelect)="onFileSelect($event)"
-                        ></p-fileUpload>
-                        <div class="upload-info mt-2">
-                            <small>
-                                Puedes subir hasta {{ maxFiles }} fotos (máx.
-                                5MB cada una). Archivos seleccionados:
-                                {{ selectedFiles.length }}
-                            </small>
-                        </div>
-                    </div>
-
-                    <div class="grid">
-                        <!-- Fotos existentes -->
-                        <div
-                            class="col-12 md:col-6"
-                            *ngIf="existingPhotos.length > 0"
-                        >
-                            <div class="existing-photos">
-                                <h6>Fotos Existentes</h6>
-                                <div class="grid">
-                                    <div
-                                        class="col-12 sm:col-6 lg:col-4"
-                                        *ngFor="let photo of existingPhotos"
-                                    >
-                                        <div class="photo-card existing">
-                                            <img
-                                                [src]="getImageUrl(photo)"
-                                                class="photo-thumbnail"
-                                                alt="Foto de inspección"
-                                                [style.display]="
-                                                    isImageLoading(photo)
-                                                        ? 'none'
-                                                        : 'block'
-                                                "
-                                            />
-                                            <div
-                                                class="loading-indicator"
-                                                *ngIf="isImageLoading(photo)"
-                                            >
-                                                <i
-                                                    class="pi pi-spin pi-spinner"
-                                                ></i>
-                                            </div>
-                                            <div class="photo-actions">
-                                                <p-button
-                                                    icon="pi pi-eye"
-                                                    severity="info"
-                                                    [text]="true"
-                                                    size="small"
-                                                    (onClick)="
-                                                        openPhotoViewer(photo)
-                                                    "
-                                                ></p-button>
-                                                <p-button
-                                                    icon="pi pi-trash"
-                                                    severity="danger"
-                                                    [text]="true"
-                                                    size="small"
-                                                    (onClick)="
-                                                        removeExistingPhoto(
-                                                            photo
-                                                        )
-                                                    "
-                                                ></p-button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Fotos nuevas -->
-                        <div
-                            class="col-12"
-                            [class.md:col-6]="existingPhotos.length > 0"
-                        >
-                            <div class="new-photos">
-                                <h6>Fotos Nuevas</h6>
-                                <div
-                                    class="grid"
-                                    *ngIf="
-                                        selectedFiles.length > 0;
-                                        else noNewPhotos
-                                    "
-                                >
-                                    <div
-                                        class="col-12 sm:col-6 lg:col-4"
-                                        *ngFor="
-                                            let photoFile of selectedFiles;
-                                            let i = index
-                                        "
-                                    >
-                                        <div class="photo-card new">
-                                            <div
-                                                class="photo-preview"
-                                                *ngIf="
-                                                    photoFile.preview;
-                                                    else filePreview
-                                                "
-                                            >
-                                                <img
-                                                    [src]="photoFile.preview"
-                                                    class="photo-thumbnail"
-                                                    alt="Vista previa"
-                                                />
-                                            </div>
-                                            <ng-template #filePreview>
-                                                <div class="file-preview">
-                                                    <i
-                                                        class="pi pi-image text-4xl"
-                                                    ></i>
-                                                    <div class="photo-name">
-                                                        {{ photoFile.name }}
-                                                    </div>
-                                                    <div class="photo-size">
-                                                        {{
-                                                            photoFile.size
-                                                                | fileSize
-                                                        }}
-                                                    </div>
-                                                </div>
-                                            </ng-template>
-                                            <div class="photo-actions">
-                                                <p-button
-                                                    icon="pi pi-trash"
-                                                    severity="danger"
-                                                    [text]="true"
-                                                    size="small"
-                                                    (onClick)="removeFile(i)"
-                                                ></p-button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <ng-template #noNewPhotos>
-                                    <div
-                                        class="empty-photos p-4 flex flex-column align-items-center justify-content-center gap-2"
-                                    >
-                                        <i class="pi pi-camera text-4xl"></i>
-                                        <small
-                                            >No hay fotos nuevas
-                                            seleccionadas</small
-                                        >
-                                    </div>
-                                </ng-template>
-                            </div>
-                        </div>
-
-                        <!-- Estado vacío cuando no hay fotos -->
                         <div
                             class="col-12"
                             *ngIf="
-                                existingPhotos.length === 0 &&
-                                selectedFiles.length === 0
+                                inspectionForm.get('resultado')?.value &&
+                                inspectionForm.get('resultado')?.value !==
+                                    'Apto' &&
+                                inspectionForm.get('resultado')?.value !==
+                                    'Pendiente'
                             "
                         >
-                            <div
-                                class="empty-photos p-4 flex flex-column align-items-center justify-content-center gap-2"
-                            >
-                                <i class="pi pi-camera text-4xl"></i>
-                                <small
-                                    >No hay fotografías. Haz clic en
-                                    "Seleccionar Fotos" para agregar.</small
+                            <div class="field">
+                                <label for="motivoDictamen"
+                                    >Motivo del Dictamen *</label
                                 >
+                                <textarea
+                                    id="motivoDictamen"
+                                    formControlName="motivoDictamen"
+                                    rows="4"
+                                    [maxlength]="1000"
+                                    pInputTextarea
+                                    placeholder="Explicar detalladamente el motivo del dictamen"
+                                ></textarea>
+                                <small class="text-color-secondary">
+                                    {{
+                                        inspectionForm.get("motivoDictamen")
+                                            ?.value?.length || 0
+                                    }}/1000
+                                </small>
+                                <small
+                                    *ngIf="
+                                        inspectionForm.get('motivoDictamen')
+                                            ?.invalid &&
+                                        inspectionForm.get('motivoDictamen')
+                                            ?.touched
+                                    "
+                                    class="p-error"
+                                >
+                                    El motivo del dictamen es requerido para
+                                    este resultado
+                                </small>
                             </div>
                         </div>
                     </div>
-                </div>
-            </p-panel>
-
-            <!-- Panel de Resultado (Común para ambas fases) -->
-            <p-panel header="Resultado y Dictamen" styleClass="mb-3">
-                <div class="grid">
-                    <div class="col-12 md:col-6">
-                        <div class="field">
-                            <label for="resultado">Resultado *</label>
-                            <p-dropdown
-                                appendTo="body"
-                                id="resultado"
-                                formControlName="resultado"
-                                [options]="resultOptions"
-                                optionLabel="label"
-                                optionValue="value"
-                                placeholder="Seleccionar resultado"
-                            ></p-dropdown>
-                            <small
-                                *ngIf="
-                                    inspectionForm.get('resultado')?.invalid &&
-                                    inspectionForm.get('resultado')?.touched
-                                "
-                                class="p-error"
-                            >
-                                El resultado es requerido
-                            </small>
-                        </div>
-                    </div>
-
-                    <div class="col-12 md:col-6">
-                        <div class="field">
-                            <label for="veterinarioResponsable"
-                                >Veterinario Responsable</label
-                            >
-                            <input
-                                pInputText
-                                id="veterinarioResponsable"
-                                formControlName="veterinarioResponsable"
-                                placeholder="Nombre del veterinario"
-                            />
-                        </div>
-                    </div>
-
-                    <div
-                        class="col-12"
-                        *ngIf="
-                            inspectionForm.get('resultado')?.value &&
-                            inspectionForm.get('resultado')?.value !== 'Apto' &&
-                            inspectionForm.get('resultado')?.value !==
-                                'Pendiente'
-                        "
-                    >
-                        <div class="field">
-                            <label for="motivoDictamen"
-                                >Motivo del Dictamen *</label
-                            >
-                            <textarea
-                                id="motivoDictamen"
-                                formControlName="motivoDictamen"
-                                rows="4"
-                                [maxlength]="1000"
-                                pInputTextarea
-                                placeholder="Explicar detalladamente el motivo del dictamen"
-                            ></textarea>
-                            <small class="text-color-secondary">
-                                {{
-                                    inspectionForm.get("motivoDictamen")?.value
-                                        ?.length || 0
-                                }}/1000
-                            </small>
-                            <small
-                                *ngIf="
-                                    inspectionForm.get('motivoDictamen')
-                                        ?.invalid &&
-                                    inspectionForm.get('motivoDictamen')
-                                        ?.touched
-                                "
-                                class="p-error"
-                            >
-                                El motivo del dictamen es requerido para este
-                                resultado
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            </p-panel>
-        </div>
-    </form>
+                </p-panel>
+            </div>
+        </form>
+    </div>
 
     <ng-template pTemplate="footer">
         <div class="flex justify-content-between align-items-center">
@@ -1167,11 +1266,7 @@
     </ng-template>
 </p-dialog>
 
-<!-- Visor de Fotografías 
-
-    <img [src]="" alt="Fotografía de inspección" class="photo-viewer-image" /> 
-
--->
+<!-- Visor de Fotografías -->
 <p-dialog
     [(visible)]="showPhotoViewer"
     header="Fotografía"
