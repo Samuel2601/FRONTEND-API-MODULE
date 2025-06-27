@@ -126,11 +126,46 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
 
     ngOnInit(): void {
         this.initializeForm();
+        // AGREGAR ESTA LÍNEA DESPUÉS DE INICIALIZAR
+        setTimeout(() => {
+            this.enableAllControls();
+            this.debugFormState(); // Para ver qué está pasando
+        }, 5000);
+
         this.loadAnimalTypes();
 
         if (this.inspectionId) {
             this.loadInspection();
         }
+    }
+
+    // 3. MÉTODO PARA FORZAR HABILITACIÓN DE CONTROLES
+    private enableAllControls(): void {
+        Object.keys(this.inspectionForm.controls).forEach((key) => {
+            const control = this.inspectionForm.get(key);
+            if (control?.disabled) {
+                control.enable();
+                console.log(`Control ${key} habilitado`);
+            }
+        });
+    }
+
+    // 6. AGREGAR MÉTODO DE DEBUGGING
+    debugFormState(): void {
+        console.log('=== DEBUG FORM STATE ===');
+        console.log('Form valid:', this.inspectionForm.valid);
+        console.log('Form disabled:', this.inspectionForm.disabled);
+        console.log('Form controls status:');
+
+        Object.keys(this.inspectionForm.controls).forEach((key) => {
+            const control = this.inspectionForm.get(key);
+            console.log(`${key}:`, {
+                disabled: control?.disabled,
+                enabled: control?.enabled,
+                value: control?.value,
+                status: control?.status,
+            });
+        });
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -165,6 +200,11 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
     onSwipeStart(event: TouchEvent | MouseEvent): void {
         if (!this.showNavigation) return;
 
+        // AGREGAR: Verificar si el evento viene de un elemento de formulario
+        if (this.isFormElement(event.target as Element)) {
+            return; // No interceptar eventos de elementos de formulario
+        }
+
         const clientX = this.getClientX(event);
         const clientY = this.getClientY(event);
 
@@ -189,6 +229,12 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
     @HostListener('mousemove', ['$event'])
     onSwipeMove(event: TouchEvent | MouseEvent): void {
         if (!this.swipeState.isDragging || !this.showNavigation) return;
+
+        // AGREGAR: Verificar si el evento viene de un elemento de formulario
+        if (this.isFormElement(event.target as Element)) {
+            this.resetSwipeState();
+            return;
+        }
 
         const clientX = this.getClientX(event);
         const clientY = this.getClientY(event);
@@ -222,6 +268,12 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
     onSwipeEnd(event: TouchEvent | MouseEvent): void {
         if (!this.swipeState.isDragging) return;
 
+        // AGREGAR: Verificar si el evento viene de un elemento de formulario
+        if (this.isFormElement(event.target as Element)) {
+            this.resetSwipeState();
+            return;
+        }
+
         const deltaX = this.swipeState.currentX - this.swipeState.startX;
         const deltaY = Math.abs(
             this.swipeState.currentY - this.swipeState.startY
@@ -237,6 +289,47 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
         }
 
         this.resetSwipeState();
+    }
+
+    // AGREGAR este nuevo método para detectar elementos de formulario:
+    private isFormElement(element: Element | null): boolean {
+        if (!element) return false;
+
+        // Lista de selectores que identifican elementos de formulario
+        const formSelectors = [
+            'input',
+            'textarea',
+            'select',
+            'button',
+            '.p-inputnumber',
+            '.p-dropdown',
+            '.p-calendar',
+            '.p-selectbutton',
+            '.p-button',
+            '.p-fileupload',
+            '.p-inputtext',
+            '.p-inputnumber-input',
+            '.p-dropdown-trigger',
+            '.p-calendar-button',
+            '.p-selectbutton-option',
+        ];
+
+        // Verificar si el elemento actual o algún padre es un elemento de formulario
+        let currentElement: Element | null = element;
+        while (currentElement) {
+            if (
+                formSelectors.some(
+                    (selector) =>
+                        currentElement!.matches?.(selector) ||
+                        currentElement!.closest?.(selector)
+                )
+            ) {
+                return true;
+            }
+            currentElement = currentElement.parentElement;
+        }
+
+        return false;
     }
 
     @HostListener('mouseleave', ['$event'])
