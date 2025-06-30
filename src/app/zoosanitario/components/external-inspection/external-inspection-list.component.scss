@@ -659,7 +659,7 @@
     }
 
     // Responsive Design
-    @media (max-width: 768px) {
+    @media (max-width: 780px) {
         padding: 0.5rem;
 
         .inspection-header {
@@ -1212,5 +1212,356 @@
     *:focus {
         outline: 2px solid var(--primary-color);
         outline-offset: 2px;
+    }
+}
+
+// Agregue estos estilos al final de external-inspection-list.component.scss
+
+// Breakpoint específico para 755px (rango 700px - 800px)
+@media (min-width: 700px) and (max-width: 800px) {
+    .inspection-list-container {
+        padding: 0.75rem;
+
+        .inspection-header {
+            padding: 1.25rem;
+
+            h1 {
+                font-size: 1.75rem;
+                line-height: 1.3;
+                margin-bottom: 1rem;
+            }
+
+            p {
+                font-size: 0.9rem;
+                margin-bottom: 1rem;
+            }
+
+            // Reorganizar el layout del header
+            .flex.justify-content-between {
+                flex-direction: column;
+                gap: 1.5rem;
+                align-items: stretch;
+
+                // Información del título y contadores
+                >div:first-child {
+                    text-align: center;
+                    order: 1;
+                }
+
+                // Controles (switch y botones)
+                >div:last-child {
+                    order: 2;
+                    display: flex;
+                    flex-direction: row;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 1rem;
+
+                    .phase-switch {
+                        order: 1;
+                        flex: 0 0 auto;
+                        margin-bottom: 0;
+
+                        .phase-switch-label {
+                            font-size: 0.85rem;
+                            margin-bottom: 0.5rem;
+                        }
+                    }
+
+                    // Botones en una fila
+                    .p-button {
+                        flex: 0 0 auto;
+                        min-width: 100px;
+                        font-size: 0.85rem;
+                        padding: 0.6rem 1rem;
+
+                        ::ng-deep .p-button-label {
+                            display: inline;
+                        }
+                    }
+                }
+            }
+
+            // Progreso de fases - compacto
+            .phase-progress {
+                order: 3;
+                margin-top: 1rem;
+
+                .flex {
+                    gap: 2rem;
+                    justify-content: center;
+                }
+
+                .phase-step {
+                    .step-circle {
+                        width: 2.5rem;
+                        height: 2.5rem;
+                        font-size: 1rem;
+                    }
+
+                    .step-label {
+                        font-size: 0.8rem;
+                    }
+                }
+
+                .step-connector {
+                    margin: 0 1rem;
+                    font-size: 1.2rem;
+                }
+            }
+
+            // Filtros en layout compacto
+            .filters-section {
+                order: 4;
+                margin-top: 1.5rem;
+                padding: 1.25rem;
+
+                .grid {
+                    gap: 0.75rem;
+
+                    .col-12 {
+                        padding: 0.375rem 0;
+
+                        // En 755px, mostrar 2 filtros por fila
+                        &.md\:col-3 {
+                            width: 50% !important;
+                            flex: 0 0 50%;
+                            max-width: 50%;
+                        }
+                    }
+                }
+
+                .field {
+                    label {
+                        font-size: 0.85rem;
+                        margin-bottom: 0.4rem;
+                    }
+
+                    input,
+                    ::ng-deep .p-dropdown,
+                    ::ng-deep .p-calendar {
+                        font-size: 0.9rem;
+                        padding: 0.6rem;
+                    }
+                }
+            }
+        }
+
+        // Estadísticas - 3 columnas en lugar de 6
+        .statistics-section {
+            .grid {
+                gap: 0.5rem;
+
+                >div {
+                    width: 33.333% !important;
+                    flex: 0 0 33.333%;
+                    max-width: 33.333%;
+                    padding: 0.25rem;
+                }
+            }
+
+            .stat-card {
+                padding: 1rem 0.75rem;
+
+                .stat-value {
+                    font-size: 1.5rem;
+                }
+
+                .stat-label {
+                    font-size: 0.75rem;
+                }
+            }
+        }
+
+        // Tabla más compacta
+        .inspections-table-container {
+            ::ng-deep .p-datatable {
+                font-size: 0.85rem;
+
+                .p-datatable-thead>tr>th,
+                .p-datatable-tbody>tr>td {
+                    padding: 0.7rem 0.5rem;
+                }
+
+                .p-datatable-thead>tr>th {
+                    font-size: 0.8rem;
+                }
+
+                // Ocultar columna de Estado del Proceso para ganar espacio
+                .p-datatable-thead>tr>th:nth-child(7),
+                .p-datatable-tbody>tr>td:nth-child(7) {
+                    display: none;
+                }
+
+                .p-paginator {
+                    padding: 1rem;
+
+                    .p-paginator-current {
+                        font-size: 0.8rem;
+                    }
+                }
+            }
+
+            .inspection-number {
+                .font-bold {
+                    font-size: 1rem;
+                }
+
+                .text-sm {
+                    font-size: 0.75rem;
+                }
+            }
+
+            .species-info {
+                .font-semibold {
+                    font-size: 0.85rem;
+                    line-height: 1.3;
+                }
+
+                .text-sm {
+                    font-size: 0.75rem;
+                }
+            }
+
+            ::ng-deep .p-tag {
+                font-size: 0.75rem;
+                padding: 0.3rem 0.6rem;
+            }
+        }
+
+        // Acciones en lote ajustadas
+        .batch-actions {
+            min-width: 500px;
+            left: 50%;
+            transform: translateX(-50%);
+
+            .p-card .p-card-body {
+                padding: 1rem;
+            }
+
+            .flex {
+                flex-wrap: wrap;
+                gap: 0.75rem;
+
+                .p-dropdown {
+                    min-width: 150px;
+                }
+
+                .p-button {
+                    flex: 0 0 auto;
+                    min-width: 80px;
+                    font-size: 0.85rem;
+                }
+            }
+        }
+    }
+
+    // Diálogos ajustados para 755px
+    ::ng-deep .p-dialog {
+        width: 90vw !important;
+        max-width: 700px !important;
+
+        .inspection-details {
+            .detail-item {
+                padding: 0.6rem;
+                margin-bottom: 0.75rem;
+
+                label {
+                    font-size: 0.8rem;
+                }
+
+                span,
+                p {
+                    font-size: 0.9rem;
+                }
+            }
+
+            .vital-card {
+                padding: 1.25rem;
+
+                .vital-value {
+                    font-size: 1.5rem;
+                }
+
+                .vital-label {
+                    font-size: 0.8rem;
+                }
+            }
+
+            .photos-gallery {
+                .photo-item {
+                    .photo-thumbnail {
+                        height: 150px;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Ajustes específicos para elementos que se ven mal en 755px
+@media (min-width: 740px) and (max-width: 780px) {
+    .inspection-list-container {
+        .inspection-header {
+
+            // Asegurar que los tags de información se vean bien
+            .platform-info {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.5rem;
+                margin-top: 1rem;
+
+                .p-tag {
+                    font-size: 0.8rem;
+                    padding: 0.4rem 0.8rem;
+                }
+            }
+
+            // Mejorar la visualización del switch de fase
+            .phase-switch {
+                ::ng-deep .p-inputswitch {
+                    .p-inputswitch-slider {
+                        width: 3rem;
+                        height: 1.5rem;
+
+                        &:before {
+                            width: 1.25rem;
+                            height: 1.25rem;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Asegurar que el calendario de fecha se vea correctamente
+        .filters-section {
+            .field {
+                ::ng-deep p-calendar {
+                    .p-calendar {
+                        width: 100%;
+
+                        .p-inputtext {
+                            width: 100% !important;
+                            min-width: 0;
+                        }
+                    }
+                }
+
+                // Mejoras para dropdowns
+                ::ng-deep p-dropdown {
+                    .p-dropdown {
+                        width: 100%;
+                        min-width: 0;
+
+                        .p-dropdown-label {
+                            padding: 0.6rem 0.75rem;
+                            font-size: 0.9rem;
+                        }
+                    }
+                }
+            }
+        }
     }
 }

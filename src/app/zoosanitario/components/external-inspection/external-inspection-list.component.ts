@@ -982,13 +982,13 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
     }
 
     onInspectionSaved(inspection: ExternalInspection): void {
-        this.messageService.add({
+        /*this.messageService.add({
             severity: 'success',
             summary: 'Éxito',
             detail: inspection._id
                 ? 'Inspección actualizada'
                 : 'Inspección creada',
-        });
+        });*/
 
         this.loadInspections();
         this.loadStatistics();

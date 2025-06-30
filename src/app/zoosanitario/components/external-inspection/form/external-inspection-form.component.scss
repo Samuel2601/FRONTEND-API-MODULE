@@ -1,8 +1,9 @@
 ::ng-deep .inspection-form-dialog {
     .p-dialog-content {
         padding: 0;
-        max-height: 85vh;
-        overflow-y: auto;
+        max-height: 85vh !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
     }
 
     .p-dialog-header {
@@ -147,7 +148,11 @@
     // Panel Styles
     ::ng-deep .p-panel {
         border-radius: 12px;
-        overflow: hidden;
+        //overflow: hidden;
+        overflow-y: auto;
+        overflow-x: hidden !important;
+        position: relative;
+        /* Añade esto si no está presente */
         border: 1px solid var(--surface-border);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         margin-bottom: 1.5rem;
@@ -497,7 +502,7 @@
         .photo-card {
             background: var(--surface-card);
             border-radius: 12px;
-            overflow: hidden;
+            overflow-y: hidden;
             border: 2px solid var(--surface-border);
             transition: all 0.3s ease;
             position: relative;
@@ -777,7 +782,7 @@
 }
 
 // Responsive Design
-@media (max-width: 768px) {
+@media (max-width: 500px) {
     ::ng-deep .inspection-form-dialog {
         width: 95vw !important;
         height: 95vh !important;
@@ -1061,4 +1066,319 @@
     80% {
         transform: translateX(2px);
     }
+}
+@media (min-width: 700px) and (max-width: 800px) {
+    ::ng-deep .navigation-bar {
+        flex-direction: row !important;
+    }
+}
+
+.swipe-instructions {
+    text-align: center;
+    padding: 0.5rem 0 1rem 0;
+
+    small {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.25rem;
+        font-size: 0.8rem;
+        opacity: 0.7;
+        font-style: italic;
+
+        .pi {
+            color: var(--primary-color);
+            animation: wiggle 2s ease-in-out infinite;
+        }
+
+        .pi-chevron-left {
+            animation: wiggle 2s ease-in-out infinite;
+        }
+
+        .pi-chevron-right {
+            animation: wiggle 2s ease-in-out infinite;
+        }
+
+        .pi-arrow-left {
+            animation: wiggle 2s ease-in-out infinite;
+        }
+
+        .pi-arrow-right {
+            animation: wiggle 2s ease-in-out infinite;
+        }
+
+        .pi-arrow-up {
+            animation: wiggle 2s ease-in-out infinite;
+        }
+
+        .pi-arrow-down {
+            animation: wiggle 2s ease-in-out infinite;
+        }
+
+        @keyframes wiggle {
+            0% {
+                transform: rotate(0deg);
+            }
+            25% {
+                transform: rotate(5deg);
+            }
+            50% {
+                transform: rotate(-5deg);
+            }
+            75% {
+                transform: rotate(5deg);
+            }
+            100% {
+                transform: rotate(0deg);
+            }
+        }
+
+        .pi-info-circle {
+            animation: wiggle 2s ease-in-out infinite;
+        }
+
+        .pi-times-circle {
+            animation: wiggle 2s ease-in-out infinite;
+        }
+
+        .pi-check-circle {
+            animation: wiggle 2s ease-in-out infinite;
+        }
+
+        .pi-exclamation-triangle {
+            animation: wiggle 2s ease-in-out infinite;
+        }
+    }
+}
+
+/* Animaciones para cambio de registro */
+.slide-in-right {
+    animation: slideInRight 0.5s ease-out forwards;
+}
+
+.slide-out-right {
+    animation: slideOutRight 0.5s ease-in forwards;
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.5s ease-out forwards;
+}
+
+.slide-out-left {
+    animation: slideOutLeft 0.5s ease-in forwards;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutLeft {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+}
+
+/* Aplica la animación al contenedor del formulario */
+.inspection-form-container {
+    position: relative;
+    overflow-x: hidden;
+    min-height: 50vh;
+    /* Ajusta según necesites */
+}
+
+.inspection-form-container.animate {
+    animation-fill-mode: both;
+}
+
+
+// AGREGAR AL FINAL DEL ARCHIVO SCSS - SOLUCION PARA INPUTS BLOQUEADOS
+
+// Fix para p-inputNumber bloqueados
+::ng-deep .inspection-form-dialog {
+
+    // Asegurar que los inputNumber sean interactivos
+    p-inputnumber {
+        position: relative;
+        z-index: 1;
+
+        .p-inputnumber {
+            pointer-events: auto !important;
+
+            .p-inputnumber-input {
+                pointer-events: auto !important;
+                user-select: text !important;
+                cursor: text !important;
+                position: relative;
+                z-index: 2;
+                background: var(--surface-ground) !important;
+
+                &:not([readonly]):not(:disabled) {
+                    pointer-events: auto !important;
+                    cursor: text !important;
+                }
+            }
+        }
+    }
+
+    // Fix para textarea bloqueados
+    textarea {
+        pointer-events: auto !important;
+        user-select: text !important;
+        cursor: text !important;
+        position: relative;
+        z-index: 2;
+
+        &:not([readonly]):not(:disabled) {
+            pointer-events: auto !important;
+            cursor: text !important;
+            background: var(--surface-ground) !important;
+        }
+    }
+
+    // Fix para p-calendar si también está afectado
+    p-calendar {
+        .p-calendar {
+            pointer-events: auto !important;
+
+            .p-inputtext {
+                pointer-events: auto !important;
+                cursor: text !important;
+
+                &:not([readonly]):not(:disabled) {
+                    pointer-events: auto !important;
+                    cursor: text !important;
+                }
+            }
+        }
+    }
+
+    // Asegurar que no hay overlays bloqueando
+    .p-dialog-content {
+        position: relative;
+        z-index: 1;
+
+        * {
+            &:not(.swipe-indicator):not(.loading-indicator) {
+                pointer-events: auto;
+            }
+        }
+    }
+
+    // Fix específico para el contenedor del swipe que podría estar bloqueando
+    .swipe-container {
+        pointer-events: auto !important;
+
+        form {
+            pointer-events: auto !important;
+
+            .field {
+                pointer-events: auto !important;
+
+                input,
+                textarea,
+                .p-inputnumber,
+                .p-calendar,
+                .p-dropdown {
+                    pointer-events: auto !important;
+                }
+            }
+        }
+    }
+}
+
+// Fix adicional para formularios reactivos
+.inspection-form-container {
+    .field {
+
+        // Remover cualquier bloqueo de pointer-events
+        * {
+            &:not(.swipe-indicator):not(.loading-indicator) {
+                pointer-events: auto !important;
+            }
+        }
+
+        // Específico para p-inputnumber
+        ::ng-deep p-inputnumber {
+            .p-inputnumber-input {
+                &:focus {
+                    outline: 2px solid var(--primary-color) !important;
+                    outline-offset: -2px !important;
+                }
+            }
+        }
+
+        // Específico para textarea
+        textarea {
+            &:focus {
+                outline: 2px solid var(--primary-color) !important;
+                outline-offset: -2px !important;
+            }
+        }
+    }
+}
+
+// Asegurar que las animaciones no interfieran con la interacción
+.slide-in-right,
+.slide-out-right,
+.slide-in-left,
+.slide-out-left {
+    pointer-events: auto !important;
+
+    * {
+        pointer-events: auto !important;
+    }
+}
+
+// Fix para el indicador de swipe que podría estar cubriendo los inputs
+.swipe-indicator {
+    pointer-events: none !important;
+    z-index: 1000;
+
+    * {
+        pointer-events: none !important;
+    }
+}
+
+// Debug temporal - remover después de confirmar que funciona
+.debug-input-fix {
+    background: red !important;
+    border: 2px solid blue !important;
 }
