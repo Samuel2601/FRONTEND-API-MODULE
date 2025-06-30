@@ -104,7 +104,8 @@ export class ReceptionService extends BaseService<Reception> {
         filters?: ReceptionFilters,
         page: number = 1,
         limit: number = 10,
-        populate?: string
+        populate?: string,
+        cache: boolean = true
     ): Observable<any> {
         let params = new HttpParams()
             .set('page', page.toString())
@@ -124,7 +125,7 @@ export class ReceptionService extends BaseService<Reception> {
         })}`;
         const cachedData = this.cacheService.get<any>(cacheKey);
 
-        if (cachedData) {
+        if (cachedData && cache) {
             return of(cachedData);
         }
 
@@ -205,11 +206,11 @@ export class ReceptionService extends BaseService<Reception> {
     }
 
     // Obtener estadísticas
-    getStatistics(): Observable<ReceptionStats> {
+    getStatistics(cache: boolean = true): Observable<ReceptionStats> {
         const cacheKey = `${this.endpoint}_stats`;
         const cachedData = this.cacheService.get<ReceptionStats>(cacheKey);
 
-        if (cachedData) {
+        if (cachedData && cache) {
             return of(cachedData);
         }
 

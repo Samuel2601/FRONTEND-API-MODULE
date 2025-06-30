@@ -96,18 +96,18 @@ export class ReceptionListComponent implements OnInit, OnDestroy {
      * Cargar datos iniciales
      */
     loadData(): void {
-        this.loadStatistics();
-        this.loadReceptions();
+        this.loadStatistics(false);
+        this.loadReceptions(null, false);
     }
 
     /**
      * Cargar estadísticas - CORREGIDO para mapear la respuesta correcta
      */
-    private loadStatistics(): void {
+    private loadStatistics(cache: boolean = true): void {
         this.loadingStats = true;
 
         this.receptionService
-            .getStatistics()
+            .getStatistics(cache)
             .pipe(
                 takeUntil(this.destroy$),
                 finalize(() => (this.loadingStats = false))
@@ -192,7 +192,7 @@ export class ReceptionListComponent implements OnInit, OnDestroy {
     /**
      * Cargar recepciones (llamado por lazy loading) - CORREGIDO para mapear la respuesta correcta
      */
-    loadReceptions(event?: TableLazyLoadEvent): void {
+    loadReceptions(event?: TableLazyLoadEvent, cache: boolean = true): void {
         this.loading = true;
 
         // Configurar paginación
@@ -212,7 +212,7 @@ export class ReceptionListComponent implements OnInit, OnDestroy {
         const queryFilters = { ...this.filters, ...sortParams };
         const populate = 'animalHealthCertificate';
         this.receptionService
-            .getReceptions(queryFilters, page, limit, populate)
+            .getReceptions(queryFilters, page, limit, populate, cache)
             .pipe(
                 takeUntil(this.destroy$),
                 finalize(() => (this.loading = false))
