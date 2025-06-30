@@ -108,8 +108,8 @@ export class InvoiceListComponent implements OnInit, OnDestroy {
                 next: (response: any) => {
                     response = response.data;
                     console.log('Respuesta:', response);
-                    this.invoices.set(response.docs);
-                    this.totalRecords.set(response.totalDocs);
+                    this.invoices.set(response.invoices);
+                    this.totalRecords.set(response.pagination.totalDocs);
                     this.loading.set(false);
                 },
                 error: (error) => {

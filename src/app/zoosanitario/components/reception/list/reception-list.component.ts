@@ -223,8 +223,9 @@ export class ReceptionListComponent implements OnInit, OnDestroy {
 
                     if (response.success && response.data) {
                         // Mapear correctamente según la estructura real de la respuesta
-                        this.receptions = response.data.docs || [];
-                        this.totalRecords = response.data.totalDocs || 0;
+                        this.receptions = response.data.receptions || [];
+                        this.totalRecords =
+                            response.data.pagination.totalDocs || 0;
                         this.currentPage = page;
 
                         // Enriquecer los datos si es necesario
