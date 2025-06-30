@@ -1230,7 +1230,20 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
             ).toLocaleDateString('es-ES')} generado exitosamente`,
         });
     }
-
+    /*
+                 <div class="stat-box">
+                    <div class="stat-value">${
+                        reportData.estadisticas.averages?.age || 'N/A'
+                    }</div>
+                    <div class="stat-label">Edad Promedio (meses)</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">${
+                        reportData.estadisticas.averages?.weight || 'N/A'
+                    }</div>
+                    <div class="stat-label">Peso Promedio (kg)</div>
+                </div>
+ */
     private generatePrintHTML(reportData: DailyReport): string {
         const fechaFormateada = new Date(reportData.fecha).toLocaleDateString(
             'es-ES',
@@ -1242,8 +1255,8 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
             }
         );
 
-        const isRecepcion = reportData.fase === 'recepcion';
-        const isAnteMortem = reportData.fase === 'anteMortem';
+        const isRecepcion = this.phase === 'recepcion';
+        const isAnteMortem = this.phase === 'anteMortem';
 
         return `
     <!DOCTYPE html>
@@ -1383,9 +1396,14 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
                 height: 12px;
                 border-radius: 50%;
                 margin-right: 5px;
+                border: 1px solid #ccc;
             }
             .boolean-true { background-color: #28a745; }
             .boolean-false { background-color: #dc3545; }
+            .boolean-null { 
+                background-color: #6c757d; 
+                opacity: 0.5;
+            }
             @media print {
                 body { margin: 0; }
                 .no-print { display: none; }
@@ -1402,7 +1420,7 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
                 reportData.fase === 'recepcion' ? 'Recepción' : 'Ante Mortem'
             }</div>
         </div>
-
+    
         <div class="stats-section">
             <div class="stat-box">
                 <div class="stat-value">${reportData.totalRegistros}</div>
@@ -1447,23 +1465,12 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
                     }</div>
                     <div class="stat-label">Comisión</div>
                 </div>
-                <div class="stat-box">
-                    <div class="stat-value">${
-                        reportData.estadisticas.averages?.age || 'N/A'
-                    }</div>
-                    <div class="stat-label">Edad Promedio (meses)</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value">${
-                        reportData.estadisticas.averages?.weight || 'N/A'
-                    }</div>
-                    <div class="stat-label">Peso Promedio (kg)</div>
-                </div>
+
             `
                     : ''
             }
         </div>
-
+    
         ${
             reportData.estadisticas
                 ? `
@@ -1508,32 +1515,33 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
         `
                 : ''
         }
-
+    
         ${
             reportData.inspecciones && reportData.inspecciones.length > 0
                 ? `
         <table class="table">
             <thead>
                 <tr>
-                    <th style="width: 12%;">Número</th>
-                    <th style="width: 12%;">Especie</th>
+                    <th style="width: 10%;">Número</th>
+                    <th style="width: 10%;">Especie</th>
                     <th style="width: 8%;">Sexo/Edad</th>
                     <th style="width: 8%;">Peso</th>
-                    <th style="width: 12%;">Resultado</th>
+                    <th style="width: 10%;">Resultado</th>
                     ${
                         isRecepcion
                             ? `
-                        <th style="width: 15%;">Estado General</th>
-                        <th style="width: 12%;">Características</th>
-                        <th style="width: 10%;">Condiciones Transporte</th>
+                        <th style="width: 12%;">Estado General</th>
+                        <th style="width: 10%;">Características</th>
+                        <th style="width: 8%;">Transporte</th>
                     `
                             : `
-                        <th style="width: 15%;">Estado/Comportamiento</th>
-                        <th style="width: 12%;">Signos Clínicos</th>
-                        <th style="width: 10%;">Secreciones</th>
+                        <th style="width: 12%;">Estado/Comportamiento</th>
+                        <th style="width: 10%;">Signos Clínicos</th>
+                        <th style="width: 8%;">Secreciones</th>
                     `
                     }
-                    <th style="width: 11%;">Signos Vitales</th>
+                    <th style="width: 9%;">Signos Vitales</th>
+                    <th style="width: 15%;">Veterinario</th>
                 </tr>
             </thead>
             <tbody>
@@ -1606,23 +1614,29 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
                                 }
                             </td>
                             <td>
-                                ${
-                                    data.caracteristicas
-                                        ? `
+                            ${
+                                data.caracteristicas
+                                    ? `
                                     <div>Tamaño: ${
                                         data.caracteristicas.tamano || 'N/A'
                                     }</div>
                                     <div>Movilidad: ${
                                         data.caracteristicas.movilidad || 'N/A'
                                     }</div>
-                                    <div>Parásitos: ${
-                                        data.caracteristicas.parasitos
-                                            ? 'Sí'
-                                            : 'No'
-                                    }</div>
+                                    <div>Parásitos: 
+                                        <span class="boolean-indicator ${
+                                            data.caracteristicas.parasitos ===
+                                            true
+                                                ? 'boolean-false'
+                                                : data.caracteristicas
+                                                      .parasitos === false
+                                                ? 'boolean-true'
+                                                : 'boolean-null'
+                                        }"></span>
+                                    </div>
                                 `
-                                        : 'N/A'
-                                }
+                                    : 'N/A'
+                            }
                             </td>
                             <td>
                                 <div class="secondary-info">T.Amb: ${
@@ -1639,44 +1653,58 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
                                 : `
                             <td>
                                 <div>Estado General: <span class="boolean-indicator ${
-                                    data.estadoGeneralOptimo
+                                    data.estadoGeneralOptimo === true
                                         ? 'boolean-true'
-                                        : 'boolean-false'
+                                        : data.estadoGeneralOptimo === false
+                                        ? 'boolean-false'
+                                        : 'boolean-null'
                                 }"></span></div>
                                 <div>Comportamiento: <span class="boolean-indicator ${
-                                    data.comportamientoNormal
+                                    data.comportamientoNormal === true
                                         ? 'boolean-true'
-                                        : 'boolean-false'
+                                        : data.comportamientoNormal === false
+                                        ? 'boolean-false'
+                                        : 'boolean-null'
                                 }"></span></div>
                                 <div>Lesiones: <span class="boolean-indicator ${
-                                    data.lesiones
+                                    data.lesiones === true
                                         ? 'boolean-false'
-                                        : 'boolean-true'
+                                        : data.lesiones === false
+                                        ? 'boolean-true'
+                                        : 'boolean-null'
                                 }"></span></div>
                             </td>
                             <td>
                                 ${
                                     data.signos
                                         ? `
-                                    <div>Nervioso: <span class="boolean-indicator ${
-                                        data.signos.nervioso
+                                    <div>S. Nervioso: <span class="boolean-indicator ${
+                                        data.signos.nervioso === true
+                                            ? 'boolean-true'
+                                            : data.signos.nervioso === false
                                             ? 'boolean-false'
-                                            : 'boolean-true'
+                                            : 'boolean-null'
                                     }"></span></div>
-                                    <div>Respiratorio: <span class="boolean-indicator ${
-                                        data.signos.respiratorio
+                                    <div>S. Respiratorio: <span class="boolean-indicator ${
+                                        data.signos.respiratorio === true
+                                            ? 'boolean-true'
+                                            : data.signos.respiratorio === false
                                             ? 'boolean-false'
-                                            : 'boolean-true'
+                                            : 'boolean-null'
                                     }"></span></div>
-                                    <div>Digestivo: <span class="boolean-indicator ${
-                                        data.signos.digestivo
+                                    <div>S. Digestivo: <span class="boolean-indicator ${
+                                        data.signos.digestivo === true
+                                            ? 'boolean-true'
+                                            : data.signos.digestivo === false
                                             ? 'boolean-false'
-                                            : 'boolean-true'
+                                            : 'boolean-null'
                                     }"></span></div>
-                                    <div>Vesicular: <span class="boolean-indicator ${
-                                        data.signos.vesicular
+                                    <div>S. Vesicular: <span class="boolean-indicator ${
+                                        data.signos.vesicular === true
+                                            ? 'boolean-true'
+                                            : data.signos.vesicular === false
                                             ? 'boolean-false'
-                                            : 'boolean-true'
+                                            : 'boolean-null'
                                     }"></span></div>
                                 `
                                         : 'N/A'
@@ -1686,15 +1714,19 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
                                 ${
                                     data.secreciones
                                         ? `
-                                    <div>Ocular: <span class="boolean-indicator ${
-                                        data.secreciones.ocular
+                                    <div>Sec. Ocular: <span class="boolean-indicator ${
+                                        data.secreciones.ocular === true
+                                            ? 'boolean-true'
+                                            : data.secreciones.ocular === false
                                             ? 'boolean-false'
-                                            : 'boolean-true'
+                                            : 'boolean-null'
                                     }"></span></div>
-                                    <div>Nasal: <span class="boolean-indicator ${
-                                        data.secreciones.nasal
+                                    <div>Sec. Nasal: <span class="boolean-indicator ${
+                                        data.secreciones.nasal === true
+                                            ? 'boolean-true'
+                                            : data.secreciones.nasal === false
                                             ? 'boolean-false'
-                                            : 'boolean-true'
+                                            : 'boolean-null'
                                     }"></span></div>
                                 `
                                         : 'N/A'
@@ -1702,7 +1734,7 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
                             </td>
                         `
                         }
-                        
+                 
                         <td class="vital-signs">
                             <div>T: ${data.temperatura || 'N/A'}°C</div>
                             <div>FC: ${
@@ -1711,16 +1743,31 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
                             <div>FR: ${
                                 data.frecuenciaRespiratoria || 'N/A'
                             } rpm</div>
-                            <div class="secondary-info">${
-                                data.horaChequeo
-                                    ? new Date(
-                                          data.horaChequeo
-                                      ).toLocaleTimeString('es-ES', {
-                                          hour: '2-digit',
-                                          minute: '2-digit',
-                                      })
-                                    : 'N/A'
-                            }</div>
+                        </td>
+                        
+                        <td class="secondary-info">
+                            ${
+                                data.veterinarioResponsable?.name &&
+                                data.veterinarioResponsable?.last_name
+                                    ? `${data.veterinarioResponsable.name} ${data.veterinarioResponsable.last_name}`
+                                    : data.veterinarioResponsable?.name ||
+                                      (typeof data.veterinarioResponsable ===
+                                      'string'
+                                          ? data.veterinarioResponsable
+                                          : 'No especificado')
+                            }
+                            <div style="font-size: 8px; margin-top: 2px;">
+                                ${
+                                    data.horaChequeo
+                                        ? new Date(
+                                              data.horaChequeo
+                                          ).toLocaleTimeString('es-ES', {
+                                              hour: '2-digit',
+                                              minute: '2-digit',
+                                          })
+                                        : 'N/A'
+                                }
+                            </div>
                         </td>
                     </tr>
                     `;
@@ -1731,7 +1778,7 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
         `
                 : '<p style="text-align: center; margin: 50px 0; font-style: italic;">No se encontraron inspecciones para esta fecha.</p>'
         }
-
+    
         ${
             reportData.inspecciones &&
             reportData.inspecciones.length > 0 &&
@@ -1758,15 +1805,17 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
         `
                 : ''
         }
-
+    
         <div class="footer">
             <p>Reporte generado el ${new Date(
                 reportData.generadoEn
             ).toLocaleString('es-ES')}</p>
             <p>Sistema Zoosanitario - Control de Inspecciones</p>
             <p style="margin-top: 5px; font-size: 8px;">
-                Leyenda: <span class="boolean-indicator boolean-true"></span> Normal/Negativo 
-                <span class="boolean-indicator boolean-false"></span> Anormal/Positivo
+                Leyenda: 
+                <span class="boolean-indicator boolean-true"></span> Bueno/Normal 
+                <span class="boolean-indicator boolean-false"></span> Problema/Anormal 
+                <span class="boolean-indicator boolean-null"></span> Sin evaluar
             </p>
         </div>
     </body>

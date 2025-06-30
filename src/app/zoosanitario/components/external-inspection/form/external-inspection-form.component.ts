@@ -726,6 +726,26 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
         });
     }
 
+    // Agregar esta propiedad en la clase ExternalInspectionFormComponent
+    showOptionalFields = false;
+
+    // Agregar este método para toggle de campos opcionales
+    toggleOptionalFields(): void {
+        this.showOptionalFields = !this.showOptionalFields;
+    }
+
+    // Agregar este método para verificar si hay datos en campos opcionales
+    hasOptionalFieldsData(): boolean {
+        const form = this.inspectionForm;
+        return !!(
+            form.get('edad')?.value ||
+            form.get('peso')?.value ||
+            form.get('temperatura')?.value ||
+            form.get('frecuenciaCardiaca')?.value ||
+            form.get('frecuenciaRespiratoria')?.value
+        );
+    }
+
     fillForm(inspection: any): void {
         if (this.phase === 'recepcion') {
             // Llenar datos básicos del animal
@@ -759,6 +779,8 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
                 });
             }
         }
+        // Al final del método, verificar si mostrar campos opcionales
+        this.showOptionalFields = this.hasOptionalFieldsData();
     }
 
     extractExistingPhotos(inspection: any): void {
@@ -1038,7 +1060,9 @@ export class ExternalInspectionFormComponent implements OnInit, OnChanges {
                     this.messageService.add({
                         severity: 'error',
                         summary: 'Error',
-                        detail: 'Error al actualizar inspección',
+                        detail:
+                            error.error?.message ||
+                            'Error al actualizar inspección',
                     });
                     this.submitting = false;
                 },

@@ -1228,12 +1228,10 @@
     animation-fill-mode: both;
 }
 
-
 // AGREGAR AL FINAL DEL ARCHIVO SCSS - SOLUCION PARA INPUTS BLOQUEADOS
 
 // Fix para p-inputNumber bloqueados
 ::ng-deep .inspection-form-dialog {
-
     // Asegurar que los inputNumber sean interactivos
     p-inputnumber {
         position: relative;
@@ -1327,7 +1325,6 @@
 // Fix adicional para formularios reactivos
 .inspection-form-container {
     .field {
-
         // Remover cualquier bloqueo de pointer-events
         * {
             &:not(.swipe-indicator):not(.loading-indicator) {
@@ -1381,4 +1378,124 @@
 .debug-input-fix {
     background: red !important;
     border: 2px solid blue !important;
+}
+
+// Estilos para campos opcionales
+.optional-fields-section {
+    border: 1px dashed var(--surface-border);
+    border-radius: 8px;
+    padding: 1rem;
+    background: rgba(var(--primary-color-rgb), 0.02);
+    margin: 1rem 0;
+    transition: all 0.3s ease;
+
+    &:hover {
+        border-color: var(--primary-color);
+        background: rgba(var(--primary-color-rgb), 0.05);
+    }
+
+    h6 {
+        color: var(--primary-color);
+        font-weight: 600;
+        font-size: 1rem;
+        margin-bottom: 0;
+    }
+}
+
+// Botón para mostrar campos opcionales
+.optional-fields-toggle {
+    border: 2px dashed var(--surface-border) !important;
+    background: transparent !important;
+    color: var(--text-color-secondary) !important;
+    transition: all 0.3s ease;
+    padding: 1rem !important;
+
+    &:hover {
+        border-color: var(--primary-color) !important;
+        background: rgba(var(--primary-color-rgb), 0.05) !important;
+        color: var(--primary-color) !important;
+        transform: translateY(-2px);
+    }
+
+    .p-button-label {
+        font-weight: 500;
+    }
+
+    .p-button-icon {
+        margin-right: 0.5rem;
+    }
+}
+
+// Animación para mostrar/ocultar campos
+.optional-fields-enter {
+    animation: fadeInDown 0.4s ease-out;
+}
+
+.optional-fields-leave {
+    animation: fadeOutUp 0.3s ease-in;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+        max-height: 0;
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 500px;
+    }
+}
+
+@keyframes fadeOutUp {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 500px;
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+        max-height: 0;
+    }
+}
+
+// Mejoras para el header de sección opcional
+.optional-section-header {
+    border-bottom: 2px solid rgba(var(--primary-color-rgb), 0.2);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+
+    .p-button {
+        min-width: auto;
+        width: 2rem;
+        height: 2rem;
+        padding: 0;
+        border-radius: 50%;
+
+        &:hover {
+            background: rgba(var(--red-500-rgb), 0.1);
+            color: var(--red-500);
+        }
+    }
+}
+
+// Responsive para campos opcionales
+@media (max-width: 576px) {
+    .optional-fields-section {
+        padding: 0.75rem;
+        margin: 0.5rem 0;
+
+        h6 {
+            font-size: 0.9rem;
+        }
+    }
+
+    .optional-fields-toggle {
+        padding: 0.75rem !important;
+        font-size: 0.9rem;
+    }
 }

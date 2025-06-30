@@ -260,152 +260,188 @@
                                 </div>
                             </div>
 
-                            <div class="col-6 md:col-3">
+                            <div class="col-12" *ngIf="!showOptionalFields">
                                 <div class="field">
-                                    <label for="edad">Edad (meses)</label>
-                                    <p-inputNumber
-                                        appendTo="body"
-                                        id="edad"
-                                        formControlName="edad"
-                                        mode="decimal"
-                                        [min]="0"
-                                        [max]="30"
-                                        placeholder="0"
-                                    ></p-inputNumber>
+                                    <p-button
+                                        label="Agregar Medidas Adicionales"
+                                        icon="pi pi-plus"
+                                        severity="secondary"
+                                        [outlined]="true"
+                                        size="small"
+                                        (onClick)="toggleOptionalFields()"
+                                        styleClass="w-full"
+                                    ></p-button>
                                 </div>
                             </div>
 
-                            <div class="col-6 md:col-3">
-                                <div class="field">
-                                    <label for="peso">Peso (kg)</label>
-                                    <p-inputNumber
-                                        id="peso"
-                                        formControlName="peso"
-                                        mode="decimal"
-                                        [min]="0"
-                                        [max]="2000"
-                                        suffix=" kg"
-                                        placeholder="0"
-                                    ></p-inputNumber>
-                                </div>
-                            </div>
-
-                            <div class="col-6 md:col-3">
-                                <div class="field temp-indicator">
-                                    <label for="temperatura"
-                                        >Temperatura (°C)</label
+                            <!-- Campos opcionales para recepción -->
+                            <ng-container *ngIf="showOptionalFields">
+                                <div class="col-12">
+                                    <div
+                                        class="flex justify-content-between align-items-center mb-3"
                                     >
-                                    <p-inputNumber
-                                        id="temperatura"
-                                        formControlName="temperatura"
-                                        mode="decimal"
-                                        [min]="35"
-                                        [max]="45"
-                                        suffix=" °C"
-                                        placeholder="36.5"
-                                    ></p-inputNumber>
-                                    <small
-                                        *ngIf="
-                                            inspectionForm.get('temperatura')
-                                                ?.value
-                                        "
-                                        [class]="
-                                            getTempIndicatorClass(
+                                        <h6 class="m-0 text-primary">
+                                            Medidas Adicionales
+                                        </h6>
+                                        <p-button
+                                            icon="pi pi-minus"
+                                            severity="secondary"
+                                            [text]="true"
+                                            size="small"
+                                            (onClick)="toggleOptionalFields()"
+                                            pTooltip="Ocultar campos adicionales"
+                                        ></p-button>
+                                    </div>
+                                </div>
+
+                                <div class="col-6 md:col-3">
+                                    <div class="field">
+                                        <label for="edad">Edad (meses)</label>
+                                        <p-inputNumber
+                                            appendTo="body"
+                                            id="edad"
+                                            formControlName="edad"
+                                            mode="decimal"
+                                            [min]="0"
+                                            [max]="30"
+                                            placeholder="0"
+                                        ></p-inputNumber>
+                                    </div>
+                                </div>
+
+                                <div class="col-6 md:col-3">
+                                    <div class="field">
+                                        <label for="peso">Peso (kg)</label>
+                                        <p-inputNumber
+                                            id="peso"
+                                            formControlName="peso"
+                                            mode="decimal"
+                                            [min]="0"
+                                            [max]="2000"
+                                            suffix=" kg"
+                                            placeholder="0"
+                                        ></p-inputNumber>
+                                    </div>
+                                </div>
+
+                                <div class="col-6 md:col-3">
+                                    <div class="field temp-indicator">
+                                        <label for="temperatura"
+                                            >Temperatura (°C)</label
+                                        >
+                                        <p-inputNumber
+                                            id="temperatura"
+                                            formControlName="temperatura"
+                                            mode="decimal"
+                                            [min]="35"
+                                            [max]="45"
+                                            suffix=" °C"
+                                            placeholder="36.5"
+                                        ></p-inputNumber>
+                                        <small
+                                            *ngIf="
                                                 inspectionForm.get(
                                                     'temperatura'
                                                 )?.value
-                                            )
-                                        "
-                                    >
-                                        {{
-                                            getTempIndicatorText(
-                                                inspectionForm.get(
-                                                    "temperatura"
-                                                )?.value
-                                            )
-                                        }}
-                                    </small>
+                                            "
+                                            [class]="
+                                                getTempIndicatorClass(
+                                                    inspectionForm.get(
+                                                        'temperatura'
+                                                    )?.value
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                getTempIndicatorText(
+                                                    inspectionForm.get(
+                                                        "temperatura"
+                                                    )?.value
+                                                )
+                                            }}
+                                        </small>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="col-6 md:col-3">
-                                <div class="field hr-indicator">
-                                    <label for="frecuenciaCardiaca"
-                                        >Frecuencia Cardíaca (lpm)</label
-                                    >
-                                    <p-inputNumber
-                                        id="frecuenciaCardiaca"
-                                        formControlName="frecuenciaCardiaca"
-                                        mode="decimal"
-                                        [min]="30"
-                                        [max]="200"
-                                        suffix=" lpm"
-                                        placeholder="70"
-                                    ></p-inputNumber>
-                                    <small
-                                        *ngIf="
-                                            inspectionForm.get(
-                                                'frecuenciaCardiaca'
-                                            )?.value
-                                        "
-                                        [class]="
-                                            getHeartRateIndicatorClass(
+                                <div class="col-6 md:col-3">
+                                    <div class="field hr-indicator">
+                                        <label for="frecuenciaCardiaca"
+                                            >Frecuencia Cardíaca (lpm)</label
+                                        >
+                                        <p-inputNumber
+                                            id="frecuenciaCardiaca"
+                                            formControlName="frecuenciaCardiaca"
+                                            mode="decimal"
+                                            [min]="30"
+                                            [max]="200"
+                                            suffix=" lpm"
+                                            placeholder="70"
+                                        ></p-inputNumber>
+                                        <small
+                                            *ngIf="
                                                 inspectionForm.get(
                                                     'frecuenciaCardiaca'
                                                 )?.value
-                                            )
-                                        "
-                                    >
-                                        {{
-                                            getHeartRateIndicatorText(
-                                                inspectionForm.get(
-                                                    "frecuenciaCardiaca"
-                                                )?.value
-                                            )
-                                        }}
-                                    </small>
+                                            "
+                                            [class]="
+                                                getHeartRateIndicatorClass(
+                                                    inspectionForm.get(
+                                                        'frecuenciaCardiaca'
+                                                    )?.value
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                getHeartRateIndicatorText(
+                                                    inspectionForm.get(
+                                                        "frecuenciaCardiaca"
+                                                    )?.value
+                                                )
+                                            }}
+                                        </small>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="col-6 md:col-3">
-                                <div class="field rr-indicator">
-                                    <label for="frecuenciaRespiratoria"
-                                        >Frecuencia Respiratoria (rpm)</label
-                                    >
-                                    <p-inputNumber
-                                        id="frecuenciaRespiratoria"
-                                        formControlName="frecuenciaRespiratoria"
-                                        mode="decimal"
-                                        [min]="5"
-                                        [max]="80"
-                                        suffix=" rpm"
-                                        placeholder="20"
-                                    ></p-inputNumber>
-                                    <small
-                                        *ngIf="
-                                            inspectionForm.get(
-                                                'frecuenciaRespiratoria'
-                                            )?.value
-                                        "
-                                        [class]="
-                                            getRespRateIndicatorClass(
+                                <div class="col-6 md:col-3">
+                                    <div class="field rr-indicator">
+                                        <label for="frecuenciaRespiratoria"
+                                            >Frecuencia Respiratoria
+                                            (rpm)</label
+                                        >
+                                        <p-inputNumber
+                                            id="frecuenciaRespiratoria"
+                                            formControlName="frecuenciaRespiratoria"
+                                            mode="decimal"
+                                            [min]="5"
+                                            [max]="80"
+                                            suffix=" rpm"
+                                            placeholder="20"
+                                        ></p-inputNumber>
+                                        <small
+                                            *ngIf="
                                                 inspectionForm.get(
                                                     'frecuenciaRespiratoria'
                                                 )?.value
-                                            )
-                                        "
-                                    >
-                                        {{
-                                            getRespRateIndicatorText(
-                                                inspectionForm.get(
-                                                    "frecuenciaRespiratoria"
-                                                )?.value
-                                            )
-                                        }}
-                                    </small>
+                                            "
+                                            [class]="
+                                                getRespRateIndicatorClass(
+                                                    inspectionForm.get(
+                                                        'frecuenciaRespiratoria'
+                                                    )?.value
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                getRespRateIndicatorText(
+                                                    inspectionForm.get(
+                                                        "frecuenciaRespiratoria"
+                                                    )?.value
+                                                )
+                                            }}
+                                        </small>
+                                    </div>
                                 </div>
-                            </div>
-
+                            </ng-container>
                             <div class="col-12 md:col-3">
                                 <div class="field">
                                     <label for="horaChequeo"
@@ -547,121 +583,157 @@
                 <ng-container *ngIf="phase === 'anteMortem'">
                     <p-panel header="Examen Ante Mortem" styleClass="mb-3">
                         <div class="grid">
-                            <div class="col-12 md:col-3">
-                                <div class="field temp-indicator">
-                                    <label for="temperatura"
-                                        >Temperatura (°C)</label
+                            <div class="col-12" *ngIf="!showOptionalFields">
+                                <div class="field">
+                                    <p-button
+                                        label="Agregar Signos Vitales"
+                                        icon="pi pi-plus"
+                                        severity="secondary"
+                                        [outlined]="true"
+                                        size="small"
+                                        (onClick)="toggleOptionalFields()"
+                                        styleClass="w-full"
+                                    ></p-button>
+                                </div>
+                            </div>
+
+                            <!-- Campos opcionales para ante mortem -->
+                            <ng-container *ngIf="showOptionalFields">
+                                <div class="col-12">
+                                    <div
+                                        class="flex justify-content-between align-items-center mb-3"
                                     >
-                                    <p-inputNumber
-                                        id="temperatura"
-                                        formControlName="temperatura"
-                                        mode="decimal"
-                                        [min]="35"
-                                        [max]="45"
-                                        suffix=" °C"
-                                        placeholder="36.5"
-                                    ></p-inputNumber>
-                                    <small
-                                        *ngIf="
-                                            inspectionForm.get('temperatura')
-                                                ?.value
-                                        "
-                                        [class]="
-                                            getTempIndicatorClass(
+                                        <h6 class="m-0 text-primary">
+                                            Signos Vitales
+                                        </h6>
+                                        <p-button
+                                            icon="pi pi-minus"
+                                            severity="secondary"
+                                            [text]="true"
+                                            size="small"
+                                            (onClick)="toggleOptionalFields()"
+                                            pTooltip="Ocultar signos vitales"
+                                        ></p-button>
+                                    </div>
+                                </div>
+                                <div class="col-12 md:col-3">
+                                    <div class="field temp-indicator">
+                                        <label for="temperatura"
+                                            >Temperatura (°C)</label
+                                        >
+                                        <p-inputNumber
+                                            id="temperatura"
+                                            formControlName="temperatura"
+                                            mode="decimal"
+                                            [min]="35"
+                                            [max]="45"
+                                            suffix=" °C"
+                                            placeholder="36.5"
+                                        ></p-inputNumber>
+                                        <small
+                                            *ngIf="
                                                 inspectionForm.get(
                                                     'temperatura'
                                                 )?.value
-                                            )
-                                        "
-                                    >
-                                        {{
-                                            getTempIndicatorText(
-                                                inspectionForm.get(
-                                                    "temperatura"
-                                                )?.value
-                                            )
-                                        }}
-                                    </small>
+                                            "
+                                            [class]="
+                                                getTempIndicatorClass(
+                                                    inspectionForm.get(
+                                                        'temperatura'
+                                                    )?.value
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                getTempIndicatorText(
+                                                    inspectionForm.get(
+                                                        "temperatura"
+                                                    )?.value
+                                                )
+                                            }}
+                                        </small>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="col-12 md:col-3">
-                                <div class="field hr-indicator">
-                                    <label for="frecuenciaCardiaca"
-                                        >Frecuencia Cardíaca (lpm)</label
-                                    >
-                                    <p-inputNumber
-                                        id="frecuenciaCardiaca"
-                                        formControlName="frecuenciaCardiaca"
-                                        mode="decimal"
-                                        [min]="30"
-                                        [max]="200"
-                                        suffix=" lpm"
-                                        placeholder="70"
-                                    ></p-inputNumber>
-                                    <small
-                                        *ngIf="
-                                            inspectionForm.get(
-                                                'frecuenciaCardiaca'
-                                            )?.value
-                                        "
-                                        [class]="
-                                            getHeartRateIndicatorClass(
+                                <div class="col-12 md:col-3">
+                                    <div class="field hr-indicator">
+                                        <label for="frecuenciaCardiaca"
+                                            >Frecuencia Cardíaca (lpm)</label
+                                        >
+                                        <p-inputNumber
+                                            id="frecuenciaCardiaca"
+                                            formControlName="frecuenciaCardiaca"
+                                            mode="decimal"
+                                            [min]="30"
+                                            [max]="200"
+                                            suffix=" lpm"
+                                            placeholder="70"
+                                        ></p-inputNumber>
+                                        <small
+                                            *ngIf="
                                                 inspectionForm.get(
                                                     'frecuenciaCardiaca'
                                                 )?.value
-                                            )
-                                        "
-                                    >
-                                        {{
-                                            getHeartRateIndicatorText(
-                                                inspectionForm.get(
-                                                    "frecuenciaCardiaca"
-                                                )?.value
-                                            )
-                                        }}
-                                    </small>
+                                            "
+                                            [class]="
+                                                getHeartRateIndicatorClass(
+                                                    inspectionForm.get(
+                                                        'frecuenciaCardiaca'
+                                                    )?.value
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                getHeartRateIndicatorText(
+                                                    inspectionForm.get(
+                                                        "frecuenciaCardiaca"
+                                                    )?.value
+                                                )
+                                            }}
+                                        </small>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="col-12 md:col-3">
-                                <div class="field rr-indicator">
-                                    <label for="frecuenciaRespiratoria"
-                                        >Frecuencia Respiratoria (rpm)</label
-                                    >
-                                    <p-inputNumber
-                                        id="frecuenciaRespiratoria"
-                                        formControlName="frecuenciaRespiratoria"
-                                        mode="decimal"
-                                        [min]="5"
-                                        [max]="80"
-                                        suffix=" rpm"
-                                        placeholder="20"
-                                    ></p-inputNumber>
-                                    <small
-                                        *ngIf="
-                                            inspectionForm.get(
-                                                'frecuenciaRespiratoria'
-                                            )?.value
-                                        "
-                                        [class]="
-                                            getRespRateIndicatorClass(
+                                <div class="col-12 md:col-3">
+                                    <div class="field rr-indicator">
+                                        <label for="frecuenciaRespiratoria"
+                                            >Frecuencia Respiratoria
+                                            (rpm)</label
+                                        >
+                                        <p-inputNumber
+                                            id="frecuenciaRespiratoria"
+                                            formControlName="frecuenciaRespiratoria"
+                                            mode="decimal"
+                                            [min]="5"
+                                            [max]="80"
+                                            suffix=" rpm"
+                                            placeholder="20"
+                                        ></p-inputNumber>
+                                        <small
+                                            *ngIf="
                                                 inspectionForm.get(
                                                     'frecuenciaRespiratoria'
                                                 )?.value
-                                            )
-                                        "
-                                    >
-                                        {{
-                                            getRespRateIndicatorText(
-                                                inspectionForm.get(
-                                                    "frecuenciaRespiratoria"
-                                                )?.value
-                                            )
-                                        }}
-                                    </small>
+                                            "
+                                            [class]="
+                                                getRespRateIndicatorClass(
+                                                    inspectionForm.get(
+                                                        'frecuenciaRespiratoria'
+                                                    )?.value
+                                                )
+                                            "
+                                        >
+                                            {{
+                                                getRespRateIndicatorText(
+                                                    inspectionForm.get(
+                                                        "frecuenciaRespiratoria"
+                                                    )?.value
+                                                )
+                                            }}
+                                        </small>
+                                    </div>
                                 </div>
-                            </div>
+                            </ng-container>
 
                             <div class="col-12 md:col-3">
                                 <div class="field">
@@ -758,6 +830,7 @@
                                             <div class="field">
                                                 <label>Oculares</label>
                                                 <p-dropdown
+                                                    appendTo="body"
                                                     formControlName="ocular"
                                                     [options]="[
                                                         {
@@ -780,6 +853,7 @@
                                             <div class="field">
                                                 <label>Nasales</label>
                                                 <p-dropdown
+                                                    appendTo="body"
                                                     formControlName="nasal"
                                                     [options]="[
                                                         {
@@ -812,6 +886,7 @@
                                             <div class="field">
                                                 <label>Nerviosos</label>
                                                 <p-dropdown
+                                                    appendTo="body"
                                                     formControlName="nervioso"
                                                     [options]="[
                                                         {
@@ -834,6 +909,7 @@
                                             <div class="field">
                                                 <label>Respiratorios</label>
                                                 <p-dropdown
+                                                    appendTo="body"
                                                     formControlName="respiratorio"
                                                     [options]="[
                                                         {
@@ -856,6 +932,7 @@
                                             <div class="field">
                                                 <label>Digestivos</label>
                                                 <p-dropdown
+                                                    appendTo="body"
                                                     formControlName="digestivo"
                                                     [options]="[
                                                         {
@@ -878,6 +955,7 @@
                                             <div class="field">
                                                 <label>Vesiculares</label>
                                                 <p-dropdown
+                                                    appendTo="body"
                                                     formControlName="vesicular"
                                                     [options]="[
                                                         {
