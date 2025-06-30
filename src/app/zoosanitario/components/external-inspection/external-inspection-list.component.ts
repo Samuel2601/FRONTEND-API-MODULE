@@ -10,6 +10,7 @@ import {
     ExternalInspection,
     InspectionSummary,
     InspectionStatistics,
+    DailyReport,
 } from '../../services/external-inspection.service';
 import { ExternalInspectionFormComponent } from './form/external-inspection-form.component';
 import { AnimalTypeService } from '../../services/animal-type.service';
@@ -21,6 +22,8 @@ interface InspectionFilters {
     especie?: string;
     fecha?: Date;
     veterinario?: string;
+    sexo?: string;
+    numero?: string;
 }
 
 // Nueva interfaz para estadísticas del backend
@@ -91,7 +94,7 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
     statistics: AdaptedStatistics | null = null;
 
     // Control de modo de visualización
-    showingAllInspections = false; // Nuevo: controla si mostramos todas o una específica
+    showingAllInspections = false;
 
     // Filtros y búsqueda
     filters: InspectionFilters = {};
@@ -136,6 +139,13 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
     ];
 
     speciesOptions: any = [];
+
+    // Opciones para filtro de sexo
+    sexOptions = [
+        { label: 'Todos', value: '' },
+        { label: 'Macho', value: 'Macho' },
+        { label: 'Hembra', value: 'Hembra' },
+    ];
 
     constructor(
         private externalInspectionService: ExternalInspectionService,
@@ -253,6 +263,7 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
         },
     };
     new_date = new Date();
+
     // Opciones de filtro rápido
     dateFilterOptions = [
         { label: 'Hoy', value: 'today' },
@@ -264,95 +275,7 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
         { label: 'Personalizado', value: 'custom' },
     ];
 
-    // Métodos corregidos para manejo de fechas
-    onQuickDateFilter(
-        option:
-            | 'today'
-            | 'yesterday'
-            | 'thisWeek'
-            | 'lastWeek'
-            | 'thisMonth'
-            | 'lastMonth'
-            | 'custom'
-    ): void {
-        const today = new Date();
-        let startDate: Date;
-        let endDate: Date;
-
-        switch (option) {
-            case 'today':
-                startDate = new Date(today);
-                endDate = new Date(today);
-                break;
-            case 'yesterday':
-                startDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-                endDate = new Date(startDate);
-                break;
-            case 'thisWeek':
-                const currentDay = today.getDay();
-                const diff = currentDay === 0 ? 6 : currentDay - 1; // Lunes como primer día
-                startDate = new Date(today);
-                startDate.setDate(today.getDate() - diff);
-                endDate = new Date(startDate);
-                endDate.setDate(startDate.getDate() + 6);
-                break;
-            case 'lastWeek':
-                const lastWeekEnd = new Date(today);
-                lastWeekEnd.setDate(today.getDate() - today.getDay());
-                endDate = new Date(lastWeekEnd);
-                startDate = new Date(lastWeekEnd);
-                startDate.setDate(lastWeekEnd.getDate() - 6);
-                break;
-            case 'thisMonth':
-                startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-                endDate = new Date(
-                    today.getFullYear(),
-                    today.getMonth() + 1,
-                    0
-                );
-                break;
-            case 'lastMonth':
-                startDate = new Date(
-                    today.getFullYear(),
-                    today.getMonth() - 1,
-                    1
-                );
-                endDate = new Date(today.getFullYear(), today.getMonth(), 0);
-                break;
-            case 'custom':
-                this.showCustomDateRange = true;
-                this.dateRange = [startDate, endDate];
-                this.filters.fecha = undefined; // Limpiar fecha única cuando usamos rango
-                this.onFilterChange();
-                return;
-            default:
-                return;
-        }
-    }
-
-    onDateRangeSelect(): void {
-        if (this.dateRange && this.dateRange.length === 2) {
-            this.filters.fecha = undefined; // Limpiar fecha única cuando seleccionamos rango
-            this.onFilterChange();
-        }
-    }
-
-    // Método para limpiar fecha única y usar rango
-    onSingleDateSelect(): void {
-        if (this.filters.fecha) {
-            this.dateRange = []; // Limpiar rango cuando seleccionamos fecha única
-            this.onFilterChange();
-        }
-    }
-
-    clearDateFilter(): void {
-        this.filters.fecha = undefined;
-        this.dateRange = [];
-        this.selectedDateFilter = '';
-        this.showCustomDateRange = false;
-        this.onFilterChange();
-    }
-
+    // Variables para manejo de fechas
     selectedDateFilter = '';
     showCustomDateRange = false;
     dateRange: Date[] = [];
@@ -415,12 +338,15 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: (response: any) => {
                     console.log('Tipos de animales cargados:', response);
-                    this.speciesOptions = response.data.animalTypes
-                        .filter((a: any) => a.species && a.category)
-                        .map((a: any) => ({
-                            label: `${a.species} (${a.category})`,
-                            value: a._id,
-                        }));
+                    this.speciesOptions = [
+                        { label: 'Todas las especies', value: '' },
+                        ...response.data.animalTypes
+                            .filter((a: any) => a.species && a.category)
+                            .map((a: any) => ({
+                                label: `${a.species} (${a.category})`,
+                                value: a._id,
+                            })),
+                    ];
                 },
                 error: (error) => {
                     this.messageService.add({
@@ -466,12 +392,30 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
         this.loadAllInspections(event, cache);
     }
 
-    // Método corregido para construir filtros con fechas
+    // Método MEJORADO para construir filtros con fechas
     private buildDateFilters(): any {
-        const filters: any = { ...this.filters };
+        const filters: any = {};
 
-        // Limpiar el filtro de fecha genérico si existe
-        delete filters.fecha;
+        // Agregar filtros básicos
+        if (this.filters.resultado && this.filters.resultado !== '') {
+            filters.resultado = this.filters.resultado;
+        }
+
+        if (this.filters.especie && this.filters.especie !== '') {
+            filters.especie = this.filters.especie;
+        }
+
+        if (this.filters.veterinario && this.filters.veterinario !== '') {
+            filters.veterinario = this.filters.veterinario;
+        }
+
+        if (this.filters.sexo && this.filters.sexo !== '') {
+            filters.sexo = this.filters.sexo;
+        }
+
+        if (this.filters.numero && this.filters.numero !== '') {
+            filters.numero = this.filters.numero;
+        }
 
         // Manejar filtro de fecha única
         if (this.filters.fecha && !this.dateRange.length) {
@@ -501,17 +445,10 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
             filters.dateTo = endDate.toISOString();
         }
 
-        // Limpiar filtros vacíos
-        Object.keys(filters).forEach((key) => {
-            if (
-                filters[key] === '' ||
-                filters[key] === null ||
-                filters[key] === undefined
-            ) {
-                delete filters[key];
-            }
-        });
+        // Agregar la fase
+        filters.phase = this.phase;
 
+        console.log('Filtros construidos:', filters);
         return filters;
     }
 
@@ -532,14 +469,9 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
             limit: this.pageSize.toString(),
             sort: JSON.stringify({ createdAt: -1 }),
             populate: 'recepcion especie',
-            phase: this.phase,
+            filters: filters,
         };
 
-        if (Object.keys(filters).length > 0) {
-            queryParams.filters = filters; // Ya no es JSON string aquí
-        }
-
-        console.log('Filtros construidos:', filters);
         console.log('Query params enviados:', queryParams);
 
         this.externalInspectionService
@@ -550,9 +482,12 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
             )
             .subscribe({
                 next: (response: any) => {
+                    console.log('Response de inspecciones:', response);
                     if (response.data) {
-                        this.inspections = response.data.docs || [];
-                        this.totalInspections = response.data.totalDocs || 0;
+                        this.inspections =
+                            response.data.externalInspections || [];
+                        this.totalInspections =
+                            response.data.pagination.totalDocs || 0;
                     } else {
                         this.inspections = Array.isArray(response)
                             ? response
@@ -571,6 +506,51 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
             });
     }
 
+    // Variables para el modo de búsqueda
+    isSearchMode = false;
+
+    searchBySpecificNumber(numero: string): void {
+        this.isSearchMode = true;
+        this.loading = true;
+        this.externalInspectionService
+            .getInspectionByNumber(numero)
+            .pipe(
+                takeUntil(this.destroy$),
+                finalize(() => (this.loading = false))
+            )
+            .subscribe({
+                next: (response: any) => {
+                    console.log('Respuesta de búsqueda:', response);
+                    if (response.data) {
+                        if (Array.isArray(response.data)) {
+                            this.inspections = response.data;
+                            this.totalInspections = response.data.length || 0;
+                        } else {
+                            this.inspections = [response.data];
+                            this.totalInspections = 1;
+                        }
+                    } else {
+                        this.inspections = Array.isArray(response)
+                            ? response
+                            : [response];
+                        this.totalInspections = Array.isArray(response)
+                            ? response.length
+                            : 1;
+                    }
+                },
+                error: (error) => {
+                    console.error('Error buscando inspección:', error);
+                    this.inspections = [];
+                    this.totalInspections = 0;
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'No Encontrado',
+                        detail: `No se encontró la inspección ${numero}`,
+                    });
+                },
+            });
+    }
+
     clearSearch(): void {
         console.log('Limpiando búsqueda y mostrando todas las inspecciones');
 
@@ -580,6 +560,9 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
         this.searchNumber = '';
         this.filters = {};
         this.currentPage = 1;
+        this.selectedDateFilter = '';
+        this.showCustomDateRange = false;
+        this.dateRange = [];
 
         // Limpiar IDs específicos
         this.receptionId = undefined;
@@ -613,21 +596,169 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
         }
     }
 
+    searchByNumber(): void {
+        console.log('Buscando por número', this.searchNumber);
+        if (this.searchNumber.trim()) {
+            this.isSearchMode = true;
+            this.showingAllInspections = false;
+            this.searchBySpecificNumber(this.searchNumber.trim());
+        } else {
+            this.isSearchMode = false;
+            this.showingAllInspections = true;
+            this.loadInspections();
+        }
+    }
+
+    onFilterChange(): void {
+        this.currentPage = 1;
+        this.loadInspections();
+        this.loadStatistics();
+    }
+
+    // Métodos para manejo de fechas
+    onQuickDateFilter(
+        option:
+            | 'today'
+            | 'yesterday'
+            | 'thisWeek'
+            | 'lastWeek'
+            | 'thisMonth'
+            | 'lastMonth'
+            | 'custom'
+    ): void {
+        const today = new Date();
+        let startDate: Date;
+        let endDate: Date;
+
+        switch (option) {
+            case 'today':
+                this.filters.fecha = new Date(today);
+                this.dateRange = [];
+                break;
+            case 'yesterday':
+                const yesterday = new Date(
+                    today.getTime() - 24 * 60 * 60 * 1000
+                );
+                this.filters.fecha = yesterday;
+                this.dateRange = [];
+                break;
+            case 'thisWeek':
+                const currentDay = today.getDay();
+                const diff = currentDay === 0 ? 6 : currentDay - 1; // Lunes como primer día
+                startDate = new Date(today);
+                startDate.setDate(today.getDate() - diff);
+                endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + 6);
+                this.dateRange = [startDate, endDate];
+                this.filters.fecha = undefined;
+                this.showCustomDateRange = true;
+                break;
+            case 'lastWeek':
+                const lastWeekEnd = new Date(today);
+                lastWeekEnd.setDate(today.getDate() - today.getDay());
+                endDate = new Date(lastWeekEnd);
+                startDate = new Date(lastWeekEnd);
+                startDate.setDate(lastWeekEnd.getDate() - 6);
+                this.dateRange = [startDate, endDate];
+                this.filters.fecha = undefined;
+                this.showCustomDateRange = true;
+                break;
+            case 'thisMonth':
+                startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                endDate = new Date(
+                    today.getFullYear(),
+                    today.getMonth() + 1,
+                    0
+                );
+                this.dateRange = [startDate, endDate];
+                this.filters.fecha = undefined;
+                this.showCustomDateRange = true;
+                break;
+            case 'lastMonth':
+                startDate = new Date(
+                    today.getFullYear(),
+                    today.getMonth() - 1,
+                    1
+                );
+                endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+                this.dateRange = [startDate, endDate];
+                this.filters.fecha = undefined;
+                this.showCustomDateRange = true;
+                break;
+            case 'custom':
+                this.showCustomDateRange = true;
+                this.filters.fecha = undefined;
+                return;
+            default:
+                return;
+        }
+
+        this.onFilterChange();
+    }
+
+    onDateRangeSelect(): void {
+        if (this.dateRange && this.dateRange.length === 2) {
+            this.filters.fecha = undefined; // Limpiar fecha única cuando seleccionamos rango
+            this.onFilterChange();
+        }
+    }
+
+    clearDateFilter(): void {
+        this.filters.fecha = undefined;
+        this.dateRange = [];
+        this.selectedDateFilter = '';
+        this.showCustomDateRange = false;
+        this.onFilterChange();
+    }
+
+    // Propiedad computed para el switch (true = anteMortem, false = recepcion)
+    get phaseSwitch(): boolean {
+        return this.phase === 'anteMortem';
+    }
+
+    set phaseSwitch(value: boolean) {
+        this.phase = value ? 'anteMortem' : 'recepcion';
+    }
+
+    // Método mejorado para manejar el cambio de fase
+    onPhaseChange(): void {
+        console.log('Cambiando fase a:', this.phase);
+
+        // Asegurar que siempre tengamos un valor válido
+        if (this.phase !== 'recepcion' && this.phase !== 'anteMortem') {
+            this.phase = 'recepcion'; // valor por defecto
+        }
+
+        // Reiniciar los datos
+        this.currentPage = 1;
+        this.selectedInspections = [];
+        this.isSearchMode = false;
+
+        // Recargar datos para la nueva fase
+        this.loadInspections(null, false);
+        this.loadStatistics(false);
+
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Fase Cambiada',
+            detail: `Mostrando datos de ${this.getPhaseTitle()}`,
+        });
+    }
+
+    // Método auxiliar para obtener el label actual del switch
+    getCurrentPhaseLabel(): string {
+        return this.phase === 'recepcion' ? 'Recepción' : 'Ante Mortem';
+    }
+
     // Método corregido para cargar estadísticas
     loadStatistics(cache: boolean = true): void {
         // Usar el método de construcción de filtros corregido
         const filters = this.buildDateFilters();
 
-        // Agregar la fase a los parámetros de estadísticas
-        const statsParams = {
-            ...filters,
-            phase: this.phase,
-        };
-
-        console.log('Parámetros de estadísticas:', statsParams);
+        console.log('Parámetros de estadísticas:', filters);
 
         this.externalInspectionService
-            .getStatistics(statsParams, cache)
+            .getStatistics(filters, cache)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (response: any) => {
@@ -679,110 +810,6 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
             speciesBreakdown: currentStats.speciesBreakdown,
             sexBreakdown: currentStats.sexBreakdown,
         };
-    }
-
-    isSearchMode = false;
-
-    searchBySpecificNumber(numero: string): void {
-        this.isSearchMode = true;
-        this.loading = true;
-        this.externalInspectionService
-            .getInspectionByNumber(numero)
-            .pipe(
-                takeUntil(this.destroy$),
-                finalize(() => (this.loading = false))
-            )
-            .subscribe({
-                next: (response: any) => {
-                    console.log('Respuesta de búsqueda:', response);
-                    if (response.data) {
-                        if (Array.isArray(response.data)) {
-                            this.inspections = response.data;
-                            this.totalInspections = response.data.length || 0;
-                        } else {
-                            this.inspections = [response.data];
-                            this.totalInspections = 1;
-                        }
-                    } else {
-                        this.inspections = Array.isArray(response)
-                            ? response
-                            : [response];
-                        this.totalInspections = Array.isArray(response)
-                            ? response.length
-                            : 1;
-                    }
-                },
-                error: (error) => {
-                    console.error('Error buscando inspección:', error);
-                    this.inspections = [];
-                    this.totalInspections = 0;
-                    this.messageService.add({
-                        severity: 'warn',
-                        summary: 'No Encontrado',
-                        detail: `No se encontró la inspección ${numero}`,
-                    });
-                },
-            });
-    }
-
-    searchByNumber(): void {
-        console.log('Buscando por número', this.searchNumber);
-        if (this.searchNumber.trim()) {
-            this.isSearchMode = true;
-            this.showingAllInspections = false;
-            this.searchBySpecificNumber(this.searchNumber.trim());
-        } else {
-            this.isSearchMode = false;
-            this.showingAllInspections = true;
-            this.loadInspections();
-        }
-    }
-
-    onFilterChange(): void {
-        this.currentPage = 1;
-        this.loadInspections();
-        this.loadStatistics();
-    }
-
-    // Propiedad computed para el switch (true = anteMortem, false = recepcion)
-    get phaseSwitch(): boolean {
-        return this.phase === 'anteMortem';
-    }
-
-    set phaseSwitch(value: boolean) {
-        this.phase = value ? 'anteMortem' : 'recepcion';
-    }
-
-    // Método mejorado para manejar el cambio de fase
-    onPhaseChange(): void {
-        console.log('Cambiando fase a:', this.phase);
-
-        // Asegurar que siempre tengamos un valor válido
-        if (this.phase !== 'recepcion' && this.phase !== 'anteMortem') {
-            this.phase = 'recepcion'; // valor por defecto
-        }
-
-        // Reiniciar los datos
-        this.currentPage = 1;
-        this.selectedInspections = [];
-        this.filters = {};
-        this.searchNumber = '';
-        this.isSearchMode = false;
-
-        // Recargar datos para la nueva fase
-        this.loadInspections(null, false);
-        this.loadStatistics(false);
-
-        this.messageService.add({
-            severity: 'info',
-            summary: 'Fase Cambiada',
-            detail: `Mostrando datos de ${this.getPhaseTitle()}`,
-        });
-    }
-
-    // Método auxiliar para obtener el label actual del switch
-    getCurrentPhaseLabel(): string {
-        return this.phase === 'recepcion' ? 'Recepción' : 'Ante Mortem';
     }
 
     refresh(): void {
@@ -1118,5 +1145,632 @@ export class ExternalInspectionListComponent implements OnInit, OnDestroy {
             // Para ante mortem, debe existir al menos la inspección de recepción
             return this.hasReceptionData(inspection);
         }
+    }
+
+    // NUEVO: Funcionalidad de impresión de reporte diario mejorado
+    // NUEVO: Funcionalidad de impresión de reporte diario mejorado
+    printDailyReport(): void {
+        const today = new Date();
+        const dateStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+        this.confirmationService.confirm({
+            message: `¿Desea generar el reporte de inspecciones del día ${today.toLocaleDateString(
+                'es-ES'
+            )} para la fase ${this.getCurrentPhaseLabel()}?`,
+            header: 'Generar Reporte Diario',
+            icon: 'pi pi-print',
+            acceptLabel: 'Sí, Generar',
+            rejectLabel: 'Cancelar',
+            accept: () => {
+                this.generateDailyReport(dateStr);
+            },
+        });
+    }
+
+    private generateDailyReport(date: string): void {
+        this.loading = true;
+
+        this.externalInspectionService
+            .getDailyReport(date, this.phase, false)
+            .pipe(
+                takeUntil(this.destroy$),
+                finalize(() => (this.loading = false))
+            )
+            .subscribe({
+                next: (response: any) => {
+                    console.log('Respuesta del reporte diario:', response);
+                    if (response.data) {
+                        this.openPrintDialog(response.data);
+                    }
+                },
+                error: (error) => {
+                    console.error('Error generando reporte diario:', error);
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'No se pudo generar el reporte diario',
+                    });
+                },
+            });
+    }
+
+    private openPrintDialog(reportData: DailyReport): void {
+        const printWindow = window.open('', '_blank', 'width=1200,height=800');
+
+        if (!printWindow) {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'No se pudo abrir la ventana de impresión. Verifique que las ventanas emergentes estén habilitadas.',
+            });
+            return;
+        }
+
+        const htmlContent = this.generatePrintHTML(reportData);
+
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+
+        // Esperar a que se cargue el contenido antes de imprimir
+        printWindow.onload = () => {
+            setTimeout(() => {
+                printWindow.print();
+                // Cerrar la ventana después de imprimir (opcional)
+                printWindow.onafterprint = () => {
+                    printWindow.close();
+                };
+            }, 500);
+        };
+
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Reporte Generado',
+            detail: `Reporte del ${new Date(
+                reportData.fecha
+            ).toLocaleDateString('es-ES')} generado exitosamente`,
+        });
+    }
+
+    private generatePrintHTML(reportData: DailyReport): string {
+        const fechaFormateada = new Date(reportData.fecha).toLocaleDateString(
+            'es-ES',
+            {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            }
+        );
+
+        const isRecepcion = reportData.fase === 'recepcion';
+        const isAnteMortem = reportData.fase === 'anteMortem';
+
+        return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Reporte Diario de Inspecciones - ${fechaFormateada}</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 15px;
+                line-height: 1.3;
+                font-size: 11px;
+            }
+            .header {
+                text-align: center;
+                border-bottom: 2px solid #333;
+                padding-bottom: 15px;
+                margin-bottom: 20px;
+            }
+            .logo {
+                font-size: 22px;
+                font-weight: bold;
+                color: #2c5c94;
+                margin-bottom: 8px;
+            }
+            .title {
+                font-size: 18px;
+                font-weight: bold;
+                margin: 8px 0;
+            }
+            .subtitle {
+                font-size: 14px;
+                color: #666;
+            }
+            .stats-section {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 15px;
+                margin: 20px 0;
+                border: 1px solid #ddd;
+                padding: 15px;
+                background-color: #f9f9f9;
+            }
+            .stat-box {
+                text-align: center;
+                padding: 8px;
+            }
+            .stat-value {
+                font-size: 20px;
+                font-weight: bold;
+                color: #2c5c94;
+            }
+            .stat-label {
+                font-size: 10px;
+                color: #666;
+                text-transform: uppercase;
+            }
+            .summary-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+                margin: 20px 0;
+            }
+            .summary-box {
+                border: 1px solid #ddd;
+                padding: 15px;
+                background-color: #f9f9f9;
+            }
+            .summary-title {
+                font-weight: bold;
+                margin-bottom: 10px;
+                color: #2c5c94;
+                border-bottom: 1px solid #ddd;
+                padding-bottom: 5px;
+            }
+            .summary-item {
+                margin: 5px 0;
+                display: flex;
+                justify-content: space-between;
+            }
+            .table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+                font-size: 10px;
+            }
+            .table th,
+            .table td {
+                border: 1px solid #ddd;
+                padding: 6px;
+                text-align: left;
+                vertical-align: top;
+            }
+            .table th {
+                background-color: #f5f5f5;
+                font-weight: bold;
+                font-size: 9px;
+            }
+            .table tr:nth-child(even) {
+                background-color: #f9f9f9;
+            }
+            .status-apto { color: #28a745; font-weight: bold; }
+            .status-pendiente { color: #ffc107; font-weight: bold; }
+            .status-devolucion { color: #dc3545; font-weight: bold; }
+            .status-cuarentena { color: #fd7e14; font-weight: bold; }
+            .status-comision { color: #6f42c1; font-weight: bold; }
+            .vital-signs {
+                font-size: 9px;
+                color: #666;
+                line-height: 1.2;
+            }
+            .important-info {
+                font-weight: bold;
+            }
+            .secondary-info {
+                color: #666;
+                font-size: 9px;
+            }
+            .footer {
+                margin-top: 30px;
+                border-top: 1px solid #ddd;
+                padding-top: 15px;
+                text-align: center;
+                font-size: 9px;
+                color: #666;
+            }
+            .transport-section {
+                background-color: #e8f4f8;
+                padding: 10px;
+                margin: 15px 0;
+                border-left: 4px solid #2c5c94;
+            }
+            .boolean-indicator {
+                display: inline-block;
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                margin-right: 5px;
+            }
+            .boolean-true { background-color: #28a745; }
+            .boolean-false { background-color: #dc3545; }
+            @media print {
+                body { margin: 0; }
+                .no-print { display: none; }
+                .table { font-size: 9px; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <div class="logo">SISTEMA ZOOSANITARIO</div>
+            <div class="title">Reporte Diario de Inspecciones</div>
+            <div class="subtitle">${fechaFormateada}</div>
+            <div class="subtitle">Fase: ${
+                reportData.fase === 'recepcion' ? 'Recepción' : 'Ante Mortem'
+            }</div>
+        </div>
+
+        <div class="stats-section">
+            <div class="stat-box">
+                <div class="stat-value">${reportData.totalRegistros}</div>
+                <div class="stat-label">Total Inspecciones</div>
+            </div>
+            ${
+                reportData.estadisticas
+                    ? `
+                <div class="stat-box">
+                    <div class="stat-value">${
+                        (isRecepcion
+                            ? reportData.estadisticas.recepcionStats
+                            : reportData.estadisticas.anteMortemStats
+                        )?.resultBreakdown?.apto || 0
+                    }</div>
+                    <div class="stat-label">Aptas</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">${
+                        (isRecepcion
+                            ? reportData.estadisticas.recepcionStats
+                            : reportData.estadisticas.anteMortemStats
+                        )?.resultBreakdown?.devolucion || 0
+                    }</div>
+                    <div class="stat-label">Devolución</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">${
+                        (isRecepcion
+                            ? reportData.estadisticas.recepcionStats
+                            : reportData.estadisticas.anteMortemStats
+                        )?.resultBreakdown?.cuarentena || 0
+                    }</div>
+                    <div class="stat-label">Cuarentena</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">${
+                        (isRecepcion
+                            ? reportData.estadisticas.recepcionStats
+                            : reportData.estadisticas.anteMortemStats
+                        )?.resultBreakdown?.comision || 0
+                    }</div>
+                    <div class="stat-label">Comisión</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">${
+                        reportData.estadisticas.averages?.age || 'N/A'
+                    }</div>
+                    <div class="stat-label">Edad Promedio (meses)</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">${
+                        reportData.estadisticas.averages?.weight || 'N/A'
+                    }</div>
+                    <div class="stat-label">Peso Promedio (kg)</div>
+                </div>
+            `
+                    : ''
+            }
+        </div>
+
+        ${
+            reportData.estadisticas
+                ? `
+        <div class="summary-grid">
+            <div class="summary-box">
+                <div class="summary-title">Distribución por Sexo</div>
+                <div class="summary-item">
+                    <span>Machos:</span>
+                    <span>${
+                        reportData.estadisticas.sexBreakdown?.macho || 0
+                    }</span>
+                </div>
+                <div class="summary-item">
+                    <span>Hembras:</span>
+                    <span>${
+                        reportData.estadisticas.sexBreakdown?.hembra || 0
+                    }</span>
+                </div>
+            </div>
+            <div class="summary-box">
+                <div class="summary-title">Promedios Vitales</div>
+                <div class="summary-item">
+                    <span>Temperatura:</span>
+                    <span>${
+                        reportData.estadisticas.averages?.temperature || 'N/A'
+                    }°C</span>
+                </div>
+                <div class="summary-item">
+                    <span>Edad:</span>
+                    <span>${
+                        reportData.estadisticas.averages?.age || 'N/A'
+                    } meses</span>
+                </div>
+                <div class="summary-item">
+                    <span>Peso:</span>
+                    <span>${
+                        reportData.estadisticas.averages?.weight || 'N/A'
+                    } kg</span>
+                </div>
+            </div>
+        </div>
+        `
+                : ''
+        }
+
+        ${
+            reportData.inspecciones && reportData.inspecciones.length > 0
+                ? `
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="width: 12%;">Número</th>
+                    <th style="width: 12%;">Especie</th>
+                    <th style="width: 8%;">Sexo/Edad</th>
+                    <th style="width: 8%;">Peso</th>
+                    <th style="width: 12%;">Resultado</th>
+                    ${
+                        isRecepcion
+                            ? `
+                        <th style="width: 15%;">Estado General</th>
+                        <th style="width: 12%;">Características</th>
+                        <th style="width: 10%;">Condiciones Transporte</th>
+                    `
+                            : `
+                        <th style="width: 15%;">Estado/Comportamiento</th>
+                        <th style="width: 12%;">Signos Clínicos</th>
+                        <th style="width: 10%;">Secreciones</th>
+                    `
+                    }
+                    <th style="width: 11%;">Signos Vitales</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${reportData.inspecciones
+                    .map((inspection) => {
+                        const data: any = isAnteMortem
+                            ? inspection.examenAnteMortem ||
+                              inspection.inspeccionRecepcion ||
+                              {}
+                            : inspection.inspeccionRecepcion || {};
+
+                        const transportData =
+                            inspection.recepcion?.transporte || {};
+                        const resultado = data.resultado || 'Pendiente';
+                        const statusClass = `status-${resultado
+                            .toLowerCase()
+                            .replace('ó', 'o')}`;
+
+                        return `
+                    <tr>
+                        <td class="important-info">${inspection.numero}</td>
+                        <td class="important-info">
+                            ${
+                                inspection.especie
+                                    ? `${inspection.especie.species}`
+                                    : 'N/A'
+                            }
+                            <div class="secondary-info">(${
+                                inspection.especie?.category || 'N/A'
+                            })</div>
+                        </td>
+                        <td>
+                            <div class="important-info">${
+                                inspection.sexo || 'N/A'
+                            }</div>
+                            <div class="secondary-info">${
+                                inspection.edad ? `${inspection.edad}m` : 'N/A'
+                            }</div>
+                        </td>
+                        <td class="important-info">${
+                            inspection.peso ? `${inspection.peso} kg` : 'N/A'
+                        }</td>
+                        <td class="${statusClass} important-info">
+                            ${resultado}
+                            ${
+                                data.motivoDictamen
+                                    ? `<div class="secondary-info" style="margin-top: 3px;">${data.motivoDictamen.substring(
+                                          0,
+                                          50
+                                      )}${
+                                          data.motivoDictamen.length > 50
+                                              ? '...'
+                                              : ''
+                                      }</div>`
+                                    : ''
+                            }
+                        </td>
+                        
+                        ${
+                            isRecepcion
+                                ? `
+                            <td>
+                                <div class="important-info">${
+                                    data.estadoGeneral || 'No especificado'
+                                }</div>
+                                ${
+                                    data.lesionesVisibles
+                                        ? `<div class="secondary-info">Lesiones: ${data.lesionesVisibles}</div>`
+                                        : ''
+                                }
+                            </td>
+                            <td>
+                                ${
+                                    data.caracteristicas
+                                        ? `
+                                    <div>Tamaño: ${
+                                        data.caracteristicas.tamano || 'N/A'
+                                    }</div>
+                                    <div>Movilidad: ${
+                                        data.caracteristicas.movilidad || 'N/A'
+                                    }</div>
+                                    <div>Parásitos: ${
+                                        data.caracteristicas.parasitos
+                                            ? 'Sí'
+                                            : 'No'
+                                    }</div>
+                                `
+                                        : 'N/A'
+                                }
+                            </td>
+                            <td>
+                                <div class="secondary-info">T.Amb: ${
+                                    transportData.temperatura || 'N/A'
+                                }°C</div>
+                                <div class="secondary-info">Humedad: ${
+                                    transportData.humedadAmbiental || 'N/A'
+                                }%</div>
+                                <div class="secondary-info">${
+                                    transportData.condicionesHigienicas || 'N/A'
+                                }</div>
+                            </td>
+                        `
+                                : `
+                            <td>
+                                <div>Estado General: <span class="boolean-indicator ${
+                                    data.estadoGeneralOptimo
+                                        ? 'boolean-true'
+                                        : 'boolean-false'
+                                }"></span></div>
+                                <div>Comportamiento: <span class="boolean-indicator ${
+                                    data.comportamientoNormal
+                                        ? 'boolean-true'
+                                        : 'boolean-false'
+                                }"></span></div>
+                                <div>Lesiones: <span class="boolean-indicator ${
+                                    data.lesiones
+                                        ? 'boolean-false'
+                                        : 'boolean-true'
+                                }"></span></div>
+                            </td>
+                            <td>
+                                ${
+                                    data.signos
+                                        ? `
+                                    <div>Nervioso: <span class="boolean-indicator ${
+                                        data.signos.nervioso
+                                            ? 'boolean-false'
+                                            : 'boolean-true'
+                                    }"></span></div>
+                                    <div>Respiratorio: <span class="boolean-indicator ${
+                                        data.signos.respiratorio
+                                            ? 'boolean-false'
+                                            : 'boolean-true'
+                                    }"></span></div>
+                                    <div>Digestivo: <span class="boolean-indicator ${
+                                        data.signos.digestivo
+                                            ? 'boolean-false'
+                                            : 'boolean-true'
+                                    }"></span></div>
+                                    <div>Vesicular: <span class="boolean-indicator ${
+                                        data.signos.vesicular
+                                            ? 'boolean-false'
+                                            : 'boolean-true'
+                                    }"></span></div>
+                                `
+                                        : 'N/A'
+                                }
+                            </td>
+                            <td>
+                                ${
+                                    data.secreciones
+                                        ? `
+                                    <div>Ocular: <span class="boolean-indicator ${
+                                        data.secreciones.ocular
+                                            ? 'boolean-false'
+                                            : 'boolean-true'
+                                    }"></span></div>
+                                    <div>Nasal: <span class="boolean-indicator ${
+                                        data.secreciones.nasal
+                                            ? 'boolean-false'
+                                            : 'boolean-true'
+                                    }"></span></div>
+                                `
+                                        : 'N/A'
+                                }
+                            </td>
+                        `
+                        }
+                        
+                        <td class="vital-signs">
+                            <div>T: ${data.temperatura || 'N/A'}°C</div>
+                            <div>FC: ${
+                                data.frecuenciaCardiaca || 'N/A'
+                            } bpm</div>
+                            <div>FR: ${
+                                data.frecuenciaRespiratoria || 'N/A'
+                            } rpm</div>
+                            <div class="secondary-info">${
+                                data.horaChequeo
+                                    ? new Date(
+                                          data.horaChequeo
+                                      ).toLocaleTimeString('es-ES', {
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                      })
+                                    : 'N/A'
+                            }</div>
+                        </td>
+                    </tr>
+                    `;
+                    })
+                    .join('')}
+            </tbody>
+        </table>
+        `
+                : '<p style="text-align: center; margin: 50px 0; font-style: italic;">No se encontraron inspecciones para esta fecha.</p>'
+        }
+
+        ${
+            reportData.inspecciones &&
+            reportData.inspecciones.length > 0 &&
+            reportData.inspecciones.some((i) => i.recepcion?.transporte)
+                ? `
+        <div class="transport-section">
+            <h4 style="margin: 0 0 10px 0; color: #2c5c94;">Información de Transporte del Día</h4>
+            ${reportData.inspecciones
+                .filter((i) => i.recepcion?.transporte)
+                .map((i) => {
+                    const t = i.recepcion.transporte;
+                    return `
+                    <div style="margin: 8px 0; font-size: 10px;">
+                        <strong>${i.numero}:</strong> 
+                        Temp. Ambiental: ${t.temperatura}°C, 
+                        Humedad: ${t.humedadAmbiental}%, 
+                        Condiciones: ${t.condicionesHigienicas}
+                        ${t.observaciones ? `, Obs: ${t.observaciones}` : ''}
+                    </div>
+                `;
+                })
+                .join('')}
+        </div>
+        `
+                : ''
+        }
+
+        <div class="footer">
+            <p>Reporte generado el ${new Date(
+                reportData.generadoEn
+            ).toLocaleString('es-ES')}</p>
+            <p>Sistema Zoosanitario - Control de Inspecciones</p>
+            <p style="margin-top: 5px; font-size: 8px;">
+                Leyenda: <span class="boolean-indicator boolean-true"></span> Normal/Negativo 
+                <span class="boolean-indicator boolean-false"></span> Anormal/Positivo
+            </p>
+        </div>
+    </body>
+    </html>
+    `;
     }
 }

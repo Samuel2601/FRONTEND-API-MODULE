@@ -479,6 +479,7 @@
 
 <!-- Diálogo de Detalles -->
 <p-dialog
+    *ngIf="showDetailsDialog"
     [(visible)]="showDetailsDialog"
     header="Detalles del Proceso"
     [modal]="true"

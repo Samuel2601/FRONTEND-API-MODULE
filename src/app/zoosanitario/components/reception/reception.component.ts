@@ -643,7 +643,7 @@ export class ReceptionComponent implements OnInit, OnDestroy {
                     // Navegar al dashboard o a la vista de la recepción
                     this.router.navigate([
                         '/zoosanitario/workflow/external-inspection/recepcion/',
-                        reception.data.slaughterProcess.numeroOrden,
+                        reception.data.reception.slaughterProcess.numeroOrden,
                     ]);
                 },
                 error: (error) => {

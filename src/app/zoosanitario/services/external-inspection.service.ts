@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { catchError, Observable, tap } from 'rxjs';
 import { BaseService } from './base.service';
 import { MessageService } from 'primeng/api';
@@ -9,7 +9,7 @@ import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 
 export interface ExternalInspection {
     _id?: string;
-    recepcion: string;
+    recepcion: any;
     numero: string;
     especie?: any;
     sexo?: 'Macho' | 'Hembra' | 'Pendiente';
@@ -98,6 +98,15 @@ export interface InspectionStatistics {
     filtered?: any;
 }
 
+export interface DailyReport {
+    fecha: string;
+    fase: string;
+    inspecciones: ExternalInspection[];
+    estadisticas: any;
+    totalRegistros: number;
+    generadoEn: string;
+}
+
 @Injectable({
     providedIn: 'root',
 })
@@ -111,16 +120,15 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
         super('external-inspections');
     }
 
-    // Método corregido para obtener inspecciones con manejo de fechas
+    // Método MEJORADO para obtener inspecciones con manejo correcto de filtros
     getInspections(
         queryParams: any = {},
         cache: boolean = true
-    ): Observable<ExternalInspection[]> {
+    ): Observable<any> {
         const cacheKey = `${this.endpoint}_filtered_${JSON.stringify(
             queryParams
         )}`;
-        const cachedData =
-            this.cacheService.get<ExternalInspection[]>(cacheKey);
+        const cachedData = this.cacheService.get<any>(cacheKey);
 
         if (cache && cachedData) {
             return new Observable((observer) => {
@@ -129,37 +137,55 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
             });
         }
 
-        // Construir los parámetros correctamente
-        let params: any = {};
+        // Construir HttpParams correctamente
+        let httpParams = new HttpParams();
 
         // Parámetros de paginación y ordenamiento
-        if (queryParams.page) params.page = queryParams.page;
-        if (queryParams.limit) params.limit = queryParams.limit;
-        if (queryParams.sort) params.sort = queryParams.sort;
-        if (queryParams.populate) params.populate = queryParams.populate;
-        if (queryParams.phase) params.phase = queryParams.phase;
+        if (queryParams.page) {
+            httpParams = httpParams.set('page', queryParams.page.toString());
+        }
+        if (queryParams.limit) {
+            httpParams = httpParams.set('limit', queryParams.limit.toString());
+        }
+        if (queryParams.sort) {
+            httpParams = httpParams.set(
+                'sort',
+                typeof queryParams.sort === 'string'
+                    ? queryParams.sort
+                    : JSON.stringify(queryParams.sort)
+            );
+        }
+        if (queryParams.populate) {
+            httpParams = httpParams.set('populate', queryParams.populate);
+        }
+        if (queryParams.phase) {
+            httpParams = httpParams.set('phase', queryParams.phase);
+        }
 
-        // Manejar filtros - ahora los filtros ya vienen procesados del componente
+        // Manejar filtros - MEJORADO para enviar cada filtro por separado
         if (
             queryParams.filters &&
             Object.keys(queryParams.filters).length > 0
         ) {
-            // Los filtros ya incluyen dateFrom y dateTo procesados
             Object.keys(queryParams.filters).forEach((key) => {
-                params[key] = queryParams.filters[key];
+                const value = queryParams.filters[key];
+                if (value !== undefined && value !== null && value !== '') {
+                    if (value instanceof Date) {
+                        httpParams = httpParams.set(key, value.toISOString());
+                    } else {
+                        httpParams = httpParams.set(key, value.toString());
+                    }
+                }
             });
         }
 
-        console.log('Parámetros finales enviados al backend:', params);
+        console.log('HttpParams enviados:', httpParams.toString());
 
         return this.http
-            .get<ExternalInspection[]>(
-                `${GLOBAL.url_zoosanitario}${this.endpoint}`,
-                {
-                    headers: this.getHeaders(),
-                    params,
-                }
-            )
+            .get<any>(`${GLOBAL.url_zoosanitario}${this.endpoint}`, {
+                headers: this.getHeaders(),
+                params: httpParams,
+            })
             .pipe(
                 tap((data) =>
                     this.cacheService.set(cacheKey, data, this.cacheExpiry)
@@ -176,9 +202,9 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
             );
     }
 
-    getInspectionByNumber(numero: string): Observable<ExternalInspection> {
+    getInspectionByNumber(numero: string): Observable<any> {
         const cacheKey = `${this.endpoint}_number_${numero}`;
-        const cachedData = this.cacheService.get<ExternalInspection>(cacheKey);
+        const cachedData = this.cacheService.get<any>(cacheKey);
 
         if (cachedData) {
             return new Observable((observer) => {
@@ -188,7 +214,7 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
         }
 
         return this.http
-            .get<ExternalInspection>(
+            .get<any>(
                 `${GLOBAL.url_zoosanitario}${this.endpoint}/numero/${numero}`,
                 {
                     headers: this.getHeaders(),
@@ -326,7 +352,6 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
     }
 
     // Nuevos métodos específicos para cada fase
-
     getReceptionInspections(
         receptionId: string
     ): Observable<ExternalInspection[]> {
@@ -418,7 +443,7 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
             );
     }
 
-    // Método corregido para obtener estadísticas con fechas
+    // Método MEJORADO para obtener estadísticas con filtros correctos
     getStatistics(filters: any = {}, cache: boolean = true): Observable<any> {
         const cacheKey = `${this.endpoint}_stats_${JSON.stringify(filters)}`;
         const cachedData = this.cacheService.get<any>(cacheKey);
@@ -430,26 +455,30 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
             });
         }
 
-        // Construir parámetros para estadísticas
-        let params: any = {};
+        // Construir HttpParams para estadísticas
+        let httpParams = new HttpParams();
 
         // Incluir todos los filtros directamente como parámetros
         Object.keys(filters).forEach((key) => {
-            if (
-                filters[key] !== undefined &&
-                filters[key] !== null &&
-                filters[key] !== ''
-            ) {
-                params[key] = filters[key];
+            const value = filters[key];
+            if (value !== undefined && value !== null && value !== '') {
+                if (value instanceof Date) {
+                    httpParams = httpParams.set(key, value.toISOString());
+                } else {
+                    httpParams = httpParams.set(key, value.toString());
+                }
             }
         });
 
-        console.log('Parámetros de estadísticas enviados:', params);
+        console.log(
+            'Parámetros de estadísticas enviados:',
+            httpParams.toString()
+        );
 
         return this.http
             .get<any>(`${GLOBAL.url_zoosanitario}${this.endpoint}/statistics`, {
                 headers: this.getHeaders(),
-                params,
+                params: httpParams,
             })
             .pipe(
                 tap((data) =>
@@ -467,39 +496,51 @@ export class ExternalInspectionService extends BaseService<ExternalInspection> {
             );
     }
 
-    getImage(imageId: string): Observable<string> {
-        // Cambiado nombre del método
-        return this.image(imageId, 'inspecciones-externas'); // Cambiado nombre del método
-    }
+    // NUEVO: Método para obtener reporte diario
+    getDailyReport(
+        date: string,
+        phase: 'recepcion' | 'anteMortem' = 'recepcion',
+        cache: boolean = false
+    ): Observable<DailyReport> {
+        const cacheKey = `${this.endpoint}_daily_report_${date}_${phase}`;
+        const cachedData = this.cacheService.get<DailyReport>(cacheKey);
 
-    /*getReceptionSummary(receptionId: string): Observable<InspectionSummary> {
-        const cacheKey = `${this.endpoint}_summary_${receptionId}`;
-        const cachedData = this.cacheService.get<InspectionSummary>(cacheKey);
-
-        if (cachedData) {
+        if (cache && cachedData) {
             return new Observable((observer) => {
                 observer.next(cachedData);
                 observer.complete();
             });
         }
 
+        let httpParams = new HttpParams().set('date', date).set('phase', phase);
+
         return this.http
-            .get<InspectionSummary>(
-                `${GLOBAL.url_zoosanitario}${this.endpoint}/recepcion/${receptionId}/resumen`,
-                { headers: this.getHeaders() }
+            .get<DailyReport>(
+                `${GLOBAL.url_zoosanitario}${this.endpoint}/daily-report`,
+                {
+                    headers: this.getHeaders(),
+                    params: httpParams,
+                }
             )
             .pipe(
-                tap((data) =>
-                    this.cacheService.set(cacheKey, data, this.cacheExpiry)
-                ),
+                tap((data) => {
+                    if (cache) {
+                        this.cacheService.set(cacheKey, data, this.cacheExpiry);
+                    }
+                }),
                 catchError((error) => {
+                    console.error('Error obteniendo reporte diario:', error);
                     this.messageService.add({
                         severity: 'error',
                         summary: 'Error',
-                        detail: 'Error al obtener resumen de recepción',
+                        detail: 'Error al obtener reporte diario',
                     });
                     throw error;
                 })
             );
-    }*/
+    }
+
+    getImage(imageId: string): Observable<string> {
+        return this.image(imageId, 'inspecciones-externas');
+    }
 }

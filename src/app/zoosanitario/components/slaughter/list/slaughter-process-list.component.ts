@@ -140,10 +140,10 @@ export class SlaughterProcessListComponent implements OnInit, OnDestroy {
                 finalize(() => (this.loading = false))
             )
             .subscribe({
-                next: (response: PaginatedResponse<SlaughterProcess>) => {
+                next: (response: any) => {
                     console.log('Procesos encontrados:', response);
-                    this.processes = response.docs;
-                    this.totalProcesses = response.totalDocs;
+                    this.processes = response.slaughterProcesses;
+                    this.totalProcesses = response.pagination.totalDocs;
                     this.currentPage = response.page - 1;
                 },
                 error: (error) => {

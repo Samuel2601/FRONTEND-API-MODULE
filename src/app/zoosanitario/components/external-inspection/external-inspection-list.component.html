@@ -60,16 +60,18 @@
                 </div>
 
                 <!-- Botón Limpiar Búsqueda 
+              
+                -->
                 <p-button
                     icon="pi pi-plus"
-                    label="Nueva Inspección"
+                    label="Reporte Diario"
                     severity="success"
-                    (onClick)="createNewInspection()"
-                    pTooltip="Crear nueva inspección"
+                    (onClick)="printDailyReport()"
+                    pTooltip="Descargar reporte diario"
                     styleClass="new-inspection-btn"
                 >
-                </p-button> 
-                -->
+                </p-button>
+
                 <p-button
                     *ngIf="isSpecificView()"
                     icon="pi pi-filter-slash"

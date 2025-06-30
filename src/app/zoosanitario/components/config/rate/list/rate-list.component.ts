@@ -95,9 +95,9 @@ export class RateListComponent implements OnInit {
         this.rateService
             .getRatesWithPagination(this.filters, paginationOptions, skipCache)
             .subscribe({
-                next: (response) => {
+                next: (response: any) => {
                     console.log('Respuesta del servidor:', response);
-                    this.rates = response.data || [];
+                    this.rates = response.data.rates || [];
                     this.totalRecords = response.pagination?.totalDocs || 0;
                     this.loading = false;
                 },

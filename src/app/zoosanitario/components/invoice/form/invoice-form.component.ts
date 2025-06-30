@@ -371,7 +371,7 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
                 }
 
                 this.calculationError = true;
-                this.calculateManually();
+                //this.calculateManually();
                 return of(null);
             }),
             takeUntil(this.destroy$)
@@ -474,31 +474,15 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
         }).subscribe({
             next: (data: any) => {
                 console.log('Datos cargados:', data);
-                this.rates_const = data.rates;
 
-                this.rates = this.rates_const.filter(
-                    (rate) => rate.invoiceConfig?.allowInvoice === true
-                );
+                // Procesar rates
+                this.processRatesData(data.rates);
 
-                // Extract introducers from paginated response
-                if (data.introducers?.data?.introducers) {
-                    this.introducers = data.introducers.data.introducers;
-                } else if (Array.isArray(data.introducers)) {
-                    this.introducers = data.introducers;
-                } else {
-                    this.introducers = [];
-                }
-                this.filteredIntroducers = [...this.introducers];
+                // Procesar introducers
+                this.processIntroducersData(data.introducers);
 
-                // Extract slaughter processes from paginated response
-                if (data.slaughterProcesses?.docs) {
-                    this.slaughterProcesses = data.slaughterProcesses.docs;
-                } else if (Array.isArray(data.slaughterProcesses)) {
-                    this.slaughterProcesses = data.slaughterProcesses;
-                } else {
-                    this.slaughterProcesses = [];
-                }
-                this.filteredSlaughterProcesses = [...this.slaughterProcesses];
+                // Procesar slaughter processes
+                this.processSlaughterProcessesData(data.slaughterProcesses);
 
                 console.log('Introducers cargados:', this.introducers);
                 console.log('Rates filtrados (allowInvoice=true):', this.rates);
@@ -526,19 +510,100 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
             },
             error: (error) => {
                 console.error('Error loading initial data:', error);
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: 'No se pudieron cargar los datos iniciales',
-                });
-                this.loading = false;
-                this.loadingRates = false;
-                this.introducers = [];
-                this.filteredIntroducers = [];
-                this.slaughterProcesses = [];
-                this.filteredSlaughterProcesses = [];
+                this.handleDataLoadingError();
             },
         });
+    }
+
+    private processRatesData(ratesData: any) {
+        // La estructura esperada es rates.rates
+        if (ratesData?.rates && Array.isArray(ratesData.rates)) {
+            this.rates_const = ratesData.rates;
+        } else if (Array.isArray(ratesData)) {
+            this.rates_const = ratesData;
+        } else {
+            console.warn('Estructura de rates no reconocida:', ratesData);
+            this.rates_const = [];
+        }
+
+        // Filtrar solo los rates que permiten facturación
+        this.rates = this.rates_const.filter(
+            (rate) => rate.invoiceConfig?.allowInvoice === true
+        );
+    }
+
+    private processIntroducersData(introducersData: any) {
+        // Manejar múltiples estructuras posibles
+        if (
+            introducersData?.data?.introducers &&
+            Array.isArray(introducersData.data.introducers)
+        ) {
+            // Estructura: { data: { introducers: [...] } }
+            this.introducers = introducersData.data.introducers;
+        } else if (
+            introducersData?.introducers &&
+            Array.isArray(introducersData.introducers)
+        ) {
+            // Estructura: { introducers: [...] }
+            this.introducers = introducersData.introducers;
+        } else if (Array.isArray(introducersData)) {
+            // Array directo
+            this.introducers = introducersData;
+        } else {
+            console.warn(
+                'Estructura de introducers no reconocida:',
+                introducersData
+            );
+            this.introducers = [];
+        }
+
+        this.filteredIntroducers = [...this.introducers];
+    }
+
+    private processSlaughterProcessesData(slaughterProcessesData: any) {
+        // Manejar múltiples estructuras posibles
+        if (
+            slaughterProcessesData?.slaughterProcesses &&
+            Array.isArray(slaughterProcessesData.slaughterProcesses)
+        ) {
+            // Estructura que estás recibiendo: { slaughterProcesses: [...] }
+            this.slaughterProcesses = slaughterProcessesData.slaughterProcesses;
+        } else if (
+            slaughterProcessesData?.docs &&
+            Array.isArray(slaughterProcessesData.docs)
+        ) {
+            // Estructura paginada con docs: { docs: [...] }
+            this.slaughterProcesses = slaughterProcessesData.docs;
+        } else if (Array.isArray(slaughterProcessesData)) {
+            // Array directo
+            this.slaughterProcesses = slaughterProcessesData;
+        } else {
+            console.warn(
+                'Estructura de slaughterProcesses no reconocida:',
+                slaughterProcessesData
+            );
+            this.slaughterProcesses = [];
+        }
+
+        this.filteredSlaughterProcesses = [...this.slaughterProcesses];
+    }
+
+    private handleDataLoadingError() {
+        this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudieron cargar los datos iniciales',
+        });
+        this.loading = false;
+        this.loadingRates = false;
+
+        // Inicializar arrays vacíos para evitar errores
+        this.introducers = [];
+        this.filteredIntroducers = [];
+        this.slaughterProcesses = [];
+        this.filteredSlaughterProcesses = [];
+        this.rates = [];
+        this.rates_const = [];
     }
 
     private generateTypeOptionsFromRates() {
@@ -1039,7 +1104,7 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
         const item = this.fb.group({
             rateId: [itemData?.rateId || rate?._id || null],
             description: [
-                itemData?.description || rate?.description || '',
+                itemData?.description || rate?.rubroxAtributo || '',
                 Validators.required,
             ],
             quantity: [
