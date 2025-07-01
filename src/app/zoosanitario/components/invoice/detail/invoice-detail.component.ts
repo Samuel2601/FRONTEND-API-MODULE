@@ -1,6 +1,12 @@
 // src/app/demo/components/invoice/invoice-detail/invoice-detail.component.ts
 
-import { Component, HostListener, OnInit, signal } from '@angular/core';
+import {
+    Component,
+    HostListener,
+    OnDestroy,
+    OnInit,
+    signal,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { Invoice } from '../../../interfaces/invoice.interface';
@@ -10,6 +16,9 @@ import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { ImportsModule } from 'src/app/demo/services/import';
+import { OracleCredentialsManagerService } from 'src/app/zoosanitario/services/oracle-credentials-manager.service';
+import { OracleCredentialsDialogComponent } from '../../config/oracle-credendials/oracle-credentials-dialog-component';
+import { Subject, takeUntil } from 'rxjs';
 
 interface InvoiceEvent {
     status: string;
@@ -22,12 +31,12 @@ interface InvoiceEvent {
 @Component({
     selector: 'app-invoice-detail',
     standalone: true,
-    imports: [ImportsModule],
+    imports: [ImportsModule, OracleCredentialsDialogComponent],
     providers: [MessageService, ConfirmationService],
     templateUrl: './invoice-detail.component.html',
     styleUrls: ['./invoice-detail.component.scss'],
 })
-export class InvoiceDetailComponent implements OnInit {
+export class InvoiceDetailComponent implements OnInit, OnDestroy {
     invoice = signal<Invoice | null>(null);
     loading = signal(true);
     invoiceId: string = '';
@@ -47,9 +56,53 @@ export class InvoiceDetailComponent implements OnInit {
         private invoiceService: InvoiceService,
         private messageService: MessageService,
         private oracleService: OracleService,
-        private confirmationService: ConfirmationService
+        private confirmationService: ConfirmationService,
+        private oracleCredentialsManager: OracleCredentialsManagerService
     ) {
         this.checkScreenSize();
+    }
+
+    private destroy$ = new Subject<void>();
+
+    ngOnDestroy() {
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
+
+    showCredentialsDialogFlag = false;
+
+    private subscribeToCredentialsDialog() {
+        // Suscribirse al estado del diálogo de credenciales
+        this.oracleCredentialsManager.showCredentialsDialog$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe((show) => {
+                this.showCredentialsDialogFlag = show;
+            });
+    }
+
+    onCredentialsConfigured() {
+        this.oracleCredentialsManager.notifyCredentialsConfigured();
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Credenciales Configuradas',
+            detail: 'Las credenciales de Oracle han sido configuradas exitosamente.',
+            life: 3000,
+        });
+    }
+
+    onCredentialsCancelled() {
+        this.oracleCredentialsManager.notifyCredentialsCancelled();
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Configuración Cancelada',
+            detail: 'La configuración de credenciales ha sido cancelada.',
+            life: 3000,
+        });
+    }
+
+    // Método para mostrar manualmente el diálogo de credenciales
+    showCredentialsDialog() {
+        this.oracleCredentialsManager.showCredentialsDialog();
     }
 
     // Señal para controlar el layout del timeline
@@ -81,6 +134,8 @@ export class InvoiceDetailComponent implements OnInit {
         if (this.invoiceId) {
             this.loadInvoice();
         }
+
+        this.subscribeToCredentialsDialog();
     }
 
     loadInvoice(forceRefresh: boolean = false) {
@@ -236,6 +291,8 @@ export class InvoiceDetailComponent implements OnInit {
         this.router.navigate(['/zoosanitario/invoices']);
     }
 
+    // Método issueInvoice() actualizado en invoice-detail.component.ts
+
     issueInvoice() {
         this.confirmationService.confirm({
             message:
@@ -246,8 +303,15 @@ export class InvoiceDetailComponent implements OnInit {
             rejectLabel: 'Cancelar',
             accept: () => {
                 this.processingAction.set(true);
-                this.oracleService
-                    .createInvoiceEmiaut(this.invoiceId)
+
+                // USAR EL CREDENTIALS MANAGER para manejar automáticamente las credenciales
+                this.oracleCredentialsManager
+                    .executeWithCredentials(() =>
+                        this.oracleService.createInvoiceEmiaut(this.invoiceId)
+                    )
+                    .pipe(
+                        takeUntil(this.destroy$) // Para evitar memory leaks
+                    )
                     .subscribe({
                         next: (response: any) => {
                             console.log('Oracle emission response:', response);
@@ -274,13 +338,22 @@ export class InvoiceDetailComponent implements OnInit {
                         },
                         error: (error) => {
                             console.error('Oracle emission error:', error);
-                            this.messageService.add({
-                                severity: 'error',
-                                summary: 'Error',
-                                detail: 'Error al emitir la proforma en Oracle',
-                                life: 5000,
-                            });
-                            this.processingAction.set(false);
+
+                            // El credentials manager ya manejó el error de credenciales
+                            // Solo manejamos otros tipos de errores aquí
+                            if (!error.needsCredentials) {
+                                this.messageService.add({
+                                    severity: 'error',
+                                    summary: 'Error',
+                                    detail:
+                                        error.error?.message ||
+                                        'Error al emitir la proforma en Oracle',
+                                    life: 5000,
+                                });
+                                this.processingAction.set(false);
+                            }
+                            // Si error.needsCredentials es true, el diálogo ya se mostró automáticamente
+                            // y cuando se configuren las credenciales, se reintentará automáticamente
                         },
                     });
             },

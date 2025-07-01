@@ -591,3 +591,12 @@
         </ng-template>
     </p-dialog>
 </div>
+
+<!-- Diálogo de Credenciales Oracle -->
+<app-oracle-credentials-dialog
+    *ngIf="showCredentialsDialogFlag"
+    [(visible)]="showCredentialsDialogFlag"
+    (credentialsConfigured)="onCredentialsConfigured()"
+    (cancelled)="onCredentialsCancelled()"
+>
+</app-oracle-credentials-dialog>
