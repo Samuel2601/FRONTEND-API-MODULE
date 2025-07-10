@@ -148,7 +148,7 @@ export class IntroducerService extends BaseService<Introducer> {
         return this.http
             .put<ApiResponse<Introducer>>(
                 `${this.url}${this.endpoint}/${introducerId}/${status}`,
-                //{ status },
+                {},
                 { headers: this.getHeaders() }
             )
             .pipe(
@@ -248,5 +248,26 @@ export class IntroducerService extends BaseService<Introducer> {
             `${this.url}${this.endpoint}/stats/overview`,
             { headers: this.getHeaders() }
         );
+    }
+
+    ///register-user
+    registerUser(): Observable<ApiResponse<any>> {
+        return this.http
+            .post<ApiResponse<any>>(
+                `${this.url}${this.endpoint}/register-user`,
+                {},
+                {
+                    headers: this.getHeaders(),
+                }
+            )
+            .pipe(
+                map((response) => ({
+                    ...response,
+                    data: {
+                        ...response.data,
+                        lastUpdated: new Date(),
+                    },
+                }))
+            );
     }
 }

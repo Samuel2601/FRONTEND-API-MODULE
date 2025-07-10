@@ -16,6 +16,8 @@ import { MostrarFichasArticulosComponent } from '../mostrar-fichas-articulos/mos
 import { GLOBAL } from 'src/app/demo/services/GLOBAL';
 import { SocketService } from 'src/app/demo/services/socket.io.service';
 import { HttpClient } from '@angular/common/http';
+import { IntroducerService } from 'src/app/zoosanitario/services/introducer.service';
+import { ConfirmationService, MessageService } from 'primeng/api';
 @Component({
     selector: 'app-home',
     standalone: true,
@@ -30,6 +32,7 @@ import { HttpClient } from '@angular/common/http';
     ],
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss',
+    providers: [MessageService, ConfirmationService],
 })
 export class HomeComponent implements OnInit {
     @ViewChild('mapaMostrarFichasRef')
@@ -55,7 +58,10 @@ export class HomeComponent implements OnInit {
         private router: Router,
         private auth: AuthService,
         private socket: SocketService,
-        private http: HttpClient
+        private http: HttpClient,
+        private introducerService: IntroducerService,
+        private confirmationService: ConfirmationService,
+        private messageService: MessageService
     ) {
         //socket.inicializador();
         this.incidencia = this.fb.group({
@@ -132,6 +138,83 @@ export class HomeComponent implements OnInit {
     showButtonInfo(button: any) {
         this.buttonObjetc = button;
         this.isDialogButton = true;
+    }
+
+    async registrarseComoIntroductor() {
+        // Primera confirmación
+        this.confirmationService.confirm({
+            message:
+                '¿Está seguro que desea registrarse como introductor en el Camal Municipal?',
+            header: 'Confirmación de Registro',
+            icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Continuar',
+            rejectLabel: 'Cancelar',
+            accept: () => {
+                console.log('Aceptar registro como introductor');
+                setTimeout(() => {
+                    // Segunda confirmación sobre la tarifa
+                    this.confirmationService.confirm({
+                        message:
+                            'IMPORTANTE: El registro como introductor genera una tarifa de inscripción que deberá cancelar. ¿Desea continuar?',
+                        header: 'Confirmación de Tarifa',
+                        icon: 'pi pi-info-circle',
+                        acceptLabel: 'Sí, continuar',
+                        rejectLabel: 'No, cancelar',
+                        acceptButtonStyleClass: 'p-button-warning',
+                        accept: async () => {
+                            console.log('Aceptar tarifa');
+                            await this.procesarRegistroIntroductor();
+                        },
+                    });
+                }, 1000);
+            },
+        });
+    }
+
+    private async procesarRegistroIntroductor() {
+        // Mostrar loading
+        this.helperService.llamarspinner('Procesando registro...');
+
+        this.introducerService.registerUser().subscribe({
+            next: (response) => {
+                console.log('Registro de introductor exitoso:', response);
+                this.helperService.cerrarspinner('Procesando registro...');
+
+                if (response.data && response.data.Introducer) {
+                    // Éxito - redirigir a la vista del introductor
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Registro Exitoso',
+                        detail: 'Se ha completado su registro como introductor exitosamente.',
+                    });
+
+                    // Redirigir después de un breve delay para mostrar el mensaje
+                    setTimeout(() => {
+                        this.router.navigate([
+                            '/zoosanitario/introducers/view',
+                            response.data.Introducer._id,
+                        ]);
+                    }, 1500);
+                } else {
+                    // Respuesta sin _id
+                    this.messageService.add({
+                        severity: 'info',
+                        summary: 'Registro Procesado',
+                        detail: 'Su solicitud de registro ha sido procesada. Recibirá información adicional pronto.',
+                    });
+                }
+            },
+            error: (error) => {
+                this.helperService.cerrarspinner('Procesando registro...');
+                console.error('Error en registro de introductor:', error);
+
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error en el Registro',
+                    detail: error.error.message,
+                });
+            },
+        });
     }
 
     cortarTexto(texto: string, max: number = 50): string {
@@ -462,6 +545,21 @@ export class HomeComponent implements OnInit {
                     {
                         label: 'Otros Servicios',
                         items: [
+                            {
+                                label: 'Camal Municipal',
+                                info: 'Regístrese como introductor para acceder a los servicios del Camal Municipal.',
+                                icon: 'https://i.postimg.cc/j2NqXyTZ/camal-icon.png', // Puedes cambiar este icono
+                                showInfo: false,
+                                style: false,
+                                command: async () => {
+                                    // Verificar si el usuario está autenticado
+                                    if (this.auth.token()) {
+                                        this.registrarseComoIntroductor();
+                                    } else {
+                                        this.auth.redirectToLoginIfNeeded(true);
+                                    }
+                                },
+                            },
                             {
                                 label: 'Tramites Municipal',
                                 info: 'Descubre otros servicios disponibles para ti.',
