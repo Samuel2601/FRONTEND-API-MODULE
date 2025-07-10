@@ -461,16 +461,22 @@ export class InvoiceFormComponent implements OnInit, OnDestroy {
         this.loading = true;
 
         forkJoin({
-            rates: this.rateService.getAll(),
-            introducers: this.introducerService.getAll({
-                limit: 1000,
-                page: 1,
-            }),
-            slaughterProcesses:
-                this.slaughterProcessService.getActiveSlaughterProcesses({
+            rates: this.rateService.getAll(null, false),
+            introducers: this.introducerService.getAll(
+                {
                     limit: 1000,
                     page: 1,
-                }),
+                },
+                false
+            ),
+            slaughterProcesses:
+                this.slaughterProcessService.getActiveSlaughterProcesses(
+                    {
+                        limit: 1000,
+                        page: 1,
+                    },
+                    false
+                ),
         }).subscribe({
             next: (data: any) => {
                 console.log('Datos cargados:', data);

@@ -69,13 +69,16 @@ export class RateService extends BaseService<Rate> {
      * Obtener todas las tarifas con filtros opcionales
      * Sobrescribe el método del BaseService para manejar la respuesta con formato ApiResponse
      */
-    override getAll(filters?: RateFilters): Observable<Rate[]> {
+    override getAll(
+        filters?: RateFilters,
+        cache: boolean = true
+    ): Observable<Rate[]> {
         const cacheKey = `${this.endpoint}_all_filtered_${JSON.stringify(
             filters
         )}`;
         const cachedData = this.cacheService.get<Rate[]>(cacheKey);
 
-        if (cachedData) {
+        if (cachedData && cache) {
             return of(cachedData);
         }
 

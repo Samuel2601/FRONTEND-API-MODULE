@@ -572,7 +572,8 @@ export class SlaughterProcessService extends BaseService<SlaughterProcess> {
      * Obtener procesos activos
      */
     getActiveSlaughterProcesses(
-        queryParams: any = {}
+        queryParams: any = {},
+        cache: boolean = true
     ): Observable<PaginatedResponse<SlaughterProcess>> {
         const cacheKey = `${this.endpoint}_active_${JSON.stringify(
             queryParams
@@ -582,7 +583,7 @@ export class SlaughterProcessService extends BaseService<SlaughterProcess> {
                 cacheKey
             );
 
-        if (cachedData) {
+        if (cachedData && cache) {
             return of(cachedData);
         }
 
